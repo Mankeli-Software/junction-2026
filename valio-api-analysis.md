@@ -125,8 +125,6 @@ Coverage notes:
 2. What does an empty `scheduleLines` mean for a product, and how common is it in the real system?
 3. Is `Terminal` stock ever confirmable, or should agents always treat it as unverified?
 4. Legend for the Synkka allergen codes, category codes, `temperatureCondition` and unit codes (or confirmation that we should infer them).
-5. Should quotes be net or gross of VAT in the demo?
-6. Are webshop test accounts or sample customers coming?
 
 ## 10. Suggested demo data to prepare
 
