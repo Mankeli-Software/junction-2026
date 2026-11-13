@@ -44,7 +44,7 @@ Response per product (all `catalogPrice`, `priceWithTax`, `comparisonPrice`, `li
 
 Implications:
 
-- Convert to integer cents on ingest. Keep decimal arithmetic. Decide whether quotes are net of VAT, gross, or both. The API exposes both.
+- Convert to integer cents on ingest. Keep decimal arithmetic. **Decision: quotes are gross (VAT included).** The quoted unit price is `valueWithTax`; net (`value`) and the VAT amount are kept for display. Verified on product 464073: `value` 1.64 is net, `valueWithTax` 1.86 is gross at 13.5% VAT.
 - Per-unit price of a sales unit (for example a case `KI` of 10) is not per litre. Use `comparisonPrice` only for comparing products, and compute order lines from the sales unit price.
 - Fixed-price quotes are our own construct. The API gives only the current price.
 
@@ -170,7 +170,7 @@ So the two live APIs agree with each other and the product file's `salesUnit` is
 - Real finite quantities are small, so partial-stock cases are easy to demo with real data.
 
 ### Headline scenario: "1,000 litres of lactose-free milk"
-Category `10400` is milk drinks (it also contains sour milk and coffee drinks). 35 products there carry the lactose-free claim. Real examples (prices net of VAT, delivery 2026-11-16):
+Category `10400` is milk drinks (it also contains sour milk and coffee drinks). 35 products there carry the lactose-free claim. Real examples (prices below are net of VAT, delivery 2026-11-16; quotes will use the gross price):
 
 | Product | Sale unit | Availability | Price | Per litre |
 |---|---|---|---|---|
