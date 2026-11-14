@@ -8,6 +8,7 @@
 	 * `request_confirmation` the page only points to the demo phone (vision §8).
 	 */
 	import { onMount } from 'svelte';
+	import ShopChat, { type ChatAccount } from '#lib/chat/ShopChat.svelte';
 	import { ApiError, createAccount, getMe } from '#lib/demo/api.js';
 	import Icon from '#lib/demo/components/Icon.svelte';
 	import NumberEntry from '#lib/demo/components/NumberEntry.svelte';
@@ -32,7 +33,9 @@
 
 	// Identity: the same demo account and session cookie as /phone.
 	let ready = $state(false);
-	let account = $state<{ company_name: string; phone_masked: string } | null>(null);
+	let account = $state<ChatAccount | null>(null);
+	/** S.I.MO's chat panel (#57). While it is open, its own number entry is the one shown. */
+	let chatOpen = $state(false);
 	let editing = $state(false);
 	let values = $state<SetupValues>({ countryCode: '+358', number: '', exclusions: [] });
 	let busy = $state(false);
@@ -73,7 +76,7 @@
 		if (stored.values) values = stored.values;
 		try {
 			const me = await getMe();
-			account = { company_name: me.company_name, phone_masked: me.phone_masked };
+			account = { company_name: me.company_name, phone_masked: me.phone_masked, exclusions: me.exclusions ?? [] };
 		} catch {
 			account = null;
 		}
@@ -86,7 +89,7 @@
 		entryError = null;
 		try {
 			const created = await createAccount({ phone_e164: e164, exclusions: next.exclusions, lang });
-			account = created;
+			account = { company_name: created.company_name, phone_masked: created.phone_masked, exclusions: created.exclusions ?? [] };
 			// The server may have filled in the kitchen type's defaults (#81).
 			values = { ...next, exclusions: created.exclusions };
 			editing = false;
@@ -179,7 +182,7 @@
 				</section>
 			{/if}
 
-			<section class="card who" class:open={ready && (!account || editing)} data-testid="identity">
+			<section class="card who" class:open={ready && (!account || editing) && !chatOpen} data-testid="identity">
 				{#if !ready}
 					<div class="blank"></div>
 				{:else if account && !editing}
@@ -189,6 +192,9 @@
 					<button type="button" class="link-button" onclick={() => (editing = true)}>
 						{t(lang, 'changeNumber')}
 					</button>
+				{:else if chatOpen}
+					<h2 class="hd">{t(lang, 'whoTitle')}</h2>
+					<p>{t(lang, 'whoText')}</p>
 				{:else}
 					<h2 class="hd">{t(lang, 'whoTitle')}</h2>
 					<p>{t(lang, 'whoText')}</p>
@@ -253,6 +259,17 @@
 			</div>
 		</section>
 	</main>
+
+	<ShopChat
+		{lang}
+		{ready}
+		{account}
+		{values}
+		{busy}
+		{entryError}
+		onsubmit={submit}
+		bind:open={chatOpen}
+	/>
 
 	<footer class="foot">
 		<div class="inner">
@@ -518,7 +535,8 @@
 	}
 	.foot .inner {
 		padding-top: 18px;
-		padding-bottom: 22px;
+		/* Room for the chat launcher in the corner. */
+		padding-bottom: 88px;
 		display: flex;
 		flex-wrap: wrap;
 		gap: 4px 10px;
