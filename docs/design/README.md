@@ -83,7 +83,7 @@ Flow: overview → order summary → full flow → audit log.
 
 ### 4. Webshop chat (stretch)
 
-Spec: [`webshop-chat.md`](../specs/webshop-chat.md). S.I.MO in a panel on top of the scraped webshop page.
+Spec: [`webshop-chat.md`](../specs/webshop-chat.md). S.I.MO in a panel on top of our own webshop page in the Aimo style (#56).
 
 Flow: ask for a weekly menu → swap a day → build order → send to phone → confirmation page.
 
