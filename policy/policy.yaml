@@ -9,7 +9,7 @@ confirmation: always
 # production would use for example 1800.
 quote_ttl_seconds: null
 
-# Longest phone call before the relay ends it (proposed, the spec leaves it open).
+# Longest phone call before the relay ends it (decided 2026-11-14: a warning at 9:00, a hard stop at 10:00, #52).
 max_call_seconds: 600
 
 # How long a fetched price or availability stays usable (vision §10).
