@@ -604,6 +604,56 @@
 				}
 			}
 		},
+		"/api/v1/recipe-drafts/read": {
+			"post": {
+				"tags": [
+					"recipe drafts"
+				],
+				"summary": "Read Recipe Photo",
+				"description": "Read a recipe photo into a new draft for the buyer to check and confirm. The photo\nis never stored; the draft keeps the SHA-256 of the normalised image.",
+				"operationId": "read_recipe_photo_api_v1_recipe_drafts_read_post",
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"$ref": "#/components/schemas/Body_read_recipe_photo_api_v1_recipe_drafts_read_post"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecipeDraft"
+								}
+							}
+						}
+					},
+					"413": {
+						"description": "The photo is over RECIPE_PHOTO_MAX_MB"
+					},
+					"415": {
+						"description": "Not a JPEG, PNG, WebP or HEIC photo"
+					},
+					"422": {
+						"description": "No recipe found in the photo"
+					},
+					"502": {
+						"description": "The reading failed"
+					},
+					"503": {
+						"description": "Photo reading is not set up (no vision model)"
+					},
+					"504": {
+						"description": "The reading took too long"
+					}
+				}
+			}
+		},
 		"/api/v1/recipe-drafts/{draft_id}": {
 			"get": {
 				"tags": [
@@ -2168,6 +2218,33 @@
 				],
 				"title": "AuditEvent",
 				"description": "A full redacted event, as `/events` returns it. The payload shape depends on `type`.\n\n`payload_hash` covers `{payload, text_fi, text_en}` exactly as stored (docs/audit-chain.md),\nso the raw sentences are here too, null when the event has none; `text` turns a null into\nan empty string for display. `payload` is null when it was deleted after the event."
+			},
+			"Body_read_recipe_photo_api_v1_recipe_drafts_read_post": {
+				"properties": {
+					"photo": {
+						"type": "string",
+						"contentMediaType": "application/octet-stream",
+						"title": "Photo"
+					},
+					"portions": {
+						"anyOf": [
+							{
+								"type": "integer",
+								"maximum": 1000.0,
+								"minimum": 1.0
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Portions"
+					}
+				},
+				"type": "object",
+				"required": [
+					"photo"
+				],
+				"title": "Body_read_recipe_photo_api_v1_recipe_drafts_read_post"
 			},
 			"BuildQuoteRequest": {
 				"properties": {

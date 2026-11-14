@@ -124,6 +124,12 @@ class Settings(BaseSettings):
     # MCP_ALLOWED_HOSTS lets through.
     voice_mcp_url: str = "http://localhost:8000/mcp"
 
+    # Reading a recipe photo in the webshop chat (#80). The Gemini model is picked in the
+    # plan's phase 0; while it is empty, POST /api/v1/recipe-drafts/read answers 503.
+    recipe_vision_model: str = ""
+    # The largest photo upload, in megabytes. Bigger ones get 413.
+    recipe_photo_max_mb: int = 100
+
     sms_twilio_enabled: bool = False
     # Comma-separated phone numbers in E.164 form that may get a real SMS.
     sms_allowlist: str = ""

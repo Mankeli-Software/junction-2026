@@ -220,6 +220,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recipe-drafts/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read Recipe Photo
+         * @description Read a recipe photo into a new draft for the buyer to check and confirm. The photo
+         *     is never stored; the draft keeps the SHA-256 of the normalised image.
+         */
+        post: operations["read_recipe_photo_api_v1_recipe_drafts_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/recipe-drafts/{draft_id}": {
         parameters: {
             query?: never;
@@ -806,6 +827,13 @@ export interface components {
             text_fi?: string | null;
             /** Text En */
             text_en?: string | null;
+        };
+        /** Body_read_recipe_photo_api_v1_recipe_drafts_read_post */
+        Body_read_recipe_photo_api_v1_recipe_drafts_read_post: {
+            /** Photo */
+            photo: string;
+            /** Portions */
+            portions?: number | null;
         };
         /**
          * BuildQuoteRequest
@@ -2490,6 +2518,72 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    read_recipe_photo_api_v1_recipe_drafts_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_read_recipe_photo_api_v1_recipe_drafts_read_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDraft"];
+                };
+            };
+            /** @description The photo is over RECIPE_PHOTO_MAX_MB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not a JPEG, PNG, WebP or HEIC photo */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No recipe found in the photo */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The reading failed */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Photo reading is not set up (no vision model) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The reading took too long */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
