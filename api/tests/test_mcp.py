@@ -10,6 +10,8 @@ TOOL_NAMES = {
     "get_customer_context",
     "search_recipes",
     "get_recipe",
+    "propose_recipe",
+    "confirm_recipe",
     "build_quote",
     "update_quote",
     "request_confirmation",
@@ -20,7 +22,7 @@ LINE = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_b
 
 
 @pytest.mark.usefixtures("dev_caller")
-async def test_lists_exactly_the_eight_tools():
+async def test_lists_exactly_the_ten_tools():
     async with create_connected_server_and_client_session(mcp) as session:
         tools = (await session.list_tools()).tools
 

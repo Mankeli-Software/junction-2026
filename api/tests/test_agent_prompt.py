@@ -154,7 +154,7 @@ def test_backticked_names_match_the_contract():
 def test_tool_table_matches_the_contract():
     assert AGENT_TOOLS["build_quote"] is BuildQuoteRequest
     assert AGENT_TOOLS["update_quote"] is UpdateQuoteRequest
-    assert len(AGENT_TOOLS) == 8  # vision §8: seven rows, recipes are two tools
+    assert len(AGENT_TOOLS) == 10  # vision §8: recipes and recipe photos are two tools each
     assert END_CALL not in AGENT_TOOLS
 
 

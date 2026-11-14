@@ -1,4 +1,5 @@
-"""Recipe drafts (#80): propose, confirm, lines and quotes from a confirmed draft.
+"""Recipe drafts (#80): propose, confirm, lines, quotes from a confirmed draft, and the
+tools and routes.
 
 The `to_lines` tests need no database; the rest need DATABASE_URL.
 """
@@ -9,11 +10,15 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
+from fastapi.testclient import TestClient
+from mcp.shared.memory import create_connected_server_and_client_session
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from app import engine
 from app.interfaces.deps import DEV_CALLER
+from app.interfaces.mcp.server import mcp
+from app.main import app
 from app.models import AuditEvent, Quote, RecipeDraftRow
 from app.schemas import (
     BuildQuoteRequest,
@@ -564,3 +569,80 @@ async def test_a_quote_without_a_draft_stores_no_draft_reference(db, caller):
     quote = await db.get_one(Quote, uuid.UUID(response.quote_id))
     assert "recipe_drafts" not in quote.engine_input
     assert all(g.source is None for g in response.groups)
+
+
+# --- Tools and routes -------------------------------------------------------------------
+
+PROPOSAL = {
+    "dish": "Maitokahvi",
+    "portions": 40,
+    "servings_on_source": 4,
+    "ingredients": [
+        {"index": 0, "text": "maito", "amount": 2, "unit": "l"},
+        {"index": 1, "text": "vettä", "amount": 1, "unit": "l"},
+    ],
+    "source": "notebook",
+}
+
+
+@pytest.mark.usefixtures("dev_caller")
+async def test_propose_and_confirm_over_mcp_then_quote(app_db: AsyncEngine):
+    async with create_connected_server_and_client_session(mcp) as client:
+        proposed = await client.call_tool("propose_recipe", PROPOSAL)
+        draft_id = proposed.structuredContent["draft_id"]
+        early = await client.call_tool(
+            "build_quote", {"recipe_draft_id": draft_id, "needed_by": DAY.isoformat()}
+        )
+        confirmed = await client.call_tool("confirm_recipe", {"draft_id": draft_id})
+        quote = await client.call_tool(
+            "build_quote", {"recipe_draft_id": draft_id, "needed_by": DAY.isoformat()}
+        )
+
+    assert not proposed.isError, proposed.content
+    assert proposed.structuredContent["ingredients"][1]["order"] is False
+    assert early.isError and "confirm the recipe" in early.content[0].text
+    assert confirmed.structuredContent["status"] == "confirmed"
+    assert quote.structuredContent["groups"][0]["source"] == "photo"
+    async with AsyncSession(app_db) as db:
+        row = await db.get_one(RecipeDraftRow, uuid.UUID(draft_id))
+        types = list(
+            await db.scalars(
+                select(AuditEvent.type)
+                .where(AuditEvent.session_id == row.session_id)
+                .order_by(AuditEvent.seq)
+            )
+        )
+    assert types[:4] == ["session_started", "tool_called", "recipe_read", "tool_returned"]
+    assert "recipe_confirmed" in types
+
+
+@pytest.mark.usefixtures("app_db", "dev_caller")
+def test_recipe_draft_routes():
+    client = TestClient(app)
+
+    proposed = client.post("/api/v1/recipe-drafts", json=PROPOSAL)
+    assert proposed.status_code == 200, proposed.text
+    draft_id = proposed.json()["draft_id"]
+    assert client.get(f"/api/v1/recipe-drafts/{draft_id}").json() == proposed.json()
+
+    edited = [PROPOSAL["ingredients"][0] | {"amount": 3}]
+    confirmed = client.post(
+        f"/api/v1/recipe-drafts/{draft_id}/confirm", json={"portions": 8, "ingredients": edited}
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    assert confirmed.json()["scaled"][0]["amount"] == 6
+    assert client.post(f"/api/v1/recipe-drafts/{draft_id}/confirm").status_code == 200
+    assert client.post(f"/api/v1/recipe-drafts/{draft_id}/discard").status_code == 409
+
+    quote = client.post(
+        "/api/v1/quotes", json={"recipe_draft_id": draft_id, "needed_by": DAY.isoformat()}
+    )
+    assert quote.status_code == 200, quote.text
+    assert quote.json()["groups"][0]["recipe_draft_id"] == draft_id
+
+    copy = client.post(f"/api/v1/recipe-drafts/{draft_id}/copy").json()
+    assert copy["status"] == "draft" and copy["draft_id"] != draft_id
+    discarded = client.post(f"/api/v1/recipe-drafts/{copy['draft_id']}/discard").json()
+    assert discarded["status"] == "discarded"
+    assert client.get("/api/v1/recipe-drafts/nope").status_code == 404
+    assert client.post("/api/v1/quotes", json={}).status_code == 422

@@ -1,4 +1,4 @@
-"""The MCP server: the eight agent tools of vision §8 over Streamable HTTP, mounted at /mcp.
+"""The MCP server: the ten agent tools of vision §8 over Streamable HTTP, mounted at /mcp.
 
 Each tool's arguments are the fields of its request model in `app.schemas` and its result
 is the response model, sent as structured content. The REST twins use the same models, so
@@ -28,12 +28,15 @@ from app.interfaces.tool_calls import Service, run_tool
 from app.schemas import (
     BuildQuoteRequest,
     ConfirmationRequestResponse,
+    ConfirmRecipeRequest,
     CustomerContext,
     GetOrderStatusRequest,
     GetRecipeRequest,
     OrderStatusResponse,
+    ProposeRecipeRequest,
     QuoteResponse,
     Recipe,
+    RecipeDraft,
     RequestConfirmationRequest,
     SearchProductsRequest,
     SearchProductsResponse,
@@ -42,7 +45,7 @@ from app.schemas import (
     StrictModel,
     UpdateQuoteRequest,
 )
-from app.services import catalog, customers, quotes, recipes
+from app.services import catalog, customers, quotes, recipe_drafts, recipes
 from app.services.caller import Caller
 from app.services.errors import ServiceError
 from app.settings import get_settings
@@ -131,6 +134,20 @@ TOOLS = [
         SearchRecipesResponse,
     ),
     _tool("get_recipe", descriptions.GET_RECIPE, recipes.get_recipe, GetRecipeRequest, Recipe),
+    _tool(
+        "propose_recipe",
+        descriptions.PROPOSE_RECIPE,
+        recipe_drafts.propose,
+        ProposeRecipeRequest,
+        RecipeDraft,
+    ),
+    _tool(
+        "confirm_recipe",
+        descriptions.CONFIRM_RECIPE,
+        recipe_drafts.confirm,
+        ConfirmRecipeRequest,
+        RecipeDraft,
+    ),
     _tool(
         "build_quote",
         descriptions.BUILD_QUOTE,

@@ -260,6 +260,107 @@
 				}
 			}
 		},
+		"/api/v1/recipe-drafts": {
+			"post": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Propose Recipe",
+				"operationId": "propose_recipe_api_v1_recipe_drafts_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ProposeRecipeRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecipeDraft"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/recipe-drafts/{draft_id}/confirm": {
+			"post": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Confirm Recipe",
+				"description": "The body holds the buyer's corrections; leave it out when nothing changed.",
+				"operationId": "confirm_recipe_api_v1_recipe_drafts__draft_id__confirm_post",
+				"parameters": [
+					{
+						"name": "draft_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Draft Id"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"anyOf": [
+									{
+										"$ref": "#/components/schemas/ConfirmRecipeBody"
+									},
+									{
+										"type": "null"
+									}
+								],
+								"title": "Body"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecipeDraft"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/quotes": {
 			"post": {
 				"tags": [
@@ -486,6 +587,134 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/OrderStatusResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/recipe-drafts/{draft_id}": {
+			"get": {
+				"tags": [
+					"recipe drafts"
+				],
+				"summary": "Get Recipe Draft",
+				"operationId": "get_recipe_draft_api_v1_recipe_drafts__draft_id__get",
+				"parameters": [
+					{
+						"name": "draft_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Draft Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecipeDraft"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/recipe-drafts/{draft_id}/discard": {
+			"post": {
+				"tags": [
+					"recipe drafts"
+				],
+				"summary": "Discard Recipe Draft",
+				"description": "The card's \"Start over\". A confirmed draft can't be discarded (409).",
+				"operationId": "discard_recipe_draft_api_v1_recipe_drafts__draft_id__discard_post",
+				"parameters": [
+					{
+						"name": "draft_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Draft Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecipeDraft"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/recipe-drafts/{draft_id}/copy": {
+			"post": {
+				"tags": [
+					"recipe drafts"
+				],
+				"summary": "Copy Recipe Draft",
+				"description": "The card's \"Edit as new draft\": a new draft with the same content, to confirm.",
+				"operationId": "copy_recipe_draft_api_v1_recipe_drafts__draft_id__copy_post",
+				"parameters": [
+					{
+						"name": "draft_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Draft Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RecipeDraft"
 								}
 							}
 						}
@@ -2144,6 +2373,48 @@
 				],
 				"title": "CompanyRef"
 			},
+			"ConfirmRecipeBody": {
+				"properties": {
+					"portions": {
+						"anyOf": [
+							{
+								"type": "integer",
+								"maximum": 1000.0,
+								"minimum": 1.0
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Portions"
+					},
+					"ingredients": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/DraftIngredient-Input"
+								},
+								"type": "array",
+								"maxItems": 60,
+								"minItems": 1
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Ingredients"
+					},
+					"use_ai_reading": {
+						"type": "boolean",
+						"title": "Use Ai Reading",
+						"default": false
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"title": "ConfirmRecipeBody",
+				"description": "The body of `POST /recipe-drafts/{draft_id}/confirm`: the request without the id."
+			},
 			"ConfirmRequest": {
 				"properties": {
 					"quote_hash": {
@@ -2703,6 +2974,179 @@
 				],
 				"title": "DemoAccountResponse",
 				"description": "The browser's demo user. The session token travels only in the `simo_session` cookie."
+			},
+			"DraftIngredient-Input": {
+				"properties": {
+					"index": {
+						"type": "integer",
+						"maximum": 999.0,
+						"minimum": 0.0,
+						"title": "Index"
+					},
+					"text": {
+						"type": "string",
+						"maxLength": 200,
+						"minLength": 1,
+						"title": "Text"
+					},
+					"amount": {
+						"anyOf": [
+							{
+								"type": "number",
+								"maximum": 100000.0,
+								"exclusiveMinimum": 0.0
+							},
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Amount"
+					},
+					"unit": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 20
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Unit"
+					},
+					"confidence": {
+						"type": "string",
+						"enum": [
+							"high",
+							"low"
+						],
+						"title": "Confidence",
+						"default": "high"
+					},
+					"note": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 200
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Note"
+					},
+					"order": {
+						"type": "boolean",
+						"title": "Order",
+						"default": true
+					},
+					"product_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Product Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"index",
+					"text"
+				],
+				"title": "DraftIngredient",
+				"description": "One ingredient as read from the recipe. Amounts are per the recipe as written."
+			},
+			"DraftIngredient-Output": {
+				"properties": {
+					"index": {
+						"type": "integer",
+						"maximum": 999.0,
+						"minimum": 0.0,
+						"title": "Index"
+					},
+					"text": {
+						"type": "string",
+						"maxLength": 200,
+						"minLength": 1,
+						"title": "Text"
+					},
+					"amount": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Amount"
+					},
+					"unit": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 20
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Unit"
+					},
+					"confidence": {
+						"type": "string",
+						"enum": [
+							"high",
+							"low"
+						],
+						"title": "Confidence",
+						"default": "high"
+					},
+					"note": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 200
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Note"
+					},
+					"order": {
+						"type": "boolean",
+						"title": "Order",
+						"default": true
+					},
+					"product_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Product Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"index",
+					"text"
+				],
+				"title": "DraftIngredient",
+				"description": "One ingredient as read from the recipe. Amounts are per the recipe as written."
 			},
 			"Exclusion": {
 				"type": "string",
@@ -3691,6 +4135,62 @@
 				],
 				"title": "ProductHit"
 			},
+			"ProposeRecipeRequest": {
+				"properties": {
+					"dish": {
+						"type": "string",
+						"maxLength": 120,
+						"minLength": 1,
+						"title": "Dish"
+					},
+					"portions": {
+						"type": "integer",
+						"maximum": 1000.0,
+						"minimum": 1.0,
+						"title": "Portions"
+					},
+					"servings_on_source": {
+						"anyOf": [
+							{
+								"type": "integer",
+								"maximum": 1000.0,
+								"minimum": 1.0
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Servings On Source"
+					},
+					"ingredients": {
+						"items": {
+							"$ref": "#/components/schemas/DraftIngredient-Input"
+						},
+						"type": "array",
+						"maxItems": 60,
+						"minItems": 1,
+						"title": "Ingredients"
+					},
+					"source": {
+						"type": "string",
+						"enum": [
+							"notebook",
+							"dish_photo"
+						],
+						"title": "Source"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"dish",
+					"portions",
+					"ingredients",
+					"source"
+				],
+				"title": "ProposeRecipeRequest",
+				"description": "A recipe the buyer showed, as read. Stored as a draft for the buyer to confirm."
+			},
 			"QuoteChange": {
 				"properties": {
 					"reason": {
@@ -4152,6 +4652,112 @@
 					"ingredients"
 				],
 				"title": "Recipe"
+			},
+			"RecipeDraft": {
+				"properties": {
+					"draft_id": {
+						"type": "string",
+						"title": "Draft Id"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"draft",
+							"confirmed",
+							"discarded"
+						],
+						"title": "Status"
+					},
+					"source": {
+						"type": "string",
+						"enum": [
+							"notebook",
+							"dish_photo"
+						],
+						"title": "Source"
+					},
+					"is_guess": {
+						"type": "boolean",
+						"title": "Is Guess"
+					},
+					"dish": {
+						"type": "string",
+						"title": "Dish"
+					},
+					"portions": {
+						"type": "integer",
+						"title": "Portions"
+					},
+					"servings_on_source": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Servings On Source"
+					},
+					"ingredients": {
+						"items": {
+							"$ref": "#/components/schemas/DraftIngredient-Output"
+						},
+						"type": "array",
+						"title": "Ingredients"
+					},
+					"scaled": {
+						"items": {
+							"$ref": "#/components/schemas/DraftIngredient-Output"
+						},
+						"type": "array",
+						"title": "Scaled"
+					},
+					"matched_recipe": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/RecipeHit"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"ai_reading": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/DraftIngredient-Output"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Ai Reading"
+					},
+					"speak": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"draft_id",
+					"status",
+					"source",
+					"is_guess",
+					"dish",
+					"portions",
+					"servings_on_source",
+					"ingredients",
+					"scaled",
+					"matched_recipe",
+					"speak"
+				],
+				"title": "RecipeDraft",
+				"description": "A recipe draft as stored. `ingredients` are as edited, not scaled; `scaled` has the\namounts for `portions`, which is what will be ordered."
 			},
 			"RecipeHit": {
 				"properties": {

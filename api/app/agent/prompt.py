@@ -14,9 +14,11 @@ from pydantic import BaseModel
 
 from app.schemas import (
     BuildQuoteRequest,
+    ConfirmRecipeRequest,
     CustomerContext,
     GetOrderStatusRequest,
     GetRecipeRequest,
+    ProposeRecipeRequest,
     RequestConfirmationRequest,
     SearchProductsRequest,
     SearchRecipesRequest,
@@ -35,6 +37,8 @@ AGENT_TOOLS: dict[str, type[BaseModel] | None] = {
     "get_customer_context": None,
     "search_recipes": SearchRecipesRequest,
     "get_recipe": GetRecipeRequest,
+    "propose_recipe": ProposeRecipeRequest,  # not on the phone (#80)
+    "confirm_recipe": ConfirmRecipeRequest,
     "build_quote": BuildQuoteRequest,
     "update_quote": UpdateQuoteRequest,
     "request_confirmation": RequestConfirmationRequest,

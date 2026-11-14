@@ -18,6 +18,7 @@ from app.interfaces.rest import dashboard as rest_dashboard
 from app.interfaces.rest import inbox as rest_inbox
 from app.interfaces.rest import jwks as rest_jwks
 from app.interfaces.rest import oauth as rest_oauth
+from app.interfaces.rest import recipe_drafts as rest_recipe_drafts
 from app.interfaces.rest import tools as rest_tools
 from app.interfaces.voice import routes as voice_routes
 from app.observability import excluded as excluded_from_telemetry
@@ -66,6 +67,7 @@ app.add_middleware(McpSlashMiddleware)
 # Performance test runs tag their requests (X-Simo-Test-Run, #84).
 app.add_middleware(TestTagsMiddleware)
 app.include_router(rest_tools.router, prefix="/api/v1")
+app.include_router(rest_recipe_drafts.router, prefix="/api/v1")
 app.include_router(rest_dashboard.router, prefix="/api/v1")
 app.include_router(rest_accounts.router, prefix="/api/v1")
 app.include_router(rest_inbox.router, prefix="/api/v1")

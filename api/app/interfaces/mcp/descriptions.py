@@ -37,6 +37,18 @@ GET_RECIPE = (
     "ordered and the others are listed in not_ordered. The engine applies the kitchen's "
     "exclusions."
 )
+PROPOSE_RECIPE = (
+    "Turn a recipe the buyer showed you (a photo of a written recipe, or of a dish) into a "
+    "draft. Read it yourself; send the dish, the servings the recipe makes if written, the "
+    "portions the buyer wants, and each ingredient as written. Mark anything you are unsure "
+    "of as low confidence. Then show the buyer the list and ask them to confirm or correct it "
+    "before ordering."
+)
+CONFIRM_RECIPE = (
+    "Confirm a recipe draft after the buyer has said it is right, with their corrections. "
+    "Only call this after a clear yes from the buyer. Then build the quote with "
+    "build_quote(recipe_draft_id)."
+)
 BUILD_QUOTE = (
     "Price the whole order. Call it once, with every line the buyer wants, only after they "
     'say the order is complete ("that\'s all") or ask for the price or a summary; never '

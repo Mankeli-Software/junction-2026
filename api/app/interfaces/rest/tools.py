@@ -18,12 +18,16 @@ from app.interfaces.tool_calls import run_tool
 from app.schemas import (
     BuildQuoteRequest,
     ConfirmationRequestResponse,
+    ConfirmRecipeBody,
+    ConfirmRecipeRequest,
     CustomerContext,
     GetOrderStatusRequest,
     GetRecipeRequest,
     OrderStatusResponse,
+    ProposeRecipeRequest,
     QuoteResponse,
     Recipe,
+    RecipeDraft,
     RequestConfirmationRequest,
     SearchProductsRequest,
     SearchProductsResponse,
@@ -31,7 +35,7 @@ from app.schemas import (
     SearchRecipesResponse,
     UpdateQuoteRequest,
 )
-from app.services import catalog, customers, quotes, recipes
+from app.services import catalog, customers, quotes, recipe_drafts, recipes
 from app.services.caller import Caller
 from app.services.errors import InvalidRequestError, NotFoundError, StateError
 
@@ -71,6 +75,21 @@ async def search_recipes(
 async def get_recipe(caller: CurrentCaller, recipe_id: str, portions: int) -> BaseModel:
     request = _build(GetRecipeRequest, recipe_id=recipe_id, portions=portions)
     return await run_tool("get_recipe", caller, recipes.get_recipe, request)
+
+
+@router.post("/recipe-drafts", response_model=RecipeDraft)
+async def propose_recipe(caller: CurrentCaller, request: ProposeRecipeRequest) -> BaseModel:
+    return await run_tool("propose_recipe", caller, recipe_drafts.propose, request)
+
+
+@router.post("/recipe-drafts/{draft_id}/confirm", response_model=RecipeDraft)
+async def confirm_recipe(
+    caller: CurrentCaller, draft_id: str, body: ConfirmRecipeBody | None = None
+) -> BaseModel:
+    """The body holds the buyer's corrections; leave it out when nothing changed."""
+    edits = body.model_dump(exclude_unset=True) if body is not None else {}
+    request = _build(ConfirmRecipeRequest, draft_id=draft_id, **edits)
+    return await run_tool("confirm_recipe", caller, recipe_drafts.confirm, request)
 
 
 @router.post("/quotes", response_model=QuoteResponse)

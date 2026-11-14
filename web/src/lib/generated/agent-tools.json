@@ -167,6 +167,318 @@
 		}
 	},
 	{
+		"name": "propose_recipe",
+		"description": "Turn a recipe the buyer showed you (a photo of a written recipe, or of a dish) into a draft. Read it yourself; send the dish, the servings the recipe makes if written, the portions the buyer wants, and each ingredient as written. Mark anything you are unsure of as low confidence. Then show the buyer the list and ask them to confirm or correct it before ordering.",
+		"inputSchema": {
+			"$defs": {
+				"DraftIngredient": {
+					"additionalProperties": false,
+					"description": "One ingredient as read from the recipe. Amounts are per the recipe as written.",
+					"properties": {
+						"index": {
+							"maximum": 999,
+							"minimum": 0,
+							"title": "Index",
+							"type": "integer"
+						},
+						"text": {
+							"maxLength": 200,
+							"minLength": 1,
+							"title": "Text",
+							"type": "string"
+						},
+						"amount": {
+							"anyOf": [
+								{
+									"exclusiveMinimum": 0.0,
+									"maximum": 100000.0,
+									"type": "number"
+								},
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Amount"
+						},
+						"unit": {
+							"anyOf": [
+								{
+									"maxLength": 20,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Unit"
+						},
+						"confidence": {
+							"default": "high",
+							"enum": [
+								"high",
+								"low"
+							],
+							"title": "Confidence",
+							"type": "string"
+						},
+						"note": {
+							"anyOf": [
+								{
+									"maxLength": 200,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Note"
+						},
+						"order": {
+							"default": true,
+							"title": "Order",
+							"type": "boolean"
+						},
+						"product_id": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Product Id"
+						}
+					},
+					"required": [
+						"index",
+						"text"
+					],
+					"title": "DraftIngredient",
+					"type": "object"
+				}
+			},
+			"additionalProperties": false,
+			"properties": {
+				"dish": {
+					"maxLength": 120,
+					"minLength": 1,
+					"title": "Dish",
+					"type": "string"
+				},
+				"portions": {
+					"maximum": 1000,
+					"minimum": 1,
+					"title": "Portions",
+					"type": "integer"
+				},
+				"servings_on_source": {
+					"anyOf": [
+						{
+							"maximum": 1000,
+							"minimum": 1,
+							"type": "integer"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Servings On Source"
+				},
+				"ingredients": {
+					"items": {
+						"$ref": "#/$defs/DraftIngredient"
+					},
+					"maxItems": 60,
+					"minItems": 1,
+					"title": "Ingredients",
+					"type": "array"
+				},
+				"source": {
+					"enum": [
+						"notebook",
+						"dish_photo"
+					],
+					"title": "Source",
+					"type": "string"
+				}
+			},
+			"required": [
+				"dish",
+				"portions",
+				"ingredients",
+				"source"
+			],
+			"title": "propose_recipeArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "POST",
+			"path": "/api/v1/recipe-drafts"
+		}
+	},
+	{
+		"name": "confirm_recipe",
+		"description": "Confirm a recipe draft after the buyer has said it is right, with their corrections. Only call this after a clear yes from the buyer. Then build the quote with build_quote(recipe_draft_id).",
+		"inputSchema": {
+			"$defs": {
+				"DraftIngredient": {
+					"additionalProperties": false,
+					"description": "One ingredient as read from the recipe. Amounts are per the recipe as written.",
+					"properties": {
+						"index": {
+							"maximum": 999,
+							"minimum": 0,
+							"title": "Index",
+							"type": "integer"
+						},
+						"text": {
+							"maxLength": 200,
+							"minLength": 1,
+							"title": "Text",
+							"type": "string"
+						},
+						"amount": {
+							"anyOf": [
+								{
+									"exclusiveMinimum": 0.0,
+									"maximum": 100000.0,
+									"type": "number"
+								},
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Amount"
+						},
+						"unit": {
+							"anyOf": [
+								{
+									"maxLength": 20,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Unit"
+						},
+						"confidence": {
+							"default": "high",
+							"enum": [
+								"high",
+								"low"
+							],
+							"title": "Confidence",
+							"type": "string"
+						},
+						"note": {
+							"anyOf": [
+								{
+									"maxLength": 200,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Note"
+						},
+						"order": {
+							"default": true,
+							"title": "Order",
+							"type": "boolean"
+						},
+						"product_id": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Product Id"
+						}
+					},
+					"required": [
+						"index",
+						"text"
+					],
+					"title": "DraftIngredient",
+					"type": "object"
+				}
+			},
+			"additionalProperties": false,
+			"properties": {
+				"draft_id": {
+					"title": "Draft Id",
+					"type": "string"
+				},
+				"portions": {
+					"anyOf": [
+						{
+							"maximum": 1000,
+							"minimum": 1,
+							"type": "integer"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Portions"
+				},
+				"ingredients": {
+					"anyOf": [
+						{
+							"items": {
+								"$ref": "#/$defs/DraftIngredient"
+							},
+							"maxItems": 60,
+							"minItems": 1,
+							"type": "array"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Ingredients"
+				},
+				"use_ai_reading": {
+					"default": false,
+					"title": "Use Ai Reading",
+					"type": "boolean"
+				}
+			},
+			"required": [
+				"draft_id"
+			],
+			"title": "confirm_recipeArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "POST",
+			"path": "/api/v1/recipe-drafts/{draft_id}/confirm"
+		}
+	},
+	{
 		"name": "build_quote",
 		"description": "Price the whole order. Call it once, with every line the buyer wants, only after they say the order is complete (\"that's all\") or ask for the price or a summary; never while they are still adding lines, and not after each line. In each line, text keeps the product words and any pack size the buyer said (\"kevytmaito 1 l\"), and product_id is only an id a tool returned for that product (a get_customer_context usual item, a search_products result or a recipe ingredient), never invented. A whole recipe is one line with recipe_ref (see get_recipe). Returns a decision (ready, needs_clarification or rejected), priced lines, flags, a clarification question or rejections, not_ordered (recipe ingredients the buyer gets elsewhere), and speak, a short summary in Finnish and English.",
 		"inputSchema": {

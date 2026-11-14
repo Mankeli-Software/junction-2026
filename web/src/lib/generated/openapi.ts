@@ -72,6 +72,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recipe-drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Propose Recipe */
+        post: operations["propose_recipe_api_v1_recipe_drafts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recipe-drafts/{draft_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Recipe
+         * @description The body holds the buyer's corrections; leave it out when nothing changed.
+         */
+        post: operations["confirm_recipe_api_v1_recipe_drafts__draft_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quotes": {
         parameters: {
             query?: never;
@@ -177,6 +214,63 @@ export interface paths {
         get: operations["get_order_status_api_v1_quotes__quote_id__status_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recipe-drafts/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Recipe Draft */
+        get: operations["get_recipe_draft_api_v1_recipe_drafts__draft_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recipe-drafts/{draft_id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard Recipe Draft
+         * @description The card's "Start over". A confirmed draft can't be discarded (409).
+         */
+        post: operations["discard_recipe_draft_api_v1_recipe_drafts__draft_id__discard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recipe-drafts/{draft_id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy Recipe Draft
+         * @description The card's "Edit as new draft": a new draft with the same content, to confirm.
+         */
+        post: operations["copy_recipe_draft_api_v1_recipe_drafts__draft_id__copy_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -798,6 +892,21 @@ export interface components {
             /** Exclusions */
             exclusions: components["schemas"]["Exclusion"][];
         };
+        /**
+         * ConfirmRecipeBody
+         * @description The body of `POST /recipe-drafts/{draft_id}/confirm`: the request without the id.
+         */
+        ConfirmRecipeBody: {
+            /** Portions */
+            portions?: number | null;
+            /** Ingredients */
+            ingredients?: components["schemas"]["DraftIngredient-Input"][] | null;
+            /**
+             * Use Ai Reading
+             * @default false
+             */
+            use_ai_reading: boolean;
+        };
         /** ConfirmRequest */
         ConfirmRequest: {
             /** Quote Hash */
@@ -1021,6 +1130,64 @@ export interface components {
             /** New User */
             new_user: boolean;
             kitchen_type?: components["schemas"]["KitchenType"] | null;
+        };
+        /**
+         * DraftIngredient
+         * @description One ingredient as read from the recipe. Amounts are per the recipe as written.
+         */
+        "DraftIngredient-Input": {
+            /** Index */
+            index: number;
+            /** Text */
+            text: string;
+            /** Amount */
+            amount?: number | string | null;
+            /** Unit */
+            unit?: string | null;
+            /**
+             * Confidence
+             * @default high
+             * @enum {string}
+             */
+            confidence: "high" | "low";
+            /** Note */
+            note?: string | null;
+            /**
+             * Order
+             * @default true
+             */
+            order: boolean;
+            /** Product Id */
+            product_id?: string | null;
+        };
+        /**
+         * DraftIngredient
+         * @description One ingredient as read from the recipe. Amounts are per the recipe as written.
+         */
+        "DraftIngredient-Output": {
+            /** Index */
+            index: number;
+            /** Text */
+            text: string;
+            /** Amount */
+            amount?: number | null;
+            /** Unit */
+            unit?: string | null;
+            /**
+             * Confidence
+             * @default high
+             * @enum {string}
+             */
+            confidence: "high" | "low";
+            /** Note */
+            note?: string | null;
+            /**
+             * Order
+             * @default true
+             */
+            order: boolean;
+            /** Product Id */
+            product_id?: string | null;
         };
         /**
          * Exclusion
@@ -1343,6 +1510,25 @@ export interface components {
             origin: string | null;
         };
         /**
+         * ProposeRecipeRequest
+         * @description A recipe the buyer showed, as read. Stored as a draft for the buyer to confirm.
+         */
+        ProposeRecipeRequest: {
+            /** Dish */
+            dish: string;
+            /** Portions */
+            portions: number;
+            /** Servings On Source */
+            servings_on_source?: number | null;
+            /** Ingredients */
+            ingredients: components["schemas"]["DraftIngredient-Input"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "notebook" | "dish_photo";
+        };
+        /**
          * QuoteChange
          * @description What changed compared with the previous quote, after an edit or a requote.
          */
@@ -1482,6 +1668,41 @@ export interface components {
             portions: number;
             /** Ingredients */
             ingredients: components["schemas"]["RecipeIngredient"][];
+        };
+        /**
+         * RecipeDraft
+         * @description A recipe draft as stored. `ingredients` are as edited, not scaled; `scaled` has the
+         *     amounts for `portions`, which is what will be ordered.
+         */
+        RecipeDraft: {
+            /** Draft Id */
+            draft_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "confirmed" | "discarded";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "notebook" | "dish_photo";
+            /** Is Guess */
+            is_guess: boolean;
+            /** Dish */
+            dish: string;
+            /** Portions */
+            portions: number;
+            /** Servings On Source */
+            servings_on_source: number | null;
+            /** Ingredients */
+            ingredients: components["schemas"]["DraftIngredient-Output"][];
+            /** Scaled */
+            scaled: components["schemas"]["DraftIngredient-Output"][];
+            matched_recipe: components["schemas"]["RecipeHit"] | null;
+            /** Ai Reading */
+            ai_reading?: components["schemas"]["DraftIngredient-Output"][] | null;
+            speak: components["schemas"]["Localized"];
         };
         /** RecipeHit */
         RecipeHit: {
@@ -2023,6 +2244,74 @@ export interface operations {
             };
         };
     };
+    propose_recipe_api_v1_recipe_drafts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposeRecipeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_recipe_api_v1_recipe_drafts__draft_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmRecipeBody"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     build_quote_api_v1_quotes_post: {
         parameters: {
             query?: never;
@@ -2191,6 +2480,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderStatusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_recipe_draft_api_v1_recipe_drafts__draft_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_recipe_draft_api_v1_recipe_drafts__draft_id__discard_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDraft"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copy_recipe_draft_api_v1_recipe_drafts__draft_id__copy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecipeDraft"];
                 };
             };
             /** @description Validation Error */
