@@ -1,15 +1,22 @@
 """Settings for the API.
 
 On laptops the values come from environment variables and the `.env` file at the
-repository root. On the VM they come from Azure Key Vault (#28) through this same loader.
+repository root. On the VM, KEY_VAULT_URL points at the Azure Key Vault and the
+values come from there.
 """
 
+import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic.fields import FieldInfo
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -23,6 +30,50 @@ def psycopg_url(url: str) -> str:
         if url.startswith(plain):
             return "postgresql+psycopg://" + url[len(plain) :]
     return url
+
+
+# A setting is read from the Key Vault secret named like the field with dashes
+# (`valio_api_key` is the secret `valio-api-key`), except for these.
+KEY_VAULT_SECRET_NAMES = {"migration_database_url": "database-admin-url"}
+
+
+class KeyVaultSettingsSource(PydanticBaseSettingsSource):
+    """Reads settings from Azure Key Vault with the VM's managed identity.
+
+    It does nothing without a vault URL, so a laptop never needs Azure. Secrets that do
+    not exist are skipped and the field keeps its default.
+    """
+
+    def __init__(self, settings_cls: type[BaseSettings], vault_url: str, client: Any = None):
+        super().__init__(settings_cls)
+        self.vault_url = vault_url
+        self._client = client
+
+    def _get_client(self) -> Any:
+        if self._client is None:
+            from azure.identity import DefaultAzureCredential
+            from azure.keyvault.secrets import SecretClient
+
+            self._client = SecretClient(self.vault_url, DefaultAzureCredential())
+        return self._client
+
+    def get_field_value(self, field: FieldInfo, field_name: str) -> tuple[Any, str, bool]:
+        return None, field_name, False
+
+    def __call__(self) -> dict[str, Any]:
+        if not self.vault_url:
+            return {}
+        from azure.core.exceptions import ResourceNotFoundError
+
+        client = self._get_client()
+        values: dict[str, Any] = {}
+        for name in self.settings_cls.model_fields:
+            secret_name = KEY_VAULT_SECRET_NAMES.get(name, name.replace("_", "-"))
+            try:
+                values[name] = client.get_secret(secret_name).value
+            except ResourceNotFoundError:
+                continue
+        return values
 
 
 class Settings(BaseSettings):
@@ -46,6 +97,19 @@ class Settings(BaseSettings):
     sms_allowlist: str = ""
 
     session_secret: str = ""
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # Environment variables and .env win over Key Vault, so a value can be overridden.
+        vault = KeyVaultSettingsSource(settings_cls, os.environ.get("KEY_VAULT_URL", ""))
+        return init_settings, env_settings, dotenv_settings, vault, file_secret_settings
 
     @field_validator("database_url", "migration_database_url")
     @classmethod
