@@ -5,7 +5,9 @@
   ingredient that recipe-product-map.json links to a catalogue product.
 - `expand_lines`: before the quote service gathers candidates, a line for a whole recipe
   becomes one line per linked ingredient, and the ingredients without a link go to
-  `not_ordered`. They don't go through normal product resolution (decided in #34).
+  `not_ordered`. They don't go through normal product resolution (decided in #34), unless
+  the buyer asked for them (`recipe_ref.order_unlinked`, #103): then each one with an
+  amount is a line found by the ingredient's name, like any text line.
 """
 
 import re
@@ -36,7 +38,7 @@ from app.schemas import (
     SearchRecipesRequest,
     SearchRecipesResponse,
 )
-from app.schemas.engine import MAX_LINES, MAX_TEXT_LENGTH
+from app.schemas.engine import MAX_LINES, MAX_QUANTITY, MAX_TEXT_LENGTH
 from app.search.text import fold
 from app.services import catalog
 from app.services.caller import Caller
@@ -241,19 +243,22 @@ async def expand_lines(
       when it has none). Its own quantity and unit are not used.
     - A line for one ingredient stays as sent (an edit on the confirmation page may have
       changed its product or amount). Without a product id it gets the linked pack.
-    - Every recipe a line refers to lists its unlinked ingredients in `not_ordered`, also
-      after an edit, when only the ingredient lines are sent again. Ingredients with the
-      same name, unit and reason are added up, so a menu lists "suolaa" once.
+    - With `recipe_ref.order_unlinked` (#103), the ingredients without a product that
+      have an amount are ordered too: a whole recipe adds a line found by the ingredient's
+      name for each, `<line_id>-<index>` like the linked ones, and an ingredient line sent
+      with the flag stays as sent. Their product comes from the normal text search.
+    - Every recipe a line refers to lists the ingredients it doesn't order in
+      `not_ordered`, also after an edit, when only the ingredient lines are sent again.
+      Ingredients with the same name, unit and reason are added up, so a menu lists
+      "suolaa" once.
     - Lines without a recipe stay as they are.
     """
     out: list[LineRequest] = []
-    not_ordered: list[tuple[str, Decimal | None, str | None, Localized]] = []
-    seen: set[tuple[str, int, int]] = set()  # (recipe, portions, index) already listed
-
-    def skip(recipe_id: str, portions: int, i: Scaled, reason: Localized) -> None:
-        if (recipe_id, portions, i.index) not in seen:
-            seen.add((recipe_id, portions, i.index))
-            not_ordered.append((i.name, i.quantity, i.unit, reason))
+    # Every recipe the lines refer to, (recipe, portions), in the order first referred to,
+    # with its scaled ingredients and whether a line of it asked for the unlinked ones.
+    referred: dict[tuple[str, int], tuple[RecipeRow, list[Scaled]]] = {}
+    asked: set[tuple[str, int]] = set()
+    ordered: set[tuple[str, int, int]] = set()  # (recipe, portions, index) with a line
 
     def reason_for(i: Scaled) -> Localized | None:
         if not i.linked:
@@ -269,7 +274,12 @@ async def expand_lines(
         if ref is None:
             out.append(line)
             continue
-        recipe, ingredients = await _scaled_recipe(db, ref.recipe_id, ref.portions)
+        key = (ref.recipe_id, ref.portions)
+        if key not in referred:
+            referred[key] = await _scaled_recipe(db, ref.recipe_id, ref.portions)
+        recipe, ingredients = referred[key]
+        if ref.order_unlinked:
+            asked.add(key)
         group = line.group or recipe.name[:GROUP_LENGTH]
         if ref.ingredient_index is not None:
             if not 0 <= ref.ingredient_index < len(ingredients):
@@ -277,22 +287,34 @@ async def expand_lines(
                     f"recipe {ref.recipe_id} has no ingredient {ref.ingredient_index}"
                 )
             wanted = ingredients[ref.ingredient_index]
-            reason = reason_for(wanted)
-            if reason is not None and line.product_id is None:
-                skip(ref.recipe_id, ref.portions, wanted, reason)
-            else:
-                seen.add((ref.recipe_id, ref.portions, wanted.index))
+            if reason_for(wanted) is None or line.product_id is not None:
+                ordered.add((*key, wanted.index))
                 product_id = line.product_id or (wanted.pack.product_id if wanted.pack else None)
                 out.append(line.model_copy(update={"product_id": product_id, "group": group}))
+            elif ref.order_unlinked:
+                # Ordered by name (#103): kept as sent, an edit may have changed the amount.
+                ordered.add((*key, wanted.index))
+                text = line.text or wanted.name[:MAX_TEXT_LENGTH]
+                out.append(line.model_copy(update={"text": text, "group": group}))
         else:
             for i in ingredients:
                 if reason_for(i) is None:
-                    seen.add((ref.recipe_id, ref.portions, i.index))
+                    ordered.add((*key, i.index))
                     out.append(await _ingredient_line(db, line, ref, i, group))
-        # The rest of the recipe's unlinked ingredients.
+                elif ref.order_unlinked and (named := _named_line(line, ref, i, group)):
+                    ordered.add((*key, i.index))
+                    out.append(named)
+
+    # Every ingredient of those recipes without a line, after all lines are in: a later
+    # line may order one that an earlier line of the same recipe left out.
+    not_ordered: list[tuple[str, Decimal | None, str | None, Localized]] = []
+    for key, (_, ingredients) in referred.items():
         for i in ingredients:
-            if (reason := reason_for(i)) is not None:
-                skip(ref.recipe_id, ref.portions, i, reason)
+            if (*key, i.index) in ordered or (reason := reason_for(i)) is None:
+                continue
+            if key in asked and not i.quantity:
+                reason = NO_AMOUNT  # asked for, but nothing to order it by
+            not_ordered.append((i.name, i.quantity, i.unit, reason))
 
     if len(out) > MAX_LINES:
         raise InvalidRequestError(
@@ -300,11 +322,45 @@ async def expand_lines(
             "order fewer recipes at a time"
         )
     if not out and lines:
+        if asked:
+            raise InvalidRequestError(
+                "none of the recipe's ingredients has an amount to order, so there is "
+                "nothing to order; tell the buyer to get them elsewhere"
+            )
         raise InvalidRequestError(
             "none of the recipe's ingredients is linked to a product, so there is nothing "
-            "to order; tell the buyer to get them elsewhere"
+            "to order; tell the buyer to get them elsewhere, or, if they ask you to find "
+            "products for them, send the recipe line again with recipe_ref.order_unlinked"
         )
     return out, _merged(not_ordered)
+
+
+# The recipe data gives kilos, or pieces for a few counted ingredients.
+NAMED_UNITS = {"kg": RequestedUnit.kg, "kpl": RequestedUnit.piece}
+
+
+def _named_line(line: LineRequest, ref: RecipeRef, i: Scaled, group: str) -> LineRequest | None:
+    """The order line for an ingredient without a product, found by its name (#103), or
+    None when it has no amount the engine can order (salt "to taste")."""
+    unit = NAMED_UNITS.get((i.unit or "").lower())
+    if not i.quantity or unit is None or i.quantity > MAX_QUANTITY:
+        return None
+    suffix = f"-{i.index}"
+    return LineRequest(
+        line_id=line.line_id[: LINE_ID_LENGTH - len(suffix)] + suffix,
+        text=i.name[:MAX_TEXT_LENGTH],
+        claims=line.claims,
+        quantity=i.quantity,
+        unit=unit,
+        needed_by=line.needed_by,
+        recipe_ref=RecipeRef(
+            recipe_id=ref.recipe_id,
+            portions=ref.portions,
+            ingredient_index=i.index,
+            order_unlinked=True,
+        ),
+        group=group,
+    )
 
 
 async def _ingredient_line(
