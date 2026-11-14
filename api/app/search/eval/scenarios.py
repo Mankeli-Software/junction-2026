@@ -302,7 +302,7 @@ def _clean_name(name: str, brand: str | None) -> list[str]:
     """The name as a buyer would say it: no brand, amounts, pack counts or symbols."""
     brand_words = _word_set(brand or "")
     words = []
-    for w in re.findall(r"[a-zåäöéü][a-zåäöéü-]*", name.lower()):
+    for w in re.findall(r"[^\W\d_][\w-]*", name.lower()):
         w = w.strip("-")
         if len(w) >= 2 and fold(w) not in brand_words and w not in {"x", "kpl", "pss", "ltk"}:
             words.append(w)

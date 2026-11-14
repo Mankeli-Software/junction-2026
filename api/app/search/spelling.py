@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 
 from app.search.text import fold
 
-_WORD = re.compile(r"[a-zåäöéü]{3,}")
+_WORD = re.compile(r"[^\W\d_]{3,}")  # any letters, so crème and jalapeño stay whole
 MAX_CORRECTIONS = 3
 MIN_SPLIT_PART = 3
 

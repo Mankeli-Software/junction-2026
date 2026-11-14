@@ -63,16 +63,24 @@ PLURALITY_WITH_BRAND = False
 _WORDS = bindparam("words", type_=ARRAY(Text))
 
 
-def _candidates_sql(n_words: int, has_claims: bool, has_category: bool, match_all: bool):
-    """Each match path is its own indexed lookup (an OR across them would scan every row)."""
+def _candidates_sql(
+    trigram_paths: Sequence[int], has_claims: bool, has_category: bool, match_all: bool
+):
+    """Each match path is its own indexed lookup (an OR across them would scan every row).
+    The pool is cut by how many paths a product matched before the costly per-word
+    similarities are computed, so a long query does not score thousands of rows."""
     if match_all:
-        matched = "SELECT id FROM products"
+        matched = "SELECT id, 0 AS hits FROM products"
     else:
         paths = [
             "SELECT id FROM products, q WHERE search_fi @@ q.qfi",
             "SELECT id FROM products, q WHERE search_en @@ q.qen",
-        ] + [f"SELECT id FROM products WHERE :w{i} <% search_trgm" for i in range(n_words)]
-        matched = "\n        UNION ".join(paths)
+        ] + [f"SELECT id FROM products WHERE :w{i} <% search_trgm" for i in trigram_paths]
+        matched = (
+            "SELECT id, count(*) AS hits FROM (\n            "
+            + "\n            UNION ALL ".join(paths)
+            + "\n        ) AS u GROUP BY id"
+        )
     filters = []
     if has_claims:
         filters.append(
@@ -91,17 +99,19 @@ def _candidates_sql(n_words: int, has_claims: bool, has_category: bool, match_al
     matched AS (
         {matched}
     ),
-    scored AS (
+    pool AS (
         SELECT p.id, p.name_fi, coalesce(p.name_en, '') AS name_en, p.category_id,
-               cat.name_fi AS category_name,
-               ts_rank_cd(p.search_fi, q.qfi, 32) + ts_rank_cd(p.search_en, q.qen, 32) AS fts,
-               ARRAY(SELECT word_similarity(w, p.search_trgm) FROM unnest(:words) AS w) AS sims
-        FROM products p JOIN matched USING (id) JOIN categories cat ON cat.id = p.category_id, q
+               p.search_trgm,
+               ts_rank_cd(p.search_fi, q.qfi, 32) + ts_rank_cd(p.search_en, q.qen, 32) AS fts
+        FROM products p JOIN matched m USING (id), q
         WHERE {where}
+        ORDER BY m.hits DESC, fts DESC, p.id
+        LIMIT :pool
     )
-    SELECT * FROM scored
-    ORDER BY fts + (SELECT coalesce(avg(s), 0) FROM unnest(sims) AS s) DESC, id
-    LIMIT :pool
+    SELECT pool.id, pool.name_fi, pool.name_en, pool.category_id,
+           cat.name_fi AS category_name, pool.fts,
+           ARRAY(SELECT word_similarity(w, pool.search_trgm) FROM unnest(:words) AS w) AS sims
+    FROM pool JOIN categories cat ON cat.id = pool.category_id
     """
     ).bindparams(_WORDS)
     if has_claims:
@@ -267,9 +277,16 @@ async def search_products(
         {"t": str(TRIGRAM_THRESHOLD)},
     )
     words = query.trigram_words
-    statement = _candidates_sql(len(words), bool(claims), category is not None, not query.terms)
+    brands = set(
+        (await db.scalars(_BRAND_WORDS, {"words": [t.folded[0] for t in query.terms]})).all()
+    )
+    # Brand words are whole words in the names, so full-text search finds them; their
+    # trigram lookup would only cost time ("valio" checks 1,600 rows).
+    term_of_word = [t for t in query.terms for _ in t.alternatives]
+    paths = [i for i, t in enumerate(term_of_word) if t.folded[0] not in brands]
+    statement = _candidates_sql(paths, bool(claims), category is not None, not query.terms)
     params: dict[str, object] = {"fts": query.fts, "words": words, "pool": POOL_SIZE}
-    params |= {f"w{i}": w for i, w in enumerate(words)}
+    params |= {f"w{i}": words[i] for i in paths}
     if claims:
         params["claims"] = sorted({CLAIM_IDS[c] for c in claims})
     if category is not None:
@@ -292,9 +309,6 @@ async def search_products(
             for c in sorted(candidates, key=lambda c: c.product_id)
         ][:limit]
 
-    brands = set(
-        (await db.scalars(_BRAND_WORDS, {"words": [t.folded[0] for t in query.terms]})).all()
-    )
     category_terms = await _category_terms(db, query, brands)
     use_terms = CATEGORY_TERM_COVERAGE > 0
     base = {

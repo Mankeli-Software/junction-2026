@@ -16,7 +16,8 @@ HERE = Path(__file__).parent
 
 # "17 %" = "17%", "2 kg" = "2kg", "0,5 l" = "0.5l", so refinements match the names exactly.
 _AMOUNT = re.compile(r"(\d+)(?:[.,](\d+))?\s*(%|kg|g|l|dl|cl|ml)(?![a-z0-9])")
-_TOKEN = re.compile(r"[a-zåäöéü0-9][a-zåäöéü0-9.%]*")
+# Any letter or digit, so crème, fraîche and jalapeño stay whole words.
+_TOKEN = re.compile(r"[^\W_](?:[^\W_]|[.%])*")
 STOPWORDS = frozenset({"and", "the", "with", "for", "ja", "tai", "sekä", "kanssa"})
 MIN_WORD_LENGTH = 3
 
