@@ -15,7 +15,8 @@
 		| 'none'
 		| 'plate'
 		| 'swap'
-		| 'box';
+		| 'box'
+		| 'cart';
 </script>
 
 <script lang="ts">
@@ -65,6 +66,8 @@
 		<circle cx="12" cy="12" r="9" /><path d="M8 12h8" />
 	{:else if name === 'plate'}
 		<circle cx="12" cy="13" r="8" /><path d="M4 13h16" />
+	{:else if name === 'cart'}
+		<path d="M3 4h2l2.5 11h11L21 7H7" /><circle cx="9" cy="19" r="1.5" /><circle cx="18" cy="19" r="1.5" />
 	{:else if name === 'box'}
 		<rect x="3" y="7" width="18" height="12" rx="2" /><path d="M7 7V5h10v2" />
 	{:else if name === 'swap'}

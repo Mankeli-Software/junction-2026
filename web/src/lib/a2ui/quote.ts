@@ -70,12 +70,19 @@ export function lineFlagCodes(quote: Quote, lineId: string): string[] {
  * has been followed by a newer quote in the chat. Null while this card is the latest.
  * QuoteCard marks `${componentId}#loaded` with its quote id once its quote is in.
  */
-export function newerQuoteSurface(store: SurfaceStore, surfaceId: string, componentId: string, quoteId: string): string | null {
+export function newerQuoteSurface(
+	store: SurfaceStore,
+	surfaceId: string,
+	componentId: string,
+	quoteId: string,
+	/** Surfaces left out, such as the panel's Current order drawer. */
+	skip: (surfaceId: string) => boolean = () => false
+): string | null {
 	let seen = false;
 	let newer: string | null = null;
 	for (const sid of store.order) {
 		const surface = store.surfaces[sid];
-		if (!surface?.supported) continue;
+		if (!surface?.supported || (sid !== surfaceId && skip(sid))) continue;
 		for (const [cid, c] of Object.entries(surface.components)) {
 			if (c.component !== 'QuoteCard') continue;
 			if (sid === surfaceId && cid === componentId) {

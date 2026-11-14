@@ -16,6 +16,14 @@ export interface ChatContext {
 	 * Button and their Column and Row): the confirmation page's chat is text only.
 	 */
 	domainCards?: boolean;
+	/**
+	 * Optional: which QuoteCard a surface shows. `compact` (the chat: a one-line summary,
+	 * the open question or rejection, and Send) or `full` (every group and line). The
+	 * default is `full`. The webshop panel uses `full` only for its Current order drawer.
+	 */
+	quoteVariant?: (surfaceId: string) => 'compact' | 'full';
+	/** Optional: opens the panel's Current order drawer ("See the whole order"). */
+	showOrder?: () => void;
 }
 
 const KEY = Symbol('a2ui-chat');

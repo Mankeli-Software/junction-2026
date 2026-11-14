@@ -1,11 +1,16 @@
 <script lang="ts">
 	/**
-	 * The quote in the chat (design UI-05, Chat-A4): what the buyer asked next to what
-	 * was added, per recipe or photo, with subtotals, "Not ordered", the flags as a
-	 * read-only preview, total and delivery; a clarification as one-tap answers; a
-	 * rejection with its next step; and "Send to my phone". Everything shown comes from
+	 * The quote (design UI-05, Chat-A4). Everything shown comes from
 	 * `GET /api/v1/quotes/{id}`; the model only gives the id. The confirmation link
-	 * never shows here.
+	 * never shows here. The host picks the variant (`quoteVariant` in the context):
+	 * - `full` (the panel's Current order drawer): what the buyer asked next to what was
+	 *   added, per recipe or photo, with subtotals, "Not ordered", the flags as a
+	 *   read-only preview, total and delivery;
+	 * - `compact` (the chat, Juho 2026-11-14): a one-line summary, how many things to
+	 *   check, "See the whole order", and only what the buyer must act on.
+	 * Both show the open clarification as one-tap answers, a rejection with its next
+	 * step and "Send to my phone". What the buyer did is kept per quote, so the chat
+	 * card and the drawer agree.
 	 */
 	import { untrack } from 'svelte';
 	import { codeTitle } from '#lib/confirmation/display.js';
@@ -21,7 +26,10 @@
 	import Thumb from './Thumb.svelte';
 
 	let { quoteId, surfaceId, componentId }: { quoteId: string; surfaceId: string; componentId: string } = $props();
-	const { store, data, lang, revision } = chatContext();
+	const { store, data, lang, revision, quoteVariant, showOrder } = chatContext();
+	const full = $derived((quoteVariant?.(surfaceId) ?? 'full') === 'full');
+	/** The acted-state namespace shared by every card showing the same quote. */
+	const ACTED = '#quote';
 	const L = $derived(lang());
 	const uid = $props.id();
 
@@ -35,10 +43,15 @@
 		untrack(() => loaded.load());
 	});
 
+	// Reload quietly when the host says things may have changed (a turn ended, or the tab
+	// came back after a confirmation on the phone). The first run is the load above.
+	let seenRevision: number | undefined;
 	$effect(() => {
 		const r = revision?.();
-		if (r === undefined) return;
-		untrack(() => loaded.refresh());
+		if (r === undefined || r === seenRevision) return;
+		const first = seenRevision === undefined;
+		seenRevision = r;
+		if (!first) untrack(() => loaded.refresh());
 	});
 
 	$effect(() => {
@@ -61,10 +74,20 @@
 
 	const quote = $derived(loaded.value);
 	const sections = $derived(quote ? quoteSections(quote) : []);
-	const newer = $derived(newerQuoteSurface(store, surfaceId, componentId, quoteId));
-	const replaced = $derived(Boolean(newer) || quote?.status === 'void');
-	const answered = $derived(store.actedOn(surfaceId, `${componentId}#answer`));
-	const sendAsked = $derived(store.actedOn(surfaceId, `${componentId}#send`) === quote?.quote_id);
+	const newer = $derived(
+		full ? null : newerQuoteSurface(store, surfaceId, componentId, quoteId, (sid) => (quoteVariant?.(sid) ?? 'full') === 'full')
+	);
+	const replaced = $derived(!full && (Boolean(newer) || quote?.status === 'void'));
+	const answered = $derived(quote ? store.actedOn(ACTED, `${quote.quote_id}#answer`) : undefined);
+	const sendAsked = $derived(quote ? store.actedOn(ACTED, `${quote.quote_id}#send`) === 'yes' : false);
+	/** Still open: answers, next steps, Send and "See the whole order" only make sense then. */
+	const open = $derived(
+		quote?.status === 'ready' ||
+			quote?.status === 'needs_clarification' ||
+			quote?.status === 'rejected' ||
+			quote?.status === 'pending_confirmation'
+	);
+	const sent = $derived(quote?.status === 'pending_confirmation' || (sendAsked && quote?.status === 'ready'));
 	const canSend = $derived(quote?.status === 'ready' && quote.decision === 'ready' && quote.lines.length > 0);
 	const notOrderedReasons = $derived(quote ? [...new Set(quote.not_ordered.map((n) => n.reason[L]))] : []);
 
@@ -79,19 +102,19 @@
 	/** `label` is the engine's own text for the answer, so the chat can echo it as the buyer's turn. */
 	function answer(lineId: string, productId: string, label: string) {
 		if (!quote || answered) return;
-		store.markActed(surfaceId, `${componentId}#answer`, productId);
+		store.markActed(ACTED, `${quote.quote_id}#answer`, productId);
 		store.emit(surfaceId, componentId, 'clarification_answered', { quoteId: quote.quote_id, lineId, productId, label });
 	}
 
 	function nextStep(lineId: string) {
-		if (!quote || store.actedOn(surfaceId, `${componentId}#next:${lineId}`)) return;
-		store.markActed(surfaceId, `${componentId}#next:${lineId}`, 'yes');
+		if (!quote || store.actedOn(ACTED, `${quote.quote_id}#next:${lineId}`)) return;
+		store.markActed(ACTED, `${quote.quote_id}#next:${lineId}`, 'yes');
 		store.emit(surfaceId, componentId, 'rejection_next_step', { quoteId: quote.quote_id, lineId });
 	}
 
 	function send() {
 		if (!quote || !canSend || sendAsked) return;
-		store.markActed(surfaceId, `${componentId}#send`, quote.quote_id);
+		store.markActed(ACTED, `${quote.quote_id}#send`, 'yes');
 		store.emit(surfaceId, componentId, 'send_for_confirmation', { quoteId: quote.quote_id });
 	}
 
@@ -117,9 +140,14 @@
 	{#if quote}
 		{#if replaced}
 			<p class="plain-text" data-testid="quote-replaced">{t(L, 'replaced')}</p>
-			{#if newer}<button type="button" class="link" onclick={goLatest}>{t(L, 'goLatest')}</button>{/if}
+			{#if newer}<button type="button" class="link" onclick={goLatest}>{t(L, 'goLatest')}</button>
+			{:else if showOrder}<button type="button" class="link" onclick={showOrder}>{t(L, 'seeWholeOrder')}</button>{/if}
 		{:else}
-			{#if quote.lines.length}<span class="a2-cap sub">{delivery(quote)}</span>{/if}
+			{#if quote.lines.length}
+				<span class="a2-cap sub" data-testid="quote-summary"
+					>{full ? delivery(quote) : `${quote.lines.length === 1 ? t(L, 'oneLine') : t(L, 'nLines', { n: quote.lines.length })} ${delivery(quote)}`}</span
+				>
+			{/if}
 
 			{#if quote.clarification}
 				{@const c = quote.clarification}
@@ -146,12 +174,12 @@
 			{/if}
 
 			{#each quote.rejections as r, ri (ri)}
-				{@const done = Boolean(store.actedOn(surfaceId, `${componentId}#next:${r.line_id}`))}
+				{@const done = Boolean(store.actedOn(ACTED, `${quote.quote_id}#next:${r.line_id}`))}
 				<div class="block alert" data-testid="quote-rejection">
 					<span class="rej-head"><Icon name="alert" stroke="var(--red)" />{t(L, 'cantAdd')}</span>
 					<span>{r.text[L]}</span>
 					<span class="a2-cap">{r.next_step[L]}</span>
-					<button type="button" class="opt center" disabled={done} aria-pressed={done} onclick={() => nextStep(r.line_id)}>
+					<button type="button" class="opt center" disabled={done || quote.status !== 'rejected'} aria-pressed={done} onclick={() => nextStep(r.line_id)}>
 						{#if done}<Icon name="check" weight={2.6} />{/if}{t(L, 'nextStep')}
 					</button>
 				</div>
@@ -161,82 +189,98 @@
 				<p class="plain-text">{t(L, 'noLines')}</p>
 			{/if}
 
-			{#each sections as s, i (i)}
-				{#if sections.length > 1 || s.kind !== 'other'}
-					<div class="grp" class:sep={i > 0}>
-						{#if s.imageUrl}
-							<Thumb src={s.imageUrl} width={48} height={32} placeholder="none" radius={4} />
-						{:else if s.kind === 'photo'}<Icon name="camera" stroke="var(--petrol)" />{/if}
-						<span class="grow">
-							{#if s.kind === 'photo'}
-								{s.draftId && draftPortions[s.draftId]
-									? t(L, 'fromPhotoGroupPortions', { group: s.group ?? '', n: draftPortions[s.draftId] })
-									: t(L, 'fromPhotoGroup', { group: s.group ?? '' })}
-							{:else if s.kind === 'group'}
-								{t(L, 'forRecipe', { group: s.group ?? '' })}
-							{:else}
-								{t(L, 'otherLines')}
-							{/if}
-						</span>
-						<span>{money(s.subtotalCents)}</span>
-					</div>
+			{#if !full}
+				{#if quote.flags.length && open}
+					<p class="flags-count" data-testid="quote-flags-count">
+						<Icon name="warn" stroke="#6b5400" weight={2} />
+						{quote.flags.length === 1 ? t(L, 'oneThing') : t(L, 'nThings', { n: quote.flags.length })}
+					</p>
 				{/if}
-				{#each s.lines as line (line.line_id)}
-					<div class="line" data-testid="quote-line" data-line-id={line.line_id}>
-						<span class="asked">{t(L, 'youAsked', { asked: askedLabel(line, L) })}</span>
-						<div class="line-main">
-							<Thumb src={line.image_url} width={44} height={44} fit="contain" placeholder="box" radius={6} />
-							<div class="what">
-								<b class="product"
-									>{productLabel(line, L)}
-									{#each lineFlagCodes(quote, line.line_id) as code (code)}<span class="a2-tag">{codeTitle(code, L)}</span>{/each}</b
-								>
-								<span class="a2-cap">{line.reason_text[L]}</span>
-							</div>
-							<b class="price">{money(line.line_total_cents)}</b>
+				{#if showOrder && quote.lines.length && open}
+					<button type="button" class="see" onclick={showOrder} data-testid="see-whole-order">
+						<Icon name="cart" stroke="var(--petrol)" />{t(L, 'seeWholeOrder')}
+					</button>
+				{/if}
+			{/if}
+
+			{#if full}
+				{#each sections as s, i (i)}
+					{#if sections.length > 1 || s.kind !== 'other'}
+						<div class="grp" class:sep={i > 0}>
+							{#if s.imageUrl}
+								<Thumb src={s.imageUrl} width={48} height={32} placeholder="none" radius={4} />
+							{:else if s.kind === 'photo'}<Icon name="camera" stroke="var(--petrol)" />{/if}
+							<span class="grow">
+								{#if s.kind === 'photo'}
+									{s.draftId && draftPortions[s.draftId]
+										? t(L, 'fromPhotoGroupPortions', { group: s.group ?? '', n: draftPortions[s.draftId] })
+										: t(L, 'fromPhotoGroup', { group: s.group ?? '' })}
+								{:else if s.kind === 'group'}
+									{t(L, 'forRecipe', { group: s.group ?? '' })}
+								{:else}
+									{t(L, 'otherLines')}
+								{/if}
+							</span>
+							<span>{money(s.subtotalCents)}</span>
 						</div>
-					</div>
+					{/if}
+					{#each s.lines as line (line.line_id)}
+						<div class="line" data-testid="quote-line" data-line-id={line.line_id}>
+							<span class="asked">{t(L, 'youAsked', { asked: askedLabel(line, L) })}</span>
+							<div class="line-main">
+								<Thumb src={line.image_url} width={44} height={44} fit="contain" placeholder="box" radius={6} />
+								<div class="what">
+									<b class="product"
+										>{productLabel(line, L)}
+										{#each lineFlagCodes(quote, line.line_id) as code (code)}<span class="a2-tag">{codeTitle(code, L)}</span>{/each}</b
+									>
+									<span class="a2-cap">{line.reason_text[L]}</span>
+								</div>
+								<b class="price">{money(line.line_total_cents)}</b>
+							</div>
+						</div>
+					{/each}
 				{/each}
-			{/each}
 
-			{#if quote.not_ordered.length}
-				<p class="not-ordered" data-testid="quote-not-ordered">
-					<Icon name="none" stroke="var(--muted)" weight={2} />
-					<span
-						>{t(L, 'notOrdered', { items: quote.not_ordered.map((n) => n.name).join(', ') })}.{#each notOrderedReasons as reason (reason)}{' '}{reason}{/each}</span
-					>
-				</p>
-			{/if}
+				{#if quote.not_ordered.length}
+					<p class="not-ordered" data-testid="quote-not-ordered">
+						<Icon name="none" stroke="var(--muted)" weight={2} />
+						<span
+							>{t(L, 'notOrdered', { items: quote.not_ordered.map((n) => n.name).join(', ') })}.{#each notOrderedReasons as reason (reason)}{' '}{reason}{/each}</span
+						>
+					</p>
+				{/if}
 
-			{#if quote.flags.length}
-				<button type="button" class="flags-toggle" aria-expanded={flagsOpen} aria-controls="{uid}-flags" onclick={() => (flagsOpen = !flagsOpen)}>
-					<Icon name="warn" stroke="#6b5400" weight={2} />
-					{quote.flags.length === 1 ? t(L, 'oneThing') : t(L, 'nThings', { n: quote.flags.length })}
-					<span class="chev" class:open={flagsOpen}><Icon name="chevron" size={12} stroke="#6b5400" weight={2.5} /></span>
-				</button>
-				{#if flagsOpen}
-					<div class="flags" id="{uid}-flags" data-testid="quote-flags">
-						<ul>
-							{#each quote.flags as flag (flag.flag_key)}
-								<li>{flag.text[L]}</li>
-							{/each}
-						</ul>
-						<span class="a2-cap">{t(L, 'checkOnPhone')}</span>
-					</div>
+				{#if quote.flags.length}
+					<button type="button" class="flags-toggle" aria-expanded={flagsOpen} aria-controls="{uid}-flags" onclick={() => (flagsOpen = !flagsOpen)}>
+						<Icon name="warn" stroke="#6b5400" weight={2} />
+						{quote.flags.length === 1 ? t(L, 'oneThing') : t(L, 'nThings', { n: quote.flags.length })}
+						<span class="chev" class:open={flagsOpen}><Icon name="chevron" size={12} stroke="#6b5400" weight={2.5} /></span>
+					</button>
+					{#if flagsOpen}
+						<div class="flags" id="{uid}-flags" data-testid="quote-flags">
+							<ul>
+								{#each quote.flags as flag (flag.flag_key)}
+									<li>{flag.text[L]}</li>
+								{/each}
+							</ul>
+							<span class="a2-cap">{t(L, 'checkOnPhone')}</span>
+						</div>
+					{/if}
 				{/if}
 			{/if}
 
-			{#if quote.status === 'pending_confirmation'}
-				<p class="a2-done"><Icon name="phone" size={18} stroke="#3f5a00" />{t(L, 'pendingConfirmation')}</p>
+			{#if sent}
+				<p class="quiet" data-testid="quote-sent"><Icon name="check" size={16} stroke="#3f5a00" weight={2.6} />{t(L, 'pendingConfirmation')}</p>
 			{:else if quote.status === 'confirmed'}
-				<p class="a2-done"><Icon name="check" size={18} stroke="#3f5a00" weight={2.6} />{t(L, 'quoteConfirmed')}</p>
+				<p class="quiet" data-testid="quote-confirmed"><Icon name="check" size={16} stroke="#3f5a00" weight={2.6} />{t(L, 'quoteConfirmed')}</p>
 			{:else if quote.status === 'cancelled'}
-				<p class="plain-text muted">{t(L, 'quoteCancelled')}</p>
+				<p class="plain-text muted" data-testid="quote-closed">{t(L, 'quoteCancelled')}</p>
 			{:else if quote.status === 'expired'}
-				<p class="plain-text muted">{t(L, 'quoteExpired')}</p>
+				<p class="plain-text muted" data-testid="quote-closed">{t(L, 'quoteExpired')}</p>
 			{:else if canSend}
-				<button type="button" class="a2-dark send" disabled={sendAsked} onclick={send} data-testid="send-to-phone">
-					<Icon name="phone" size={18} stroke="#fff" />{sendAsked ? t(L, 'sendAsked') : t(L, 'sendToPhone')}
+				<button type="button" class="a2-dark send" onclick={send} data-testid="send-to-phone">
+					<Icon name="phone" size={18} stroke="#fff" />{t(L, 'sendToPhone')}
 				</button>
 			{/if}
 		{/if}
@@ -439,5 +483,39 @@
 	}
 	.send {
 		margin-top: 4px;
+	}
+	.flags-count {
+		margin: 0;
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		font-size: 14px;
+		font-weight: 600;
+		color: #6b5400;
+	}
+	.see {
+		align-self: flex-start;
+		min-height: 44px;
+		padding: 0;
+		border: 0;
+		background: none;
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		color: var(--petrol);
+		font-size: 15px;
+		font-weight: 700;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+	}
+	.quiet {
+		margin: 0;
+		display: flex;
+		gap: 6px;
+		align-items: center;
+		font-size: 14px;
+		font-weight: 600;
+		color: #3f5a00;
 	}
 </style>

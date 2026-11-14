@@ -129,14 +129,16 @@ const strings = {
 		fi: 'Kuittaat nämä vahvistussivulla ennen vahvistamista.'
 	},
 	sendToPhone: { en: 'Send to my phone', fi: 'Lähetä puhelimeeni' },
-	sendAsked: { en: 'Sending to your phone', fi: 'Lähetetään puhelimeesi' },
 	question: { en: 'Question', fi: 'Kysymys' },
 	cantAdd: { en: 'Can’t add this', fi: 'Tätä ei voi lisätä' },
 	nextStep: { en: 'Do this instead', fi: 'Tee näin' },
 	replaced: { en: 'This quote was replaced by a newer one below.', fi: 'Uudempi tarjous alempana korvasi tämän.' },
 	goLatest: { en: 'Go to the latest', fi: 'Siirry uusimpaan' },
-	pendingConfirmation: { en: 'Sent to your phone. Confirm it there.', fi: 'Lähetetty puhelimeesi. Vahvista se siellä.' },
-	quoteConfirmed: { en: 'Confirmed on your phone.', fi: 'Vahvistettu puhelimessa.' },
+	pendingConfirmation: { en: 'Sent to your phone', fi: 'Lähetetty puhelimeesi' },
+	oneLine: { en: '1 line.', fi: '1 rivi.' },
+	nLines: { en: '{n} lines.', fi: '{n} riviä.' },
+	seeWholeOrder: { en: 'See the whole order', fi: 'Näytä koko tilaus' },
+	quoteConfirmed: { en: 'Confirmed on your phone', fi: 'Vahvistettu puhelimessa' },
 	quoteCancelled: { en: 'This quote was cancelled.', fi: 'Tämä tarjous peruttiin.' },
 	quoteExpired: { en: 'This quote expired. Ask S.I.MO for a new one.', fi: 'Tämä tarjous vanheni. Pyydä S.I.MO:lta uusi.' },
 	noLines: { en: 'Nothing could be added yet.', fi: 'Mitään ei voitu vielä lisätä.' },
@@ -147,6 +149,7 @@ const strings = {
 		en: 'Open it in this browser to confirm. Nothing is ordered yet.',
 		fi: 'Avaa se tässä selaimessa ja vahvista. Mitään ei ole vielä tilattu.'
 	},
+	openPhone: { en: 'Open the demo phone', fi: 'Avaa demopuhelin' },
 	alsoSms: { en: 'Also sent by SMS to {number}', fi: 'Lähetetty myös tekstiviestinä numeroon {number}' }
 } satisfies Record<string, Record<Lang, string>>;
 

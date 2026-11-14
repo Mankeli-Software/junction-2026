@@ -1,9 +1,10 @@
 <script lang="ts">
 	/**
 	 * Shown after `request_confirmation` (design UI-05, Chat-A4; webshop-chat.md §4.4).
-	 * Tells the buyer to open the demo phone in this browser. There is deliberately no
-	 * link: neither to the confirmation page nor to the phone, so a browser agent has
-	 * nothing to follow. The masked number shows only when the API says a real SMS went.
+	 * Tells the buyer to open the demo phone in this browser and links to the phone page
+	 * (`/phone`, in the shop's language, as the shop's own pointer does; Juho 2026-11-14),
+	 * where the inbox has the message. The confirmation link itself (`/c/...`) never
+	 * shows here. The masked number shows only when the API says a real SMS went.
 	 */
 	import { untrack } from 'svelte';
 	import '../cards.css';
@@ -14,6 +15,7 @@
 
 	const { data, lang, revision } = chatContext();
 	const L = $derived(lang());
+	const phoneHref = $derived(`/phone${L === 'fi' ? '?lang=fi' : ''}`);
 	let sent = $state.raw<SentLatest | null>(null);
 
 	function load() {
@@ -40,13 +42,16 @@
 		<b>{t(L, 'sentTitle')}</b>
 		<span class="a2-cap">{t(L, 'sentText')}</span>
 		{#if sms}<span class="a2-cap" data-testid="sent-sms">{t(L, 'alsoSms', { number: sms })}</span>{/if}
+		<a class="a2-pill lime open" href={phoneHref} data-testid="open-phone"
+			><Icon name="phone" size={16} stroke="var(--ink)" />{t(L, 'openPhone')}</a
+		>
 	</div>
 </div>
 
 <style>
 	.sent {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: 12px;
 		background: var(--ok-bg);
 		border: 1px solid var(--ok-border);
@@ -69,6 +74,11 @@
 		flex-direction: column;
 		gap: 2px;
 		min-width: 0;
+	}
+	.open {
+		align-self: flex-start;
+		margin-top: 8px;
+		text-decoration: none;
 	}
 	.words b {
 		font-size: 16px;

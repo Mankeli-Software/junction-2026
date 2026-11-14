@@ -14,7 +14,9 @@
 	 * 40 and UI-02): a launcher that opens a side panel on a computer and a full screen
 	 * on a phone. The header names the kitchen's exclusions; before the first message
 	 * the visitor enters their number (the phone page's number entry) and sees the
-	 * dashboard notice. "Current order" is the latest quote, refreshed after each turn.
+	 * dashboard notice. "Current order" is the newest quote while it is still open, read
+	 * again after each turn, when the panel opens and when the tab comes back (a confirmation
+	 * on the phone page closes it).
 	 *
 	 * The confirmation link never shows here (§4.4): after sending, only the notice card.
 	 */
@@ -62,13 +64,38 @@
 		lang: () => lang,
 		onDone: () => void refreshCurrent()
 	});
-	// The data source is fixed for the panel's life.
+	// The data source is fixed for the panel's life. The chat shows the compact quote and
+	// the Current order drawer the full one (Juho, 2026-11-14).
 	// svelte-ignore state_referenced_locally
-	setChatContext({ store: session.store, data, lang: () => lang, revision: () => session.revision });
-	onDestroy(() => session.dispose());
+	setChatContext({
+		store: session.store,
+		data,
+		lang: () => lang,
+		revision: () => session.revision,
+		quoteVariant: (surfaceId) => (surfaceId === CURRENT_SURFACE ? 'full' : 'compact'),
+		showOrder: () => void showOrder()
+	});
+	onDestroy(() => {
+		session.dispose();
+		clearTimeout(freshTimer);
+	});
+
+	/** "See the whole order" in a chat quote: opens the drawer at its top. */
+	async function showOrder() {
+		if (!current) await refreshCurrent();
+		if (!current) return;
+		orderOpen = true;
+		await tick();
+		document.getElementById('chat-current-order')?.scrollTo({ top: 0 });
+		orderBar?.focus();
+	}
 
 	let current = $state<{ quote_id: string; total_cents: number } | null>(null);
 	let orderOpen = $state(false);
+	/** The bar lights up for a moment when a new quote or total comes in. */
+	let fresh = $state(false);
+	let freshTimer: ReturnType<typeof setTimeout> | undefined;
+	let orderBar = $state<HTMLButtonElement | null>(null);
 	let panel = $state<HTMLElement | null>(null);
 	let launcher = $state<HTMLButtonElement | null>(null);
 	let input = $state<HTMLInputElement | null>(null);
@@ -86,7 +113,25 @@
 			: null
 	);
 
-	/** `GET /api/v1/quotes/current`: the newest quote, or nothing yet (404). */
+	/** Quote statuses that are still an open order; the rest (confirmed, cancelled, expired, void) are not. */
+	const OPEN_STATUSES = new Set(['ready', 'needs_clarification', 'rejected', 'pending_confirmation']);
+
+	/** Shown in place of the bar once the newest quote was confirmed, until a new one opens. */
+	let lastConfirmed = $state<{ order_number: string | null } | null>(null);
+
+	/** No current order: the bar goes, the drawer closes and its card is dropped. */
+	function clearCurrent() {
+		current = null;
+		orderOpen = false;
+		if (session.store.surfaces[CURRENT_SURFACE]) {
+			session.store.process([{ version: 'v0.9', deleteSurface: { surfaceId: CURRENT_SURFACE } }]);
+		}
+	}
+
+	/**
+	 * `GET /api/v1/quotes/current`: the newest quote whatever its status, or nothing yet
+	 * (404). Only a quote still open is the Current order.
+	 */
 	async function refreshCurrent() {
 		if (!account) return;
 		try {
@@ -94,13 +139,42 @@
 				credentials: 'same-origin',
 				headers: { accept: 'application/json' }
 			});
+			if (response.status === 404) {
+				clearCurrent();
+				lastConfirmed = null;
+				return;
+			}
 			if (!response.ok) return;
-			const quote = (await response.json()) as { quote_id?: unknown; total_cents?: unknown };
+			const quote = (await response.json()) as {
+				quote_id?: unknown;
+				total_cents?: unknown;
+				status?: unknown;
+				order_number?: unknown;
+			};
 			if (typeof quote.quote_id !== 'string' || typeof quote.total_cents !== 'number') return;
+			if (typeof quote.status === 'string' && !OPEN_STATUSES.has(quote.status)) {
+				clearCurrent();
+				// The quote has no order number today; it shows when the API sends one.
+				lastConfirmed =
+					quote.status === 'confirmed'
+						? { order_number: typeof quote.order_number === 'string' ? quote.order_number : null }
+						: null;
+				return;
+			}
+			lastConfirmed = null;
+			const changed = current?.quote_id !== quote.quote_id || current?.total_cents !== quote.total_cents;
 			current = { quote_id: quote.quote_id, total_cents: quote.total_cents };
-			// The bar opens the latest QuoteCard, drawn by the same renderer as the chat.
+			if (changed) {
+				fresh = true;
+				clearTimeout(freshTimer);
+				freshTimer = setTimeout(() => (fresh = false), 2400);
+			}
+			// The bar opens the latest QuoteCard, drawn by the same renderer as the chat, in
+			// its full variant. The surface is made once, so the card keeps its state.
 			session.store.process([
-				{ version: 'v0.9', createSurface: { surfaceId: CURRENT_SURFACE, catalogId: SIMO_CATALOG_ID } },
+				...(session.store.surfaces[CURRENT_SURFACE]
+					? []
+					: [{ version: 'v0.9' as const, createSurface: { surfaceId: CURRENT_SURFACE, catalogId: SIMO_CATALOG_ID } }]),
 				{
 					version: 'v0.9',
 					updateComponents: {
@@ -122,6 +196,7 @@
 		loadedFor = key;
 		current = null;
 		orderOpen = false;
+		lastConfirmed = null;
 		if (key) void refreshCurrent();
 	});
 
@@ -132,8 +207,31 @@
 		if (!active || active === document.body || !panel.contains(active)) input.focus();
 	});
 
+	/**
+	 * The order may have changed elsewhere (confirmed on the phone page, in another tab):
+	 * read the current order again and let the cards on screen reload theirs. No polling.
+	 */
+	function recheck() {
+		if (!account) return;
+		void refreshCurrent();
+		session.revision += 1;
+	}
+
+	$effect(() => {
+		const onVisible = () => {
+			if (document.visibilityState === 'visible') recheck();
+		};
+		document.addEventListener('visibilitychange', onVisible);
+		window.addEventListener('focus', recheck);
+		return () => {
+			document.removeEventListener('visibilitychange', onVisible);
+			window.removeEventListener('focus', recheck);
+		};
+	});
+
 	async function show() {
 		open = true;
+		recheck();
 		await tick();
 		(input ?? panel?.querySelector<HTMLElement>('input, select, button'))?.focus();
 	}
@@ -194,6 +292,8 @@
 			<button
 				type="button"
 				class="order-bar"
+				class:fresh
+				bind:this={orderBar}
 				aria-expanded={orderOpen}
 				aria-controls="chat-current-order"
 				data-testid="current-order"
@@ -203,7 +303,7 @@
 					<path d="M3 4h2l2.5 11h11L21 7H7" /><circle cx="9" cy="19" r="1.5" /><circle cx="18" cy="19" r="1.5" />
 				</svg>
 				<b class="grow">{t(lang, 'currentOrder')}</b>
-				<b data-testid="current-order-total">{money(current.total_cents)}</b>
+				<b data-testid="current-order-total" aria-live="polite">{money(current.total_cents)}</b>
 				<svg class="chev" class:up={orderOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--petrol)" stroke-width="2.5" aria-hidden="true">
 					<path d="M6 9l6 6 6-6" />
 				</svg>
@@ -213,6 +313,15 @@
 					<Surface surfaceId={CURRENT_SURFACE} />
 				</div>
 			{/if}
+		{:else if account && lastConfirmed}
+			<p class="last-order" data-testid="last-order" role="status">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3f5a00" stroke-width="2.6" aria-hidden="true">
+					<path d="M5 12l5 5 9-10" />
+				</svg>
+				{lastConfirmed.order_number
+					? t(lang, 'lastOrderNumber', { n: lastConfirmed.order_number })
+					: t(lang, 'lastOrderConfirmed')}
+			</p>
 		{/if}
 
 		{#if !ready}
@@ -366,6 +475,37 @@
 		color: inherit;
 		text-align: left;
 		cursor: pointer;
+	}
+	.order-bar.fresh {
+		animation: fresh 2.4s ease-out;
+	}
+	@keyframes fresh {
+		0%,
+		40% {
+			background: var(--lime-soft);
+		}
+		100% {
+			background: var(--lavender);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.order-bar.fresh {
+			animation: none;
+			background: var(--lime-soft);
+		}
+	}
+	.last-order {
+		flex-shrink: 0;
+		margin: 0;
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		padding: 9px 14px;
+		border-bottom: 1px solid var(--border);
+		background: var(--ok-bg);
+		font-size: 14px;
+		font-weight: 600;
+		color: #3f5a00;
 	}
 	.order-bar b {
 		font-size: 15px;

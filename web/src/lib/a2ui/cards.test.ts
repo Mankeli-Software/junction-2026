@@ -87,6 +87,15 @@ describe('quote helpers', () => {
 		expect(newerQuoteSurface(store, 's1', 'card', 'q_question')).toBe('s3');
 		expect(newerQuoteSurface(store, 's3', 'card', 'q_ready')).toBeNull();
 	});
+
+	it('leaves out the surfaces the host skips, such as the Current order drawer', () => {
+		const store = new SurfaceStore(() => {});
+		store.process(cardEnvelopes('s1', 'QuoteCard', { quoteId: 'q_question' }));
+		store.process(cardEnvelopes('current-order', 'QuoteCard', { quoteId: 'q_ready' }));
+		store.markActed('current-order', 'card#loaded', 'q_ready');
+		expect(newerQuoteSurface(store, 's1', 'card', 'q_question')).toBe('current-order');
+		expect(newerQuoteSurface(store, 's1', 'card', 'q_question', (sid) => sid === 'current-order')).toBeNull();
+	});
 });
 
 describe('fixtureData', () => {

@@ -5,6 +5,7 @@
  * cards load are answered with `page.route`.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { fixtureQuestionQuote, fixtureReadyQuote } from '../src/lib/a2ui/fixtures';
 import { card, draft, fakeChat, MENU_QUOTE, menu, MILK_QUOTE, RECIPE_QUOTE, turn } from './support/fake-chat';
 
 function number(): string {
@@ -12,6 +13,8 @@ function number(): string {
 }
 
 const panel = (page: Page) => page.getByTestId('chat-panel');
+/** The Current order drawer: the full quote. */
+const drawer = (page: Page) => page.locator('#chat-current-order');
 
 /** Opens the chat and signs in with its own number entry, avoiding nuts. */
 async function openAndSignIn(page: Page) {
@@ -71,13 +74,26 @@ test('order by text: quote card, send to my phone, sent notice, and never the li
 	});
 
 	// The quote card from the engine's data, and the current order refreshed after `done`.
+	// The chat card is compact: a one-line summary, no lines (Juho, 2026-11-14).
 	const quoteCard = panel(page).locator('[data-surface-id="quote"]');
-	await expect(quoteCard).toContainText('Valio lactose-free milk 1 l');
+	await expect(quoteCard.getByTestId('quote-summary')).toHaveText(/^1 line\. Delivery .+, incl\. VAT$/);
+	await expect(quoteCard.getByTestId('quote-line')).toHaveCount(0);
 	await expect(panel(page).getByTestId('current-order-total')).toHaveText(/1\s?290,00\s€/);
+
+	// "See the whole order" opens the Current order drawer with every line.
+	await quoteCard.getByRole('button', { name: 'See the whole order' }).click();
+	await expect(panel(page).getByTestId('current-order')).toHaveAttribute('aria-expanded', 'true');
+	await expect(drawer(page).getByTestId('quote-line')).toContainText('Valio lactose-free milk 1 l');
+	await panel(page).getByTestId('current-order').click();
 
 	await quoteCard.getByRole('button', { name: /Send to my phone/ }).click();
 	await expect(panel(page).getByTestId('chat-action')).toHaveText(/Send it to my phone/);
 	await expect(panel(page).locator('[data-surface-id="sent"]')).toContainText(/demo phone/i);
+	// After sending, the quote says so quietly; the notice carries the phone link.
+	await expect(quoteCard.getByTestId('quote-sent')).toHaveText('Sent to your phone');
+	await expect(quoteCard.getByRole('button', { name: /Send to my phone/ })).toHaveCount(0);
+	const phoneLink = panel(page).getByRole('link', { name: 'Open the demo phone' });
+	await expect(phoneLink).toHaveAttribute('href', '/phone');
 	expect(fake.bodies[1]).toMatchObject({
 		conversation_id: 'conv-1',
 		message: null,
@@ -88,6 +104,8 @@ test('order by text: quote card, send to my phone, sent notice, and never the li
 	await expect(panel(page).getByTestId('chat-agent').last()).toContainText('the link is in your demo phone');
 	expect(await panel(page).innerHTML()).not.toContain('/c/');
 	await expect(panel(page).getByRole('link', { name: /confirmation page/i })).toHaveCount(0);
+	// The only link in the panel is the phone page.
+	expect(await panel(page).locator('a').evaluateAll((links) => links.map((a) => a.getAttribute('href')))).toEqual(['/phone']);
 	await expect(panel(page).getByRole('button', { name: /confirmation page/i })).toHaveCount(0);
 });
 
@@ -139,13 +157,18 @@ test('weekly menu: swap a day, build the order', async ({ page }) => {
 	await panel(page).locator('[data-surface-id="menu"]').getByRole('button', { name: /Build order from this menu/ }).click();
 	await expect(panel(page).getByTestId('chat-action').last()).toHaveText(/Build the order from this menu/);
 	const quoteCard = panel(page).locator('[data-surface-id="menu-quote"]');
-	await expect(quoteCard).toContainText('Chicken and vegetable curry');
-	await expect(quoteCard).toContainText(/salt/);
+	await expect(quoteCard.getByTestId('quote-summary')).toHaveText(/^2 lines\./);
+	await expect(quoteCard).not.toContainText(/salt/);
+	// The groups and "Not ordered" live in the Current order drawer.
+	await panel(page).getByTestId('current-order').click();
+	const order = drawer(page);
+	await expect(order).toContainText('Chicken and vegetable curry');
+	await expect(order).toContainText(/salt/);
 	// The curry group shows its recipe image; the soup group has none and no placeholder.
-	await expect(quoteCard.locator('.grp img')).toHaveCount(1);
+	await expect(order.locator('.grp img')).toHaveCount(1);
 	// Product thumbnails: an image for the oat base, the placeholder for the oil.
-	await expect(quoteCard.getByTestId('quote-line').first().locator('img')).toHaveAttribute('src', /api\.valioaimo\.fi\/medias/);
-	await expect(quoteCard.getByTestId('quote-line').last().locator('[data-testid="thumb"][data-empty="true"]')).toHaveCount(1);
+	await expect(order.getByTestId('quote-line').first().locator('img')).toHaveAttribute('src', /api\.valioaimo\.fi\/medias/);
+	await expect(order.getByTestId('quote-line').last().locator('[data-testid="thumb"][data-empty="true"]')).toHaveCount(1);
 	expect(fake.bodies[2].action).toMatchObject({ name: 'menu_build', context: { menuId: 'menu-1' } });
 });
 
@@ -194,8 +217,10 @@ test('recipe photo: read, confirm the recipe, get a quote', async ({ page }) => 
 	await expect(panel(page).getByTestId('chat-action').last()).toHaveText(/Recipe confirmed/);
 	expect(fake.bodies[1].action).toMatchObject({ name: 'recipe_confirmed', context: { draftId: 'd-1' } });
 	const quoteCard = panel(page).locator('[data-surface-id="recipe-quote"]');
-	await expect(quoteCard).toContainText('Valio light milk 1 l');
+	await expect(quoteCard.getByTestId('quote-summary')).toHaveText(/^1 line\./);
 	await expect(panel(page).getByTestId('current-order')).toBeVisible();
+	await panel(page).getByTestId('current-order').click();
+	await expect(drawer(page)).toContainText('Valio light milk 1 l');
 });
 
 test('a photo that cannot be read gets a short plain sentence', async ({ page }) => {
@@ -240,7 +265,7 @@ test.describe('at 390 px', () => {
 		}, { quotes: [MILK_QUOTE] });
 		await openAndSignIn(page);
 		await panel(page).getByRole('button', { name: 'My usual order' }).click();
-		await expect(panel(page).locator('[data-surface-id="quote"]')).toContainText('Valio lactose-free milk 1 l');
+		await expect(panel(page).locator('[data-surface-id="quote"]').getByTestId('quote-summary')).toBeVisible();
 		const box = await panel(page).boundingBox();
 		expect(box).toMatchObject({ x: 0, y: 0, width: 390 });
 		const overflow = await page.evaluate(() => {
@@ -249,4 +274,108 @@ test.describe('at 390 px', () => {
 		});
 		expect(overflow).toEqual([]);
 	});
+});
+
+test('a quote with a question: compact in the chat, whole in the drawer, one answer for both', async ({ page }) => {
+	const fake = await fakeChat(
+		page,
+		(body, f) => {
+			if (body.action?.name === 'clarification_answered') {
+				f.current.value = fixtureReadyQuote;
+				return turn('Six cartons it is.', {
+					tool: 'update_quote',
+					cards: [card('q2', { component: 'QuoteCard', quoteId: 'q_ready' })],
+					quoteId: 'q_ready'
+				});
+			}
+			f.current.value = fixtureQuestionQuote;
+			return turn('One question about the milk first.', {
+				tool: 'build_quote',
+				cards: [card('q1', { component: 'QuoteCard', quoteId: 'q_question' })],
+				quoteId: 'q_question'
+			});
+		},
+		{ quotes: [fixtureQuestionQuote, fixtureReadyQuote] }
+	);
+	await openAndSignIn(page);
+	await page.getByLabel('Message S.I.MO').fill('Karjalanpiirakat for 120 and 60 l lactose-free milk');
+	await page.keyboard.press('Enter');
+
+	// The chat card: summary, the question, how many things to check; no lines, no Send.
+	const q1 = panel(page).locator('[data-surface-id="q1"]');
+	await expect(q1.getByTestId('quote-summary')).toHaveText(/^3 lines\. Delivery/);
+	await expect(q1.getByTestId('quote-question')).toContainText('You need 6 l of milk');
+	await expect(q1.getByTestId('quote-flags-count')).toHaveText('1 thing to check on your phone');
+	await expect(q1.getByTestId('quote-line')).toHaveCount(0);
+	await expect(q1.getByTestId('quote-not-ordered')).toHaveCount(0);
+	await expect(q1.getByRole('button', { name: /Send to my phone/ })).toHaveCount(0);
+
+	// The drawer: the whole order, the flags to open, and the same question.
+	await q1.getByRole('button', { name: 'See the whole order' }).click();
+	const order = drawer(page);
+	await expect(order.getByTestId('quote-line')).toHaveCount(3);
+	await expect(order.getByTestId('quote-not-ordered')).toBeVisible();
+	await order.getByRole('button', { name: /thing to check/ }).click();
+	await expect(order.getByTestId('quote-flags')).toContainText('Butter is rounded up');
+
+	// Answering in the drawer counts in the chat card too.
+	await order.getByRole('button', { name: /Six 1 l cartons/ }).click();
+	expect(fake.bodies[1].action).toMatchObject({
+		name: 'clarification_answered',
+		context: { quoteId: 'q_question', lineId: 'p5', label: 'Six 1 l cartons' }
+	});
+	await panel(page).getByTestId('current-order').click();
+	await expect(panel(page).getByTestId('chat-action').last()).toHaveText(/Six 1 l cartons$/);
+	await expect(q1.getByTestId('quote-replaced')).toBeVisible();
+
+	// The new quote: summary and Send in the chat; the drawer follows it.
+	const q2 = panel(page).locator('[data-surface-id="q2"]');
+	await expect(q2.getByRole('button', { name: /Send to my phone/ })).toBeVisible();
+	await panel(page).getByTestId('current-order').click();
+	await expect(drawer(page).getByRole('button', { name: /Send to my phone/ })).toBeVisible();
+	await expect(drawer(page).getByTestId('quote-question')).toHaveCount(0);
+});
+
+test('a confirmed order is no longer the current order', async ({ page }) => {
+	const fake = await fakeChat(page, () => turn('Hello.'), { quotes: [] });
+	fake.current.value = { ...MILK_QUOTE, status: 'confirmed' };
+	await openAndSignIn(page);
+	await expect(panel(page).getByTestId('current-order')).toHaveCount(0);
+	await expect(panel(page).getByTestId('last-order')).toHaveText('Your last order is confirmed.');
+});
+
+test('a confirmation on the phone closes the current order when the tab comes back', async ({ page }) => {
+	const quote = structuredClone(MILK_QUOTE) as Record<string, unknown>;
+	const fake = await fakeChat(
+		page,
+		(body, f) => {
+			if (body.action?.name === 'send_for_confirmation') {
+				quote.status = 'pending_confirmation';
+				return turn('Sent.', { tool: 'request_confirmation', cards: [card('sent', { component: 'SentNotice' })] });
+			}
+			f.current.value = quote;
+			return turn('Here is your milk for Monday.', {
+				tool: 'build_quote',
+				cards: [card('quote', { component: 'QuoteCard', quoteId: 'q-milk' })],
+				quoteId: 'q-milk'
+			});
+		},
+		{ quotes: [quote] }
+	);
+	await openAndSignIn(page);
+	await panel(page).getByRole('button', { name: 'My usual order' }).click();
+	const quoteCard = panel(page).locator('[data-surface-id="quote"]');
+	await quoteCard.getByRole('button', { name: /Send to my phone/ }).click();
+	await expect(quoteCard.getByTestId('quote-sent')).toHaveText('Sent to your phone');
+	await expect(panel(page).getByTestId('current-order')).toBeVisible();
+
+	// Confirmed on the phone page meanwhile; the shop tab gets focus again.
+	quote.status = 'confirmed';
+	fake.current.value = quote;
+	await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+	await expect(panel(page).getByTestId('current-order')).toHaveCount(0);
+	await expect(panel(page).getByTestId('last-order')).toBeVisible();
+	// The card on screen reads its quote again: confirmed, read-only, nothing to press.
+	await expect(quoteCard.getByTestId('quote-confirmed')).toHaveText('Confirmed on your phone');
+	await expect(quoteCard.getByRole('button')).toHaveCount(0);
 });

@@ -47,6 +47,8 @@ const strings = {
 	example3: { en: 'My usual order', fi: 'Tavallinen tilaukseni' },
 
 	currentOrder: { en: 'Current order', fi: 'Nykyinen tilaus' },
+	lastOrderConfirmed: { en: 'Your last order is confirmed.', fi: 'Edellinen tilauksesi on vahvistettu.' },
+	lastOrderNumber: { en: 'Your last order {n} is confirmed.', fi: 'Edellinen tilauksesi {n} on vahvistettu.' },
 	showOrder: { en: 'Show the current order', fi: 'Näytä nykyinen tilaus' },
 
 	messageLabel: { en: 'Message S.I.MO', fi: 'Viesti S.I.MOlle' },
