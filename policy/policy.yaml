@@ -1,6 +1,6 @@
 # Engine rule set (technical-plan.md §4.3). Every quote records `version`
 # plus a sha256 over all files in policy/, so bump `version` when you change a rule.
-version: "2026-11-14.2"
+version: "2026-11-14.3"
 
 # Every order is confirmed by a human through the SMS link (vision §6).
 confirmation: always

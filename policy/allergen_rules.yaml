@@ -53,5 +53,8 @@ choices:
 
   vegan:
     label: {fi: vegaaninen, en: vegan}
-    # Fail closed: meat is not reliably coded, so only the claim counts.
+    # Fail closed: meat is not reliably coded, so the claim is required.
+    # Animal codes still block, so a VEGAN claim never clears a product that
+    # lists milk, egg, fish, shellfish or meat.
+    block: [AM, ML, AE, AF, ABD, ADQ, AC, UM, UN, BF, CM, PO]
     require_claim: [{code: VEGAN}]
