@@ -9,9 +9,10 @@ import type { Lang, Text } from '#lib/demo/types.js';
 const strings = {
 	shopName: { en: 'Foodservice webshop', fi: 'Ammattikeittiön verkkokauppa' },
 	language: { en: 'Language', fi: 'Kieli' },
-	categories: { en: 'Categories', fi: 'Tuoteryhmät' },
-	all: { en: 'All products', fi: 'Kaikki tuotteet' },
-	heroTitle: { en: 'Valio products for professional kitchens', fi: 'Valion tuotteet ammattikeittiöille' },
+	sections: { en: 'Departments', fi: 'Osastot' },
+	groups: { en: 'Product groups', fi: 'Tuoteryhmät' },
+	categories: { en: 'Categories', fi: 'Tuotekategoriat' },
+	heroTitle: { en: 'Food and supplies for professional kitchens', fi: 'Ruokaa ja tarvikkeita ammattikeittiöille' },
 	heroText: {
 		en: 'Order through the AI agent in your browser. This page gives it S.I.MO, our ordering tools: it finds safe products that arrive on time, and the order waits for your yes.',
 		fi: 'Tilaa selaimesi tekoälyagentilla. Tämä sivu antaa sille S.I.MOn tilaustyökalut: ne löytävät turvalliset tuotteet, jotka ehtivät ajoissa, ja tilaus odottaa sinun hyväksyntääsi.'
@@ -22,6 +23,10 @@ const strings = {
 		fi: 'Hinnat, saatavuus ja toimituspäivät tulevat agentin kautta.'
 	},
 	productCount: { en: '{n} products', fi: '{n} tuotetta' },
+	catalogueUnavailable: {
+		en: 'The product list is not available right now. The agent can still find products.',
+		fi: 'Tuotelista ei ole juuri nyt saatavilla. Agentti löytää tuotteet silti.'
+	},
 	byPiece: { en: 'Sold by the piece', fi: 'Myydään kappaleittain' },
 	byCase: { en: 'Sold by the case of {n}', fi: 'Myydään {n} kpl laatikoissa' },
 	noImage: { en: 'No picture yet', fi: 'Ei vielä kuvaa' },

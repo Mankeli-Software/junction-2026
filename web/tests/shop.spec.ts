@@ -86,17 +86,36 @@ test('the tools fall back to navigator.modelContext', async ({ page }) => {
 	expect((await registeredTools(page)).map((tool) => tool.name)).toEqual(AGENT_TOOLS.map((tool) => tool.name));
 });
 
-test('static products with pack size and category, no prices', async ({ page }) => {
+test('the catalogue: sections, groups and categories, no prices', async ({ page }) => {
 	await page.goto('/shop');
 	const products = page.getByTestId('product');
-	await expect(products).toHaveCount(12);
+	// Opens on the tree's first category: Fresh products / Milk / Milk and sour milk drinks.
+	await expect(page.getByTestId('crumbs')).toHaveText('Fresh products / Milk');
+	await expect(page.getByRole('heading', { level: 2, name: 'Milk and sour milk drinks' })).toBeVisible();
+	await expect(products).toHaveCount(2);
 	await expect(products.first()).toContainText('Valio whole milk 1 l lactose free UHT');
-	await expect(products.first()).toContainText('Milk and sour milk drinks');
 	await expect(products.first()).toContainText('Sold by the piece');
 	await expect(page.locator('main')).not.toContainText('€');
-	await page.getByRole('button', { name: 'Butter', exact: true }).click();
+
+	await page.getByTestId('groups').getByRole('link', { name: 'Butter', exact: true }).click();
+	await expect(page).toHaveURL(/category=10500/);
 	await expect(products).toHaveCount(1);
 	await expect(products.first()).toContainText('Valio butter 500 g salted');
+
+	await page.getByTestId('sections').getByRole('link', { name: 'Drinks', exact: true }).click();
+	await expect(page.getByTestId('sections').getByRole('link', { name: 'Drinks' })).toHaveAttribute('aria-current', 'true');
+	await expect(products).toHaveCount(1);
+	await expect(products.first()).toContainText('orange juice', { ignoreCase: true });
+
+	// The language toggle keeps the category.
+	await page.getByRole('link', { name: 'FI', exact: true }).click();
+	await expect(page).toHaveURL(/category=21403/);
+	await expect(page.getByTestId('crumbs')).toHaveText('Juomat / Mehut');
+});
+
+test('an unknown category opens the first one', async ({ page }) => {
+	await page.goto('/shop?category=nope');
+	await expect(page.getByTestId('crumbs')).toHaveText('Fresh products / Milk');
 });
 
 test('number entry: checks the number, signs in like the phone, keeps it on reload', async ({ page }) => {
@@ -167,7 +186,7 @@ test('no confirmation link anywhere in the shop', async ({ page }) => {
 	expect(JSON.stringify(sent)).not.toMatch(/\/c\/|https?:/);
 	await expect(page.locator('a[href*="/c/"]')).toHaveCount(0);
 	const hrefs = await page.locator('a[href]').evaluateAll((links) => links.map((a) => a.getAttribute('href')));
-	expect(hrefs.every((href) => href === '/phone' || href!.startsWith('?lang='))).toBe(true);
+	expect(hrefs.every((href) => href === '/phone' || /^\?(lang|category)=/.test(href!))).toBe(true);
 	expect(await page.locator('body').innerText()).not.toMatch(/\/c\/|fx-/);
 });
 
@@ -186,13 +205,13 @@ test.describe('Finnish browser', () => {
 
 	test('the shop opens in Finnish, and the toggle switches to English', async ({ page }) => {
 		await page.goto('/shop');
-		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Valion tuotteet ammattikeittiöille');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ruokaa ja tarvikkeita ammattikeittiöille');
 		await expect(page.getByRole('heading', { name: 'Kuka tilaa?' })).toBeVisible();
 		await expect(page.getByTestId('product').first()).toContainText('Valio täysmaito 1 l laktoositon UHT');
 
 		await page.getByRole('link', { name: 'EN', exact: true }).click();
 		await expect(page).toHaveURL(/\?lang=en$/);
-		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Valio products for professional kitchens');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Food and supplies for professional kitchens');
 	});
 
 	test('the pointer to the demo phone keeps Finnish', async ({ page }) => {
@@ -214,9 +233,9 @@ test.describe('English browser', () => {
 
 	test('the shop opens in English, and the toggle switches to Finnish', async ({ page }) => {
 		await page.goto('/shop');
-		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Valio products for professional kitchens');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Food and supplies for professional kitchens');
 		await page.getByRole('link', { name: 'FI', exact: true }).click();
 		await expect(page).toHaveURL(/\?lang=fi$/);
-		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Valion tuotteet ammattikeittiöille');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ruokaa ja tarvikkeita ammattikeittiöille');
 	});
 });

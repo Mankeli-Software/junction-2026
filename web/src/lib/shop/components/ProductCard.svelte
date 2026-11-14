@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * One product in the shop grid: picture, category, name, pack size and how it is
+	 * One product in the shop grid: picture, brand, name, pack size and how it is
 	 * sold. No price or stock: those come only through the agent tools (#56).
 	 * Pictures are hotlinked without a Referer, with a placeholder when missing or broken
 	 * (technical-plan.md §5.5).
@@ -33,7 +33,7 @@
 		{/if}
 	</div>
 	<div class="text">
-		<span class="category">{product.category_name[lang]}</span>
+		{#if product.brand}<span class="brand">{product.brand}</span>{/if}
 		<h3>{product.name[lang]}</h3>
 		<span class="pack">
 			{#if product.pack_size}<b>{product.pack_size}</b>{/if}
@@ -87,7 +87,7 @@
 		gap: 6px;
 		flex-grow: 1;
 	}
-	.category {
+	.brand {
 		font-size: 13px;
 		font-weight: 600;
 		color: var(--muted);

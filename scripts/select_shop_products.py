@@ -1,4 +1,4 @@
-"""Write the webshop's static product selection (#56) from the product file.
+"""Write the webshop's fixture catalogue (#56, #118) from the product file.
 
 Usage:
     python3 scripts/select_shop_products.py [data/valio-products.json]
@@ -6,7 +6,8 @@ Usage:
 Reads the static product file (downloaded once with `curl -L` from
 /api/products/download, never from the live API) and data/valio_category_names.csv,
 and writes web/src/lib/shop/products.json: about 12 real Valio products with their
-names, pack size, category and image URL. The image URL is Valio's own, from
+names, brand, pack size, category and image URL. The live shop lists FastAPI's catalogue
+(/api/v1/shop, #118); this file is its stand-in with DEMO_SOURCE=fixture. The image URL is Valio's own, from
 data/product_images.json.gz (#108), the same file the API's catalogue loads; a product
 without one gets null and the shop shows a placeholder.
 """
@@ -74,6 +75,7 @@ def main(product_file: Path) -> None:
             {
                 "product_id": product_id,
                 "name": {"en": names.get("en", names["fi"]), "fi": names["fi"]},
+                "brand": synkka.get("brand") or None,
                 "category": product["category"],
                 "category_name": {"en": category["name_en"], "fi": category["name_fi"]},
                 "shelf": shelf_of[product["category"]],

@@ -8,6 +8,7 @@
 	 * `request_confirmation` the page only points to the demo phone (vision §8).
 	 */
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import ShopChat, { type ChatAccount } from '#lib/chat/ShopChat.svelte';
 	import { ApiError, createAccount, getMe } from '#lib/demo/api.js';
 	import Icon from '#lib/demo/components/Icon.svelte';
@@ -18,7 +19,7 @@
 	import type { components } from '#lib/generated/openapi.js';
 	import ProductCard from '#lib/shop/components/ProductCard.svelte';
 	import { t } from '#lib/shop/i18n.js';
-	import { PRODUCTS, SHELVES } from '#lib/shop/products.js';
+	import { findCategory } from '#lib/shop/products.js';
 	import { AGENT_TOOLS, findModelContext, registerAgentTools } from '#lib/shop/webmcp.js';
 	import type { PageProps } from './$types';
 
@@ -28,8 +29,9 @@
 	let { data }: PageProps = $props();
 	const lang = $derived(data.lang);
 
-	let shelf = $state<string | null>(null);
-	const shown = $derived(shelf ? PRODUCTS.filter((p) => p.shelf === shelf) : PRODUCTS);
+	// The catalogue (#118): the category in the URL, its group and section.
+	const shown = $derived(data.shown);
+	const place = $derived(shown ? findCategory(data.catalogue, shown.category.id) : null);
 
 	// Identity: the same demo account and session cookie as /phone.
 	let ready = $state(false);
@@ -114,9 +116,16 @@
 		}
 	}
 
-	function langHref(option: Lang): string {
-		return `?lang=${option}`;
+	/** The same page with these query values; the language stays when the URL has one. */
+	function hrefWith(values: Record<string, string>): string {
+		const query = new URLSearchParams(page.url.search);
+		for (const [name, value] of Object.entries(values)) query.set(name, value);
+		return `?${query}`;
 	}
+
+	const langHref = (option: Lang) => hrefWith({ lang: option });
+	const categoryHref = (id: string) => hrefWith({ category: id });
+	const firstIn = (groups: { categories: { id: string }[] }[]) => groups[0]?.categories[0]?.id ?? '';
 </script>
 
 <svelte:head>
@@ -148,19 +157,14 @@
 		<div class="inner">
 			<h1 class="hd">{t(lang, 'heroTitle')}</h1>
 			<p>{t(lang, 'heroText')}</p>
-			<nav class="tiles" aria-label={t(lang, 'categories')}>
-				<button type="button" class="tile" aria-pressed={shelf === null} onclick={() => (shelf = null)}>
-					{t(lang, 'all')}
-				</button>
-				{#each SHELVES as option (option.key)}
-					<button
-						type="button"
+			<nav class="tiles" aria-label={t(lang, 'sections')} data-testid="sections">
+				{#each data.catalogue.sections as section (section.name.fi)}
+					<a
 						class="tile"
-						aria-pressed={shelf === option.key}
-						onclick={() => (shelf = shelf === option.key ? null : option.key)}
+						href={categoryHref(firstIn(section.groups))}
+						aria-current={place?.section === section ? 'true' : undefined}
+						data-sveltekit-noscroll>{section.name[lang]}</a
 					>
-						{option.name[lang]}
-					</button>
 				{/each}
 			</nav>
 		</div>
@@ -247,13 +251,41 @@
 		</aside>
 
 		<section class="products" aria-labelledby="products-title">
+			{#if place}
+				<nav class="chips" aria-label={t(lang, 'groups')} data-testid="groups">
+					{#each place.section.groups as group (group.name.fi)}
+						<a
+							class="chip"
+							href={categoryHref(firstIn([group]))}
+							aria-current={place.group === group ? 'true' : undefined}
+							data-sveltekit-noscroll>{group.name[lang]}</a
+						>
+					{/each}
+				</nav>
+				<nav class="chips leaves" aria-label={t(lang, 'categories')} data-testid="categories">
+					{#each place.group.categories as category (category.id)}
+						<a
+							class="chip"
+							href={categoryHref(category.id)}
+							aria-current={place.category === category ? 'true' : undefined}
+							data-sveltekit-noscroll
+							>{category.name[lang]} <span class="count">{category.product_count}</span></a
+						>
+					{/each}
+				</nav>
+			{/if}
 			<div class="products-head">
-				<h2 id="products-title" class="hd">{shelf ? SHELVES.find((s) => s.key === shelf)?.name[lang] : t(lang, 'productsTitle')}</h2>
-				<span>{t(lang, 'productCount', { n: shown.length })}</span>
+				<div>
+					{#if shown}
+						<span class="crumbs" data-testid="crumbs">{shown.section[lang]} / {shown.group[lang]}</span>
+					{/if}
+					<h2 id="products-title" class="hd">{shown ? shown.category.name[lang] : t(lang, 'productsTitle')}</h2>
+				</div>
+				<span>{t(lang, 'productCount', { n: shown?.products.length ?? 0 })}</span>
 			</div>
-			<p class="note">{t(lang, 'productsNote')}</p>
+			<p class="note">{t(lang, data.unavailable ? 'catalogueUnavailable' : 'productsNote')}</p>
 			<div class="grid">
-				{#each shown as product (product.product_id)}
+				{#each shown?.products ?? [] as product (product.product_id)}
 					<ProductCard {product} {lang} />
 				{/each}
 			</div>
@@ -370,10 +402,63 @@
 		color: var(--ink);
 		cursor: pointer;
 	}
-	.tile[aria-pressed='true'] {
+	.tile {
+		display: inline-flex;
+		align-items: center;
+		text-decoration: none;
+	}
+	.tile[aria-current='true'] {
 		background: var(--petrol);
 		border-color: var(--petrol);
 		color: #fff;
+	}
+
+	.chips {
+		display: flex;
+		gap: 6px;
+		overflow-x: auto;
+		padding-bottom: 6px;
+		margin-bottom: 8px;
+		scrollbar-width: thin;
+	}
+	.chips.leaves {
+		flex-wrap: wrap;
+		overflow-x: visible;
+		margin-bottom: 18px;
+	}
+	.chip {
+		flex-shrink: 0;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		min-height: 34px;
+		padding: 4px 14px;
+		border-radius: 17px;
+		border: 1px solid var(--border);
+		background: var(--card);
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--ink);
+		text-decoration: none;
+	}
+	.chip[aria-current='true'] {
+		border-color: var(--petrol);
+		box-shadow: inset 0 0 0 1px var(--petrol);
+		color: var(--petrol);
+	}
+	.leaves .chip[aria-current='true'] {
+		background: var(--petrol);
+		color: #fff;
+	}
+	.count {
+		font-size: 12px;
+		font-weight: 600;
+		opacity: 0.7;
+	}
+	.crumbs {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--muted);
 	}
 
 	.layout {
