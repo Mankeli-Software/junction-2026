@@ -1,0 +1,2192 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "S.I.MO ordering API",
+		"version": "0.1.0"
+	},
+	"paths": {
+		"/api/v1/products": {
+			"get": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Search Products",
+				"operationId": "search_products_api_v1_products_get",
+				"parameters": [
+					{
+						"name": "q",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Q"
+						}
+					},
+					{
+						"name": "claims",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/components/schemas/Claim"
+							},
+							"default": [],
+							"title": "Claims"
+						}
+					},
+					{
+						"name": "category",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Category"
+						}
+					},
+					{
+						"name": "needed_by",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string",
+									"format": "date"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Needed By"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 20,
+							"minimum": 1,
+							"default": 10,
+							"title": "Limit"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SearchProductsResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/customer-context": {
+			"get": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Get Customer Context",
+				"operationId": "get_customer_context_api_v1_customer_context_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CustomerContext"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/recipes": {
+			"get": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Search Recipes",
+				"operationId": "search_recipes_api_v1_recipes_get",
+				"parameters": [
+					{
+						"name": "q",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Q"
+						}
+					},
+					{
+						"name": "diet",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							},
+							"default": [],
+							"title": "Diet"
+						}
+					},
+					{
+						"name": "occasion",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Occasion"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 20,
+							"minimum": 1,
+							"default": 10,
+							"title": "Limit"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SearchRecipesResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/recipes/{recipe_id}": {
+			"get": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Get Recipe",
+				"operationId": "get_recipe_api_v1_recipes__recipe_id__get",
+				"parameters": [
+					{
+						"name": "recipe_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Recipe Id"
+						}
+					},
+					{
+						"name": "portions",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Portions"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Recipe"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/quotes": {
+			"post": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Build Quote",
+				"operationId": "build_quote_api_v1_quotes_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/BuildQuoteRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/QuoteResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/quotes/{quote_id}/update": {
+			"post": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Update Quote",
+				"description": "The body is the full new line list, as in `build_quote`. Returns a new quote.",
+				"operationId": "update_quote_api_v1_quotes__quote_id__update_post",
+				"parameters": [
+					{
+						"name": "quote_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Quote Id"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/BuildQuoteRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/QuoteResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/quotes/{quote_id}/confirmation-request": {
+			"post": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Request Confirmation",
+				"operationId": "request_confirmation_api_v1_quotes__quote_id__confirmation_request_post",
+				"parameters": [
+					{
+						"name": "quote_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Quote Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationRequestResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/quotes/{quote_id}/status": {
+			"get": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Get Order Status",
+				"operationId": "get_order_status_api_v1_quotes__quote_id__status_get",
+				"parameters": [
+					{
+						"name": "quote_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Quote Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OrderStatusResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/public/stream": {
+			"get": {
+				"tags": [
+					"dashboard"
+				],
+				"summary": "Stream",
+				"description": "Server-sent events: `snapshot` (as `GET /orders`), then `order_updated`, `step` and\n`transcript`. A reconnect with `Last-Event-ID` gets the missed events first.",
+				"operationId": "stream_api_v1_public_stream_get",
+				"parameters": [
+					{
+						"name": "state",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/StateGroup"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "State"
+						}
+					},
+					{
+						"name": "channel",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Channel"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Channel"
+						}
+					},
+					{
+						"name": "since",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string",
+									"format": "date-time"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Since"
+						}
+					},
+					{
+						"name": "last-event-id",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Last-Event-Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/demo/accounts": {
+			"post": {
+				"tags": [
+					"accounts"
+				],
+				"summary": "Create Demo Account",
+				"description": "Log this browser in as a user of the number's company, creating it if it's new.\n\nThe same browser typing the same number again stays the same user.",
+				"operationId": "create_demo_account_api_v1_demo_accounts_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/DemoAccountRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DemoAccountResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/me": {
+			"get": {
+				"tags": [
+					"accounts"
+				],
+				"summary": "Get Me",
+				"description": "This browser's session, or the dev caller when DEV_FAKE_CALLER is on, else 401.\n\nA bearer token doesn't count here: REST reads only the cookie.",
+				"operationId": "get_me_api_v1_me_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Me"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/session": {
+			"delete": {
+				"tags": [
+					"accounts"
+				],
+				"summary": "Delete Session",
+				"description": "Log out: revoke this browser's session and clear the cookie. Safe to repeat.",
+				"operationId": "delete_session_api_v1_session_delete",
+				"responses": {
+					"204": {
+						"description": "Successful Response"
+					}
+				}
+			}
+		},
+		"/api/v1/health": {
+			"get": {
+				"summary": "Health",
+				"operationId": "health_api_v1_health_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"additionalProperties": {
+										"type": "string"
+									},
+									"type": "object",
+									"title": "Response Health Api V1 Health Get"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"Alternative": {
+				"properties": {
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"label": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"quantity_sales_units": {
+						"type": "integer",
+						"title": "Quantity Sales Units"
+					},
+					"line_total_cents": {
+						"type": "integer",
+						"title": "Line Total Cents"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"product_id",
+					"label",
+					"quantity_sales_units",
+					"line_total_cents"
+				],
+				"title": "Alternative"
+			},
+			"AskedLine": {
+				"properties": {
+					"text": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Text"
+					},
+					"quantity": {
+						"type": "number",
+						"title": "Quantity"
+					},
+					"unit": {
+						"$ref": "#/components/schemas/RequestedUnit"
+					},
+					"package_word": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Package Word"
+					},
+					"needed_by": {
+						"type": "string",
+						"format": "date",
+						"title": "Needed By"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"text",
+					"quantity",
+					"unit",
+					"package_word",
+					"needed_by"
+				],
+				"title": "AskedLine",
+				"description": "Echo of what the buyer asked for."
+			},
+			"BuildQuoteRequest": {
+				"properties": {
+					"lines": {
+						"items": {
+							"$ref": "#/components/schemas/LineRequest"
+						},
+						"type": "array",
+						"maxItems": 50,
+						"minItems": 1,
+						"title": "Lines"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"lines"
+				],
+				"title": "BuildQuoteRequest"
+			},
+			"Channel": {
+				"type": "string",
+				"enum": [
+					"phone",
+					"web_chat",
+					"webmcp",
+					"mcp"
+				],
+				"title": "Channel",
+				"description": "The channel a session came in through, one tile each on the overview."
+			},
+			"Claim": {
+				"type": "string",
+				"enum": [
+					"lactose_free",
+					"gluten_free",
+					"vegan",
+					"vegetarian"
+				],
+				"title": "Claim",
+				"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count."
+			},
+			"Clarification": {
+				"properties": {
+					"line_id": {
+						"type": "string",
+						"title": "Line Id"
+					},
+					"question": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"options": {
+						"items": {
+							"$ref": "#/components/schemas/Alternative"
+						},
+						"type": "array",
+						"title": "Options"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"line_id",
+					"question",
+					"options"
+				],
+				"title": "Clarification",
+				"description": "The single question back to the buyer. `options` may be empty for an open question."
+			},
+			"ConfirmationRequestResponse": {
+				"properties": {
+					"sent_to_masked": {
+						"type": "string",
+						"title": "Sent To Masked"
+					},
+					"sms_status": {
+						"type": "string",
+						"enum": [
+							"held",
+							"sent",
+							"failed",
+							"off"
+						],
+						"title": "Sms Status"
+					},
+					"inbox": {
+						"type": "boolean",
+						"title": "Inbox"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"sent_to_masked",
+					"sms_status",
+					"inbox"
+				],
+				"title": "ConfirmationRequestResponse"
+			},
+			"CustomerContext": {
+				"properties": {
+					"company_name": {
+						"type": "string",
+						"title": "Company Name"
+					},
+					"phone_masked": {
+						"type": "string",
+						"title": "Phone Masked"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/ExclusionLabel"
+						},
+						"type": "array",
+						"title": "Exclusions"
+					},
+					"usual_items": {
+						"items": {
+							"$ref": "#/components/schemas/UsualItem"
+						},
+						"type": "array",
+						"title": "Usual Items"
+					},
+					"lang": {
+						"type": "string",
+						"enum": [
+							"fi",
+							"en"
+						],
+						"title": "Lang"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"company_name",
+					"phone_masked",
+					"exclusions",
+					"usual_items",
+					"lang"
+				],
+				"title": "CustomerContext"
+			},
+			"Decision": {
+				"type": "string",
+				"enum": [
+					"ready",
+					"needs_clarification",
+					"rejected"
+				],
+				"title": "Decision"
+			},
+			"DeliverySummary": {
+				"properties": {
+					"earliest": {
+						"type": "string",
+						"format": "date",
+						"title": "Earliest"
+					},
+					"latest": {
+						"type": "string",
+						"format": "date",
+						"title": "Latest"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"earliest",
+					"latest"
+				],
+				"title": "DeliverySummary"
+			},
+			"DemoAccountRequest": {
+				"properties": {
+					"phone_e164": {
+						"type": "string",
+						"title": "Phone E164"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/Exclusion"
+						},
+						"type": "array",
+						"title": "Exclusions"
+					},
+					"lang": {
+						"type": "string",
+						"enum": [
+							"fi",
+							"en"
+						],
+						"title": "Lang"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"phone_e164",
+					"exclusions",
+					"lang"
+				],
+				"title": "DemoAccountRequest",
+				"description": "`POST /api/v1/demo/accounts`: typing a phone number is the login.\n\n`phone_e164` may be typed loosely (\"040 123 4512\"); the server normalises it, reading a\nnumber without a country code as Finnish."
+			},
+			"DemoAccountResponse": {
+				"properties": {
+					"user_id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "User Id"
+					},
+					"company_id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "Company Id"
+					},
+					"company_name": {
+						"type": "string",
+						"title": "Company Name"
+					},
+					"phone_masked": {
+						"type": "string",
+						"title": "Phone Masked"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/Exclusion"
+						},
+						"type": "array",
+						"title": "Exclusions"
+					},
+					"usual_items": {
+						"items": {
+							"$ref": "#/components/schemas/UsualItem"
+						},
+						"type": "array",
+						"title": "Usual Items"
+					},
+					"new_company": {
+						"type": "boolean",
+						"title": "New Company"
+					},
+					"new_user": {
+						"type": "boolean",
+						"title": "New User"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"user_id",
+					"company_id",
+					"company_name",
+					"phone_masked",
+					"exclusions",
+					"usual_items",
+					"new_company",
+					"new_user"
+				],
+				"title": "DemoAccountResponse",
+				"description": "The browser's demo user. The session token travels only in the `simo_session` cookie."
+			},
+			"Exclusion": {
+				"type": "string",
+				"enum": [
+					"milk_free",
+					"lactose_free",
+					"gluten_free",
+					"nut_free",
+					"egg_free",
+					"fish_free",
+					"vegan"
+				],
+				"title": "Exclusion",
+				"description": "Kitchen exclusions: the keys of `policy/allergen_rules.yaml`."
+			},
+			"ExclusionLabel": {
+				"properties": {
+					"key": {
+						"$ref": "#/components/schemas/Exclusion"
+					},
+					"label": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"key",
+					"label"
+				],
+				"title": "ExclusionLabel"
+			},
+			"Flag": {
+				"properties": {
+					"flag_key": {
+						"type": "string",
+						"title": "Flag Key"
+					},
+					"code": {
+						"type": "string",
+						"title": "Code"
+					},
+					"line_ids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Line Ids"
+					},
+					"kind": {
+						"type": "string",
+						"enum": [
+							"acknowledge",
+							"choose"
+						],
+						"title": "Kind"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"options": {
+						"items": {
+							"$ref": "#/components/schemas/FlagOption"
+						},
+						"type": "array",
+						"title": "Options",
+						"default": []
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"flag_key",
+					"code",
+					"line_ids",
+					"kind",
+					"text"
+				],
+				"title": "Flag",
+				"description": "A notice on the quote. `acknowledged_at` belongs to the confirmation view (#47)."
+			},
+			"FlagOption": {
+				"properties": {
+					"option_id": {
+						"type": "string",
+						"title": "Option Id"
+					},
+					"label": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"line_total_cents": {
+						"type": "integer",
+						"title": "Line Total Cents"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"option_id",
+					"label",
+					"line_total_cents"
+				],
+				"title": "FlagOption"
+			},
+			"GroupSubtotal": {
+				"properties": {
+					"group": {
+						"type": "string",
+						"title": "Group"
+					},
+					"line_ids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Line Ids"
+					},
+					"subtotal_cents": {
+						"type": "integer",
+						"title": "Subtotal Cents"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"group",
+					"line_ids",
+					"subtotal_cents"
+				],
+				"title": "GroupSubtotal"
+			},
+			"HTTPValidationError": {
+				"properties": {
+					"detail": {
+						"items": {
+							"$ref": "#/components/schemas/ValidationError"
+						},
+						"type": "array",
+						"title": "Detail"
+					}
+				},
+				"type": "object",
+				"title": "HTTPValidationError"
+			},
+			"LineRequest": {
+				"properties": {
+					"line_id": {
+						"type": "string",
+						"maxLength": 40,
+						"minLength": 1,
+						"title": "Line Id"
+					},
+					"product_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Product Id"
+					},
+					"usual": {
+						"type": "boolean",
+						"title": "Usual",
+						"default": false
+					},
+					"text": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 200
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Text"
+					},
+					"claims": {
+						"items": {
+							"$ref": "#/components/schemas/Claim"
+						},
+						"type": "array",
+						"title": "Claims",
+						"default": []
+					},
+					"category": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Category"
+					},
+					"quantity": {
+						"anyOf": [
+							{
+								"type": "number",
+								"maximum": 100000.0,
+								"exclusiveMinimum": 0.0
+							},
+							{
+								"type": "string"
+							}
+						],
+						"title": "Quantity"
+					},
+					"unit": {
+						"$ref": "#/components/schemas/RequestedUnit"
+					},
+					"package_word": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Package Word"
+					},
+					"needed_by": {
+						"type": "string",
+						"format": "date",
+						"title": "Needed By"
+					},
+					"recipe_ref": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/RecipeRef"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"group": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 80
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Group"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"line_id",
+					"quantity",
+					"unit",
+					"needed_by"
+				],
+				"title": "LineRequest",
+				"description": "One structured line from the agent. The engine never sees raw speech (vision §5)."
+			},
+			"Localized": {
+				"properties": {
+					"fi": {
+						"type": "string",
+						"title": "Fi"
+					},
+					"en": {
+						"type": "string",
+						"title": "En"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"fi",
+					"en"
+				],
+				"title": "Localized",
+				"description": "The same text in Finnish and English."
+			},
+			"Me": {
+				"properties": {
+					"user_id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "User Id"
+					},
+					"company_id": {
+						"type": "string",
+						"format": "uuid",
+						"title": "Company Id"
+					},
+					"company_name": {
+						"type": "string",
+						"title": "Company Name"
+					},
+					"phone_masked": {
+						"type": "string",
+						"title": "Phone Masked"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/Exclusion"
+						},
+						"type": "array",
+						"title": "Exclusions"
+					},
+					"lang": {
+						"type": "string",
+						"enum": [
+							"fi",
+							"en"
+						],
+						"title": "Lang"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"user_id",
+					"company_id",
+					"company_name",
+					"phone_masked",
+					"exclusions",
+					"lang"
+				],
+				"title": "Me",
+				"description": "`GET /api/v1/me`: the signed-in user's company and kitchen profile."
+			},
+			"NotOrdered": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"quantity": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Quantity"
+					},
+					"unit": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Unit"
+					},
+					"reason": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"name",
+					"quantity",
+					"unit",
+					"reason"
+				],
+				"title": "NotOrdered",
+				"description": "A recipe ingredient without a product link. The recipe data is Finnish only."
+			},
+			"OrderStatusResponse": {
+				"properties": {
+					"quote_id": {
+						"type": "string",
+						"title": "Quote Id"
+					},
+					"status": {
+						"$ref": "#/components/schemas/QuoteStatus"
+					},
+					"order_number": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Order Number"
+					},
+					"replaced_by_quote_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Replaced By Quote Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_id",
+					"status",
+					"order_number",
+					"replaced_by_quote_id"
+				],
+				"title": "OrderStatusResponse"
+			},
+			"ProductHit": {
+				"properties": {
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"category": {
+						"type": "string",
+						"title": "Category"
+					},
+					"sales_unit": {
+						"type": "string",
+						"title": "Sales Unit"
+					},
+					"sales_unit_label": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image Url"
+					},
+					"unit_price_gross": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Unit Price Gross"
+					},
+					"price_per_base_unit": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Price Per Base Unit"
+					},
+					"base_unit": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Base Unit"
+					},
+					"stock_status": {
+						"$ref": "#/components/schemas/StockStatus"
+					},
+					"available_date": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Available Date"
+					},
+					"origin": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Origin"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"product_id",
+					"name",
+					"category",
+					"sales_unit",
+					"sales_unit_label",
+					"image_url",
+					"unit_price_gross",
+					"price_per_base_unit",
+					"base_unit",
+					"stock_status",
+					"available_date",
+					"origin"
+				],
+				"title": "ProductHit"
+			},
+			"QuoteLine": {
+				"properties": {
+					"line_id": {
+						"type": "string",
+						"title": "Line Id"
+					},
+					"group": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Group"
+					},
+					"asked": {
+						"$ref": "#/components/schemas/AskedLine"
+					},
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image Url"
+					},
+					"sales_unit": {
+						"type": "string",
+						"title": "Sales Unit"
+					},
+					"sales_unit_label": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"quantity_sales_units": {
+						"type": "integer",
+						"title": "Quantity Sales Units"
+					},
+					"quantity_in_asked_unit": {
+						"type": "number",
+						"title": "Quantity In Asked Unit"
+					},
+					"unit_price_gross": {
+						"type": "number",
+						"title": "Unit Price Gross"
+					},
+					"price_per_base_unit": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Price Per Base Unit"
+					},
+					"base_unit": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Base Unit"
+					},
+					"line_total_cents": {
+						"type": "integer",
+						"title": "Line Total Cents"
+					},
+					"delivery_date": {
+						"type": "string",
+						"format": "date",
+						"title": "Delivery Date"
+					},
+					"stock_status": {
+						"$ref": "#/components/schemas/StockStatus"
+					},
+					"origin": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Origin"
+					},
+					"reason_codes": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Reason Codes"
+					},
+					"reason_text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"trace": {
+						"$ref": "#/components/schemas/Trace"
+					},
+					"alternatives": {
+						"items": {
+							"$ref": "#/components/schemas/Alternative"
+						},
+						"type": "array",
+						"title": "Alternatives"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"line_id",
+					"group",
+					"asked",
+					"product_id",
+					"name",
+					"image_url",
+					"sales_unit",
+					"sales_unit_label",
+					"quantity_sales_units",
+					"quantity_in_asked_unit",
+					"unit_price_gross",
+					"price_per_base_unit",
+					"base_unit",
+					"line_total_cents",
+					"delivery_date",
+					"stock_status",
+					"origin",
+					"reason_codes",
+					"reason_text",
+					"trace",
+					"alternatives"
+				],
+				"title": "QuoteLine"
+			},
+			"QuoteResponse": {
+				"properties": {
+					"decision": {
+						"$ref": "#/components/schemas/Decision"
+					},
+					"lines": {
+						"items": {
+							"$ref": "#/components/schemas/QuoteLine"
+						},
+						"type": "array",
+						"title": "Lines"
+					},
+					"groups": {
+						"items": {
+							"$ref": "#/components/schemas/GroupSubtotal"
+						},
+						"type": "array",
+						"title": "Groups"
+					},
+					"flags": {
+						"items": {
+							"$ref": "#/components/schemas/Flag"
+						},
+						"type": "array",
+						"title": "Flags"
+					},
+					"clarification": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Clarification"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"rejections": {
+						"items": {
+							"$ref": "#/components/schemas/Rejection"
+						},
+						"type": "array",
+						"title": "Rejections"
+					},
+					"not_ordered": {
+						"items": {
+							"$ref": "#/components/schemas/NotOrdered"
+						},
+						"type": "array",
+						"title": "Not Ordered"
+					},
+					"total_cents": {
+						"type": "integer",
+						"title": "Total Cents"
+					},
+					"delivery": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/DeliverySummary"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"speak": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"rules_ref": {
+						"type": "string",
+						"title": "Rules Ref"
+					},
+					"quote_id": {
+						"type": "string",
+						"title": "Quote Id"
+					},
+					"version": {
+						"type": "integer",
+						"title": "Version"
+					},
+					"parent_quote_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Parent Quote Id"
+					},
+					"status": {
+						"$ref": "#/components/schemas/QuoteStatus"
+					},
+					"expires_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Expires At"
+					},
+					"quote_hash": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Quote Hash"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"decision",
+					"lines",
+					"groups",
+					"flags",
+					"clarification",
+					"rejections",
+					"not_ordered",
+					"total_cents",
+					"delivery",
+					"speak",
+					"rules_ref",
+					"quote_id",
+					"version",
+					"parent_quote_id",
+					"status",
+					"expires_at",
+					"quote_hash"
+				],
+				"title": "QuoteResponse",
+				"description": "Every `EngineOutput` field plus the service fields."
+			},
+			"QuoteStatus": {
+				"type": "string",
+				"enum": [
+					"ready",
+					"pending_confirmation",
+					"confirmed",
+					"cancelled",
+					"expired",
+					"void"
+				],
+				"title": "QuoteStatus",
+				"description": "Quote lifecycle (technical-plan.md §8.1)."
+			},
+			"Recipe": {
+				"properties": {
+					"recipe_id": {
+						"type": "string",
+						"title": "Recipe Id"
+					},
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image Url"
+					},
+					"portions": {
+						"type": "integer",
+						"title": "Portions"
+					},
+					"ingredients": {
+						"items": {
+							"$ref": "#/components/schemas/RecipeIngredient"
+						},
+						"type": "array",
+						"title": "Ingredients"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"recipe_id",
+					"name",
+					"image_url",
+					"portions",
+					"ingredients"
+				],
+				"title": "Recipe"
+			},
+			"RecipeHit": {
+				"properties": {
+					"recipe_id": {
+						"type": "string",
+						"title": "Recipe Id"
+					},
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image Url"
+					},
+					"default_portions": {
+						"type": "integer",
+						"title": "Default Portions"
+					},
+					"diet_tags": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Diet Tags"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"recipe_id",
+					"name",
+					"image_url",
+					"default_portions",
+					"diet_tags"
+				],
+				"title": "RecipeHit"
+			},
+			"RecipeIngredient": {
+				"properties": {
+					"index": {
+						"type": "integer",
+						"title": "Index"
+					},
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"quantity": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Quantity"
+					},
+					"unit": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Unit"
+					},
+					"product_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Product Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"index",
+					"name",
+					"quantity",
+					"unit",
+					"product_id"
+				],
+				"title": "RecipeIngredient"
+			},
+			"RecipeRef": {
+				"properties": {
+					"recipe_id": {
+						"type": "string",
+						"title": "Recipe Id"
+					},
+					"portions": {
+						"type": "integer",
+						"title": "Portions"
+					},
+					"ingredient_index": {
+						"type": "integer",
+						"title": "Ingredient Index"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"recipe_id",
+					"portions",
+					"ingredient_index"
+				],
+				"title": "RecipeRef"
+			},
+			"Rejection": {
+				"properties": {
+					"line_id": {
+						"type": "string",
+						"title": "Line Id"
+					},
+					"reason_code": {
+						"type": "string",
+						"title": "Reason Code"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"next_step": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"line_id",
+					"reason_code",
+					"text",
+					"next_step"
+				],
+				"title": "Rejection"
+			},
+			"RequestedUnit": {
+				"type": "string",
+				"enum": [
+					"l",
+					"kg",
+					"piece",
+					"sales_unit",
+					"package"
+				],
+				"title": "RequestedUnit",
+				"description": "The unit the buyer asked in. With `package`, the word is in `package_word`."
+			},
+			"SearchProductsResponse": {
+				"properties": {
+					"results": {
+						"items": {
+							"$ref": "#/components/schemas/ProductHit"
+						},
+						"type": "array",
+						"title": "Results"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"results"
+				],
+				"title": "SearchProductsResponse"
+			},
+			"SearchRecipesResponse": {
+				"properties": {
+					"results": {
+						"items": {
+							"$ref": "#/components/schemas/RecipeHit"
+						},
+						"type": "array",
+						"title": "Results"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"results"
+				],
+				"title": "SearchRecipesResponse"
+			},
+			"StateGroup": {
+				"type": "string",
+				"enum": [
+					"active",
+					"waiting",
+					"confirmed",
+					"attention"
+				],
+				"title": "StateGroup",
+				"description": "The groups behind the counters and the `?state=` filter (#49, \"States and totals\")."
+			},
+			"StockStatus": {
+				"type": "string",
+				"enum": [
+					"verified",
+					"unverified",
+					"unavailable"
+				],
+				"title": "StockStatus"
+			},
+			"Trace": {
+				"properties": {
+					"found": {
+						"type": "integer",
+						"title": "Found"
+					},
+					"removed": {
+						"items": {
+							"$ref": "#/components/schemas/TraceRemoval"
+						},
+						"type": "array",
+						"title": "Removed"
+					},
+					"left": {
+						"type": "integer",
+						"title": "Left"
+					},
+					"ranking_rule": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"found",
+					"removed",
+					"left",
+					"ranking_rule"
+				],
+				"title": "Trace",
+				"description": "Candidates found, removed per reason and left.\n\nEach candidate is counted once, at the first step it fails, in §4.2 order."
+			},
+			"TraceRemoval": {
+				"properties": {
+					"reason_code": {
+						"type": "string",
+						"title": "Reason Code"
+					},
+					"count": {
+						"type": "integer",
+						"title": "Count"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"reason_code",
+					"count",
+					"text"
+				],
+				"title": "TraceRemoval"
+			},
+			"UsualItem": {
+				"properties": {
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"quantity": {
+						"type": "number",
+						"title": "Quantity"
+					},
+					"unit": {
+						"type": "string",
+						"title": "Unit"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"product_id",
+					"name",
+					"quantity",
+					"unit"
+				],
+				"title": "UsualItem"
+			},
+			"ValidationError": {
+				"properties": {
+					"loc": {
+						"items": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "integer"
+								}
+							]
+						},
+						"type": "array",
+						"title": "Location"
+					},
+					"msg": {
+						"type": "string",
+						"title": "Message"
+					},
+					"type": {
+						"type": "string",
+						"title": "Error Type"
+					},
+					"input": {
+						"title": "Input"
+					},
+					"ctx": {
+						"type": "object",
+						"title": "Context"
+					}
+				},
+				"type": "object",
+				"required": [
+					"loc",
+					"msg",
+					"type"
+				],
+				"title": "ValidationError"
+			}
+		}
+	}
+}
