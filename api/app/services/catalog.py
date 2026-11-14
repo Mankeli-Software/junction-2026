@@ -1,4 +1,8 @@
-"""Product search on the fixture catalogue. The real search (#29) and offers (#31) replace it."""
+"""Product search on the fixture catalogue. The real search (#30) and offers (#31) replace it.
+
+`search_candidates()` and `get_products()` are the interface the quote service (#45) calls;
+#30 (Miska) replaces their bodies and keeps the signatures.
+"""
 
 from decimal import ROUND_HALF_UP, Decimal
 from functools import cache
@@ -46,6 +50,7 @@ def records() -> list[ProductRecord]:
 
 
 def offers() -> list[Offer]:
+    """The recorded fixture offers, for the interim `app.adapters.valio`."""
     return [p.offer for p in _products()]
 
 
@@ -103,6 +108,23 @@ def _matching(q: str, claims: list[Claim], category: str | None) -> list[_Fixtur
 def search_products(caller: Caller, request: SearchProductsRequest) -> SearchProductsResponse:
     hits = _matching(request.q, request.claims, request.category)
     return SearchProductsResponse(results=[_hit(p) for p in hits[: request.limit]])
+
+
+async def search_candidates(
+    q: str | None, claims: list[Claim], category: str | None, limit: int = 20
+) -> list[ProductRecord]:
+    """Product records for one line, best first. Interim: the fixture search, by product id.
+
+    Neutral about the kitchen: never applies allergen or diet exclusions (the engine does).
+    No words means every product that matches the claims and category.
+    """
+    return [p.record for p in _matching(q or "", claims, category)][:limit]
+
+
+async def get_products(ids: list[str]) -> list[ProductRecord]:
+    """The records for these ids, in the order given. Unknown ids are left out."""
+    by_id = {p.record.product_id: p.record for p in _products()}
+    return [by_id[i] for i in ids if i in by_id]
 
 
 def candidates(lines: list[LineRequest]) -> dict[str, list[str]]:
