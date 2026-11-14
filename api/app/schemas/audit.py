@@ -40,6 +40,8 @@ class AuditEventType(StrEnum):
     sms_failed = "sms_failed"
     link_opened = "link_opened"
     flags_acknowledged = "flags_acknowledged"
+    # Availability got worse at confirmation: the quote was replaced (confirmation-page.md §8)
+    requote_needed = "requote_needed"
 
     # Outcome
     order_confirmed = "order_confirmed"
