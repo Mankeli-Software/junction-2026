@@ -65,12 +65,17 @@ BUILD_QUOTE = (
     "without asking the buyer again for what you already have."
 )
 UPDATE_QUOTE = (
-    "Answer the engine's clarification or change a quote's lines; returns a new quote that "
-    "replaces the old one. Send the quote_id and the full line list with the same line_ids: "
-    "for a clarification, the asked line gets the chosen option's product_id and the other "
-    "lines stay as they were. Answer the clarification with this call, not by searching for "
-    "products yourself. A line with an input error fails the call as in build_quote, and the "
-    "quote stays as it was: correct the lines and call again."
+    "Change a quote or answer the engine's clarification; returns a new quote that replaces "
+    "the old one. Send the quote_id and only what changes: in lines, a new line with a new "
+    "line_id or a changed line with its existing line_id (for a clarification, the asked "
+    "line with the chosen option's product_id and the buyer's original quantity and unit). "
+    "Lines you don't send stay in the quote as they were; to take one out, name it in "
+    "remove_line_ids. The result's lines are always the complete order. If the engine "
+    "rejects a change to a line, that line stays as it was and the rejection is listed; a "
+    "rejected new line is listed too and the rest of the order stays. A line with an input "
+    "error fails the call as in build_quote, and the quote stays as it was: correct the "
+    "lines and call again. Answer a clarification with this call, not by searching for "
+    "products yourself."
 )
 REQUEST_CONFIRMATION = (
     "Send the confirmation link for a ready quote to the buyer's own phone, the number on the "
