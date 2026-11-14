@@ -1918,6 +1918,182 @@
 				}
 			}
 		},
+		"/api/v1/chat": {
+			"post": {
+				"tags": [
+					"chat"
+				],
+				"summary": "Chat",
+				"description": "One buyer turn in the webshop chat. A new conversation starts when `conversation_id`\nis null or unknown (for example after 30 idle minutes or a restart).",
+				"operationId": "chat_api_v1_chat_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ChatRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Server-sent events: start, text, a2ui, tool, done, error",
+						"content": {
+							"text/event-stream": {}
+						}
+					},
+					"409": {
+						"description": "Busy: still answering the previous message"
+					},
+					"503": {
+						"description": "Chat not configured (no CHAT_MODEL)"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/chat/menus/{menu_id}": {
+			"get": {
+				"tags": [
+					"chat"
+				],
+				"summary": "Get Menu",
+				"description": "A menu from one of this user's chat conversations, built from our recipe data.",
+				"operationId": "get_menu_api_v1_chat_menus__menu_id__get",
+				"parameters": [
+					{
+						"name": "menu_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Menu Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ChatMenu"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/chat/sent/latest": {
+			"get": {
+				"tags": [
+					"chat"
+				],
+				"summary": "Sent Latest",
+				"description": "How this user's latest confirmation request went, for the `SentNotice` card: the\nmasked number, `delivery_status` as `request_confirmation` says it (`sent` or `failed`\nonly once a real SMS went, which needs Twilio, #46) and whether the inbox has it.",
+				"operationId": "sent_latest_api_v1_chat_sent_latest_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ChatSentLatest"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Nothing sent yet"
+					}
+				}
+			}
+		},
+		"/api/v1/confirmations/{token}/chat": {
+			"post": {
+				"tags": [
+					"chat"
+				],
+				"summary": "Confirmation Chat",
+				"description": "\"Ask for changes\" on the confirmation page: the chat as the link's user, with\n`update_quote` only. The page reloads its view after `done`.",
+				"operationId": "confirmation_chat_api_v1_confirmations__token__chat_post",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Token"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ChatRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Server-sent events: start, text, a2ui, tool, done, error",
+						"content": {
+							"text/event-stream": {}
+						}
+					},
+					"409": {
+						"description": "The order is closed, or busy"
+					},
+					"503": {
+						"description": "Chat not configured (no CHAT_MODEL)"
+					},
+					"404": {
+						"description": "Unknown link"
+					},
+					"410": {
+						"description": "Expired"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/health": {
 			"get": {
 				"summary": "Health",
@@ -1943,6 +2119,45 @@
 	},
 	"components": {
 		"schemas": {
+			"A2uiClientAction": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"maxLength": 64,
+						"minLength": 1,
+						"title": "Name"
+					},
+					"surfaceId": {
+						"type": "string",
+						"maxLength": 200,
+						"title": "Surfaceid",
+						"default": ""
+					},
+					"sourceComponentId": {
+						"type": "string",
+						"maxLength": 200,
+						"title": "Sourcecomponentid",
+						"default": ""
+					},
+					"timestamp": {
+						"type": "string",
+						"maxLength": 64,
+						"title": "Timestamp",
+						"default": ""
+					},
+					"context": {
+						"additionalProperties": true,
+						"type": "object",
+						"title": "Context"
+					}
+				},
+				"type": "object",
+				"required": [
+					"name"
+				],
+				"title": "A2uiClientAction",
+				"description": "A card's button, as A2UI v0.9 sends it back: `{name, surfaceId, sourceComponentId,\ntimestamp, context}`."
+			},
 			"AcknowledgeRequest": {
 				"properties": {
 					"quote_hash": {
@@ -2346,6 +2561,187 @@
 				],
 				"title": "Channel",
 				"description": "The channel a session came in through, one tile each on the overview."
+			},
+			"ChatMenu": {
+				"properties": {
+					"menu_id": {
+						"type": "string",
+						"title": "Menu Id"
+					},
+					"days": {
+						"items": {
+							"$ref": "#/components/schemas/ChatMenuDay"
+						},
+						"type": "array",
+						"title": "Days"
+					}
+				},
+				"type": "object",
+				"required": [
+					"menu_id",
+					"days"
+				],
+				"title": "ChatMenu",
+				"description": "A menu that `show_menu` stored in the conversation, built from our recipe data."
+			},
+			"ChatMenuDay": {
+				"properties": {
+					"day": {
+						"type": "string",
+						"enum": [
+							"mon",
+							"tue",
+							"wed",
+							"thu",
+							"fri"
+						],
+						"title": "Day"
+					},
+					"recipe_id": {
+						"type": "string",
+						"title": "Recipe Id"
+					},
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image Url"
+					},
+					"portions": {
+						"type": "integer",
+						"title": "Portions"
+					},
+					"linked_count": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Linked Count"
+					},
+					"ingredient_count": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Ingredient Count"
+					}
+				},
+				"type": "object",
+				"required": [
+					"day",
+					"recipe_id",
+					"name",
+					"image_url",
+					"portions"
+				],
+				"title": "ChatMenuDay"
+			},
+			"ChatRequest": {
+				"properties": {
+					"conversation_id": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 64
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Conversation Id"
+					},
+					"message": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 2000
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Message"
+					},
+					"action": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/A2uiClientAction"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"attachment_draft_id": {
+						"anyOf": [
+							{
+								"type": "string",
+								"maxLength": 64
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Attachment Draft Id"
+					}
+				},
+				"type": "object",
+				"title": "ChatRequest",
+				"description": "One buyer turn: a message or a card action, exactly one of them."
+			},
+			"ChatSentLatest": {
+				"properties": {
+					"sent_to_masked": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Sent To Masked"
+					},
+					"delivery_status": {
+						"type": "string",
+						"enum": [
+							"held",
+							"sent",
+							"failed",
+							"off"
+						],
+						"title": "Delivery Status"
+					},
+					"inbox": {
+						"type": "boolean",
+						"title": "Inbox"
+					}
+				},
+				"type": "object",
+				"required": [
+					"sent_to_masked",
+					"delivery_status",
+					"inbox"
+				],
+				"title": "ChatSentLatest",
+				"description": "For the `SentNotice` card: how this user's latest confirmation request went, in the\nwords of `request_confirmation`'s answer. The page shows the SMS line only when\n`delivery_status` is `sent`. The number is masked (`+358 40 *** **12`)."
 			},
 			"ChooseAlternativeEdit": {
 				"properties": {

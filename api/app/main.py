@@ -11,6 +11,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.db import get_engine
 from app.interfaces.auth.routes import auth_routes
+from app.interfaces.chat import routes as chat_routes
 from app.interfaces.mcp.server import mcp, mcp_app
 from app.interfaces.rest import accounts as rest_accounts
 from app.interfaces.rest import confirmations as rest_confirmations
@@ -73,6 +74,7 @@ app.include_router(rest_accounts.router, prefix="/api/v1")
 app.include_router(rest_inbox.router, prefix="/api/v1")
 app.include_router(rest_oauth.router, prefix="/api/v1")
 app.include_router(rest_confirmations.router, prefix="/api/v1")
+app.include_router(chat_routes.router, prefix="/api/v1")
 app.include_router(rest_jwks.router)
 app.include_router(voice_routes.router)
 rest_dashboard.event_stream_openapi(app, "/api/v1/public/stream")

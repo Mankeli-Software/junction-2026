@@ -130,6 +130,11 @@ class Settings(BaseSettings):
     # The largest photo upload, in megabytes. Bigger ones get 413.
     recipe_photo_max_mb: int = 100
 
+    # The webshop chat agent (#57, docs/plans/57-a2ui-chat.md). The Gemini model id, picked
+    # with RECIPE_VISION_MODEL (#80 decision 18); while it is empty, POST /api/v1/chat answers
+    # 503 "chat not configured". Never given a default here.
+    chat_model: str = ""
+
     sms_twilio_enabled: bool = False
     # Comma-separated phone numbers in E.164 form that may get a real SMS.
     sms_allowlist: str = ""

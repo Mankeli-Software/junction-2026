@@ -702,6 +702,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chat
+         * @description One buyer turn in the webshop chat. A new conversation starts when `conversation_id`
+         *     is null or unknown (for example after 30 idle minutes or a restart).
+         */
+        post: operations["chat_api_v1_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/menus/{menu_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Menu
+         * @description A menu from one of this user's chat conversations, built from our recipe data.
+         */
+        get: operations["get_menu_api_v1_chat_menus__menu_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/sent/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sent Latest
+         * @description How this user's latest confirmation request went, for the `SentNotice` card: the
+         *     masked number, `delivery_status` as `request_confirmation` says it (`sent` or `failed`
+         *     only once a real SMS went, which needs Twilio, #46) and whether the inbox has it.
+         */
+        get: operations["sent_latest_api_v1_chat_sent_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/confirmations/{token}/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmation Chat
+         * @description "Ask for changes" on the confirmation page: the chat as the link's user, with
+         *     `update_quote` only. The page reloads its view after `done`.
+         */
+        post: operations["confirmation_chat_api_v1_confirmations__token__chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -723,6 +807,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * A2uiClientAction
+         * @description A card's button, as A2UI v0.9 sends it back: `{name, surfaceId, sourceComponentId,
+         *     timestamp, context}`.
+         */
+        A2uiClientAction: {
+            /** Name */
+            name: string;
+            /**
+             * Surfaceid
+             * @default
+             */
+            surfaceId: string;
+            /**
+             * Sourcecomponentid
+             * @default
+             */
+            sourceComponentId: string;
+            /**
+             * Timestamp
+             * @default
+             */
+            timestamp: string;
+            /** Context */
+            context?: {
+                [key: string]: unknown;
+            };
+        };
         /**
          * AcknowledgeRequest
          * @description `option_id` is the buyer's pick for a `choose` flag. An option that changes the
@@ -872,6 +984,66 @@ export interface components {
          * @enum {string}
          */
         Channel: "phone" | "web_chat" | "webmcp" | "mcp";
+        /**
+         * ChatMenu
+         * @description A menu that `show_menu` stored in the conversation, built from our recipe data.
+         */
+        ChatMenu: {
+            /** Menu Id */
+            menu_id: string;
+            /** Days */
+            days: components["schemas"]["ChatMenuDay"][];
+        };
+        /** ChatMenuDay */
+        ChatMenuDay: {
+            /**
+             * Day
+             * @enum {string}
+             */
+            day: "mon" | "tue" | "wed" | "thu" | "fri";
+            /** Recipe Id */
+            recipe_id: string;
+            /** Name */
+            name: string;
+            /** Image Url */
+            image_url: string | null;
+            /** Portions */
+            portions: number;
+            /** Linked Count */
+            linked_count?: number | null;
+            /** Ingredient Count */
+            ingredient_count?: number | null;
+        };
+        /**
+         * ChatRequest
+         * @description One buyer turn: a message or a card action, exactly one of them.
+         */
+        ChatRequest: {
+            /** Conversation Id */
+            conversation_id?: string | null;
+            /** Message */
+            message?: string | null;
+            action?: components["schemas"]["A2uiClientAction"] | null;
+            /** Attachment Draft Id */
+            attachment_draft_id?: string | null;
+        };
+        /**
+         * ChatSentLatest
+         * @description For the `SentNotice` card: how this user's latest confirmation request went, in the
+         *     words of `request_confirmation`'s answer. The page shows the SMS line only when
+         *     `delivery_status` is `sent`. The number is masked (`+358 40 *** **12`).
+         */
+        ChatSentLatest: {
+            /** Sent To Masked */
+            sent_to_masked: string | null;
+            /**
+             * Delivery Status
+             * @enum {string}
+             */
+            delivery_status: "held" | "sent" | "failed" | "off";
+            /** Inbox */
+            inbox: boolean;
+        };
         /** ChooseAlternativeEdit */
         ChooseAlternativeEdit: {
             /** Quote Hash */
@@ -3450,6 +3622,181 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ConfirmationErrorDetail"];
                 };
+            };
+        };
+    };
+    chat_api_v1_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Server-sent events: start, text, a2ui, tool, done, error */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Busy: still answering the previous message */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Chat not configured (no CHAT_MODEL) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_menu_api_v1_chat_menus__menu_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                menu_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMenu"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sent_latest_api_v1_chat_sent_latest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatSentLatest"];
+                };
+            };
+            /** @description Nothing sent yet */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    confirmation_chat_api_v1_confirmations__token__chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description Server-sent events: start, text, a2ui, tool, done, error */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Unknown link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The order is closed, or busy */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Expired */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Chat not configured (no CHAT_MODEL) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
