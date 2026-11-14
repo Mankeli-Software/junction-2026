@@ -88,7 +88,7 @@ pnpm exec playwright install chromium     # once, for the end-to-end tests
 pnpm test:e2e                             # Playwright: builds the app and runs it against the fixtures
 ```
 
-The confirmation page reads its data from `CONFIRMATION_SOURCE`: `fixture` (the default until #47 lands, an in-memory stand-in) or `api` (FastAPI at `API_BASE_URL`, default `http://localhost:8000`). See `web/README.md` for the fixture tokens.
+The confirmation page reads its data from `CONFIRMATION_SOURCE`: `fixture` (an in-memory stand-in, the default in `pnpm dev`) or `api` (FastAPI at `API_BASE_URL`, default `http://localhost:8000`; the default in a build). Compose sets `api` and `API_BASE_URL=http://api:8000`; set `CONFIRMATION_SOURCE=fixture` to opt in to the fixture. See `web/README.md` for the fixture tokens.
 
 Only the database: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up -d db`. CI (`.github/workflows/ci.yml`) runs the same lint, migration and test commands only on pushes to `production`, so run them locally before pushing to `main`.
 
