@@ -446,9 +446,9 @@ export interface components {
         Channel: "phone" | "web_chat" | "webmcp" | "mcp";
         /**
          * Claim
-         * @description Product claims, from the product file's `nutritionalClaim` group.
+         * @description Product claims, as the product data states them.
          *
-         *     lactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.
+         *     `lactose_free` means a lactose-free product only; a low-lactose product does not count.
          * @enum {string}
          */
         Claim: "lactose_free" | "gluten_free" | "vegan" | "vegetarian";
@@ -468,10 +468,10 @@ export interface components {
             /** Sent To Masked */
             sent_to_masked: string;
             /**
-             * Sms Status
+             * Delivery Status
              * @enum {string}
              */
-            sms_status: "held" | "sent" | "failed" | "off";
+            delivery_status: "held" | "sent" | "failed" | "off";
             /** Inbox */
             inbox: boolean;
         };
@@ -590,7 +590,7 @@ export interface components {
         };
         /**
          * Exclusion
-         * @description Kitchen exclusions: the keys of `policy/allergen_rules.yaml`.
+         * @description Kitchen exclusions: the allergens and diets the kitchen rules out.
          * @enum {string}
          */
         Exclusion: "milk_free" | "lactose_free" | "gluten_free" | "nut_free" | "egg_free" | "fish_free" | "vegan";
@@ -601,7 +601,7 @@ export interface components {
         };
         /**
          * Flag
-         * @description A notice on the quote. `acknowledged_at` belongs to the confirmation view (#47).
+         * @description A notice on the quote. The buyer acknowledges it on the confirmation page.
          */
         Flag: {
             /** Flag Key */
@@ -663,7 +663,7 @@ export interface components {
         };
         /**
          * LineRequest
-         * @description One structured line from the agent. The engine never sees raw speech (vision §5).
+         * @description One structured line from the agent. The engine never sees raw speech.
          */
         LineRequest: {
             /** Line Id */
@@ -855,7 +855,7 @@ export interface components {
         };
         /**
          * QuoteResponse
-         * @description Every `EngineOutput` field plus the service fields.
+         * @description The engine's decision plus the quote id, version, status, expiry and hash.
          */
         QuoteResponse: {
             decision: components["schemas"]["Decision"];
@@ -890,7 +890,7 @@ export interface components {
         };
         /**
          * QuoteStatus
-         * @description Quote lifecycle (technical-plan.md §8.1).
+         * @description Quote lifecycle.
          *
          *     A quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's
          *     decision. Only a `ready` quote can be sent for confirmation; the other two are
@@ -1001,7 +1001,7 @@ export interface components {
          * Trace
          * @description Candidates found, removed per reason and left.
          *
-         *     Each candidate is counted once, at the first step it fails, in §4.2 order.
+         *     Each candidate is counted once, at the first check it fails, in the order the checks run.
          */
         Trace: {
             /** Found */

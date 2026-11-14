@@ -5,7 +5,7 @@
 		"inputSchema": {
 			"$defs": {
 				"Claim": {
-					"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.",
+					"description": "Product claims, as the product data states them.\n\n`lactose_free` means a lactose-free product only; a low-lactose product does not count.",
 					"enum": [
 						"lactose_free",
 						"gluten_free",
@@ -172,7 +172,7 @@
 		"inputSchema": {
 			"$defs": {
 				"Claim": {
-					"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.",
+					"description": "Product claims, as the product data states them.\n\n`lactose_free` means a lactose-free product only; a low-lactose product does not count.",
 					"enum": [
 						"lactose_free",
 						"gluten_free",
@@ -184,7 +184,7 @@
 				},
 				"LineRequest": {
 					"additionalProperties": false,
-					"description": "One structured line from the agent. The engine never sees raw speech (vision §5).",
+					"description": "One structured line from the agent. The engine never sees raw speech.",
 					"properties": {
 						"line_id": {
 							"maxLength": 40,
@@ -375,7 +375,7 @@
 		"inputSchema": {
 			"$defs": {
 				"Claim": {
-					"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.",
+					"description": "Product claims, as the product data states them.\n\n`lactose_free` means a lactose-free product only; a low-lactose product does not count.",
 					"enum": [
 						"lactose_free",
 						"gluten_free",
@@ -387,7 +387,7 @@
 				},
 				"LineRequest": {
 					"additionalProperties": false,
-					"description": "One structured line from the agent. The engine never sees raw speech (vision §5).",
+					"description": "One structured line from the agent. The engine never sees raw speech.",
 					"properties": {
 						"line_id": {
 							"maxLength": 40,

@@ -1074,7 +1074,7 @@
 					"vegetarian"
 				],
 				"title": "Claim",
-				"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count."
+				"description": "Product claims, as the product data states them.\n\n`lactose_free` means a lactose-free product only; a low-lactose product does not count."
 			},
 			"Clarification": {
 				"properties": {
@@ -1109,7 +1109,7 @@
 						"type": "string",
 						"title": "Sent To Masked"
 					},
-					"sms_status": {
+					"delivery_status": {
 						"type": "string",
 						"enum": [
 							"held",
@@ -1117,7 +1117,7 @@
 							"failed",
 							"off"
 						],
-						"title": "Sms Status"
+						"title": "Delivery Status"
 					},
 					"inbox": {
 						"type": "boolean",
@@ -1128,7 +1128,7 @@
 				"type": "object",
 				"required": [
 					"sent_to_masked",
-					"sms_status",
+					"delivery_status",
 					"inbox"
 				],
 				"title": "ConfirmationRequestResponse"
@@ -1369,7 +1369,7 @@
 					"vegan"
 				],
 				"title": "Exclusion",
-				"description": "Kitchen exclusions: the keys of `policy/allergen_rules.yaml`."
+				"description": "Kitchen exclusions: the allergens and diets the kitchen rules out."
 			},
 			"ExclusionLabel": {
 				"properties": {
@@ -1435,7 +1435,7 @@
 					"text"
 				],
 				"title": "Flag",
-				"description": "A notice on the quote. `acknowledged_at` belongs to the confirmation view (#47)."
+				"description": "A notice on the quote. The buyer acknowledges it on the confirmation page."
 			},
 			"FlagOption": {
 				"properties": {
@@ -1649,7 +1649,7 @@
 					"needed_by"
 				],
 				"title": "LineRequest",
-				"description": "One structured line from the agent. The engine never sees raw speech (vision §5)."
+				"description": "One structured line from the agent. The engine never sees raw speech."
 			},
 			"Localized": {
 				"properties": {
@@ -2253,7 +2253,7 @@
 					"quote_hash"
 				],
 				"title": "QuoteResponse",
-				"description": "Every `EngineOutput` field plus the service fields."
+				"description": "The engine's decision plus the quote id, version, status, expiry and hash."
 			},
 			"QuoteStatus": {
 				"type": "string",
@@ -2268,7 +2268,7 @@
 					"void"
 				],
 				"title": "QuoteStatus",
-				"description": "Quote lifecycle (technical-plan.md §8.1).\n\nA quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's\ndecision. Only a `ready` quote can be sent for confirmation; the other two are\nanswered or changed with `update_quote`."
+				"description": "Quote lifecycle.\n\nA quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's\ndecision. Only a `ready` quote can be sent for confirmation; the other two are\nanswered or changed with `update_quote`."
 			},
 			"Recipe": {
 				"properties": {
@@ -2585,7 +2585,7 @@
 					"ranking_rule"
 				],
 				"title": "Trace",
-				"description": "Candidates found, removed per reason and left.\n\nEach candidate is counted once, at the first step it fails, in §4.2 order."
+				"description": "Candidates found, removed per reason and left.\n\nEach candidate is counted once, at the first check it fails, in the order the checks run."
 			},
 			"TraceRemoval": {
 				"properties": {
