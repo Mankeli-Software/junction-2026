@@ -1259,6 +1259,15 @@ export interface components {
             agent?: components["schemas"]["AgentInfo"] | null;
         };
         /**
+         * OrderUpdated
+         * @description Assumed shape: the full card with its company, so a new card can be placed.
+         */
+        OrderUpdated: {
+            company: components["schemas"]["CompanyRef"];
+            order: components["schemas"]["OrderCard"];
+            totals?: components["schemas"]["Totals"] | null;
+        };
+        /**
          * OverviewResponse
          * @description `GET /orders` and the stream's `snapshot` event.
          */
@@ -1592,6 +1601,12 @@ export interface components {
             /** Hash */
             hash: string;
         };
+        /** StepEvent */
+        StepEvent: {
+            /** Session Id */
+            session_id: string;
+            step: components["schemas"]["Step"];
+        };
         /**
          * StockStatus
          * @enum {string}
@@ -1735,6 +1750,12 @@ export interface components {
             /** Count */
             count: number;
             text: components["schemas"]["Localized"];
+        };
+        /** TranscriptEvent */
+        TranscriptEvent: {
+            /** Session Id */
+            session_id: string;
+            line: components["schemas"]["TranscriptLine"];
         };
         /** TranscriptLine */
         TranscriptLine: {
@@ -2341,12 +2362,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description Server-sent events. Each `data:` is JSON: `snapshot` an `OverviewResponse`, `order_updated` an `OrderUpdated`, `step` a `StepEvent` and `transcript` a `TranscriptEvent`. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "text/event-stream": components["schemas"]["OverviewResponse"] | components["schemas"]["OrderUpdated"] | components["schemas"]["StepEvent"] | components["schemas"]["TranscriptEvent"];
+                };
             };
             /** @description Validation Error */
             422: {

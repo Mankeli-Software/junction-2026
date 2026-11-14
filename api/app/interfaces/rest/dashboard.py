@@ -8,7 +8,7 @@ malformed session id gives 404.
 from datetime import datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, FastAPI, Header
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette import EventSourceResponse
@@ -19,10 +19,13 @@ from app.schemas import (
     AuditEvent,
     Channel,
     OrderSummary,
+    OrderUpdated,
     OverviewResponse,
     SessionState,
     StateGroup,
     Step,
+    StepEvent,
+    TranscriptEvent,
     TranscriptLine,
     VerifyResult,
 )
@@ -130,7 +133,22 @@ def _group(state: str) -> StateGroup | None:
     return STATE_GROUPS.get(SessionState(state))
 
 
-@router.get("/stream", response_class=EventSourceResponse)
+# The event bodies, so they land in the OpenAPI document's `components.schemas` and the web
+# app can generate them. FastAPI files them under `application/json`;
+# `event_stream_openapi()` moves them to `text/event-stream`.
+STREAM_RESPONSES: dict[int | str, dict[str, Any]] = {
+    200: {
+        "model": OverviewResponse | OrderUpdated | StepEvent | TranscriptEvent,
+        "description": (
+            "Server-sent events. Each `data:` is JSON: `snapshot` an `OverviewResponse`, "
+            "`order_updated` an `OrderUpdated`, `step` a `StepEvent` and `transcript` a "
+            "`TranscriptEvent`."
+        ),
+    }
+}
+
+
+@router.get("/stream", response_class=EventSourceResponse, responses=STREAM_RESPONSES)
 async def stream(
     broadcaster: Annotated[Broadcaster, Depends(get_broadcaster)],
     state: StateGroup | None = None,
@@ -156,3 +174,18 @@ async def stream(
         ping=0,
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+def event_stream_openapi(app: FastAPI, path: str) -> None:
+    """Lists the event bodies of the SSE route at `path` (`STREAM_RESPONSES`) under
+    `text/event-stream` in the OpenAPI document, where FastAPI puts `application/json`."""
+    make = app.openapi
+
+    def openapi() -> dict[str, Any]:
+        schema = make()  # cached by FastAPI after the first call; the move is idempotent
+        content = schema["paths"][path]["get"]["responses"]["200"]["content"]
+        if "application/json" in content:
+            content["text/event-stream"] = content.pop("application/json")
+        return schema
+
+    app.openapi = openapi  # type: ignore[method-assign]

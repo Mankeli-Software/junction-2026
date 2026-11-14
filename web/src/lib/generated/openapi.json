@@ -904,7 +904,28 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Successful Response"
+						"description": "Server-sent events. Each `data:` is JSON: `snapshot` an `OverviewResponse`, `order_updated` an `OrderUpdated`, `step` a `StepEvent` and `transcript` a `TranscriptEvent`.",
+						"content": {
+							"text/event-stream": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/OverviewResponse"
+										},
+										{
+											"$ref": "#/components/schemas/OrderUpdated"
+										},
+										{
+											"$ref": "#/components/schemas/StepEvent"
+										},
+										{
+											"$ref": "#/components/schemas/TranscriptEvent"
+										}
+									],
+									"title": "Response 200 Stream Api V1 Public Stream Get"
+								}
+							}
+						}
 					},
 					"422": {
 						"description": "Validation Error",
@@ -3394,6 +3415,34 @@
 				],
 				"title": "OrderSummary"
 			},
+			"OrderUpdated": {
+				"properties": {
+					"company": {
+						"$ref": "#/components/schemas/CompanyRef"
+					},
+					"order": {
+						"$ref": "#/components/schemas/OrderCard"
+					},
+					"totals": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Totals"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"company",
+					"order"
+				],
+				"title": "OrderUpdated",
+				"description": "Assumed shape: the full card with its company, so a new card can be placed."
+			},
 			"OverviewResponse": {
 				"properties": {
 					"business_now": {
@@ -4417,6 +4466,24 @@
 				"title": "Step",
 				"description": "One audit event without its payload, enough to verify the chain (§8.5).\n\nThe hash covers `session_id` and `quote_id` too (docs/audit-chain.md), so they are here."
 			},
+			"StepEvent": {
+				"properties": {
+					"session_id": {
+						"type": "string",
+						"title": "Session Id"
+					},
+					"step": {
+						"$ref": "#/components/schemas/Step"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"session_id",
+					"step"
+				],
+				"title": "StepEvent"
+			},
 			"StockStatus": {
 				"type": "string",
 				"enum": [
@@ -4802,6 +4869,24 @@
 					"text"
 				],
 				"title": "TraceRemoval"
+			},
+			"TranscriptEvent": {
+				"properties": {
+					"session_id": {
+						"type": "string",
+						"title": "Session Id"
+					},
+					"line": {
+						"$ref": "#/components/schemas/TranscriptLine"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"session_id",
+					"line"
+				],
+				"title": "TranscriptEvent"
 			},
 			"TranscriptLine": {
 				"properties": {

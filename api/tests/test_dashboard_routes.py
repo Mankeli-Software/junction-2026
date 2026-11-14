@@ -130,3 +130,15 @@ async def test_stream_rejects_an_unknown_filter(hub):
 
 def test_stream_is_in_the_openapi_document():
     assert "/api/v1/public/stream" in app.openapi()["paths"]
+
+
+def test_stream_event_bodies_are_in_the_openapi_document():
+    document = app.openapi()
+    response = document["paths"]["/api/v1/public/stream"]["get"]["responses"]["200"]
+    assert list(response["content"]) == ["text/event-stream"]
+    refs = response["content"]["text/event-stream"]["schema"]["anyOf"]
+    names = ["OverviewResponse", "OrderUpdated", "StepEvent", "TranscriptEvent"]
+    assert [r["$ref"] for r in refs] == [f"#/components/schemas/{n}" for n in names]
+    schemas = document["components"]["schemas"]
+    assert all(name in schemas for name in names)
+    assert schemas["OrderUpdated"]["required"] == ["company", "order"]
