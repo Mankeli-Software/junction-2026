@@ -4,13 +4,16 @@
     uv run prompt_calls.py --only fi_milk           # one call
     uv run prompt_calls.py --audio --only fi_milk   # caller turns spoken with Gemini TTS
     uv run prompt_calls.py --dry-run                # print the prompt and declarations only
+    uv run prompt_calls.py --mcp-descriptions       # the MCP server's tool descriptions
 
 The system prompt is `build_system_prompt` from `api/app/agent/prompt.py`. The function
 declarations are the contract's request models (`api/app/schemas/tools.py`) turned into
 JSON Schema with `$ref`s inlined, as the relay will do with the MCP tool list, plus the
-relay's local `end_call` on the phone. `build_quote` and `update_quote` are answered by
-the stub engine (`stub_engine.py`, a copy of the removed `api/app/engine/stub.py`),
-`request_confirmation` by a fake `ConfirmationRequestResponse`.
+relay's local `end_call` on the phone. The tool descriptions are short lines from vision §8,
+or with --mcp-descriptions the MCP server's own (`api/app/interfaces/mcp/descriptions.py`).
+`build_quote` and `update_quote` are answered by the stub engine (`stub_engine.py`, a copy
+of the removed `api/app/engine/stub.py`), `request_confirmation` by a fake
+`ConfirmationRequestResponse`.
 
 Phone calls run on `gemini-3.8-live` (one Live session per call). The chat call runs
 on a text model with `generate_content`, as the webshop chat would (no Live session).
@@ -45,6 +48,7 @@ API_DIR = HERE.parents[1] / "api"
 sys.path.insert(0, str(API_DIR))
 
 from app.agent import AGENT_TOOLS, CALL_CONNECTED, END_CALL, PROMPT_VERSION, build_system_prompt  # noqa: E402
+from app.interfaces.mcp import descriptions as mcp_descriptions  # noqa: E402
 from app.schemas import (  # noqa: E402
     BuildQuoteRequest,
     ConfirmationRequestResponse,
@@ -103,6 +107,15 @@ DESCRIPTIONS = {
     "get_order_status": "Pending confirmation, confirmed, cancelled or expired.",
     END_CALL: "Hang up the call.",
 }
+DESCRIPTIONS_SOURCE = "vision §8"
+
+
+def use_mcp_descriptions() -> None:
+    """Swap the vision §8 lines for the MCP server's descriptions, as the relay will get them."""
+    global DESCRIPTIONS_SOURCE
+    for name in AGENT_TOOLS:
+        DESCRIPTIONS[name] = getattr(mcp_descriptions, name.upper())
+    DESCRIPTIONS_SOURCE = "MCP server"
 
 
 # --- Declarations ----------------------------------------------------------------
@@ -748,8 +761,10 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
 # --- Report --------------------------------------------------------------------------
 
 
-def report(out_dir: Path, results: list[tuple[Scenario, CallResult]], version: str = PROMPT_VERSION) -> None:
-    md = [f"# Prompt calls {out_dir.name}", "", f"Prompt version {version}", ""]
+def report(
+    out_dir: Path, results: list[tuple[Scenario, CallResult]], version: str = PROMPT_VERSION, tools: str | None = None
+) -> None:
+    md = [f"# Prompt calls {out_dir.name}", "", f"Prompt version {version}", "", f"Tool descriptions: {tools or DESCRIPTIONS_SOURCE}", ""]
     data = []
     for scenario, result in results:
         rows = check(scenario, result)
@@ -781,7 +796,8 @@ def recheck(out_dir: Path) -> None:
         results.append((by_id[item["scenario"]["id"]], CallResult(**raw, turns=turns)))
     old = (out_dir / "results.md").read_text(encoding="utf-8")
     version = re.search(r"Prompt version (\S+)", old).group(1)
-    report(out_dir, results, version)
+    tools = re.search(r"Tool descriptions: (.+)", old)
+    report(out_dir, results, version, tools.group(1) if tools else "vision §8")
 
 
 async def main_async(args) -> None:
@@ -790,11 +806,13 @@ async def main_async(args) -> None:
         return
     scenarios = [s for s in SCENARIOS if not args.only or s.id in args.only]
     today = date.fromisoformat(args.today) if args.today else date.today()
+    if args.mcp_descriptions:
+        use_mcp_descriptions()
     if args.dry_run:
         for channel in sorted({s.channel for s in scenarios}):
             print(build_system_prompt(CONTEXT, channel, today=today))
             for d in declarations(channel):
-                print(d.name, json.dumps(d.parameters_json_schema)[:300])
+                print(d.name, d.description, json.dumps(d.parameters_json_schema)[:300])
         return
     client = make_client()
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S") + ("-audio" if args.audio else "")
@@ -820,6 +838,9 @@ def main() -> None:
     ap.add_argument("--today", help="business date, YYYY-MM-DD (default: today)")
     ap.add_argument("--recheck", metavar="DIR", help="score a saved run in DIR again, call nothing")
     ap.add_argument("--dry-run", action="store_true", help="print the prompt and declarations, call nothing")
+    ap.add_argument(
+        "--mcp-descriptions", action="store_true", help="use the MCP server's tool descriptions (api/app/interfaces/mcp/descriptions.py)"
+    )
     asyncio.run(main_async(ap.parse_args()))
 
 
