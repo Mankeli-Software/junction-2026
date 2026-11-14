@@ -132,6 +132,9 @@ class GroupSubtotal(StrictModel):
     # confirmation page shows as "From your recipe photo".
     source: Literal["photo"] | None = None
     recipe_draft_id: str | None = None
+    # The recipe's image for a group from one of our recipes, or from the recipe a dish photo
+    # matched (#57): the recipe data's own URL, never built. Null for other groups.
+    image_url: str | None = None
 
 
 class DeliverySummary(StrictModel):
