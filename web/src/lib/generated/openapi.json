@@ -5882,6 +5882,17 @@
 							}
 						]
 					},
+					"group_image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Group Image Url"
+					},
 					"lines": {
 						"items": {
 							"$ref": "#/components/schemas/SummaryLine"

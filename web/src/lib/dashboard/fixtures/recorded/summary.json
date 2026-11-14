@@ -31,6 +31,7 @@
     "en": "20 l maito, by 2026-11-16"
    },
    "group": null,
+   "group_image_url": null,
    "lines": [
     {
      "line_id": "l1",
@@ -104,6 +105,7 @@
     "en": "5 l arla, by 2026-11-16"
    },
    "group": null,
+   "group_image_url": null,
    "lines": [
     {
      "line_id": "l2",

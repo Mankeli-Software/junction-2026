@@ -2130,6 +2130,8 @@ export interface components {
             asked: components["schemas"]["AskedLine"];
             asked_text: components["schemas"]["Localized"];
             group: components["schemas"]["Localized"] | null;
+            /** Group Image Url */
+            group_image_url?: string | null;
             /** Lines */
             lines: components["schemas"]["SummaryLine"][];
             /** Not Ordered */

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Thumb from '#lib/a2ui/components/Thumb.svelte';
 	import { chainCheck } from '#lib/dashboard/chain.svelte.ts';
 	import Icon, { type IconName } from '#lib/dashboard/components/Icon.svelte';
 	import OrderNav from '#lib/dashboard/components/OrderNav.svelte';
@@ -99,7 +100,12 @@
 					<div class="asked">
 						<span class="label">{t('asked', ui.lang)}</span>
 						<span class="text">{pick(request.asked_text, ui.lang)}</span>
-						{#if request.group}<span class="group">{pick(request.group, ui.lang)}</span>{/if}
+						{#if request.group}
+							<span class="group">
+								<Thumb src={request.group_image_url} width={48} height={32} placeholder="none" radius={4} />
+								{pick(request.group, ui.lang)}
+							</span>
+						{/if}
 					</div>
 					<span class="arrow"><Icon name="arrow" size={20} color="var(--d-faint)" stroke={2} /></span>
 					<div class="lines">
@@ -298,6 +304,9 @@
 		font-weight: 700;
 	}
 	.group {
+		display: flex;
+		align-items: center;
+		gap: 8px;
 		font-size: 14px;
 		color: var(--d-muted);
 	}

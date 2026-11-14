@@ -6,6 +6,7 @@ The app commits for real here (`app_db`), because the stream only hears committe
 
 import asyncio
 import json
+import random
 import re
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -27,13 +28,14 @@ from app.schemas import (
     SessionState,
     StateGroup,
 )
-from app.services import audit, dev_caller, quotes
+from app.services import accounts, audit, dev_caller, quotes
 from app.services.caller import Caller
 from app.services.dashboard.feed import DashboardFeed, start_feed
 from app.services.dashboard.stream import Broadcaster, StreamEvent, get_broadcaster
 from app.settings import get_settings
 from tests.test_confirmation_page import STOCK_FLAG, Page, ordered
 from tests.test_dashboard_routes import Stream
+from tests.test_recipes import borrowed_offers, recipe_line  # noqa: F401 - a fixture
 
 API = "/api/v1/public"
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
@@ -316,6 +318,7 @@ async def test_summary_steps_transcript_and_events_of_a_built_quote(client, app_
     assert summary["signature_valid"] is True
     [request] = summary["requests"]
     assert request["request_id"] == "l1"
+    assert request["group_image_url"] is None  # no recipe group
     assert request["lines"][0]["product_id"] == "464306"
     assert request["lines"][0]["image_url"].startswith("https://api.valioaimo.fi/medias/")
     trace = request["lines"][0]["trace"]
@@ -721,3 +724,30 @@ def test_order_filter_sends_matching_cards_and_one_last_update_for_cards_that_le
     # "a" leaves the filter: sent once so the page drops it, then no more.
     assert accept(_update("a", "awaiting_confirmation", "phone"))
     assert not accept(_update("a", "awaiting_confirmation", "phone"))
+
+
+@pytest.mark.usefixtures("recipes", "borrowed_offers")
+async def test_a_recipe_group_shows_its_image_on_the_summary(client, app_db):
+    async with AsyncSession(app_db, expire_on_commit=False) as db:
+        account = await accounts.create_demo_account(
+            db, f"+35840{random.randrange(10**6, 10**7)}", [], "fi"
+        )
+        caller = Caller(
+            user_id=account.user_id,
+            company_id=account.company_id,
+            company_name=account.company_name,
+            phone_masked=account.phone_masked,
+            exclusions=[],
+            lang="fi",
+            channel="web",
+        )
+        response = await quotes.build_quote(db, caller, BuildQuoteRequest(lines=[recipe_line()]))
+        quote = await db.get_one(Quote, uuid.UUID(response.quote_id))
+        await db.commit()
+    [group] = response.groups
+    assert group.image_url
+
+    summary = client.get(f"{API}/orders/{quote.session_id}").json()
+
+    assert summary["requests"]
+    assert {r["group_image_url"] for r in summary["requests"]} == {group.image_url}

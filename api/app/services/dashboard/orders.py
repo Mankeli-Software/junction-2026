@@ -150,6 +150,7 @@ def _requests(
     asked = [LineRequest.model_validate(line) for line in raw_lines]
     priced = {line.line_id: line for line in output.lines} if output else {}
     rejected = {r.line_id: r for r in output.rejections} if output else {}
+    images = {g.group: g.image_url for g in output.groups if g.image_url} if output else {}
     requests = []
     for raw, line in zip(raw_lines, asked, strict=True):
         result = priced.get(line.line_id)
@@ -177,6 +178,7 @@ def _requests(
                 ),
                 asked_text=Localized(fi=f"{words.fi}, {day} mennessä", en=f"{words.en}, by {day}"),
                 group=Localized(fi=line.group, en=line.group) if line.group else None,
+                group_image_url=images.get(line.group) if line.group else None,
                 lines=[_summary_line(result)] if result else [],
                 not_ordered=not_ordered,
             )

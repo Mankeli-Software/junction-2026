@@ -25,7 +25,8 @@
 			"request_id": "r1",
 			"asked": { "text": "ground beef", "quantity": 5, "unit": "kg", "package_word": null, "needed_by": "2026-11-16" },
 			"asked_text": { "en": "5 kg ground beef, by Monday", "fi": "5 kg jauhelihaa maanantaiksi" },
-			"group": null,
+			"group": { "en": "Lasagne", "fi": "Lasagne" },
+			"group_image_url": "https://cdn-wp.valio.fi/valio-wp-network/sites/32/2024/11/38825-lasagne-400x300.jpeg",
 			"not_ordered": [],
 			"lines": [
 				{
@@ -96,6 +97,7 @@
 			"asked": { "text": "my usual oat drink", "quantity": 20, "unit": "l", "package_word": null, "needed_by": "2026-11-16" },
 			"asked_text": { "en": "My usual oat drink, 20 l", "fi": "Tavallinen kaurajuoma, 20 l" },
 			"group": null,
+			"group_image_url": null,
 			"not_ordered": [],
 			"lines": [
 				{
@@ -136,6 +138,7 @@
 			"asked": { "text": "rapeseed oil", "quantity": 10, "unit": "l", "package_word": null, "needed_by": "2026-11-16" },
 			"asked_text": { "en": "10 l rapeseed oil", "fi": "10 l rypsiöljyä" },
 			"group": null,
+			"group_image_url": null,
 			"not_ordered": [],
 			"lines": [
 				{

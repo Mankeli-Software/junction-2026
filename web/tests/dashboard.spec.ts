@@ -25,6 +25,8 @@ test('opens an order and verifies its chain in the browser', async ({ page }) =>
 	await expect(page.getByText('Quote signed and verified')).toBeVisible();
 	await expect(page.getByRole('link', { name: 'Audit chain intact, 31 events' })).toBeVisible();
 	await expect(page.getByTestId('ranked-not-available')).toHaveCount(0);
+	// A recipe group shows the recipe's image next to its name.
+	await expect(page.locator('.group img')).toHaveAttribute('src', /38825-lasagne/);
 
 	await page.getByRole('link', { name: 'Full flow', exact: true }).click();
 	await expect(page.getByText('update_quote').first()).toBeVisible();
