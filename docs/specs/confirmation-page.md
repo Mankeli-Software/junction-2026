@@ -73,7 +73,6 @@ Flag kinds from vision section 6:
 | Rounded up | "Rounded up from 1,000 L to 1,002 L (334 cases)." |
 | Stock not confirmed | "Stock is not confirmed for this product." |
 | No allergen information | "No allergen information is listed for these products: ..." (one notice for the whole order) |
-| New product | "You have not ordered this product before." |
 | Possible duplicate | "Same order was placed 20 minutes ago." |
 | Pack size from name | "Pack size was read from the product name." |
 | Exact-fit alternative available | "12 L of Valio (4 x 3 L), or 10 L of another milk?" with the choice inline |

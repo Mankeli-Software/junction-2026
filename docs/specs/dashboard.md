@@ -116,7 +116,7 @@ Example:
 > 10:02:42 **Tool call:** `request_confirmation` → link queued for the end of the call.
 > 10:03:40 **Call ended.** Link sent to the demo phone.
 > 10:04:05 **Buyer** opened the link.
-> 10:04:22 **Buyer** acknowledged 2 flags: stock not confirmed, not ordered before.
+> 10:04:22 **Buyer** acknowledged 2 flags: stock not confirmed, unusual amount.
 > 10:04:23 **Order confirmed.**
 
 (Figures are illustrative; the real ones come from the engine.)

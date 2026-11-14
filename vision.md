@@ -109,13 +109,12 @@ This is the heart of the guardrail story, and it is deliberately simple.
   - "Rounded up from 1,000 L to 1,002 L (334 cases)."
   - "Stock is not confirmed for this product."
   - "No allergen information is listed for these products: ..." (one notice for the whole order)
-  - "You have not ordered this product before."
   - "Same order was placed 20 minutes ago."
   - "Pack size was read from the product name."
 - The buyer can edit: change a quantity, remove a line or pick an offered alternative. Every edit runs through the engine again and produces a new quote on the same page. The old quote is void.
 - Confirm creates the order record. Cancel voids the quote. If the SMS cannot be delivered, nothing is ordered and the agent offers a resend.
 
-Sanity checks ("does this make sense?") come from the customer's order history: a normal range per product, duplicates within two hours and new products. They never block on their own. They decide what gets highlighted and needs an explicit acknowledgement.
+Sanity checks ("does this make sense?") come from the customer's order history: a normal range per product and duplicates within two hours. (A "new product" flag was dropped in #42: the page already shows what was asked next to what was added, and on stage most products are new, so it would mostly be noise.) They never block on their own. They decide what gets highlighted and needs an explicit acknowledgement.
 
 **Path to production:** confirmation policy is one config value, today `always`. Spend thresholds, per-company mandates and separate approvers can be added later as policy data without changing the engine or the interface.
 
