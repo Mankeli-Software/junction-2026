@@ -552,7 +552,7 @@ Why a VM and not Container Apps or Web Apps (asked in review, decided 2026-11-14
 6. Deploy with `git pull && docker compose up -d --build`. Automate with a GitHub Action over SSH if time allows.
 7. Caddy routes `/api/*`, `/mcp`, `/.well-known/*`, the OAuth routes and `/voice/*` to FastAPI, and everything else to SvelteKit. Everything is same-origin, so cookies stay simple.
 
-Laptops run the same Compose file plus a development override (`deploy/docker-compose.dev.yml`, *proposed*) that adds a `db` service from the `pgvector/pgvector` image with a volume. The FastAPI and SvelteKit dev servers can also run directly against that container. Laptops read their settings from a local `.env`, which is never committed (only `.env.example` is). The same settings loader reads either `.env` (development) or Key Vault (production).
+Laptops run the same Compose file plus a development override (`deploy/docker-compose.dev.yml`, *proposed*) that adds a `db` service from the `pgvector/pgvector` image with a volume. The FastAPI and SvelteKit dev servers can also run directly against that container. Laptops read their settings from a local `.env` at the repository root, which is never committed (only `.env.example` is). The same settings loader reads either `.env` (development) or Key Vault (production).
 
 Production path: the database and Key Vault parts are already in place. Only Azure Container Apps is still pitch-only.
 
@@ -577,10 +577,11 @@ web/                     SvelteKit
 policy/                  rule files and message templates (versioned)
 data/                    existing data files, snapshots/
 scripts/                 loaders, embeddings, snapshot recorder, audit-chain checker
-deploy/                  docker-compose.yml, docker-compose.dev.yml, Caddyfile, .env.example (development only)
+deploy/                  docker-compose.yml, docker-compose.dev.yml, Caddyfile
+.env.example             development settings, copied to .env (never committed)
 ```
 
-Tooling (*proposed*): Python 3.12 with `uv`, `ruff` and `pytest`. `pnpm` and `svelte-check` for the web app. GitHub Actions runs lint and all tests on pull requests, with the same `pgvector/pgvector` image as a service container.
+Tooling (set up in #27): Python 3.12 with `uv`, `ruff` and `pytest`; async SQLAlchemy 2 with psycopg 3. `pnpm` and `svelte-check` for the web app. GitHub Actions runs lint and all tests on every push to `main`, with the same `pgvector/pgvector` image as a service container.
 
 Tests:
 

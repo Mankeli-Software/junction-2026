@@ -56,7 +56,34 @@ Stay inside your own area so agents don't wander into other people's folders. #6
 
 ## Commands
 
-To be filled in once the scaffold (#27) lands: the exact run, test and lint commands (`uv`, `pnpm`, `docker compose`), so agents don't guess them.
+Set up once: `cp .env.example .env` at the repository root.
+
+Whole stack (Caddy, API, web and the local Postgres), on http://localhost:
+
+```sh
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up --build
+```
+
+API (`api/`, Python 3.12, `uv`):
+
+```sh
+uv sync                                   # install
+uv run uvicorn app.main:app --reload      # dev server on :8000, needs the db container
+uv run alembic upgrade head               # migrate; new migration: uv run alembic revision -m "..."
+uv run ruff check . && uv run ruff format --check .
+uv run pytest                             # database tests run only when DATABASE_URL is exported
+```
+
+Web (`web/`, SvelteKit, `pnpm`):
+
+```sh
+pnpm install
+pnpm dev                                  # dev server on :5173
+pnpm check                                # svelte-check
+pnpm build
+```
+
+Only the database: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up -d db`. CI (`.github/workflows/ci.yml`) runs the same lint, migration and test commands on every push to `main`.
 
 ## Database and secrets
 
