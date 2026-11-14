@@ -19,6 +19,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from mcp.shared._httpx_utils import McpHttpClientFactory, create_mcp_http_client
 from mcp.types import CallToolResult, TextContent, Tool
 
+from app import telemetry
 from app.agent import END_CALL
 
 log = logging.getLogger(__name__)
@@ -122,7 +123,8 @@ class McpTools:
             read, write, _ = await self._stack.enter_async_context(
                 streamablehttp_client(
                     self.url,
-                    headers={"Authorization": f"Bearer {self.token}"},
+                    # A live test's run and case go along, so its tool calls carry them.
+                    headers={"Authorization": f"Bearer {self.token}", **telemetry.test_headers()},
                     httpx_client_factory=self.http_client_factory,
                 )
             )

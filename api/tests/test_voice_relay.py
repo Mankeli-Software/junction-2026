@@ -12,6 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
+from app import telemetry
 from app.agent import CALL_CONNECTED, END_CALL, PROMPT_VERSION
 from app.interfaces.voice import filler, relay, routes
 from app.main import app
@@ -51,11 +52,11 @@ def call(monkeypatch: pytest.MonkeyPatch):
     get_settings.cache_clear()
 
 
-def connect(cookie: str | None = "good"):
+def connect(cookie: str | None = "good", headers: dict[str, str] | None = None):
     client = TestClient(app)
     if cookie:
         client.cookies.set("simo_session", cookie)
-    return client.websocket_connect("/voice/ws")
+    return client.websocket_connect("/voice/ws", headers=headers or {})
 
 
 class Socket:
@@ -95,6 +96,9 @@ class Socket:
     def send_audio(self, frames: int = 1) -> None:
         for _ in range(frames):
             self.ws.send_bytes(b"\x00\x00" * 1600)
+
+    def say(self, text: str) -> None:
+        self.ws.send_text(json.dumps({"type": "say", "text": text}))
 
     def hang_up(self) -> dict[str, Any]:
         self.ws.send_text(json.dumps({"type": "hangup"}))
@@ -354,6 +358,78 @@ def test_a_yes_whose_caption_trails_the_tool_call_still_counts(call):
     assert "output" in live.tool_responses[1].response
 
 
+# --- A call without a voice (#98) -------------------------------------------------------
+
+
+def test_a_typed_line_goes_to_gemini_and_counts_as_the_caller_speaking(call):
+    live, _, service = call
+    with connect() as ws:
+        sock = Socket(ws)
+        greet(live, sock)
+        sock.say("  Tarvitsen 20 litraa\n maitoa.  ")
+        caption = sock.next("transcript", who="buyer", final=True)
+        live.wait_for(lambda: "Tarvitsen 20 litraa maitoa." in live.texts())
+        sock.say("   ")  # nothing to say: ignored
+        sock.hang_up()
+
+    assert caption["text"] == "Tarvitsen 20 litraa maitoa."
+    assert ("thinking", None) in sock.states()
+    assert [(who, text) for who, text, _ in service.said if who == "buyer"] == [
+        ("buyer", "Tarvitsen 20 litraa maitoa.")
+    ]
+    assert live.texts() == [CALL_CONNECTED, "Tarvitsen 20 litraa maitoa."]
+    assert live.audio_frames() == 0
+
+
+def test_a_typed_yes_lets_request_confirmation_through(call):
+    live, tools, _ = call
+    with connect() as ws:
+        sock = Socket(ws)
+        greet(live, sock)
+        sock.say("Siinä kaikki.")
+        sock.next("transcript", who="buyer", final=True)
+        live.push(fx.tool_call("build_quote", {"lines": []}, "q"))
+        live.wait_for(lambda: len(live.tool_responses) == 1)
+        # No answer since the quote: refused, as on a spoken call.
+        live.push(fx.tool_call("request_confirmation", {"quote_id": "q-1"}, "r1"))
+        live.wait_for(lambda: len(live.tool_responses) == 2, timeout=5)
+        sock.say("Kyllä, lähetä.")
+        sock.next("transcript", who="buyer", final=True)
+        live.push(fx.tool_call("request_confirmation", {"quote_id": "q-1"}, "r2"))
+        live.wait_for(lambda: len(live.tool_responses) == 3)
+        ended = sock.hang_up()
+
+    assert "error" in live.tool_responses[1].response
+    assert live.tool_responses[2].response["output"]["delivery_status"] == "held"
+    assert [name for name, _ in tools.calls] == ["build_quote", "request_confirmation"]
+    assert ended["inbox"] is True
+
+
+def test_a_live_tests_run_and_case_are_bound_for_the_call(call, monkeypatch):
+    live, tools, _ = call
+    seen: list[dict[str, str]] = []
+
+    def open_tools(token: str):
+        seen.append(telemetry.test_headers())  # what the MCP bridge would send along
+        return tools.open(token)
+
+    monkeypatch.setattr(relay, "open_tools", open_tools)
+    stamp = {"X-Simo-Test-Run": "demo-script-1", "X-Simo-Test-Case": "call-order-fi"}
+    with connect(headers=stamp) as ws:
+        sock = Socket(ws)
+        greet(live, sock)
+        sock.hang_up()
+    with connect() as ws:
+        sock = Socket(ws)
+        sock.next("ready")
+        sock.hang_up()
+
+    assert seen == [
+        {"x-simo-test-run": "demo-script-1", "x-simo-test-case": "call-order-fi"},
+        {},
+    ]
+
+
 # --- Ending the call --------------------------------------------------------------------
 
 
@@ -379,7 +455,9 @@ def test_hang_up_releases_the_link_and_never_sends_it(call):
         "total_cents",
         "delivery_status",
         "inbox",
+        "session_id",
     }
+    assert ended["session_id"] == str(fx.SESSION_ID)
     assert service.ended[0]["ended_by"] == "visitor"
     assert all(fx.LINK_LIKE not in text and fx.TOKEN not in text for text in sock.raw_texts)
     assert live.closed.is_set() and tools.closed.is_set()

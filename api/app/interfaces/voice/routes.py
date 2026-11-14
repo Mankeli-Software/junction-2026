@@ -10,6 +10,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket
 
+from app import telemetry
 from app.db import get_sessionmaker
 from app.interfaces.deps import SESSION_COOKIE
 from app.interfaces.voice.relay import CLOSE_NO_SESSION, Call
@@ -32,4 +33,4 @@ async def voice_socket(ws: WebSocket) -> None:
     if user is None or user.company_id is None:
         await ws.close(CLOSE_NO_SESSION, "No demo session")
         return
-    await Call(ws, user.user_id).run()
+    await Call(ws, user.user_id, test_tags=telemetry.test_tags(ws.headers)).run()

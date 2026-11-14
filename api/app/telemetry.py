@@ -113,6 +113,14 @@ def test_tags(headers: Mapping[str, str]) -> dict[str, str]:
     return tags
 
 
+def test_headers() -> dict[str, str]:
+    """The bound test tags as request headers, to pass on to a service we call (the voice
+    relay's MCP requests)."""
+    bound_now = _context.get()
+    pairs = ((TEST_RUN_HEADER, "test_run"), (TEST_CASE_HEADER, "test_case"))
+    return {header: bound_now[PREFIX + key] for header, key in pairs if PREFIX + key in bound_now}
+
+
 @contextmanager
 def from_request(headers: Mapping[str, str]) -> Iterator[None]:
     """Join the caller's trace (W3C traceparent) and take its test tags. For MCP tools,

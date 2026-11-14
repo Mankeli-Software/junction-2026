@@ -3,8 +3,10 @@ our MCP server for the tools (#52, technical-plan.md §7.1 and §9.3).
 
 Tasks per call, all in this process (sessions are held in memory, §7.1):
 
-- **up**: browser to Gemini. Binary frames are 16 kHz PCM from the microphone; the only
-  JSON message is `hangup`.
+- **up**: browser to Gemini. Binary frames are 16 kHz PCM from the microphone; the JSON
+  messages are `hangup` and `say`, a caller's line as text. The live tests (#98) use `say`
+  to play a call without a voice: the line goes to Gemini as text and counts as the caller
+  speaking, with its caption and its `buyer_said`.
 - **down**: Gemini to the browser. 24 kHz PCM, `transcript`, `interrupted` and
   `agent_state`; tool calls start a task each.
 - **tools**: one task per tool call, through MCP with the call's bearer token. Calls are
@@ -24,7 +26,7 @@ import json
 import logging
 import time
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from typing import Any
@@ -64,6 +66,8 @@ PENDING_TOOLS_S = 2.0
 # How long a tool call waits for the transcript log to catch up.
 LOG_FLUSH_S = 2.0
 CHUNK_BYTES = live.OUT_RATE * 2 // 10  # 100 ms of 24 kHz audio
+# The longest typed caller line (`say`).
+MAX_SAY_CHARS = 500
 
 REFUSED_CONFIRMATION = (
     "Not sent: the caller has not answered since the latest quote. Ask whether to send "
@@ -105,9 +109,13 @@ def live_call_count() -> int:
 
 
 class Call:
-    def __init__(self, ws: WebSocket, user_id: uuid.UUID) -> None:
+    def __init__(
+        self, ws: WebSocket, user_id: uuid.UUID, *, test_tags: Mapping[str, str] | None = None
+    ) -> None:
         self.ws = ws
         self.user_id = user_id
+        # A live test's run and case (`X-Simo-Test-Run`, #98), bound for the whole call.
+        self.test_tags = dict(test_tags or {})
         self.settings = get_settings()
         self.limits = call_limits()
         self.start: voice_calls.CallStart | None = None
@@ -182,6 +190,7 @@ class Call:
             prompt_version=PROMPT_VERSION,
             voice_model=self.settings.voice_model,
             voice=self.settings.voice_name,
+            **self.test_tags,
         ):
             try:
                 async with open_tools(self.start.token) as tools:
@@ -313,6 +322,8 @@ class Call:
                 # Twilio is off for now (#46), so a delivered link is `off`.
                 "delivery_status": "off" if released else "none",
                 "inbox": released,
+                # Public on the dashboard already; the live tests read the call back by it.
+                "session_id": str(self.start.session_id),
             }
         )
         await self._close(1000, "Call ended")
@@ -336,9 +347,13 @@ class Call:
                         data = json.loads(message["text"])
                     except ValueError:
                         continue
-                    if isinstance(data, dict) and data.get("type") == "hangup":
+                    if not isinstance(data, dict):
+                        continue
+                    if data.get("type") == "hangup":
                         self._request_end("visitor")
                         return
+                    if data.get("type") == "say" and isinstance(data.get("text"), str):
+                        await self._on_typed_line(data["text"])
         except WebSocketDisconnect:
             self.socket_gone = True
             self._request_end("dropped")
@@ -430,6 +445,18 @@ class Call:
             )
         if self.state == "listening":
             await self._set_state("thinking")
+
+    async def _on_typed_line(self, line: str) -> None:
+        """A caller's line as text (`say`). Gemini sends no transcription for text, so the
+        relay counts it as the caller speaking itself."""
+        assert self.session is not None
+        text = " ".join(line.split())[:MAX_SAY_CHARS]
+        if not text or self.ending:
+            return
+        await self._close_buyer()
+        await self._on_buyer_text(text)
+        await self._close_buyer()
+        await self.session.send_realtime_input(text=text)
 
     async def _on_agent_audio(self, pcm: bytes) -> None:
         await self._close_buyer()
