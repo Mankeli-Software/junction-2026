@@ -7,6 +7,7 @@ errors; `run_tool` writes the `tool_called` and `tool_returned` audit events aro
 call. Nothing else is registered: no confirm, cancel, audit or inbox tool (vision §8).
 """
 
+import logging
 from typing import Any
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -45,6 +46,8 @@ from app.services.caller import Caller
 from app.services.errors import ServiceError
 from app.settings import get_settings
 
+log = logging.getLogger(__name__)
+
 # Where RequireCaller leaves the caller in the request scope's state for the tools.
 CALLER_STATE_KEY = "simo_caller"
 
@@ -81,6 +84,10 @@ def _tool(
             return await run_tool(name, caller, service, request)
         except ServiceError as error:
             raise ToolError(str(error)) from error
+        except Exception:
+            # The SDK turns this into an "Error executing tool" result and logs nothing.
+            log.exception("Tool %s failed", name)
+            raise
 
     run.__annotations__["return"] = response_model
     tool = Tool.from_function(run, name=name, description=description, structured_output=True)

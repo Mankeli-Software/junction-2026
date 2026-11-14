@@ -100,3 +100,19 @@ def test_mcp_answers_with_and_without_trailing_slash(live_client: TestClient):
 @pytest.mark.usefixtures("no_caller")
 def test_mcp_without_caller_is_401():
     assert _initialize(TestClient(app, base_url="http://localhost"), "/mcp").status_code == 401
+
+
+@pytest.mark.usefixtures("dev_caller")
+async def test_an_exception_in_a_tool_is_logged_with_its_traceback(monkeypatch, caplog):
+    async def broken(*args, **kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("app.interfaces.mcp.server.run_tool", broken)
+    with caplog.at_level("ERROR", logger="app.interfaces.mcp.server"):
+        async with create_connected_server_and_client_session(mcp) as session:
+            result = await session.call_tool("build_quote", {"lines": [LINE]})
+
+    assert result.isError
+    [record] = [r for r in caplog.records if r.name == "app.interfaces.mcp.server"]
+    assert record.getMessage() == "Tool build_quote failed"
+    assert record.exc_info and record.exc_info[1].args == ("boom",)
