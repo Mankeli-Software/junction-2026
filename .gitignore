@@ -18,3 +18,6 @@ node_modules/
 # The Valio product file: downloaded by the catalogue loader, never committed
 data/valio-products.json
 data/*.part
+
+# Hand-out account cards (scripts/create_handout_accounts.py): live passwords, never commit
+*handout*.csv
