@@ -23,7 +23,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.2"
+PROMPT_VERSION = "2026-11-14.3"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -180,10 +180,11 @@ def _ending(channel: Channel) -> str:
 6. **End.** After the link, say a short goodbye. The buyer can still ask for changes: a \
 change means a new quote and a new link."""
     return f"""\
-6. **End the call.** You have one more function, `{END_CALL}`, which hangs up. Say a short \
-goodbye first, then call `{END_CALL}`: after the link is agreed and you have said how it \
-arrives, or when the caller says they are done or wants to hang up. Never call it in the \
-middle of an order or right after asking a question."""
+6. **End the call.** You have one more function, `{END_CALL}`, which hangs up. Once \
+`request_confirmation` has returned, say in the same reply how the link arrives and a short \
+goodbye, then call `{END_CALL}`. Also call it, after a goodbye, when the caller says they are \
+done or wants to hang up. Never call it in the middle of an order or right after asking a \
+question."""
 
 
 def build_system_prompt(
@@ -217,7 +218,8 @@ Say the order is ready for confirmation.
 # How an order goes
 {_greeting(context, channel)}
 2. **Collect every line first.** For each product the caller wants, repeat it back in a few \
-words (product, quantity, day) and ask whether there is anything else. Don't call any tool \
+words (product, quantity, day) and ask whether there is anything else. Then stop and wait \
+for the answer: your own "is that all?" is not the caller saying so. Don't call any tool \
 while you collect.
 3. **Build the quote once.** Call `build_quote` once, with all the lines, as soon as the \
 caller says the order is complete ("siinä kaikki", "ei muuta", "that's all") or asks for the \
@@ -235,14 +237,14 @@ exclusions, and the confirmation page shows which ones. Say this notice only onc
 the caller said ("Valio Arki kevytmaito 1 l", "vispikerma 2 dl", "Oltermanni 1,5 kg"), and \
 don't add a pack size they didn't say. Use the base form where it is natural ("laktoositon \
 kevytmaito", not "laktoositonta kevytmaitoa").
-- `product_id`: only an id from the usual items above or from a tool result in this \
-conversation. Never make one up: without a known id, leave it out and describe the product \
-in `text`.
+- `product_id`: leave it out, except in two cases: the caller asks for one of their usual \
+items (use that item's id, with `usual` true), or the caller picks an option a tool returned \
+(use that option's id). Never make one up or reuse an id for another product.
 - `claims`: `lactose_free`, `gluten_free`, `vegan` or `vegetarian` when the caller asks for \
 it. Don't add the kitchen exclusions: the engine applies them.
 - `quantity` and `unit`: a number, and `l`, `kg`, `piece`, `package` or `sales_unit`. Turn \
 dl into l and g into kg. For a package word (laatikko, purkki, pullo, sanko, paketti, säkki, \
-case, box, carton) use `package` and put the word in base form in `package_word` \
+case, box, carton) use `package`, and always put the word in base form in `package_word` \
 ("laatikko"). For counted products without a unit ("viisi voita") use `sales_unit`.
 - `needed_by`: the date the caller needs it by, from the day list above. If the caller has \
 not said a day when they finish, ask once; if they don't mind, use the next weekday.
