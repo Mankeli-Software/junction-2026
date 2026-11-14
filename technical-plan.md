@@ -117,7 +117,7 @@ REST and MCP share one set of Pydantic models and one service layer. FastAPI tur
 | Component | Use out of the box | We build | Priority (vision §13) |
 |---|---|---|---|
 | HTTP API and OpenAPI | FastAPI generates OpenAPI 3.1 from Pydantic v2 models. `extra="forbid"` rejects unknown fields (vision §8) | Routes under `/api/v1`, request and response models | P0 |
-| MCP server | MCP Python SDK (`FastMCP`), Streamable HTTP, mounted into FastAPI at `/mcp`. MCP Inspector for manual testing | The seven tools of vision §8 as thin wrappers over services. Tool descriptions written for a voice agent | P0 |
+| MCP server | MCP Python SDK (`FastMCP`), Streamable HTTP, mounted into FastAPI at `/mcp`. MCP Inspector for manual testing | The eight tools of vision §8 (it lists `search_recipes` and `get_recipe` in one row) as thin wrappers over services. Tool descriptions written for a voice agent | P0 |
 | Ordering engine | Python `decimal`, `zoneinfo` | All of it: resolve, allergen and diet filter, units, availability and dates, ranking, substitution, price, sanity checks, decision, explanation text | P0 (sanity checks, tuned ranking and exact-fit are P1) |
 | Rules and texts | YAML and CSV loaders | Versioned rule files, reason-code templates in Finnish and English, a name table for unit codes (`KI`, `ST`, `PAK`, ...) | P0 |
 | Product search | Postgres full-text search (`finnish` and `english` configs), `pg_trgm` for typos, `unaccent` | Loader for the product file, search SQL, a short synonym list, deterministic ranking | P0 |
@@ -379,11 +379,11 @@ Checked on 2026-11-14 against the UI design in `docs/design/` (18 screens: start
 Two rules, from vision §6 and §8:
 
 - **The confirmation link goes only to the account that made the order**: to that account's simulated phone inbox, and by Twilio SMS to allowlisted numbers when the flag is on (section 8.2). No agent tool, voice message or public endpoint returns the token or the link. The notification "Tap to check it" on `13-call-ended` fits if it opens the message in the simulated phone. The webshop's "Open confirmation page" (`42-webshop-quote`) doesn't: a browser agent works inside that page and could follow the link (vision §8). So the simulated inbox is shown on the phone page only, never in the shop (decided).
-- **Agents get the seven tools and nothing else.** Confirm, cancel, acknowledgements, edits on the page and the inbox are web-session endpoints. They never accept MCP tokens and are never registered as WebMCP tools. The dashboard is public and read-only, but it is not a tool either.
+- **Agents get the eight tools and nothing else.** Confirm, cancel, acknowledgements, edits on the page and the inbox are web-session endpoints. They never accept MCP tokens and are never registered as WebMCP tools. The dashboard is public and read-only, but it is not a tool either.
 
 ### 9.1 Agent tools and their REST twins
 
-The seven tools of vision §8, unchanged. Each has a REST twin with the same Pydantic models, which the WebMCP tools in the shop call with the session cookie.
+The eight tools of vision §8 (it counts `search_recipes` and `get_recipe` as one row), unchanged. Each has a REST twin with the same Pydantic models, which the WebMCP tools in the shop call with the session cookie.
 
 | MCP tool | REST twin |
 |---|---|
@@ -607,7 +607,7 @@ Tests:
 
 ## 12. Milestones and workstreams
 
-**Contract first.** Before anything else, write the Pydantic models for the seven tools and a stub engine that returns a fixed milk quote. Every stream then builds against the same contract.
+**Contract first.** Before anything else, write the Pydantic models for the eight tools and a stub engine that returns a fixed milk quote. Every stream then builds against the same contract.
 
 | Milestone | Done when |
 |---|---|
