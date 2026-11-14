@@ -1,0 +1,116 @@
+{
+ "endpoint": "availability",
+ "products": {
+  "462775": {
+   "data": {
+    "closingTime": "2026-11-15T17:00:00+0200",
+    "logisticModel": "Stock",
+    "productId": "462775",
+    "salesBlock": false,
+    "scheduleLines": [
+     {
+      "availableAmount": 51.0,
+      "availableDate": "2026-11-16",
+      "salesBlock": false,
+      "salesUnit": "ST"
+     }
+    ]
+   },
+   "fetched_at": "2026-11-14T14:30:56.645101+00:00"
+  },
+  "463380": {
+   "data": {
+    "closingTime": "2026-11-15T17:00:00+0200",
+    "logisticModel": "Stock",
+    "productId": "463380",
+    "salesBlock": false,
+    "scheduleLines": [
+     {
+      "availableAmount": 698.0,
+      "availableDate": "2026-11-16",
+      "salesBlock": false,
+      "salesUnit": "ST"
+     }
+    ]
+   },
+   "fetched_at": "2026-11-14T14:30:56.645101+00:00"
+  },
+  "464073": {
+   "data": {
+    "closingTime": "2026-11-15T17:00:00+0200",
+    "logisticModel": "Stock",
+    "productId": "464073",
+    "salesBlock": false,
+    "scheduleLines": [
+     {
+      "availableAmount": 9999999999.0,
+      "availableDate": "2026-11-16",
+      "salesBlock": false,
+      "salesUnit": "ST"
+     }
+    ]
+   },
+   "fetched_at": "2026-11-14T14:30:56.645101+00:00"
+  },
+  "464119": {
+   "data": {
+    "closingTime": "2026-11-12T15:00:00+0200",
+    "logisticModel": "Terminal",
+    "productId": "464119",
+    "salesBlock": false,
+    "scheduleLines": [
+     {
+      "availableAmount": 999999.0,
+      "availableDate": "2026-11-16",
+      "salesBlock": false,
+      "salesUnit": "KI"
+     }
+    ]
+   },
+   "fetched_at": "2026-11-14T14:30:56.645101+00:00"
+  },
+  "464201": {
+   "data": {
+    "closingTime": "2026-11-15T17:00:00+0200",
+    "logisticModel": "Stock",
+    "productId": "464201",
+    "salesBlock": false,
+    "scheduleLines": [
+     {
+      "availableAmount": 9999999999.0,
+      "availableDate": "2026-11-16",
+      "salesBlock": false,
+      "salesUnit": "ST"
+     }
+    ]
+   },
+   "fetched_at": "2026-11-14T14:30:56.645101+00:00"
+  },
+  "464306": {
+   "data": {
+    "closingTime": "2026-11-15T17:00:00+0200",
+    "logisticModel": "Stock",
+    "productId": "464306",
+    "salesBlock": false,
+    "scheduleLines": [
+     {
+      "availableAmount": 9999999999.0,
+      "availableDate": "2026-11-16",
+      "salesBlock": false,
+      "salesUnit": "ST"
+     }
+    ]
+   },
+   "fetched_at": "2026-11-14T14:30:56.645101+00:00"
+  },
+  "464440": {
+   "data": {
+    "productId": "464440",
+    "salesBlock": false,
+    "scheduleLines": []
+   },
+   "fetched_at": "2026-11-14T14:30:56.645101+00:00"
+  }
+ },
+ "requestedDate": "2026-11-20"
+}
