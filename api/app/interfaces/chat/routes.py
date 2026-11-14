@@ -73,7 +73,8 @@ CONFIRMATION_PAGE_NOTE = """
 # On the confirmation page
 This chat is the "Ask for changes" panel on the confirmation page of quote {quote_id}. The \
 buyer asks for changes in words. You have one tool, `update_quote`: call it with this quote \
-and the full new line list, keeping the `line_id`s of the lines that stay. The lines now are:
+and only what changes: a changed line with its `line_id`, a new line with a new `line_id`, or \
+a line's id in `remove_line_ids`. The other lines stay by themselves. The lines now are:
 {lines}
 The page then shows the new quote; the buyer checks any flags and confirms with the page's \
 own button. You can't confirm, cancel or send a link, and the buyer needs no new link: the \
@@ -95,8 +96,8 @@ def refusal(edit: confirmation_page.ChatEdit) -> str:
         )
         text += (
             f" Ask the buyer this question in words{': ' + options if options else ''}. When "
-            "they answer, call update_quote again with the full line list, the clarified line "
-            "with the chosen product_id."
+            "they answer, call update_quote again with the clarified line and the chosen "
+            "product_id."
         )
     else:
         text += " Tell the buyer in a sentence and ask how they want to change it instead."
@@ -332,14 +333,20 @@ async def confirmation_chat(token: str, body: ChatRequest) -> EventSourceRespons
         """The chat's change, through the page's own edit path, on the link's quote
         whatever id the model wrote."""
         try:
-            lines = UpdateQuoteRequest.model_validate(
-                {"quote_id": "link", "lines": arguments.get("lines")}
-            ).lines
+            request = UpdateQuoteRequest.model_validate(
+                {
+                    "quote_id": "link",
+                    "lines": arguments.get("lines") or [],
+                    "remove_line_ids": arguments.get("remove_line_ids") or [],
+                }
+            )
         except ValidationError as error:
             return {"error": f"invalid lines: {error.errors(include_url=False)}"}
         async with get_sessionmaker()() as db:
             try:
-                edit = await confirmation_page.chat_edit(db, token, lines)
+                edit = await confirmation_page.chat_edit(
+                    db, token, request.lines, request.remove_line_ids
+                )
             except ServiceError as error:
                 await db.commit()
                 return {"error": str(error)}

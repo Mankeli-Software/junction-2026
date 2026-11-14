@@ -286,6 +286,36 @@ async def test_the_confirmation_page_chat_can_only_update_the_links_quote(
     assert page.post("/api/v1/confirmations/unknown/chat", json={"message": "x"}).status_code == 404
 
 
+async def test_the_confirmation_page_chat_changes_one_line_and_keeps_the_others(
+    chat, live_client, app_db
+):
+    arla = {**LINE, "line_id": "l2", "text": "arla", "quantity": 5}
+    built = live_client.post("/api/v1/quotes", json={"lines": [LINE, arla]}).json()
+    live_client.post(f"/api/v1/quotes/{built['quote_id']}/confirmation-request")
+    token = live_client.get("/api/v1/private/inbox").json()[-1]["link"].rsplit("/c/", 1)[1]
+    page = TestClient(app)
+
+    # Only the changed line is sent (#101): the milk is not, and stays.
+    chat.reset(
+        lambda request: fx.call("update_quote", {"lines": [{**arla, "quantity": 7}]}),
+        fx.text("Seven litres now."),
+    )
+    send(page, f"/api/v1/confirmations/{token}/chat", message="Make the Arla 7 litres")
+    view = page.get(f"/api/v1/confirmations/{token}").json()
+    assert [(ln["line_id"], ln["quantity_sales_units"]) for ln in view["lines"]] == [
+        (LINE["line_id"], LINE["quantity"]),
+        ("l2", 7),
+    ]
+
+    chat.reset(
+        lambda request: fx.call("update_quote", {"remove_line_ids": ["l2"]}),
+        fx.text("Removed."),
+    )
+    send(page, f"/api/v1/confirmations/{token}/chat", message="Drop the Arla")
+    view = page.get(f"/api/v1/confirmations/{token}").json()
+    assert [ln["line_id"] for ln in view["lines"]] == [LINE["line_id"]]
+
+
 @pytest.mark.usefixtures("app_db", "no_caller")
 def test_the_chat_takes_the_cookie_and_a_model(monkeypatch):
     client = TestClient(app)

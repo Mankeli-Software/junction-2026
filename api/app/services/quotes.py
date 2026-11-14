@@ -160,29 +160,7 @@ async def update_quote(
     await _editable(db, old)
     refuse_invalid_lines(request.lines, current=old)
 
-    stored = [LineRequest.model_validate(line) for line in old.engine_input["lines"]]
-    known = [line.line_id for line in stored]
-    removed = set(request.remove_line_ids)
-    if unknown := sorted(removed - set(known)):
-        raise InvalidRequestError(
-            f"remove_line_ids names lines that are not in the quote: {unknown}. Its lines "
-            f"are {known}. The current quote {old.id} is unchanged."
-        )
-    # A whole recipe sent again replaces its ingredient lines, which is how they are stored.
-    sent, _ = await recipes.expand_lines(db, list(request.lines))
-    changes = {line.line_id: line for line in sent}
-    if both := sorted(removed & set(changes)):
-        raise InvalidRequestError(
-            f"lines {both} are both sent and removed. The current quote {old.id} is unchanged."
-        )
-    previous = {line.line_id: line for line in stored if line.line_id in changes}
-    merged = [changes.pop(line.line_id, line) for line in stored if line.line_id not in removed]
-    merged += changes.values()
-    if not merged:
-        raise InvalidRequestError(
-            "that would remove every line, and a quote needs at least one. "
-            f"The current quote {old.id} is unchanged."
-        )
+    merged, previous = await merged_lines(db, old, request.lines, request.remove_line_ids)
 
     refused: list[Rejection] = []
     try:
@@ -207,6 +185,38 @@ async def update_quote(
             }
         )
     return response
+
+
+async def merged_lines(
+    db: AsyncSession, old: Quote, lines: Sequence[LineRequest], remove_line_ids: Sequence[str]
+) -> tuple[list[LineRequest], dict[str, LineRequest]]:
+    """The quote's stored lines with the changes laid over them: the complete new list,
+    and the previous version of each line that was changed. InvalidRequestError when a
+    removal names no line, a line is both sent and removed, or nothing would be left."""
+    stored = [LineRequest.model_validate(line) for line in old.engine_input["lines"]]
+    known = [line.line_id for line in stored]
+    removed = set(remove_line_ids)
+    if unknown := sorted(removed - set(known)):
+        raise InvalidRequestError(
+            f"remove_line_ids names lines that are not in the quote: {unknown}. Its lines "
+            f"are {known}. The current quote {old.id} is unchanged."
+        )
+    # A whole recipe sent again replaces its ingredient lines, which is how they are stored.
+    sent, _ = await recipes.expand_lines(db, list(lines))
+    changes = {line.line_id: line for line in sent}
+    if both := sorted(removed & set(changes)):
+        raise InvalidRequestError(
+            f"lines {both} are both sent and removed. The current quote {old.id} is unchanged."
+        )
+    previous = {line.line_id: line for line in stored if line.line_id in changes}
+    merged = [changes.pop(line.line_id, line) for line in stored if line.line_id not in removed]
+    merged += changes.values()
+    if not merged:
+        raise InvalidRequestError(
+            "that would remove every line, and a quote needs at least one. "
+            f"The current quote {old.id} is unchanged."
+        )
+    return merged, previous
 
 
 async def replace_quote(

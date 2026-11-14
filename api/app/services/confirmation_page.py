@@ -26,7 +26,7 @@ flush: the caller commits, also after a `ConfirmationRefused` (a requote must be
 
 import hashlib
 import uuid
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Any
@@ -631,16 +631,25 @@ class ChatEdit:
 
 
 async def chat_edit(
-    db: AsyncSession, token: str, lines: list[LineRequest], *, now: datetime | None = None
+    db: AsyncSession,
+    token: str,
+    lines: list[LineRequest],
+    remove_line_ids: Sequence[str] = (),
+    *,
+    now: datetime | None = None,
 ) -> ChatEdit:
-    """The chat's `update_quote` on the link's quote, exactly as an edit with the page
-    controls (`_replace`): a result that isn't ready is refused and nothing changes, so the
-    link stays on its quote. ConfirmationRefused (409, 410) when the order is closed."""
+    """The chat's `update_quote` on the link's quote: the changes are laid over the
+    quote's lines as in `quotes.update_quote` (#101), then it goes exactly as an edit with
+    the page controls (`_replace`): a result that isn't ready is refused and nothing
+    changes, so the link stays on its quote. ConfirmationRefused (409, 410) when the order
+    is closed; InvalidRequestError for changes that don't fit the quote."""
     now = now or datetime.now(UTC)
     confirmation, quote = await _open(db, token)
     await _require_open(db, confirmation, quote, _screen_hash(quote), now)
+    quotes.refuse_invalid_lines(lines, current=quote)
+    merged, _ = await quotes.merged_lines(db, quote, lines, remove_line_ids)
     try:
-        new = await _replace(db, confirmation, quote, lines, "edit", "", now)
+        new = await _replace(db, confirmation, quote, merged, "edit", "", now)
     except ConfirmationRefused as refused:
         if refused.status != 422:
             raise
