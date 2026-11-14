@@ -52,6 +52,8 @@ PING = ServerSentEvent(comment="ping")
 _DROPPED = object()
 
 SnapshotFn = Callable[[], Awaitable[Any]]
+# Decides per subscriber whether a live or missed event goes out (the overview's filters).
+AcceptFn = Callable[[StreamEvent], bool]
 
 
 @dataclass(eq=False)
@@ -124,8 +126,11 @@ class Broadcaster:
         *,
         last_event_id: int | None = None,
         ping_interval: float = PING_INTERVAL_SECONDS,
+        accept: AcceptFn | None = None,
     ) -> AsyncIterator[ServerSentEvent]:
         """The events for one browser: a snapshot or the missed events, then live ones.
+
+        `accept` filters the live and missed events (never the snapshot).
 
         A comment ping goes out after `ping_interval` seconds without an event, so Caddy
         and browsers keep the connection open. Ends when the subscriber is dropped.
@@ -142,7 +147,8 @@ class Broadcaster:
                 yield StreamEvent("snapshot", data, snapshot_id).to_sse()
             else:
                 for event in missed:
-                    yield event.to_sse()
+                    if accept is None or accept(event):
+                        yield event.to_sse()
                 sent_up_to = missed[-1].id if missed else last_event_id
 
             while True:
@@ -155,7 +161,8 @@ class Broadcaster:
                     return
                 if sent_up_to is not None and item.id is not None and item.id <= sent_up_to:
                     continue  # already sent from the history
-                yield item.to_sse()
+                if accept is None or accept(item):
+                    yield item.to_sse()
         finally:
             self._subscribers.discard(subscriber)
 
