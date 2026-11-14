@@ -24,6 +24,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 LACTOSE_FREE_MILKS = {"462775", "464073", "464119", "464201", "464306", "464440", "464768"}
 COFFEE_MILKS = {"462626", "463380"}
 LOW_LACTOSE_MILK = "463047"
+CONDENSED_MILK = "473625"
 RAW_BEEF_MINCE = {"463104", "470418"}
 COOKED_OR_MIXED_MINCE = {"462832", "463127", "466210"}
 
@@ -82,9 +83,9 @@ async def test_plain_milks_rank_above_coffee_milk(catalogue):
 
 async def test_english_query_finds_the_same_milks(catalogue):
     en = await _ids(catalogue, "lactose free milk", claims=[Claim.lactose_free])
-    # The contract is "no wrong kind in the top 5" (spec §6.2), not a strict order.
-    assert set(en[: len(LACTOSE_FREE_MILKS) + 1]) >= LACTOSE_FREE_MILKS
-    assert not set(en[:5]) & COFFEE_MILKS
+    # The contract (spec §6.2): every milk in the shortlist, no wrong kind in the top 5.
+    assert set(en) >= LACTOSE_FREE_MILKS
+    assert not set(en[:5]) & (COFFEE_MILKS | {CONDENSED_MILK})
 
 
 @pytest.mark.parametrize(

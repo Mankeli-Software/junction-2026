@@ -354,7 +354,8 @@ async def vague_set(conn: AsyncConnection) -> list[Scenario]:
         for w in _clean_name(name, brand):
             counts = per_word[fold(w)]
             total = sum(counts.values())
-            if len(w) < 4 or total < MIN_HEAD_PRODUCTS or any(m in fold(w) for m in mods):
+            is_modifier = any(m in fold(w) for group in mods for m in group)
+            if len(w) < 4 or total < MIN_HEAD_PRODUCTS or is_modifier:
                 continue
             key = (counts[cid] / total, len(w), w)
             if best is None or key > best:

@@ -80,9 +80,10 @@ def synonyms() -> dict[str, tuple[str, ...]]:
 
 
 @lru_cache
-def modifiers() -> tuple[str, ...]:
+def modifiers() -> tuple[tuple[str, ...], ...]:
+    """Groups of words that mean the same in Finnish and English (modifiers.yaml)."""
     data = yaml.safe_load((HERE / "modifiers.yaml").read_text(encoding="utf-8")) or []
-    return tuple(fold(m) for m in data)
+    return tuple(tuple(fold(w) for w in ([g] if isinstance(g, str) else g)) for g in data)
 
 
 def _term(word: str, corrections: tuple[str, ...] = ()) -> Term:
@@ -122,6 +123,11 @@ def name_tokens(name: str) -> set[str]:
 
 
 def unasked_modifiers(name: str, query: Query) -> tuple[str, ...]:
-    """Modifier words in the product name that the buyer did not say (§3.4)."""
+    """Modifier groups in the product name that the buyer did not say (§3.4), each named by
+    its first word. Saying any word of a group counts for the whole group."""
     folded = fold(name)
-    return tuple(m for m in modifiers() if m in folded and m not in query.folded_text)
+    return tuple(
+        group[0]
+        for group in modifiers()
+        if any(w in folded for w in group) and not any(w in query.folded_text for w in group)
+    )

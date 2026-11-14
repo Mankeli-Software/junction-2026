@@ -1,53 +1,41 @@
 # Words that change what a product is (#30, docs/plans/30-product-search.md §3.4).
-# A product whose name contains one of these, when the query doesn't, is pushed down.
-# Matched as substrings of the folded name, so compounds count (kahvimaito).
+# A product whose name or category name contains one of these, when the query doesn't, is
+# pushed down. Matched as substrings of the folded name, so compounds count (kahvimaito).
+#
+# Each line is one group of words that mean the same in Finnish and English. Names are
+# checked in both languages but the buyer speaks one, so saying any word of a group means
+# no penalty, and a group counts once ("suklaaströsseli" must not be penalised for
+# "chocolate sprinkles").
 # Change only through the evaluation harness (python -m app.search.eval).
-- kypsä
-- ruskistettu
-- paahdettu
-- pakaste
-- kahvi
-- kaakao
-- suklaa
-- annos
-- pihvi
-- burger
-- pyörykkä
-- jauhe
-- coffee
-- cocoa
-- chocolate
-- portion
-- cooked
-- frozen
-- kondensoitu
-- condensed
-- liemessä
-- öljyssä
-- kuiv
-- dried
-- keitetty
-- kuorittu
-- leivitetty
-- paneroitu
-- breaded
-- tempura
-- nugget
-- sous vide
-- kuutio
-- suikale
-- mauste
-- flavoured
-- kasvirasva
-- marinoitu
-- marinated
-- säilyke
-- cafe
-- maidoton
-- dairy free
-- sisältää
-- contains
-- nauta-sika
-- sika-nauta
-- nauta-possu
-- possu-nauta
+- [kypsä, cooked]
+- [ruskistettu]
+- [paahdettu]
+- [pakaste, frozen]
+- [kahvi, coffee, cafe]
+- [kaakao, cocoa]
+- [suklaa, chocolate, choco]
+- [kinuski, caramel]
+- [annos, portion]
+- [pihvi]
+- [burger]
+- [pyörykkä]
+- [jauhe]
+- [kondensoitu, condensed]
+- [liemessä]
+- [öljyssä]
+- [kuiv, dried]
+- [keitetty]
+- [kuorittu]
+- [leivitetty, paneroitu, breaded, tempura]
+- [nugget]
+- [sous vide]
+- [kuutio]
+- [suikale]
+- [mauste, flavoured]
+- [kasvirasva]
+- [marinoitu, marinated]
+- [säilyke]
+- [maidoton, dairy free]
+- [sisältää, contains]
+- [nauta-sika, sika-nauta, nauta-possu, possu-nauta]
+- [kookos, coconut]
