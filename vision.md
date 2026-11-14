@@ -102,7 +102,7 @@ This is the heart of the guardrail story, and it is deliberately simple.
 - The SMS goes to the confirmation person configured on the customer account, or to the caller's own registered number if none is configured. An agent can never choose or change the recipient.
 - The link carries a random single-use token (128 bits or more, stored hashed), bound to the quote, its hash and the recipient. It expires with the quote (default 30 minutes).
 - The page is server-rendered from engine data only. It shows lines, quantities in sales units and in the unit the buyer asked for, delivery date, gross total and a readable trace of why each product was chosen.
-- **Odd things are shown first, in plain words,** each with its own acknowledgement. Examples:
+- **Odd things are shown first, in plain words.** Each one must be acknowledged before Confirm is enabled. Examples:
   - "5,000 pieces. You usually order 5 to 50." (quantity outside the normal range, likely unit or scanning error)
   - "This is a substitute for X. It also contains soy."
   - "Rounded up from 1,000 L to 1,002 L (334 cases)."
@@ -121,12 +121,13 @@ Sanity checks ("does this make sense?") come from the customer's order history: 
 
 Recipes are needed for the "need, recipe, order" and milk-free menu scenarios, and they are what makes this more than product search.
 
-- We import recipes from Valio Aimo's recipe content (Minun Aimo portal or the public recipe pages) **once** into our own database: name, portions, ingredients with quantities and units, and any product references. No live scraping during a request.
-- The MCP exposes them: search recipes by ingredient, diet or name, and get a recipe scaled to a portion count.
+- The recipes are already in the repo: `data/valio-recipes.json` holds 2,091 recipes scraped once from the Minun Aimo portal (name, default portions, ingredients with per-portion amounts, diet tags such as lactose-free and milk-free, nutrition). We load them into our own database. No live scraping during a request.
+- `data/recipe-product-map.json` links the 266 branded recipe products to Aimo product codes with pack sizes. About a quarter of ingredient rows (5,456 of 21,650) carry such a product link. The rest are generic names ("kypsää perunasuikaletta") and go through normal product resolution.
+- The MCP exposes all of them: search recipes by ingredient, diet, occasion or a free description, and get a recipe scaled to a portion count. With 2,091 recipes, search needs proper retrieval (a text and embedding index over names, descriptions, ingredients and tags), not only keyword match. Retrieval only finds recipes. It never takes part in an order decision.
 - A recipe becomes order lines in two steps. The agent (LLM) may propose and adapt recipes. The engine does the arithmetic: scale, convert to sales units, apply the kitchen's allergen and diet rules strictly, and resolve each ingredient to a product. "Milk-free" is a hard filter on every ingredient and every substitute.
 - An ingredient that cannot be resolved safely is returned as a clarification, not guessed.
 
-Open: how we get access to the recipe data and whether ingredients link to product ids. If not, ingredient lines go through normal product resolution.
+- The recipe's own diet tags are a hint for search only. Safety is always decided from the allergen data of the products actually chosen.
 
 ## 8. Agent interface
 
@@ -156,7 +157,7 @@ One engine, no per-channel limits. Identification only tells us which customer a
 |---|---|---|---|
 | Phone | Web "virtual phone" page, Gemini voice, MCP | Caller's number matches the customer account (in the demo: the number the visitor types in) | Main stage demo |
 | Browser | Mock Aimo webshop page registering the tools through WebMCP | Logged-in webshop session | Shown working with an OpenAI client |
-| Chat connector | Claude connector or the OpenAI equivalent on the remote MCP | Email and password login | For judges and peers to try themselves |
+| Chat connector | Claude connector first, then an OpenAI connector or similar, on the remote MCP | Email and password login | For judges and peers to try themselves |
 
 - Unknown phone number: the agent says so and ends the call, optionally sending account activation instructions to that number.
 - All channels must work end to end, because other people will test them.
@@ -243,9 +244,13 @@ Payment standards (x402 and similar) do not fit invoice-based B2B wholesale and 
 - Recipes are in scope through the MCP.
 - Availability of 999999 or more is "unknown but orderable", including for Stock products (issue #5 treated the Stock sentinel as confirmed unlimited).
 
-### Needs agreement from the whole team
+### Decided on 2026-11-14
 
-1. Dropping the organisation model completely (this file assumes yes).
-2. Whether flagged items need an explicit acknowledgement on the page before Confirm, as described in section 6.
-3. Where recipe data comes from and who imports it.
-4. Which chat client we support first for the connector.
+1. No organisation model in the demo we build, to keep it simple. The only account setting is the confirmation person.
+2. Flagged items need an explicit acknowledgement on the page before Confirm is enabled.
+3. OpenAI clients use WebMCP. For connectors we build the Claude connector first, then an OpenAI connector or similar.
+4. All recipes are searchable, not a hand-picked set.
+
+### Still open
+
+1. What kitchen profile and order history a demo account gets. We answer this once we have some data and have used the product ourselves.
