@@ -447,15 +447,18 @@ class LiveCall:
         self.turn = Turn(index=index, caller=caller)
         self.result.turns.append(self.turn)
         self.turn_done.clear()
+        self.turn_t0 = time.monotonic()  # moved to the end of speech in audio runs
         return self.turn
 
     async def wait_turn(self, timeout_s: float) -> None:
-        t0 = time.monotonic()
+        """Wait for the agent's turn to end. `seconds` runs from the end of the caller's
+        text or speech to `turn_complete`, which the server holds until the reply would
+        have finished playing (README, Surprises)."""
         try:
             await asyncio.wait_for(self.turn_done.wait(), timeout=timeout_s)
         except TimeoutError:
             self.turn.timed_out = True
-        self.turn.seconds = round(time.monotonic() - t0, 2)
+        self.turn.seconds = round(time.monotonic() - self.turn_t0, 2)
         if self.error is not None:
             raise self.error
 
@@ -472,6 +475,7 @@ async def send_audio(call: LiveCall, samples: np.ndarray, timeout_s: float, chun
         await call.session.send_realtime_input(
             audio=types.Blob(data=data[offset : offset + chunk].tobytes(), mime_type=f"audio/pcm;rate={IN_RATE}")
         )
+    call.turn_t0 = time.monotonic()
     silence = np.zeros(chunk, dtype="<i2").tobytes()
     end = time.monotonic() + timeout_s
     while not call.turn_done.is_set() and time.monotonic() < end:
@@ -528,10 +532,12 @@ async def run_phone(client, scenario: Scenario, today: date, audio: bool, out_di
                         break
                     call.start_turn(i, text)
                     if audio:
-                        await send_audio(call, speech[i - 1], timeout_s=60)
+                        sender = asyncio.create_task(send_audio(call, speech[i - 1], timeout_s=60))
+                        await call.wait_turn(60 + len(speech[i - 1]) / IN_RATE)
+                        await sender
                     else:
                         await session.send_realtime_input(text=text)
-                    await call.wait_turn(60)
+                        await call.wait_turn(60)
                     print(f"  [{i}] caller: {text}\n      agent: {call.turn.agent.strip()}")
                     for c in call.turn.tool_calls:
                         print(f"      tool: {c['name']} {json.dumps(c['args'], ensure_ascii=False)}")
@@ -733,7 +739,7 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
     if scenario.channel == "phone":
         listy = [t.index for t in agent_turns if re.search(r"^\s*[-*\d]+[.)]?\s", t.agent, re.M) or "**" in t.agent]
         rows.append(("Spoken style: no lists or markdown", not listy, f"turns {listy}"))
-    rows.append(("No middle dot", "·" not in all_text, ""))
+    rows.append(("No middle dot", "\u00b7" not in all_text, ""))
     rows.append(("No turn timed out, no error", not any(t.timed_out for t in result.turns) and not result.error, result.error or ""))
     return rows
 
@@ -749,7 +755,7 @@ def report(out_dir: Path, results: list[tuple[Scenario, CallResult]], version: s
         md += [f"## {scenario.id}: {scenario.title} ({result.model}, {result.mode})", "", "| Check | Result | Note |", "|---|---|---|"]
         for name, ok, note in rows:
             mark = "n/a" if ok is None else ("pass" if ok else "**fail**")
-            md.append(f"| {name} | {mark} | {note.replace('|', '/')[:300]} |")
+            md.append(f"| {name} | {mark} | {note.replace('|', '/').replace('\n', ' ')[:300]} |")
         md += ["", "Transcript:", ""]
         for t in result.turns:
             md.append(f"- **{t.index} caller**: {t.caller}" + (f" (heard: {t.heard.strip()})" if t.heard else ""))
