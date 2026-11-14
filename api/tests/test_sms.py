@@ -15,10 +15,12 @@ from urllib.parse import parse_qsl
 
 import httpx
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from app.agent import PROMPT_VERSION
 from app.db import get_sessionmaker
+from app.main import app
 from app.models import AuditEvent, OrderSession, SmsMessage
 from app.schemas import BuildQuoteRequest, LineRequest, RequestConfirmationRequest
 from app.schemas.dashboard import SessionState
@@ -347,6 +349,103 @@ async def test_at_most_three_sms_per_number_per_hour(twilio_on, fake_twilio, cap
     assert set(await rows(callers[3])) == {"inbox"}
     assert "SMS limit reached for " + mask_phone(twilio_on) in caplog.text
     assert twilio_on not in caplog.text
+
+
+# --- The status callback ----------------------------------------------------------------
+
+
+def callback(client: TestClient, params: dict[str, str], *, token: str = AUTH_TOKEN):
+    signature = twilio.signature(token, CALLBACK, params.items())
+    return client.post(
+        "/api/v1/twilio/status", data=params, headers={"X-Twilio-Signature": signature}
+    )
+
+
+def status_params(sid: str, status: str, **extra: str) -> dict[str, str]:
+    return {
+        "AccountSid": ACCOUNT_SID,
+        "ApiVersion": "2010-04-01",
+        "From": FROM,
+        "MessageSid": sid,
+        "MessageStatus": status,
+        "SmsSid": sid,
+        "SmsStatus": status,
+        **extra,
+    }
+
+
+async def sent_sms(number: str) -> tuple[Caller, SmsMessage, str]:
+    caller = await sign_in(number)
+    _, quote_id = await confirm(caller)
+    await sms.wait_for_sending()
+    return caller, (await rows(caller))["twilio"], quote_id
+
+
+async def test_a_delivered_callback_marks_the_sms_delivered(twilio_on, fake_twilio):
+    caller, sent, quote_id = await sent_sms(twilio_on)
+    client = TestClient(app)
+
+    assert callback(client, status_params(sent.twilio_sid, "sent", To=twilio_on)).status_code == 204
+    assert (await rows(caller))["twilio"].status == "sent"
+    response = callback(client, status_params(sent.twilio_sid, "delivered", To=twilio_on))
+    assert response.status_code == 204
+    # A late or repeated status never moves it back.
+    callback(client, status_params(sent.twilio_sid, "sent", To=twilio_on))
+
+    after = (await rows(caller))["twilio"]
+    assert after.status == "delivered" and after.delivered_at is not None
+    [event] = await audit_events("sms_delivered")
+    assert event.quote_id == uuid.UUID(quote_id)
+    assert event.payload["sent_to_masked"] == mask_phone(twilio_on)
+    assert await session_state(event.session_id) == SessionState.awaiting_confirmation
+
+
+async def test_an_undelivered_callback_fails_the_sms_on_the_dashboard(twilio_on, fake_twilio):
+    caller, sent, quote_id = await sent_sms(twilio_on)
+    client = TestClient(app)
+
+    response = callback(
+        client, status_params(sent.twilio_sid, "undelivered", ErrorCode="30003", To=twilio_on)
+    )
+
+    assert response.status_code == 204
+    after = (await rows(caller))["twilio"]
+    assert after.status == "failed" and after.error_code == "30003"
+    [event] = await audit_events("sms_failed")
+    assert event.payload["error_code"] == "30003"
+    assert await session_state(await quote_session_id(quote_id)) == SessionState.sms_failed
+
+
+@pytest.mark.parametrize(
+    "tamper",
+    ["wrong token", "changed status", "no signature"],
+)
+async def test_a_callback_with_a_bad_signature_is_refused(twilio_on, fake_twilio, tamper):
+    caller, sent, _ = await sent_sms(twilio_on)
+    client = TestClient(app)
+    params = status_params(sent.twilio_sid, "failed", To=twilio_on)
+
+    if tamper == "wrong token":
+        response = callback(client, params, token="not-the-token")
+    elif tamper == "changed status":
+        signature = twilio.signature(AUTH_TOKEN, CALLBACK, params.items())
+        response = client.post(
+            "/api/v1/twilio/status",
+            data={**params, "MessageStatus": "delivered"},
+            headers={"X-Twilio-Signature": signature},
+        )
+    else:
+        response = client.post("/api/v1/twilio/status", data=params)
+
+    assert response.status_code == 403
+    assert (await rows(caller))["twilio"].status == "queued"
+    assert await audit_events("sms_failed", "sms_delivered") == []
+
+
+async def test_a_callback_for_an_unknown_message_changes_nothing(twilio_on):
+    response = callback(TestClient(app), status_params("SM" + "9" * 32, "delivered"))
+    assert response.status_code == 204
+    assert await audit_events("sms_delivered") == []
 
 
 def assert_no_secrets(text: str, link: str, number: str | None = None) -> None:
