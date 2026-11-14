@@ -386,7 +386,7 @@ Two rules, from vision §6 and §8:
 
 ### 9.1 Agent tools and their REST twins
 
-The eight tools of vision §8 (it counts `search_recipes` and `get_recipe` as one row), unchanged. Each has a REST twin with the same Pydantic models, which the WebMCP tools in the shop call with the session cookie.
+The ten tools of vision §8 (it counts `search_recipes` and `get_recipe` as one row, and `propose_recipe` and `confirm_recipe` as another). The phone gets all but the two recipe photo tools (#80). Each has a REST twin with the same Pydantic models, which the WebMCP tools in the shop call with the session cookie.
 
 | MCP tool | REST twin |
 |---|---|
@@ -394,10 +394,14 @@ The eight tools of vision §8 (it counts `search_recipes` and `get_recipe` as on
 | `get_customer_context` | `GET /api/v1/customer-context` |
 | `search_recipes` | `GET /api/v1/recipes?q=&diet=&occasion=` |
 | `get_recipe` | `GET /api/v1/recipes/{id}?portions=` |
+| `propose_recipe` | `POST /api/v1/recipe-drafts` (returns the draft) |
+| `confirm_recipe` | `POST /api/v1/recipe-drafts/{id}/confirm` (the buyer's corrections in the body) |
 | `build_quote` | `POST /api/v1/quotes` |
 | `update_quote` | `POST /api/v1/quotes/{id}/update` (returns a new quote) |
 | `request_confirmation` | `POST /api/v1/quotes/{id}/confirmation-request`, returns `{sent_to_masked, delivery_status}` |
 | `get_order_status` | `GET /api/v1/quotes/{id}/status` |
+
+Not tools, for the webshop chat's recipe card (#80): `GET /api/v1/recipe-drafts/{id}`, `POST /api/v1/recipe-drafts/{id}/discard`, `POST /api/v1/recipe-drafts/{id}/copy` ("Edit as new draft") and `POST /api/v1/recipe-drafts/read` (a multipart photo, web session only; an agent never uploads through us).
 
 Fields the screens need that section 4.1 doesn't list yet:
 

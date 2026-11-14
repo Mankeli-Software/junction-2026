@@ -140,6 +140,7 @@ One MCP server over Streamable HTTP, with the same operations documented as Open
 | `search_products` | Structured search: text, claims (lactose-free, gluten-free, vegan), category, unit, needed-by. Returns a shortlist with price and availability |
 | `get_customer_context` | The kitchen profile and usual items, so "my usual" works |
 | `search_recipes`, `get_recipe` | Find a recipe and scale it to portions |
+| `propose_recipe`, `confirm_recipe` | A recipe the buyer showed in a photo (a written recipe or a dish) becomes a draft; only after the buyer confirms or corrects it can `build_quote` order it (`recipe_draft_id`). Not on the phone (`docs/plans/80-recipe-photo.md`) |
 | `build_quote` | The main call. Takes all lines at once, returns a decision, priced lines, flags, alternatives and text to speak |
 | `update_quote` | Answer a clarification or change lines. Returns a new quote |
 | `request_confirmation` | Sends the SMS link for a quote. No recipient argument |
