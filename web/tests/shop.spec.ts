@@ -27,7 +27,7 @@ const QUOTE = {
 	speak: { en: 'Twenty litres of lactose-free milk.', fi: 'Kaksikymmentä litraa laktoositonta maitoa.' }
 };
 
-const CONFIRMATION = { sent_to_masked: '+358 40 *** **12', sms_status: 'off', inbox: true };
+const CONFIRMATION = { sent_to_masked: '+358 40 *** **12', delivery_status: 'off', inbox: true };
 
 function number(): string {
 	return `40 ${String(Math.floor(Math.random() * 1e7)).padStart(7, '0')}`;

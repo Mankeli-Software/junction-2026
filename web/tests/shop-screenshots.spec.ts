@@ -34,7 +34,7 @@ test.describe('English', () => {
 			})
 		);
 		await page.route('**/api/v1/quotes/*/confirmation-request', (route) =>
-			route.fulfill({ json: { sent_to_masked: '+358 40 *** **12', sms_status: 'off', inbox: true } })
+			route.fulfill({ json: { sent_to_masked: '+358 40 *** **12', delivery_status: 'off', inbox: true } })
 		);
 
 		await page.goto('/shop');

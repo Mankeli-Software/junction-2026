@@ -169,7 +169,7 @@
 					<div>
 						<h2 class="hd">{t(lang, 'linkInPhone')}</h2>
 						<p>{t(lang, 'linkInPhoneText')}</p>
-						{#if confirmation.sms_status === 'sent'}
+						{#if confirmation.delivery_status === 'sent'}
 							<p>{t(lang, 'smsAlso', { number: confirmation.sent_to_masked })}</p>
 						{/if}
 						<a class="btn-phone" href={phoneHref}>{t(lang, 'openPhone')}</a>
