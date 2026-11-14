@@ -80,7 +80,14 @@
 			if (Array.isArray(stored?.seen)) seen = stored.seen;
 			if (stored?.account) {
 				const me = await getMe();
-				account = { ...stored.account, company_name: me.company_name, phone_masked: me.phone_masked };
+				account = {
+					...stored.account,
+					user_id: me.user_id,
+					company_id: me.company_id,
+					company_name: me.company_name,
+					phone_masked: me.phone_masked,
+					exclusions: me.exclusions
+				};
 				screen = 'contacts';
 				openInbox();
 			}

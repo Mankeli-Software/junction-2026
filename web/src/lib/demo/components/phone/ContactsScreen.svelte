@@ -62,7 +62,7 @@
 				<div class="av small kitchen">K</div>
 				<div class="ct-text">
 					<span class="ct-name">{t(lang, 'kitchen')}</span>
-					<span class="ct-sub" data-testid="kitchen">{avoidsText(lang, account.kitchen_profile.exclusions)}</span>
+					<span class="ct-sub" data-testid="kitchen">{avoidsText(lang, account.exclusions)}</span>
 				</div>
 				<button type="button" class="link" aria-label={t(lang, 'changeKitchen')} onclick={onchange}>{t(lang, 'change')}</button>
 			</div>
