@@ -3,8 +3,9 @@
 import pytest
 
 from app.engine import decide
+from app.engine.filters import may_block
 from app.schemas import Claim, Decision, EngineOutput, Exclusion, Localized, UsualItem
-from tests.engine_fixtures import engine_input, milk_line, offer, product
+from tests.engine_fixtures import RULES, engine_input, milk_line, offer, product
 
 NUT_SET = ["AN", "SA", "SH", "SW", "SC", "SP", "SM", "SR", "ST", "AP", "PN"]
 
@@ -373,3 +374,41 @@ def test_the_notice_text_is_localized():
     [flag] = no_listing_flags(out)
     assert isinstance(flag.text, Localized)
     assert "pähkinätön" in flag.text.fi
+
+
+# --- may_block agrees with the engine (#83) -------------------------------------------
+
+M, LF, GF, V = Exclusion.milk_free, Exclusion.lactose_free, Exclusion.gluten_free, Exclusion.vegan
+N = Exclusion.nut_free
+
+
+@pytest.mark.parametrize(
+    ("allergens", "claims", "exclusions", "expected"),
+    [
+        ((), (), [], False),
+        ((), (), [M, LF, GF, N], False),  # no listing: kept, with a notice
+        ((("AM", "CONTAINS"),), (), [], False),  # no exclusion
+        ((("AM", "CONTAINS"),), (), [M], True),
+        ((("AM", "MAY_CONTAIN"),), (), [M], True),
+        ((("AM", "FREE_FROM"),), (), [M], False),
+        ((("AM", "CONTAINS"),), (), [LF], True),
+        ((("AM", "CONTAINS"),), (Claim.lactose_free,), [LF], False),
+        ((("AM", "CONTAINS"),), (Claim.lactose_free,), [M], True),
+        ((("ML", "CONTAINS"),), (Claim.lactose_free,), [LF], True),
+        ((("AW", "MAY_CONTAIN"),), (Claim.gluten_free,), [GF], True),
+        ((("GO", "CONTAINS"),), (), [GF], True),
+        ((("GO", "CONTAINS"),), (Claim.gluten_free,), [GF], False),
+        ((("GO", "CONTAINS"),), (Claim.gluten_free,), [M], False),
+        ((("PN", "MAY_CONTAIN"),), (), [N], True),
+        ((("AE", "FREE_FROM"),), (), [N], False),
+        ((("GO", "CONTAINS"),), (), [V], True),  # vegan requires the claim
+        ((("GO", "CONTAINS"),), (Claim.vegan,), [V], False),
+        ((("AE", "CONTAINS"),), (Claim.vegan,), [V], True),
+        ((("AM", "CONTAINS"),), (Claim.lactose_free,), [N, LF, V], True),
+    ],
+)
+def test_may_block_agrees_with_the_engine(allergens, claims, exclusions, expected):
+    p = product("1", "Tuote", claims=claims, allergens=allergens)
+
+    assert may_block(p, exclusions, RULES) is expected
+    assert blocked(order(p, exclusions=exclusions)) is expected

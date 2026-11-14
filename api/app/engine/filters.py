@@ -96,26 +96,54 @@ def _has_claim(product: ProductRecord, rule: ClaimRule) -> bool:
     return claim is not None and claim in product.claims
 
 
-def _kitchen(c: Candidate, ctx: Context) -> Removal | None:
-    listed = {a.code: a.containment for a in c.product.allergens if a.containment in UNSAFE}
-    for exclusion in sorted(ctx.exclusions):
-        rule = ctx.rules.kitchen[exclusion]
+@dataclass(frozen=True)
+class _Block:
+    """Why one exclusion removes a product: an allergen code it lists (contains or may
+    contain), or `code=None` when it lacks a claim the exclusion requires."""
+
+    exclusion: Exclusion
+    code: str | None
+
+
+def _blocks(product: ProductRecord, exclusions: list[Exclusion], rules: RuleSet) -> _Block | None:
+    """The first exclusion (in sorted order) that removes the product, and why. The one
+    reading of the kitchen rules behind both `_kitchen` and `may_block`."""
+    listed = {a.code for a in product.allergens if a.containment in UNSAFE}
+    for exclusion in sorted(exclusions):
+        rule = rules.kitchen[exclusion]
         blocking = [code for code in rule.block if code in listed]
         if rule.block_unless_claim and not all(
-            _has_claim(c.product, r) for r in rule.block_unless_claim.claim
+            _has_claim(product, r) for r in rule.block_unless_claim.claim
         ):
             blocking += [code for code in rule.block_unless_claim.codes if code in listed]
         if blocking:
-            code = blocking[0]
-            return Removal(
-                ReasonCode.ALLERGEN_CONFLICT,
-                _allergen_fields(c.product, code, listed[code], rule.label, ctx.rules),
-            )
-        if not all(_has_claim(c.product, r) for r in rule.require_claim):
-            return Removal(
-                ReasonCode.DIET_CLAIM_MISSING, {"product": c.product.name, "choice": rule.label}
-            )
+            return _Block(exclusion, blocking[0])
+        if not all(_has_claim(product, r) for r in rule.require_claim):
+            return _Block(exclusion, None)
     return None
+
+
+def may_block(product: ProductRecord, exclusions: list[Exclusion], rules: RuleSet) -> bool:
+    """Whether one of the kitchen's exclusions removes this product: it lists (contains or
+    may contain) a code the exclusion blocks, or one it blocks unless the product has a
+    claim it lacks, or it lacks a claim the exclusion requires. The same check the engine
+    runs, for callers outside it (gathering substitute candidates). A product with no
+    allergen listing is not blocked (the engine keeps it, with a notice)."""
+    return _blocks(product, exclusions, rules) is not None
+
+
+def _kitchen(c: Candidate, ctx: Context) -> Removal | None:
+    block = _blocks(c.product, ctx.exclusions, ctx.rules)
+    if block is None:
+        return None
+    label = ctx.rules.kitchen[block.exclusion].label
+    if block.code is None:
+        return Removal(ReasonCode.DIET_CLAIM_MISSING, {"product": c.product.name, "choice": label})
+    listed = {a.code: a.containment for a in c.product.allergens if a.containment in UNSAFE}
+    return Removal(
+        ReasonCode.ALLERGEN_CONFLICT,
+        _allergen_fields(c.product, block.code, listed[block.code], label, ctx.rules),
+    )
 
 
 def allergens_unknown(product: ProductRecord, exclusions: list[Exclusion], rules: RuleSet) -> bool:
