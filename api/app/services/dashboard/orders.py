@@ -34,6 +34,7 @@ from app.schemas import (
     TranscriptLine,
     VerifyResult,
 )
+from app.services import signing
 from app.services.audit import verify_chain
 from app.services.audit.chain import format_at
 from app.services.confirmation_page import text_hash
@@ -121,10 +122,11 @@ def _agent(row: SessionRow) -> AgentInfo:
 
 
 def signature_valid(quote: Quote | None) -> bool | None:
-    """Null without a JWS. #40 adds the signature and its check; until then also null."""
+    """Whether the quote's JWS checks against the published key and its stored hash (#40).
+    Null without a signed quote (only `ready` quotes are signed)."""
     if quote is None or quote.jws is None:
         return None
-    return None  # TODO(#40): verify quote.jws against the published key
+    return signing.verify_quote(quote.jws, quote.quote_hash)
 
 
 async def _current_quote(db: AsyncSession, session_id: uuid.UUID) -> Quote | None:

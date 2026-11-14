@@ -44,7 +44,8 @@ async def check_chain(db: AsyncSession, session_id: uuid.UUID | str | None = Non
 
 
 async def verify_chain(db: AsyncSession, session_id: uuid.UUID | str | None = None) -> VerifyResult:
-    """`check_chain()` in the dashboard's shape. `signature_valid` waits for #40."""
+    """`check_chain()` in the dashboard's shape. `signature_valid` belongs to a quote, so it
+    is null here; the dashboard fills it for a session's current quote (#40)."""
     result = await check_chain(db, session_id)
     return VerifyResult(
         ok=result.ok,

@@ -291,7 +291,7 @@ async def test_summary_steps_transcript_and_events_of_a_built_quote(client, app_
     assert summary["company"]["name"] == "Hassu Hauki Oy"
     assert summary["channel"] == "webmcp"
     assert summary["quote"]["version"] == 1 and len(summary["quote"]["hash"]) == 64
-    assert summary["signature_valid"] is None
+    assert summary["signature_valid"] is True
     [request] = summary["requests"]
     assert request["request_id"] == "l1"
     assert request["lines"][0]["product_id"] == "464306"
@@ -352,7 +352,7 @@ async def test_verify_fails_at_the_tampered_seq(client, app_db):
         "ok": True,
         "checked": ok["checked"],
         "first_bad_seq": None,
-        "signature_valid": None,
+        "signature_valid": True,
     }
     assert ok["checked"] == len(client.get(f"{API}/orders/{session_id}/steps").json())
     assert client.get(f"{API}/audit/verify").json()["ok"] is True
