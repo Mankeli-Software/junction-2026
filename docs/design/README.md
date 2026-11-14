@@ -105,8 +105,8 @@ These decisions came after the screens were drawn (`technical-plan.md` §9.8, 20
 
 ## Decided in the design review, not yet in the specs
 
-- The agent is called **S.I.MO** everywhere, with a warm voice, not labelled on screen as an AI agent. It tells callers it is an AI helper in its greeting.
-- The call flow looks like a phone app: set up, Contacts with S.I.MO, call, call ended. On a computer it shows at phone size in a frame, with a QR code.
+- The agent is called **S.I.MO** everywhere, with a warm voice, not labelled on screen as an AI agent. It tells callers it is an AI helper in its greeting. (Now in `call-screen.md`.)
+- The call flow looks like a phone app: set up, Contacts with S.I.MO, call, call ended. On a computer it shows at phone size in a frame, with a QR code. (Now in `call-screen.md`.)
 - A new **demo start page**, for computer and phone, listing the ways to try the demo and how to connect your own agent over MCP.
 - The dashboard shows orders from every channel, with counts per channel. It is not optimised for phones; the phone start page puts it last.
 - No middle-dot character, masked numbers with stars, no "DEMO" labels.
