@@ -362,13 +362,18 @@ async def vague_set(conn: AsyncConnection) -> list[Scenario]:
         if best is None or best[0] < MIN_HEAD_SPECIFICITY or fold(best[2]) in out:
             continue
         head = best[2]
+        # A kind can span sibling categories (eggs in "Kananmunat" and "Kananmunavalmisteet"),
+        # so every category holding enough of the word's products counts, not only the sample's.
+        counts = per_word[fold(head)]
+        total = sum(counts.values())
+        cats = tuple(sorted(c for c, n in counts.items() if n / total >= MIN_HEAD_SPECIFICITY))
         out[fold(head)] = Scenario(
             f"vague:{pid}:{fold(head)}",
             "vague",
             head,
             selectors={
-                "typical": Selector(categories=(cid,), name=re.escape(head)),
-                "acceptable": Selector(categories=(cid,)),
+                "typical": Selector(categories=cats, name=re.escape(head)),
+                "acceptable": Selector(categories=cats),
             },
         )
     return list(out.values())
