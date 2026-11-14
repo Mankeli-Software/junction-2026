@@ -4,7 +4,7 @@ Junction 2026, Valio Aimo challenge: a voice ordering agent on top of a determin
 
 ## Source of truth
 
-- `vision.md` (planned for 2026-11-15) is the source of truth once it exists. Check it before relying on the GitHub issues.
+- `vision.md` (draft v1, 2026-11-14) is the source of truth. Check it before relying on the GitHub issues. It adopts the no-organisation direction below; its section 13 lists what still needs team agreement.
 - Issue #1 (engine model) assumes mandates, allowed categories, approver roles, caps and confirmation tiers C2/C3. That organisation model is **under review**: the proposed direction is no organisation structure, the caller is assumed eligible, and every purchase is finished with an SMS confirmation (2FA). Not yet agreed by the whole team. Don't build on the mandate model until `vision.md` settles it.
 - `valio-api-analysis.md` holds the findings about the mock API and data.
 
