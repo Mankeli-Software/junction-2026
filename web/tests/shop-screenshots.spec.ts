@@ -73,3 +73,15 @@ test.describe('Finnish', () => {
 		await shot(page, project, '02-shop-fi', project === 'laptop');
 	});
 });
+
+test.describe('Plain Chrome', () => {
+	test.use({ locale: 'en-US' });
+
+	test('the tools card with only the MCP-B runtime', async ({ page }, info) => {
+		// No shim: the browser has no WebMCP of its own, so @mcp-b/global provides it (#93).
+		await page.goto('/shop');
+		await expect(page.getByTestId('tools')).toHaveAttribute('data-state', 'ready');
+		await page.getByTestId('tools').scrollIntoViewIfNeeded();
+		await shot(page, info.project.name, '05-mcp-b-tools');
+	});
+});
