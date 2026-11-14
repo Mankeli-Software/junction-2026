@@ -1,0 +1,5974 @@
+{
+ "meta": {
+  "generatedAt": "2026-11-14T08:33:05+00:00",
+  "generator": "scripts/build_recipe_product_map.py",
+  "recipeProducts": 266,
+  "confidence": {
+   "high": 218,
+   "reviewed": 30,
+   "probable": 8,
+   "not_in_catalog": 10
+  },
+  "notes": "Keys are recipe product ids (data/valio-recipes.json products / ingredient productId). aimoProducts are Aimo product codes from the product data file, one per pack size, sorted by netWeightKg = net weight of one base unit (one piece). weightSource: productData = unitConversions; name = pack size in the product name; nameVolume = volume in the name taken as 1 l = 1 kg (approximate); namePieceInCase = base unit is a case (KI) and only the piece size is known, so the case weight is unknown; recipeUrl = pack size in the recipe product URL. unitsPerSalesUnit = base units in one salesUnit (e.g. KI case of 5), so one ordered sales unit weighs netWeightKg * unitsPerSalesUnit. Confidence: high = name matches with pack size removed; medium = one word differs (see note); reviewed = checked by hand; probable = checked by hand, judgement call (see note); not_in_catalog = checked, no such product in the file; unmatched = needs review. packHint 'sanko'/'suurpakkaus' means the recipe means a bulk pack."
+ },
+ "mappings": {
+  "12": {
+   "recipeProductName": "Valio vapaan lehmän kevytmaito",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vapaan-lehman-kevytmaito/",
+   "ingredientUses": 45,
+   "relatedUses": 45,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463359",
+     "name": "Valio vapaan lehmän kevytmaito 1 l",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "469272",
+     "name": "Valio vapaan lehmän kevytmaito 1,75 l",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 1.75,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "469153",
+     "name": "Valio vapaan lehmän kevytmaito 10 l novobox",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.31,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "13": {
+   "recipeProductName": "Valio täysmaito suomalaisilta maitotiloilta",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-taysmaito-suomalaisilta-maitotiloilta/",
+   "ingredientUses": 33,
+   "relatedUses": 32,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "plain Valio täysmaito (non lactose-free): 1 l ESL and 10 l novobox",
+   "aimoProducts": [
+    {
+     "id": "469556",
+     "name": "Valio täysmaito 1 l ESL",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.028,
+     "weightSource": "productData"
+    },
+    {
+     "id": "469181",
+     "name": "Valio täysmaito 10 l novobox",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.28,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "24": {
+   "recipeProductName": "Valio Eila® rasvaton maitojuoma laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-rasvaton-maitojuoma-laktoositon/",
+   "ingredientUses": 10,
+   "relatedUses": 10,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476240",
+     "name": "Valio Eila® rasvaton maitojuoma 1 l laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "469119",
+     "name": "Valio Eila® rasvaton maitojuoma 1,75 l laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.794,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "25": {
+   "recipeProductName": "Valio Eila® kevytmaitojuoma laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-kevytmaitojuoma-laktoositon/",
+   "ingredientUses": 100,
+   "relatedUses": 94,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463779",
+     "name": "Valio Eila® kevytmaitojuoma 2,5 dl UHT laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 15.0,
+     "netWeightKg": 0.25,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "464198",
+     "name": "Valio Eila® kevytmaitojuoma 5 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 0.5,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "465039",
+     "name": "Valio Eila® kevytmaitojuoma 1 l laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "464398",
+     "name": "Valio Eila® kevytmaitojuoma 1 l UHT laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.031,
+     "weightSource": "productData"
+    },
+    {
+     "id": "469287",
+     "name": "Valio Eila® kevytmaitojuoma 1,75 l laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 1.75,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "463038",
+     "name": "Valio Eila® kevytmaitojuoma 10 l novobox laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 10.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "27": {
+   "recipeProductName": "Valio Eila® Luomu™ kevytmaitojuoma laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-luomu-kevytmaitojuoma-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462921",
+     "name": "Valio Eila® Luomu™ kevytmaitojuoma 1 l laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "29": {
+   "recipeProductName": "Valio Eila® 3% maitojuoma laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-3-maitojuoma-laktoositon/",
+   "ingredientUses": 47,
+   "relatedUses": 45,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463335",
+     "name": "Valio Eila® 3 % maitojuoma 1 l laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.025,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "41": {
+   "recipeProductName": "Valio Luomu™ vanhanajan täysmaito",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-luomu-vanhanajan-taysmaito/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463810",
+     "name": "Valio Luomu™ vanhanajan täysmaito 1 l",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "132": {
+   "recipeProductName": "Valio kahvimaito laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kahvimaito-laktoositon/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462626",
+     "name": "Valio kahvimaito 5 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.5,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "464237",
+     "name": "Valio kahvimaito 1 l laktoositon UHT",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.033,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "150": {
+   "recipeProductName": "Valio kahvikerma",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kahvikerma/",
+   "ingredientUses": 3,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469165",
+     "name": "Valio kahvikerma 2 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 0.2,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "463442",
+     "name": "Valio kahvikerma 1 l laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.012,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "170": {
+   "recipeProductName": "Valio rasvaton piimä",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rasvaton-piima/",
+   "ingredientUses": 19,
+   "relatedUses": 19,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "475534",
+     "name": "Valio rasvaton piimä 1 l HYLA®",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "463373",
+     "name": "Valio rasvaton piimä 1 l",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.028,
+     "weightSource": "productData"
+    },
+    {
+     "id": "472492",
+     "name": "Valio rasvaton piimä 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "181": {
+   "recipeProductName": "Valio AB® piimä (Asidofilus-Bifidus)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ab-piima-asidofilus-bifidus/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463439",
+     "name": "Valio AB® piimä 1 l (Asidofilus-Bifidus)",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.027,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "199": {
+   "recipeProductName": "Valio Eila® laktoositon piimä",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-laktoositon-piima/",
+   "ingredientUses": 44,
+   "relatedUses": 42,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Eila piimä is the fat-free one",
+   "aimoProducts": [
+    {
+     "id": "477050",
+     "name": "Valio Eila® rasvaton piimä 1 l laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.029,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "401": {
+   "recipeProductName": "Valio Keittiön kermaviili",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-kermaviili/",
+   "ingredientUses": 21,
+   "relatedUses": 21,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463570",
+     "name": "Valio Keittiön kermaviili 200 g laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476586",
+     "name": "Valio Keittiön kermaviili 200 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "406": {
+   "recipeProductName": "Valio kermaviili sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kermaviili-sanko/",
+   "ingredientUses": 49,
+   "relatedUses": 49,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470084",
+     "name": "Valio kermaviili 2 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.0,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476548",
+     "name": "Valio kermaviili 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "500": {
+   "recipeProductName": "Valio Jäätelöfabriikki kreisi kinuski",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-jaatelofabriikki-kreisi-kinuski/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469061",
+     "name": "Valio jäätelö 480 ml kreisi kinuski laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.48,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "600": {
+   "recipeProductName": "Valio appelsiinitäysmehu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-appelsiinitaysmehu/",
+   "ingredientUses": 46,
+   "relatedUses": 41,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476601",
+     "name": "Valio appelsiinitäysmehu 1 l perinteinen",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.042,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "601": {
+   "recipeProductName": "Valio ananastäysmehu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ananastaysmehu/",
+   "ingredientUses": 7,
+   "relatedUses": 7,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476676",
+     "name": "Valio ananastäysmehu 1 l",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.049,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "613": {
+   "recipeProductName": "Valio 3 hedelmän mehu (rypäle, appelsiini, passionhedelmä)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-3-hedelman-mehu-rypale-appelsiini-passionhedelma/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476600",
+     "name": "Valio 3 hedelmän mehu 1 l (rypäle, appelsiini, passiohedelmä)",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.047,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "1165": {
+   "recipeProductName": "Valio rasvaton maito laktoositon UHT",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rasvaton-maito-laktoositon-uht/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464119",
+     "name": "Valio rasvaton maito 1 l laktoositon UHT",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "1472": {
+   "recipeProductName": "Valio Keittiön ruokakerma 15 % laktoositon UHT",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-ruokakerma-15-laktoositon-uht/",
+   "ingredientUses": 18,
+   "relatedUses": 18,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463828",
+     "name": "Valio Keittiön ruokakerma 15 % 2 dl UHT laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2026,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "1476": {
+   "recipeProductName": "Valio Keittiön vispikerma UHT laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-vispikerma-uht-laktoositon/",
+   "ingredientUses": 23,
+   "relatedUses": 19,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463837",
+     "name": "Valio Keittiön vispikerma 2 dl UHT laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.198,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "1479": {
+   "recipeProductName": "Valio Keittiön ruokakerma kolme juustoa laktoositon UHT",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-ruokakerma-kolme-juustoa-laktoositon-uht/",
+   "ingredientUses": 11,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463830",
+     "name": "Valio Keittiön ruokakerma 2,5 dl kolme juustoa UHT laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 15.0,
+     "netWeightKg": 0.25,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "1482": {
+   "recipeProductName": "Valio Keittiön ruokakerma kolme sipulia laktoositon UHT",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-ruokakerma-kolme-sipulia-laktoositon-uht/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463850",
+     "name": "Valio Keittiön ruokakerma 2,5 dl kolme sipulia UHT laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 15.0,
+     "netWeightKg": 0.25,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "1495": {
+   "recipeProductName": "Valio ruokakerma 15 % laktoositon UHT",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ruokakerma-15-laktoositon-uht/",
+   "ingredientUses": 79,
+   "relatedUses": 78,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464249",
+     "name": "Valio ruokakerma 15 % 1 l UHT laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.013,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476880",
+     "name": "Valio ruokakerma 15 % 10 l UHT laktoositon novobox",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.13,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "1498": {
+   "recipeProductName": "Valio kevytkerma laktoositon UHT",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kevytkerma-laktoositon-uht/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464221",
+     "name": "Valio kevytkerma 1 l UHT laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.023,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "1499": {
+   "recipeProductName": "Valio vispikerma laktoositon UHT",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vispikerma-laktoositon-uht/",
+   "ingredientUses": 319,
+   "relatedUses": 278,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464194",
+     "name": "Valio vispikerma 1 l UHT laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.99,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "1501": {
+   "recipeProductName": "Valio Keittiön vaahtoutuva vaniljakastike laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-vaahtoutuva-vaniljakastike-laktoositon/",
+   "ingredientUses": 60,
+   "relatedUses": 60,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464012",
+     "name": "Valio Keittiön vaahtoutuva vaniljakastike 2,5 dl UHT laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 15.0,
+     "netWeightKg": 0.25,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "1554": {
+   "recipeProductName": "Valio kuohukerma laktoositon, luomu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kuohukerma-laktoositon-luomu/",
+   "ingredientUses": 125,
+   "relatedUses": 113,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464490",
+     "name": "Valio Luomu™ kuohukerma 2 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 0.2,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "464699",
+     "name": "Valio kuohukerma 1 l laktoositon, luomu",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.995,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "1870": {
+   "recipeProductName": "Valio Gefilus® Kefir juotava välipala maustamaton laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-gefilus-kefir-juotava-valipala-maustamaton-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464388",
+     "name": "Valio Gefilus® Kefir juotava välipala 1 kg maustamaton laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "1872": {
+   "recipeProductName": "Valio Gefilus® Kefir juotava välipala vadelma laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-gefilus-kefir-juotava-valipala-vadelma-laktoositon/1-kg-tolkki/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464326",
+     "name": "Valio Gefilus® Kefir juotava välipala 1 kg vadelma laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "2053": {
+   "recipeProductName": "Valiojogurtti® vanilja laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valiojogurtti-vanilja-laktoositon/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476609",
+     "name": "Valiojogurtti® 200 g vanilja laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476746",
+     "name": "Valiojogurtti® 1 kg vanilja laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "2102": {
+   "recipeProductName": "Valiojogurtti® mansikka laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valiojogurtti-mansikka-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476665",
+     "name": "Valiojogurtti® 200 g mansikka laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476818",
+     "name": "Valiojogurtti® 1 kg mansikka laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "2103": {
+   "recipeProductName": "Valiojogurtti® banaani laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valiojogurtti-banaani-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476702",
+     "name": "Valiojogurtti® 200 g banaani laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476686",
+     "name": "Valiojogurtti® 1 kg banaani laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "2420": {
+   "recipeProductName": "Valio A+™ luonnonjogurtti laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-a-luonnonjogurtti-laktoositon/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464272",
+     "name": "Valio A+™ luonnonjogurtti 150 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476824",
+     "name": "Valio A+™ luonnonjogurtti 1 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476743",
+     "name": "Valio A+™ luonnonjogurtti 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "2421": {
+   "recipeProductName": "Valio A+™ luonnonjogurtti sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-a-luonnonjogurtti-sanko/",
+   "ingredientUses": 21,
+   "relatedUses": 20,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464272",
+     "name": "Valio A+™ luonnonjogurtti 150 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476824",
+     "name": "Valio A+™ luonnonjogurtti 1 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476743",
+     "name": "Valio A+™ luonnonjogurtti 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "2430": {
+   "recipeProductName": "Valio A+™ luonnonjogurtti rasvaton laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-a-luonnonjogurtti-rasvaton-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476812",
+     "name": "Valio A+™ luonnonjogurtti 1 kg rasvaton laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "2448": {
+   "recipeProductName": "Valio Luomu™ turkkilainen jogurtti",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-luomu-turkkilainen-jogurtti/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464126",
+     "name": "Valio Luomu™ turkkilainen jogurtti 400 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "2513": {
+   "recipeProductName": "Valio A+™ kreikkalainen luonnonjogurtti laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-a-kreikkalainen-luonnonjogurtti-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464615",
+     "name": "Valio A+™ kreikkalainen luonnonjogurtti 1 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3000": {
+   "recipeProductName": "Valio voi normaalisuolainen",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-voi-normaalisuolainen/500-g-kaare/",
+   "ingredientUses": 459,
+   "relatedUses": 364,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463233",
+     "name": "Valio voi 10 g normaalisuolainen",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.01,
+     "weightSource": "namePieceInCase"
+    },
+    {
+     "id": "463798",
+     "name": "Valio voi 200 g normaalisuolainen",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 20.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "475797",
+     "name": "Valio voi 500 g normaalisuolainen",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3002": {
+   "recipeProductName": "Valio voi suolaamaton",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-voi-suolaamaton/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464411",
+     "name": "Valio voi 500 g suolaamaton",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "464205",
+     "name": "Valio voi 4x5 kg suolaamaton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 4.0,
+     "netWeightKg": 20.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3010": {
+   "recipeProductName": "Valio Eila® laktoositon voi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-laktoositon-voi/",
+   "ingredientUses": 553,
+   "relatedUses": 446,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462421",
+     "name": "Valio Eila® voi 200 g laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    },
+    {
+     "id": "463437",
+     "name": "Valio Eila® voi 500 g laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "464076",
+     "name": "Valio Eila® voi 4x5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 20.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3031": {
+   "recipeProductName": "Valio Oivariini® normaalisuolainen HYLA®",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-oivariini-normaalisuolainen-hyla/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476886",
+     "name": "Valio Oivariini® 250 g normaalisuolainen HYLA®",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 16.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    },
+    {
+     "id": "476849",
+     "name": "Valio Oivariini® 400 g normaalisuolainen HYLA®",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.4,
+     "weightSource": "productData"
+    },
+    {
+     "id": "476559",
+     "name": "Valio Oivariini® 600 g normaalisuolainen HYLA®",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.6,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3043": {
+   "recipeProductName": "Valio voi suolaamaton suurpakkaus",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-voi-suolaamaton-suurpakkaus/",
+   "ingredientUses": 8,
+   "relatedUses": 8,
+   "packHint": "suurpakkaus",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464411",
+     "name": "Valio voi 500 g suolaamaton",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "464205",
+     "name": "Valio voi 4x5 kg suolaamaton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 4.0,
+     "netWeightKg": 20.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3051": {
+   "recipeProductName": "Valio Oivariini® juokseva laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-oivariini-juokseva-laktoositon/",
+   "ingredientUses": 117,
+   "relatedUses": 108,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462792",
+     "name": "Valio Oivariini® juokseva 400 ml laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.4,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "3122": {
+   "recipeProductName": "Valio Emmental punaleima 17 % juusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-emmental-punaleima-17-juusto/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476875",
+     "name": "Valio Emmental punaleima 17 % e350 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.35,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3124": {
+   "recipeProductName": "Valio Emmental punaleima juusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-emmental-punaleima-juusto/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476698",
+     "name": "Valio Emmental punaleima e350 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.35,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3144": {
+   "recipeProductName": "Valio Emmental punaleima juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-emmental-punaleima-juustoraaste/",
+   "ingredientUses": 77,
+   "relatedUses": 64,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476574",
+     "name": "Valio Emmental Punaleima e150 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476555",
+     "name": "Valio Emmental Punaleima e400 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3154": {
+   "recipeProductName": "Valio Emmental punaleima juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-emmental-punaleima-juustoraaste-2/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476574",
+     "name": "Valio Emmental Punaleima e150 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476555",
+     "name": "Valio Emmental Punaleima e400 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3157": {
+   "recipeProductName": "Valio juustoraasteseos",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-juustoraasteseos/",
+   "ingredientUses": 27,
+   "relatedUses": 27,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476753",
+     "name": "Valio juustoraasteseos e2,5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3158": {
+   "recipeProductName": "Valio Fontal pizzajuusto muru",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-fontal-pizzajuusto-muru/",
+   "ingredientUses": 39,
+   "relatedUses": 39,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476605",
+     "name": "Valio Fontal pizzajuusto e2,5 kg muru",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3204": {
+   "recipeProductName": "Valio Viola® paprika-chili tuorejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-paprika-chili-tuorejuusto-laktoositon/",
+   "ingredientUses": 6,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464319",
+     "name": "Valio Viola® 1,5 kg chili-paprika tuorejuusto laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3268": {
+   "recipeProductName": "Valio Viola® maustamaton tuorejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-maustamaton-tuorejuusto-laktoositon/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476770",
+     "name": "Valio Viola® e200 g maustamaton tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "463210",
+     "name": "Valio Viola® 1,5 kg maustamaton tuorejuusto laktoositon",
+     "salesUnit": "PRK",
+     "baseUnit": "PRK",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "463200",
+     "name": "Valio Viola® 3,5 kg maustamaton tuorejuusto laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3303": {
+   "recipeProductName": "Valio AURA® murennettu sinihomejuusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-aura-murennettu-sinihomejuusto/1-kg-pussi/",
+   "ingredientUses": 118,
+   "relatedUses": 113,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476598",
+     "name": "Valio AURA® e150 g murennettu sinihomejuusto",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476881",
+     "name": "Valio AURA® e1 kg murennettu sinihomejuusto",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3304": {
+   "recipeProductName": "Valio AURA® murennettu sinihomejuusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-aura-murennettu-sinihomejuusto/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476598",
+     "name": "Valio AURA® e150 g murennettu sinihomejuusto",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476881",
+     "name": "Valio AURA® e1 kg murennettu sinihomejuusto",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3390": {
+   "recipeProductName": "Valio Pizzajuustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-pizzajuustoraaste/150-g-pussi/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476869",
+     "name": "Valio pizzajuusto e150 g raaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476757",
+     "name": "Valio pizzajuusto e400 g raaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3403": {
+   "recipeProductName": "Valio Emmental punaleima juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-emmental-punaleima-juustoraaste-2/400-g-pussi/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476574",
+     "name": "Valio Emmental Punaleima e150 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "476555",
+     "name": "Valio Emmental Punaleima e400 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3598": {
+   "recipeProductName": "Valio Koskenlaskija® voimakas sulatejuustotanko laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-voimakas-sulatejuustotanko-laktoositon/",
+   "ingredientUses": 27,
+   "relatedUses": 27,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476970",
+     "name": "Valio Koskenlaskija® 1,5 kg voimakas sulatejuustotanko laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3643": {
+   "recipeProductName": "Valio Polar® Alkuperäinen 15% juustoviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-polar-alkuperainen-15-juustoviipale/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "sliced (viipale) packs only",
+   "aimoProducts": [
+    {
+     "id": "464362",
+     "name": "Valio Polar® Alkuperäinen 15 % ohuen ohut e130 g viipale",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.13,
+     "weightSource": "name"
+    },
+    {
+     "id": "463948",
+     "name": "Valio Polar® Alkuperäinen 15 % e300 g viipale",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    },
+    {
+     "id": "462593",
+     "name": "Valio Polar® Alkuperäinen 15 % e1 kg viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3700": {
+   "recipeProductName": "Valio AURA®",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-aura/",
+   "ingredientUses": 8,
+   "relatedUses": 8,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "plain AURA: 170 g piece and 3.2 kg whole; Gold and filling excluded",
+   "aimoProducts": [
+    {
+     "id": "476745",
+     "name": "Valio AURA® e170 g pala",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.17,
+     "weightSource": "productData"
+    },
+    {
+     "id": "475784",
+     "name": "VALIO AURA N3,2KG KOKONAINEN",
+     "salesUnit": "KG",
+     "baseUnit": "KG",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3771": {
+   "recipeProductName": "Valio Koskenlaskija® perinteinen sulatejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-perinteinen-sulatejuusto-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463788",
+     "name": "Valio Koskenlaskija® e250 g perinteinen sulatejuusto laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.25,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "3890": {
+   "recipeProductName": "Valio Koskenlaskija® kylmäsavuporo sulatejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-kylmasavuporo-sulatejuusto-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463909",
+     "name": "Valio Koskenlaskija® e250 g kylmäsavuporo sulatejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3921": {
+   "recipeProductName": "Valio Ritari® kermajuusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ritari-kermajuusto/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472672",
+     "name": "Valio Ritari® e140 g viipale",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.14,
+     "weightSource": "name"
+    },
+    {
+     "id": "475588",
+     "name": "Valio Ritari® e300 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "3922": {
+   "recipeProductName": "Valio Koskenlaskija® viherpippuri sulatejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-viherpippuri-sulatejuusto-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463781",
+     "name": "Valio Koskenlaskija® e250 g viherpippuri sulatejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "4030": {
+   "recipeProductName": "Valio Keittiön kermaviili laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-kermaviili-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463570",
+     "name": "Valio Keittiön kermaviili 200 g laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4108": {
+   "recipeProductName": "Valio smetana sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-smetana-sanko/",
+   "ingredientUses": 105,
+   "relatedUses": 103,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476890",
+     "name": "Valio smetana 2 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4134": {
+   "recipeProductName": "Valio crème fraîche sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-creme-fraiche-sanko/",
+   "ingredientUses": 80,
+   "relatedUses": 78,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "477055",
+     "name": "Valio crème fraîche 2 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4223": {
+   "recipeProductName": "Valio Keittiön maitorahka laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-maitorahka-laktoositon/",
+   "ingredientUses": 25,
+   "relatedUses": 25,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "477086",
+     "name": "Valio Keittiön maitorahka 500 g laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4234": {
+   "recipeProductName": "Valio Keittiön maustettu rahka sitruuna",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-maustettu-rahka-sitruuna/",
+   "ingredientUses": 8,
+   "relatedUses": 8,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "477013",
+     "name": "Valio Keittiön maustettu rahka 200 g sitruuna laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "4239": {
+   "recipeProductName": "Valio Keittiön maustettu rahka vanilja",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-maustettu-rahka-vanilja/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "461571",
+     "name": "Valio Keittiön maustettu rahka 200 g vanilja laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "4300": {
+   "recipeProductName": "Valio laktoositon raejuusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-laktoositon-raejuusto/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "477017",
+     "name": "Valio raejuusto 200 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "476900",
+     "name": "Valio raejuusto 2,5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4312": {
+   "recipeProductName": "Valio raejuusto vuoka",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-raejuusto-vuoka/",
+   "ingredientUses": 34,
+   "relatedUses": 34,
+   "packHint": "vuoka",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "477017",
+     "name": "Valio raejuusto 200 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "477026",
+     "name": "Valio raejuusto 200 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "476901",
+     "name": "Valio raejuusto 400 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    },
+    {
+     "id": "476900",
+     "name": "Valio raejuusto 2,5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4313": {
+   "recipeProductName": "Valio raejuusto rasvaton laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-raejuusto-rasvaton-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476977",
+     "name": "Valio raejuusto 200 g rasvaton laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4442": {
+   "recipeProductName": "Valio Vanilla™ vaniljakastike laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vanilla-vaniljakastike-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462524",
+     "name": "Valio Vanilla™ vaniljakastike 500 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "4665": {
+   "recipeProductName": "Valio Latte original maitokahvijuoma",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-latte-original-maitokahvijuoma/",
+   "ingredientUses": 5,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "475243",
+     "name": "Valio Latte original maitokahvijuoma 2,5 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.25,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "469266",
+     "name": "Valio Latte original maitokahvijuoma 1 l laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "4692": {
+   "recipeProductName": "Valio maitorahka sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-maitorahka-sanko/10-kg-sanko/",
+   "ingredientUses": 140,
+   "relatedUses": 135,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "477044",
+     "name": "Valio maitorahka 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    },
+    {
+     "id": "465168",
+     "name": "Valio maitorahka 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "4768": {
+   "recipeProductName": "Valio Keittiön kermainen ruskea kastike",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-kermainen-ruskea-kastike/",
+   "ingredientUses": 6,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464482",
+     "name": "Valio Keittiön kermainen ruskea kastike 3 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.3,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "4844": {
+   "recipeProductName": "Valio Play® maitokaakaojuoma",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-play-maitokaakaojuoma/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "475123",
+     "name": "Valio Play® maitokaakaojuoma 2,5 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.25,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "460448",
+     "name": "Valio Play® maitokaakaojuoma 1 l laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "6157": {
+   "recipeProductName": "Valio Hedelmätarha® appelsiinitäysmehu hedelmälihaa",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-hedelmatarha-appelsiinitaysmehu-hedelmalihaa/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469196",
+     "name": "Valio Hedelmätarha® appelsiinitäysmehu 1 l hedelmälihaa",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "6168": {
+   "recipeProductName": "Valio Hedelmätarha® Tropiikki täysmehu hedelmälihaa",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-hedelmatarha-tropiikki-taysmehu-hedelmalihaa/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463840",
+     "name": "Valio Hedelmätarha® Tropiikki täysmehu 1 l hedelmälihaa",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "6203": {
+   "recipeProductName": "Valio vadelma-persikkakeitto+kuitu sokeroimaton",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vadelma-persikkakeittokuitu-sokeroimaton/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462737",
+     "name": "Valio vadelma-persikkakeitto+kuitu 1 kg sokeroimaton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "6211": {
+   "recipeProductName": "Valio mustikkakeitto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustikkakeitto/",
+   "ingredientUses": 4,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476929",
+     "name": "Valio mustikkakeitto 1 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "6213": {
+   "recipeProductName": "Valio mansikkakeitto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikkakeitto/",
+   "ingredientUses": 6,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "477038",
+     "name": "Valio mansikkakeitto 1 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "6217": {
+   "recipeProductName": "Valio vadelmakeitto sokeroimaton",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vadelmakeitto-sokeroimaton/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476992",
+     "name": "Valio vadelmakeitto 1 kg sokeroimaton",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "6263": {
+   "recipeProductName": "Valio mansikka-banaanikeitto+kuitu sokeroimaton",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikka-banaanikeittokuitu-sokeroimaton/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464110",
+     "name": "Valio mansikka-banaanikeitto +kuitu 1 kg sokeroimaton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "6266": {
+   "recipeProductName": "Valio mustaherukkakeitto sokeroimaton",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustaherukkakeitto-sokeroimaton/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464472",
+     "name": "Valio mustaherukkakeitto 1 kg sokeroimaton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "10220": {
+   "recipeProductName": "Oddlygood® kaurajuoma",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/oddlygood-kaurajuoma/",
+   "ingredientUses": 7,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "468465",
+     "name": "Oddlygood® kaurajuoma 1 l UHT gluteeniton",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.03,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "10266": {
+   "recipeProductName": "Valio rasvaton piimä laktoositon sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rasvaton-piima-laktoositon-sanko/",
+   "ingredientUses": 11,
+   "relatedUses": 10,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472492",
+     "name": "Valio rasvaton piimä 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "10272": {
+   "recipeProductName": "Oddlygood® Barista kaurajuoma UHT gluteeniton",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/oddlygood-barista-kaurajuoma-uht-gluteeniton-2/",
+   "ingredientUses": 16,
+   "relatedUses": 17,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471881",
+     "name": "Oddlygood® Barista kaurajuoma 0,5 l UHT gluteeniton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.5,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "473609",
+     "name": "Oddlygood® Barista kaurajuoma 1 l UHT gluteeniton",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.036,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "14090": {
+   "recipeProductName": "Valio suurtalous kuohukerma",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-suurtalous-kuohukerma/",
+   "ingredientUses": 25,
+   "relatedUses": 23,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465193",
+     "name": "Valio suurtalous kuohukerma 1,75 l laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.7412999999999998,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "14114": {
+   "recipeProductName": "Oddlygood® Easy Whipping",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/oddlygood-easy-whipping/",
+   "ingredientUses": 18,
+   "relatedUses": 19,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469288",
+     "name": "Oddlygood® Easy Whipping 2,5 dl UHT",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 15.0,
+     "netWeightKg": 0.25,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "472243",
+     "name": "Oddlygood® Easy Whipping 1 l UHT",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.01,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "14132": {
+   "recipeProductName": "Valio Keittiön vaniljakreemi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-vaniljakreemi/",
+   "ingredientUses": 29,
+   "relatedUses": 28,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "468878",
+     "name": "Valio Keittiön vaniljakreemi 200 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "14133": {
+   "recipeProductName": "Valio turkkilainen jogurtti 6 % sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-turkkilainen-jogurtti-6-sanko/",
+   "ingredientUses": 16,
+   "relatedUses": 16,
+   "packHint": "sanko",
+   "confidence": "probable",
+   "note": "catalog name has no 6 %; 2 kg tub fits 'sanko'",
+   "aimoProducts": [
+    {
+     "id": "462718",
+     "name": "Valio turkkilainen jogurtti 2 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "14141": {
+   "recipeProductName": "Valio Ruoka 15%",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ruoka-15/",
+   "ingredientUses": 80,
+   "relatedUses": 80,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469162",
+     "name": "Valio Ruoka 15 % 1 l laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.003,
+     "weightSource": "productData"
+    },
+    {
+     "id": "469160",
+     "name": "Valio Ruoka 15 % 10 l laktoositon novobox",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 10.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "14228": {
+   "recipeProductName": "Valio Keittiön kreikkalainen jogurtti laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-kreikkalainen-jogurtti-laktoositon/",
+   "ingredientUses": 7,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472301",
+     "name": "Valio Keittiön kreikkalainen jogurtti 400 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "14271": {
+   "recipeProductName": "Oddlygood® Dream Fraiche",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/oddlygood-dream-fraiche/200-g-pikari/",
+   "ingredientUses": 18,
+   "relatedUses": 18,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469175",
+     "name": "Oddlygood® Dream Fraiche 400 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "14274": {
+   "recipeProductName": "Oddlygood® Cooking Oat original",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/oddlygood-cooking-oat-original/1-l-tolkki/",
+   "ingredientUses": 13,
+   "relatedUses": 13,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "473045",
+     "name": "Oddlygood® Cooking Oat 2 dl original gluteeniton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.2,
+     "weightSource": "nameVolume"
+    },
+    {
+     "id": "472966",
+     "name": "Oddlygood® Cooking Oat 1 l original gluteeniton",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.009,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "14281": {
+   "recipeProductName": "Valio Keittiön kuohukerma laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-kuohukerma-laktoositon/05-l-korkillinen-tolkki/",
+   "ingredientUses": 8,
+   "relatedUses": 7,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "461490",
+     "name": "Valio Keittiön kuohukerma 3,3 dl laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.33,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "14283": {
+   "recipeProductName": "Valio Keittiön maustettu rahka puolukka-kinuski laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-maustettu-rahka-puolukka-kinuski-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": "other maustettu rahka flavours exist, not puolukka-kinuski",
+   "aimoProducts": []
+  },
+  "22362": {
+   "recipeProductName": "Valio munavoi laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-munavoi-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": null,
+   "aimoProducts": []
+  },
+  "31084": {
+   "recipeProductName": "Valio Oivariini® vähemmän suolaa ValSa® HYLA®",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-oivariini-vahemman-suolaa-valsa-hyla/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464987",
+     "name": "Valio Oivariini® 350 g vähemmän suolaa ValSa® HYLA®",
+     "salesUnit": "KI",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 24.0,
+     "netWeightKg": 0.35,
+     "weightSource": "name"
+    },
+    {
+     "id": "464874",
+     "name": "Valio Oivariini® 550 g vähemmän suolaa ValSa® HYLA®",
+     "salesUnit": "KI",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.55,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "31086": {
+   "recipeProductName": "Valio Oivariini® pehmeästi levittyvä ValSa® HYLA®",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-oivariini-pehmeasti-levittyva-valsa-hyla/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465132",
+     "name": "Valio Oivariini® 350 g pehmeästi levittyvä ValSa® HYLA®",
+     "salesUnit": "RAS",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.35,
+     "weightSource": "productData"
+    },
+    {
+     "id": "465302",
+     "name": "Valio Oivariini® 550 g pehmeästi levittyvä ValSa® HYLA®",
+     "salesUnit": "KI",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.55,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33638": {
+   "recipeProductName": "Valio Koskenlaskija®  sulatejuustoviipale laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-sulatejuustoviipale-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "plain = alkuperäinen slices",
+   "aimoProducts": [
+    {
+     "id": "462630",
+     "name": "Valio Koskenlaskija® e200 g alkuperäinen sulatejuustoviipale laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33658": {
+   "recipeProductName": "Valio Salaneuvos® 17 % gouda juustoviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-salaneuvos-17-gouda-juustoviipale/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "sliced (viipale) pack only",
+   "aimoProducts": [
+    {
+     "id": "462622",
+     "name": "Valio Salaneuvos® gouda 17 % e300 g viipale",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33676": {
+   "recipeProductName": "Valio Kippari® sulatejuustoviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kippari-sulatejuustoviipale/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "467927",
+     "name": "Valio Kippari® e300 g sulatejuustoviipale laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    },
+    {
+     "id": "462613",
+     "name": "Valio Kippari® e900 g sulatejuustoviipale laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.9,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33677": {
+   "recipeProductName": "Valio Oltermanni® kermajuustoviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-oltermanni-kermajuustoviipale/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "sliced full-fat Oltermanni",
+   "aimoProducts": [
+    {
+     "id": "465293",
+     "name": "Valio Oltermanni® e300 g viipale",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    },
+    {
+     "id": "462584",
+     "name": "Valio Oltermanni® e900 g viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.9,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33678": {
+   "recipeProductName": "Valio Oltermanni® 17 % kermajuustoviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-oltermanni-17-kermajuustoviipale/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "sliced (viipale) packs only",
+   "aimoProducts": [
+    {
+     "id": "465555",
+     "name": "Valio Oltermanni® 17 % ohuen ohut e130 g viipale",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.13,
+     "weightSource": "name"
+    },
+    {
+     "id": "465279",
+     "name": "Valio Oltermanni® 17 % e300 g viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.3,
+     "weightSource": "productData"
+    },
+    {
+     "id": "462636",
+     "name": "Valio Oltermanni® 17 % e900 g viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.9,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33717": {
+   "recipeProductName": "Valio juustoraasteseos hieno",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-juustoraasteseos-hieno/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465241",
+     "name": "Valio juustoraasteseos hieno e2,5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33761": {
+   "recipeProductName": "Valio Keittiön salaattijuusto kuutiot laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-salaattijuusto-kuutiot-laktoositon/",
+   "ingredientUses": 8,
+   "relatedUses": 8,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462666",
+     "name": "Valio Keittiön salaattijuusto kuutiot 180 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.18,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33767": {
+   "recipeProductName": "Valio salaattijuusto kuutioina",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-salaattijuusto-kuutioina/",
+   "ingredientUses": 52,
+   "relatedUses": 50,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462604",
+     "name": "Valio salaattijuusto kuutiot 2 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33786": {
+   "recipeProductName": "Valio 17% juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-17-juustoraaste/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469304",
+     "name": "Valio juustoraaste 17 % e2,5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33791": {
+   "recipeProductName": "Valio Alppi Kreivi® Bergkäse juusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-alppi-kreivi-bergkase-juusto/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "474950 'Hienoin Alppi Kreivi' is a separate aged variant",
+   "aimoProducts": [
+    {
+     "id": "475496",
+     "name": "Valio Alppi Kreivi® e300 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33807": {
+   "recipeProductName": "Valio Viola® aurinkokuivattu tomaatti tuorejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-aurinkokuivattu-tomaatti-tuorejuusto-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "probable",
+   "note": "only the kevyt (light) variant is in the catalog",
+   "aimoProducts": [
+    {
+     "id": "463223",
+     "name": "Valio Viola® kevyt e200 g aurinkokuivattu tomaatti tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33809": {
+   "recipeProductName": "Valio Viola® kevyt maustamaton tuorejuusto sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-kevyt-maustamaton-tuorejuusto-sanko/",
+   "ingredientUses": 24,
+   "relatedUses": 24,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "462522",
+     "name": "Valio Viola® kevyt e200 g maustamaton tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "463228",
+     "name": "Valio Viola® kevyt 3,5 kg maustamaton tuorejuusto laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33810": {
+   "recipeProductName": "Valio Viola® kevyt ruohosipuli tuorejuusto sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-kevyt-ruohosipuli-tuorejuusto-sanko/",
+   "ingredientUses": 16,
+   "relatedUses": 15,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476651",
+     "name": "Valio Viola® kevyt e200 g ruohosipuli tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "463307",
+     "name": "Valio Viola® kevyt 1,5 kg ruohosipuli tuorejuusto laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33814": {
+   "recipeProductName": "Valio Viola® maustamaton tuorejuusto sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-maustamaton-tuorejuusto-sanko/",
+   "ingredientUses": 185,
+   "relatedUses": 167,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476770",
+     "name": "Valio Viola® e200 g maustamaton tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    },
+    {
+     "id": "463210",
+     "name": "Valio Viola® 1,5 kg maustamaton tuorejuusto laktoositon",
+     "salesUnit": "PRK",
+     "baseUnit": "PRK",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "463200",
+     "name": "Valio Viola® 3,5 kg maustamaton tuorejuusto laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33830": {
+   "recipeProductName": "Valio Polar® juustokuutio",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-polar-juustokuutio/",
+   "ingredientUses": 11,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463183",
+     "name": "Valio Polar® e2,5 kg juustokuutio",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33843": {
+   "recipeProductName": "Valio Luostari® Port Salut juusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-luostari-port-salut-juusto/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463467",
+     "name": "Valio Luostari® e350 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.35,
+     "weightSource": "name"
+    },
+    {
+     "id": "463904",
+     "name": "Valio Luostari® e800 g viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.8,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33869": {
+   "recipeProductName": "Valio Koskenlaskija® voimakas murennettu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-voimakas-murennettu/",
+   "ingredientUses": 42,
+   "relatedUses": 42,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463592",
+     "name": "Valio Koskenlaskija® e2,5 kg voimakas murennettu laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33899": {
+   "recipeProductName": "Valio Oltermanni® Cheddar juusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-oltermanni-cheddar-juusto/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463875",
+     "name": "Valio Oltermanni® Cheddar e900 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 11.0,
+     "netWeightKg": 0.9,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33913": {
+   "recipeProductName": "Valio Viola® vanilja tuorejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-vanilja-tuorejuusto-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464036",
+     "name": "Valio Viola® e200 g vanilja tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33923": {
+   "recipeProductName": "Valio Mustaleima™ juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustaleima-juustoraaste/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464241",
+     "name": "Valio Mustaleima™ Emmental e130 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.13,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33930": {
+   "recipeProductName": "Valio Edam 17 % juustoviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-edam-17-juustoviipale-3/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "sliced (viipale) packs only",
+   "aimoProducts": [
+    {
+     "id": "476721",
+     "name": "Valio Edam 17 % e300 g viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.3,
+     "weightSource": "productData"
+    },
+    {
+     "id": "464204",
+     "name": "Valio Edam 17 % e800 g viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.8,
+     "weightSource": "productData"
+    },
+    {
+     "id": "462616",
+     "name": "Valio Edam 17 % e1 kg viipale",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33942": {
+   "recipeProductName": "Valio Koskenlaskija® Ruoka & Dippi maustamaton laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-ruoka-dippi-maustamaton-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464414",
+     "name": "Valio Koskenlaskija® Ruoka & Dippi e250 g maustamaton laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33944": {
+   "recipeProductName": "Valio Kolmen Juuston juustokuutioseos",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kolmen-juuston-juustokuutioseos/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464407",
+     "name": "Valio Kolmen Juuston juustokuutioseos e1 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 4.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33945": {
+   "recipeProductName": "Valio Koskenlaskija® maustamaton sanko laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-maustamaton-sanko-laktoositon/",
+   "ingredientUses": 50,
+   "relatedUses": 50,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464433",
+     "name": "Valio Koskenlaskija® 2,5 kg maustamaton sanko laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "472172",
+     "name": "Valio Koskenlaskija® 10 kg maustamaton sanko laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "33960": {
+   "recipeProductName": "Valio Keittiön salaattijuusto kuutiot yrtti laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-salaattijuusto-kuutiot-yrtti-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469242",
+     "name": "Valio Keittiön salaattijuusto kuutiot yrtti 160 g laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.16,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "33978": {
+   "recipeProductName": "Valio Kappeli® Saint Paulin juusto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kappeli-saint-paulin-juusto/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "475629",
+     "name": "Valio Kappeli® e300 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34022": {
+   "recipeProductName": "Valio Koskenlaskija® Ruoka & Dippi chili laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-ruoka-dippi-chili-laktoositon/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464807",
+     "name": "Valio Koskenlaskija® Ruoka & Dippi e250g chili laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "PRK",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34039": {
+   "recipeProductName": "Valio Koskenlaskija® cheddar sulatejuustoviipale laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-cheddar-sulatejuustoviipale-laktoositon/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464877",
+     "name": "Valio Koskenlaskija® e200 g cheddar sulatejuustoviipale laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34066": {
+   "recipeProductName": "Valio mozzarella juustomuru",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mozzarella-juustomuru/",
+   "ingredientUses": 20,
+   "relatedUses": 17,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465174",
+     "name": "Valio mozzarella e2,5 kg juustomuru",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34067": {
+   "recipeProductName": "Valio mozzarella-fontal juustomuru",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mozzarella-fontal-juustomuru/",
+   "ingredientUses": 12,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465256",
+     "name": "Valio mozzarella-fontal e2,5 kg juustomuru",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34099": {
+   "recipeProductName": "Valio MiFU® suikale Original pussi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mifu-suikale-original-pussi/",
+   "ingredientUses": 20,
+   "relatedUses": 20,
+   "packHint": "pussi",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465636",
+     "name": "Valio MiFU® e2,5 kg suikale Original laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34141": {
+   "recipeProductName": "Valio Koskenlaskija® cheddar sanko laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-cheddar-sanko-laktoositon/",
+   "ingredientUses": 30,
+   "relatedUses": 30,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "467213",
+     "name": "Valio Koskenlaskija® 2,5 kg cheddar sanko laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34193": {
+   "recipeProductName": "Valio mozzarella juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mozzarella-juustoraaste/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "probable",
+   "note": "only mozzarella juustomuru (crumble) in catalog, no raaste",
+   "aimoProducts": [
+    {
+     "id": "465174",
+     "name": "Valio mozzarella e2,5 kg juustomuru",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34201": {
+   "recipeProductName": "Valio MiFU® jauhis Original pussi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mifu-jauhis-original-pussi/",
+   "ingredientUses": 16,
+   "relatedUses": 16,
+   "packHint": "pussi",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "473378",
+     "name": "Valio MiFU® e250 g jauhis Original laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    },
+    {
+     "id": "466745",
+     "name": "Valio MiFU® e2,5 kg jauhis Original laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34216": {
+   "recipeProductName": "Oddlygood® Veggie raaste pussi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/oddlygood-veggie-raaste-pussi/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": "pussi",
+   "confidence": "not_in_catalog",
+   "note": null,
+   "aimoProducts": []
+  },
+  "34243": {
+   "recipeProductName": "Valio Kippari® sulatejuustoviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kippari-sulatejuustoviipale-2/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "467927",
+     "name": "Valio Kippari® e300 g sulatejuustoviipale laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.3,
+     "weightSource": "name"
+    },
+    {
+     "id": "462613",
+     "name": "Valio Kippari® e900 g sulatejuustoviipale laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.9,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34262": {
+   "recipeProductName": "Valio maustamaton tuorejuusto sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-maustamaton-tuorejuusto-sanko/",
+   "ingredientUses": 15,
+   "relatedUses": 15,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469270",
+     "name": "Valio tuorejuusto 3,5 kg maustamaton laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34272": {
+   "recipeProductName": "Valio cheddar juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-cheddar-juustoraaste/",
+   "ingredientUses": 11,
+   "relatedUses": 10,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464676",
+     "name": "Valio cheddar e150 g juustoraaste",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.15,
+     "weightSource": "name"
+    },
+    {
+     "id": "468423",
+     "name": "Valio cheddar e2,5 kg juustoraaste",
+     "salesUnit": "BAG",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34276": {
+   "recipeProductName": "Oddlygood® raaste mozzarella flavour",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/oddlygood-raaste-mozzarella-flavour/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": null,
+   "aimoProducts": []
+  },
+  "34752": {
+   "recipeProductName": "Valio gouda-fontal juustomuru",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-gouda-fontal-juustomuru/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471430",
+     "name": "Valio gouda-fontal e2,5 kg juustomuru",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 4.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34757": {
+   "recipeProductName": "Gold&Green® Nyhtökaura®",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/goldgreen-nyhtokaura/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472478",
+     "name": "Gold&Green® Nyhtökaura® 240 g Maustamaton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.24,
+     "weightSource": "name"
+    },
+    {
+     "id": "472385",
+     "name": "Gold&Green® Nyhtökaura® 1,5 kg Maustamaton",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 1.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34760": {
+   "recipeProductName": "Valio Gold&Green® Delikaura® Grillattu tomaatti",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-goldgreen-delikaura-grillattu-tomaatti/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472346",
+     "name": "Gold&Green® Delikaura® 230 g Grillattu tomaatti",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.23,
+     "weightSource": "name"
+    },
+    {
+     "id": "472427",
+     "name": "Gold&Green® Delikaura® 1,5 kg Grillattu tomaatti",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 1.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34764": {
+   "recipeProductName": "Gold&Green® Delikaura®",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/goldgreen-delikaura/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472429",
+     "name": "Gold&Green® Delikaura® 1,5 kg Original",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 1.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34777": {
+   "recipeProductName": "Valio Keittiön Mascarpone laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-keittion-mascarpone-laktoositon/",
+   "ingredientUses": 6,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472277",
+     "name": "Valio Keittiön Mascarpone e200 g laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "34824": {
+   "recipeProductName": "Valio Viola® kevyt paprika-chili tuorejuusto sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-kevyt-paprika-chili-tuorejuusto-sanko/",
+   "ingredientUses": 18,
+   "relatedUses": 18,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "476652",
+     "name": "Valio Viola® kevyt e200 g paprika-chili tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34832": {
+   "recipeProductName": "Valio Viola® valkosipuli tuorejuusto laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-viola-valkosipuli-tuorejuusto-laktoositon-2/",
+   "ingredientUses": 23,
+   "relatedUses": 23,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464286",
+     "name": "Valio Viola® e200 g valkosipuli tuorejuusto laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 8.0,
+     "netWeightKg": 0.2,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "34833": {
+   "recipeProductName": "Valio Pizzella juustoraaste",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-pizzella-juustoraaste/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": null,
+   "aimoProducts": []
+  },
+  "36023": {
+   "recipeProductName": "Valio MiFU® jauhis Original",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mifu-jauhis-original-2/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "473378",
+     "name": "Valio MiFU® e250 g jauhis Original laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    },
+    {
+     "id": "466745",
+     "name": "Valio MiFU® e2,5 kg jauhis Original laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "36039": {
+   "recipeProductName": "Gold&Green® vegekuutiot",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/goldgreen-vegekuutiot/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "473219",
+     "name": "Gold&Green® Vegekuutiot 2,5 kg, pakaste",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "36067": {
+   "recipeProductName": "Gold&Green® Härkis® kaurajauhis",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/goldgreen-harkis-kaurajauhis/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "474997",
+     "name": "Gold&Green® Härkis® kaurajauhis 225 g",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.225,
+     "weightSource": "productData"
+    },
+    {
+     "id": "475156",
+     "name": "Gold&Green® Härkis® kaurajauhis 2,5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 4.0,
+     "netWeightKg": 2.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "36069": {
+   "recipeProductName": "Valio Gold&Green® PRO härkäpapurouhe",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-goldgreen-pro-harkapapurouhe/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": null,
+   "aimoProducts": []
+  },
+  "36086": {
+   "recipeProductName": "Valio Gold&Green® Suikale Original",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-goldgreen-suikale-original/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": null,
+   "confidence": "probable",
+   "note": "assumed to be Gold&Green Mureat ja mehevät suikaleet Original",
+   "aimoProducts": [
+    {
+     "id": "472684",
+     "name": "Gold&Green® Mureat ja mehevät suikaleet 240 g, Original",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.24,
+     "weightSource": "name"
+    },
+    {
+     "id": "473441",
+     "name": "Gold&Green® Mureat ja mehevät suikaleet 1,5 kg, Original",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 1.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "36091": {
+   "recipeProductName": "Gold&Green® Mureat ja mehevät suikaleet",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/goldgreen-mureat-ja-mehevat-suikaleet-2/",
+   "ingredientUses": 9,
+   "relatedUses": 8,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472684",
+     "name": "Gold&Green® Mureat ja mehevät suikaleet 240 g, Original",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 6.0,
+     "netWeightKg": 0.24,
+     "weightSource": "name"
+    },
+    {
+     "id": "473441",
+     "name": "Gold&Green® Mureat ja mehevät suikaleet 1,5 kg, Original",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 2.0,
+     "netWeightKg": 1.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "40009": {
+   "recipeProductName": "Valio A ™ Luomu™ luonnonjogurtti rasvaton sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-a-luomu-luonnonjogurtti-rasvaton-sanko/",
+   "ingredientUses": 13,
+   "relatedUses": 13,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470136",
+     "name": "Valio A+™ Luomu™ luonnonjogurtti 5 kg rasvaton laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "40090": {
+   "recipeProductName": "Valio pehmeä maitorahka sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-pehmea-maitorahka-sanko-2/",
+   "ingredientUses": 23,
+   "relatedUses": 23,
+   "packHint": "sanko",
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "467156",
+     "name": "Valio pehmeä maitorahka 200 g laktoositon",
+     "salesUnit": "PRK",
+     "baseUnit": "PRK",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    },
+    {
+     "id": "463196",
+     "name": "Valio pehmeä maitorahka 250 g",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 12.0,
+     "netWeightKg": 0.25,
+     "weightSource": "name"
+    },
+    {
+     "id": "473121",
+     "name": "Valio pehmeä maitorahka 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "40754": {
+   "recipeProductName": "Valio A+™ kreikkalainen luonnonjogurtti rasvaton laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-a-kreikkalainen-luonnonjogurtti-rasvaton-laktoositon/",
+   "ingredientUses": 8,
+   "relatedUses": 8,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "466468",
+     "name": "Valio A+™ kreikkalainen luonnonjogurtti 1 kg rasvaton laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "67113": {
+   "recipeProductName": "Valio puolukkakeitto",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-puolukkakeitto/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472764",
+     "name": "Valio puolukkakeitto 1 kg",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "69019": {
+   "recipeProductName": "Valio Hedelmätarha® luomuomenatäysmehu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-hedelmatarha-luomuomenataysmehu/",
+   "ingredientUses": 45,
+   "relatedUses": 45,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464361",
+     "name": "Valio Hedelmätarha® luomuomenatäysmehu 1 l",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "69036": {
+   "recipeProductName": "Valio Hedelmätarha® omena-mango mehu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-hedelmatarha-omena-mango-mehu/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469157",
+     "name": "Valio Hedelmätarha® omena-mangomehu 1 l",
+     "salesUnit": "KI",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 5.0,
+     "netWeightKg": 1.0,
+     "weightSource": "nameVolume"
+    }
+   ]
+  },
+  "84061": {
+   "recipeProductName": "Valio laktoositon kevyt maitojauhe instant",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-laktoositon-kevyt-maitojauhe-instant/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465042",
+     "name": "Valio laktoositon kevyt maitojauhe instant 400 g",
+     "salesUnit": "KI",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 10.0,
+     "netWeightKg": 0.4,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "84062": {
+   "recipeProductName": "Valio rasvaton maitojauhe instant",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rasvaton-maitojauhe-instant/",
+   "ingredientUses": 4,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465028",
+     "name": "Valio rasvaton maitojauhe instant 400 g",
+     "salesUnit": "RAS",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.4,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "84085": {
+   "recipeProductName": "Valio Eila® SWEET laktoositon täysmaitojauhe",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-sweet-laktoositon-taysmaitojauhe/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469305",
+     "name": "Valio Eila SWEET laktoositon täysmaitojauhe 25 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "84321": {
+   "recipeProductName": "Valio Eila® vähälaktoosinen rasvaton maitojauhe",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-vahalaktoosinen-rasvaton-maitojauhe/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "460032",
+     "name": "Valio Eila® vähälaktoosinen rasvaton maitojauhe 25 kg",
+     "salesUnit": "SK",
+     "baseUnit": "SK",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "84414": {
+   "recipeProductName": "Valio Eila® PRO laktoositon rasvaton maitojauhe",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-pro-laktoositon-rasvaton-maitojauhe/",
+   "ingredientUses": 95,
+   "relatedUses": 95,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469032",
+     "name": "Valio Eila® PRO laktoositon rasvaton maitojauhe 25 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "84477": {
+   "recipeProductName": "Valio rasvaton maitojauhe high heat",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rasvaton-maitojauhe-high-heat/",
+   "ingredientUses": 139,
+   "relatedUses": 139,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469148",
+     "name": "Valio rasvaton maitojauhe high heat 20 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 20.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85001": {
+   "recipeProductName": "Valio ruisnappi halkaistu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ruisnappi-halkaistu/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471230",
+     "name": "Valio ruisnappi halkaistu 38 g x 70 / 2,66 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.66,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85004": {
+   "recipeProductName": "Valio delimunkki",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-delimunkki/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469812",
+     "name": "Valio delimunkki 25 g x 50 / 1,25 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.25,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85012": {
+   "recipeProductName": "Valio isopehmo halkaistu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-isopehmo-halkaistu/",
+   "ingredientUses": 12,
+   "relatedUses": 13,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469845",
+     "name": "Valio isopehmo halkaistu 80 g x 30 / 2,4 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.4,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85016": {
+   "recipeProductName": "Valio tähtitorttuaihio",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-tahtitorttuaihio/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464273",
+     "name": "Valio tähtitorttuaihio 60 g x 60 / 3,6 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.6,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85033": {
+   "recipeProductName": "Valio isorouhe halkaistu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-isorouhe-halkaistu/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469970",
+     "name": "Valio isorouhe halkaistu 90 g x 30 / 2,7 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.7,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85048": {
+   "recipeProductName": "FS kalakuutio",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-kalakuutio/",
+   "ingredientUses": 6,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471839",
+     "name": "FS kalakuutio 5 kg (n. 12 g)",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85076": {
+   "recipeProductName": "Valio jauhemaksapihvi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-jauhemaksapihvi/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471888",
+     "name": "Valio jauhemaksapihvi 70 g x 80 / 5,6 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.6,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85089": {
+   "recipeProductName": "FS mantelikala",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-mantelikala/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469889",
+     "name": "FS mantelikala 160 g x 40 / 6,4 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 6.4,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85095": {
+   "recipeProductName": "Valio vaalea vetopohja",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vaalea-vetopohja/",
+   "ingredientUses": 42,
+   "relatedUses": 42,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471369",
+     "name": "Valio vaalea vetopohja 430 g x 6 / 2,58 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.58,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85096": {
+   "recipeProductName": "Valio tumma vetopohja",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-tumma-vetopohja/",
+   "ingredientUses": 30,
+   "relatedUses": 30,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470251",
+     "name": "Valio tumma vetopohja 430 g x 6 / 2,58 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.58,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85105": {
+   "recipeProductName": "Valio jauhelihapihvi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-jauhelihapihvi/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471759",
+     "name": "Valio jauhelihapihvi 68 g x 73 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85117": {
+   "recipeProductName": "Valio riisivatruska",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-riisivatruska/",
+   "ingredientUses": 4,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471066",
+     "name": "Valio riisivatruska 40 g x 45 / 1,8 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.8,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85118": {
+   "recipeProductName": "Valio isot juurespalat",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-isot-juurespalat/",
+   "ingredientUses": 7,
+   "relatedUses": 7,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471723",
+     "name": "Valio isot juurespalat 2,5 kg x 2 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85127": {
+   "recipeProductName": "Valio kirjolohisuikale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kirjolohisuikale/",
+   "ingredientUses": 11,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471784",
+     "name": "Valio kirjolohisuikale 5 kg (á 12 mm)",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85131": {
+   "recipeProductName": "Valio mustikkakukko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustikkakukko/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469940",
+     "name": "Valio mustikkakukko 45 g x 40 / 1,8 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.8,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85136": {
+   "recipeProductName": "Valio iso pinaattiohukainen",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-iso-pinaattiohukainen/",
+   "ingredientUses": 7,
+   "relatedUses": 7,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471298",
+     "name": "Valio iso pinaattiohukainen 60 g x 100 / 6 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 6.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85179": {
+   "recipeProductName": "Valio Koskenlaskija® jauhelihapihvi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-jauhelihapihvi/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469898",
+     "name": "Valio Koskenlaskija® jauhelihapihvi 80 g x 70 / 5,6 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.6,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85190": {
+   "recipeProductName": "Valio moniviljaleipä viipaloitu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-moniviljaleipa-viipaloitu/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471917",
+     "name": "Valio moniviljaleipä viipaloitu 500 g x 12 / 6 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 6.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85213": {
+   "recipeProductName": "FS yrttikalapala",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-yrttikalapala/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469868",
+     "name": "FS yrttikalapala 70 g x n. 71 / 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85214": {
+   "recipeProductName": "FS hauskat kalapihvit",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-hauskat-kalapihvit/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471279",
+     "name": "FS hauskat kalapihvit 40 g x 125 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85216": {
+   "recipeProductName": "FS lime-yrttimaustettu kalaleike",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-lime-yrttimaustettu-kalaleike/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471429",
+     "name": "FS lime-yrttimaustettu kalaleike 80 g x 63 / 5,04 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.04,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85224": {
+   "recipeProductName": "Valio marjasekoitus (Suomi)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-marjasekoitus-suomi/",
+   "ingredientUses": 13,
+   "relatedUses": 13,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469057",
+     "name": "Valio marjasekoitus (Suomi) 2,5 kg x 2 / 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85235": {
+   "recipeProductName": "Valio Emmental lahnapihvi laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-emmental-lahnapihvi-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470336",
+     "name": "Valio Emmental lahnapihvi 60 g x 90 / 5,4 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.4,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85243": {
+   "recipeProductName": "Valio kuningatar-rahkaruutu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kuningatar-rahkaruutu/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471769",
+     "name": "Valio kuningatar-rahkaruutu 440 g x 8 / 3,52 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.52,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85250": {
+   "recipeProductName": "Valio rouhepalat",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rouhepalat/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471785",
+     "name": "Valio rouhepalat 580 g x 6 / 3,48 kg (54 kpl)",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.48,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85270": {
+   "recipeProductName": "FS kalapuikko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-kalapuikko/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471844",
+     "name": "FS kalapuikko 27 g x n. 200 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85272": {
+   "recipeProductName": "Valio kylmäsavu kirjolohifilee",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kylmasavu-kirjolohifilee/",
+   "ingredientUses": 56,
+   "relatedUses": 50,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Kalaonni-brand fillet excluded",
+   "aimoProducts": [
+    {
+     "id": "471751",
+     "name": "Valio kylmäsavu kirjolohifilee viipaloitu 400-600 g x n. 10 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85284": {
+   "recipeProductName": "Valio mustikkamunkki",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustikkamunkki/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471378",
+     "name": "Valio mustikkamunkki 65 g x 40 / 2,6 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.6,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85307": {
+   "recipeProductName": "Valio kirjolohifileeannospala",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kirjolohifileeannospala/",
+   "ingredientUses": 20,
+   "relatedUses": 19,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471860",
+     "name": "Valio kirjolohifilee annospala 5 kg (á 150 g)",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85312": {
+   "recipeProductName": "Valio gluteeniton kakkupohja",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-gluteeniton-kakkupohja/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469968",
+     "name": "Valio gluteeniton kakkupohja 400 g x 4 / 1,6 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.6,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85313": {
+   "recipeProductName": "Valio vadelma (Suomi)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vadelma-suomi/",
+   "ingredientUses": 12,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469514",
+     "name": "Valio vadelma (Suomi) 2 kg x 2 / 4 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 4.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85316": {
+   "recipeProductName": "Valio kirjolohikuutio",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kirjolohikuutio/",
+   "ingredientUses": 21,
+   "relatedUses": 21,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471864",
+     "name": "Valio kirjolohikuutio 5 kg (16x16 mm)",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85320": {
+   "recipeProductName": "Valio vaalea kakkupohja 20 henkilölle",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vaalea-kakkupohja-20-henkilolle/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471318",
+     "name": "Valio vaalea pyöreä 20H kakkupohja 700 g x 4 / 2,8 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.8,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85321": {
+   "recipeProductName": "Valio vaalea kakkupohja 10 henkilölle",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vaalea-kakkupohja-10-henkilolle/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471201",
+     "name": "Valio vaalea pyöreä 10H kakkupohja 300 g x 6 / 1,8 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.8,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85327": {
+   "recipeProductName": "FS lohiannoskalapala",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-lohiannoskalapala/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470203",
+     "name": "FS lohiannoskalapala 5 kg (n. 75 g)",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85342": {
+   "recipeProductName": "Valio lihapiirakka",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-lihapiirakka/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471299",
+     "name": "Valio lihapiirakka 150 g x 18 / 2,7 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.7,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85349": {
+   "recipeProductName": "FS valkosipulikalafilee",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-valkosipulikalafilee/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471246",
+     "name": "FS valkosipulikalafilee n. 80 g x 61 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85350": {
+   "recipeProductName": "FS rapea chilikala",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-rapea-chilikala/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "probable",
+   "note": "FS chilikalafilee; 'rapea' not in name",
+   "aimoProducts": [
+    {
+     "id": "470813",
+     "name": "FS chilikalafilee n. 80 g x 61 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85356": {
+   "recipeProductName": "FS annoskalapala",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/fs-annoskalapala/",
+   "ingredientUses": 8,
+   "relatedUses": 8,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470301",
+     "name": "FS annoskalapala 5 kg (n. 75 g)",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85368": {
+   "recipeProductName": "Valio Voimapulla",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-voimapulla/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471388",
+     "name": "Valio Voimapulla 50 g x 48 / 2,4 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.4,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85703": {
+   "recipeProductName": "Valio lihapyörykkä",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-lihapyorykka/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469794",
+     "name": "Valio lihapyörykkä 16 g x n. 325 / 5,2 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.2,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85755": {
+   "recipeProductName": "Valio lindströminpihvi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-lindstrominpihvi/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471337",
+     "name": "Valio lindströminpihvi 80 g x 75 / 6 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 6.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85793": {
+   "recipeProductName": "Valio juustosämpylä",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-juustosampyla/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Fazer/Vaasan products excluded",
+   "aimoProducts": [
+    {
+     "id": "471224",
+     "name": "Valio juustosämpylä halkaistu 80 g x 20 / 1,6 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.6,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85795": {
+   "recipeProductName": "Valio pehmosämpylät",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-pehmosampylat/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469865",
+     "name": "Valio pehmosämpylät 580 g x 6 / 3,48 kg (54 kpl) laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.48,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85856": {
+   "recipeProductName": "Valio voiwieneraihio",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-voiwieneraihio/",
+   "ingredientUses": 11,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464240",
+     "name": "Valio voiwieneraihio 65 g x 160 / 10,4 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.4,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85890": {
+   "recipeProductName": "Valio iso ohukainen",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-iso-ohukainen/",
+   "ingredientUses": 7,
+   "relatedUses": 7,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463699",
+     "name": "Valio iso ohukainen 60 g x 100 / 6 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 6.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "85950": {
+   "recipeProductName": "Valio rukiinen riisipiirakka",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rukiinen-riisipiirakka/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Fazer product excluded",
+   "aimoProducts": [
+    {
+     "id": "471707",
+     "name": "Valio kypsä rukiinen riisipiirakka 65 g x 60 / 3,9 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 3.9,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86198": {
+   "recipeProductName": "Valio punajuurikroketti paneroitu",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-punajuurikroketti-paneroitu/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470086",
+     "name": "Valio punajuurikroketti paneroitu 22 g x n. 195 / 4,5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 4.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86209": {
+   "recipeProductName": "Valio vihannessuikaleet",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vihannessuikaleet/",
+   "ingredientUses": 11,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471727",
+     "name": "Valio vihannessuikaleet 2,5 kg x 2 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86218": {
+   "recipeProductName": "Valio perunakuutio",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-perunakuutio/",
+   "ingredientUses": 28,
+   "relatedUses": 28,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471786",
+     "name": "Valio perunakuutio 2,5 kg x 2 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86219": {
+   "recipeProductName": "Valio perunasuikale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-perunasuikale/",
+   "ingredientUses": 7,
+   "relatedUses": 7,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471857",
+     "name": "Valio perunasuikale 2,5 kg x 2 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86224": {
+   "recipeProductName": "Valio perunaviipale",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-perunaviipale/",
+   "ingredientUses": 18,
+   "relatedUses": 18,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "470354",
+     "name": "Valio perunaviipale 2,5 kg x 2 / 5 kg",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86320": {
+   "recipeProductName": "Valio hampurilaisvoibriossi laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-hampurilaisvoibriossi-laktoositon/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471740",
+     "name": "Valio hampurilaisvoibriossi 75 g x 20 / 1,5 kg laktoositon",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.5,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86434": {
+   "recipeProductName": "Valio mustaherukka (Suomi)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustaherukka-suomi/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469101",
+     "name": "Valio mustaherukka (Suomi) 2,5 kg x 2 / 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86435": {
+   "recipeProductName": "Valio punaherukka (Suomi)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-punaherukka-suomi/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469152",
+     "name": "Valio punaherukka (Suomi) 2,5 kg x 2 / 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86436": {
+   "recipeProductName": "Valio puolukka (Suomi)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-puolukka-suomi/",
+   "ingredientUses": 38,
+   "relatedUses": 37,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469504",
+     "name": "Valio puolukka (Suomi) 2,5 kg x 2 / 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "86440": {
+   "recipeProductName": "Valio mansikka (Suomi)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikka-suomi/",
+   "ingredientUses": 16,
+   "relatedUses": 16,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": "only fresh non-Valio strawberries in catalog; no Valio frozen strawberry (Suomi)",
+   "aimoProducts": []
+  },
+  "86450": {
+   "recipeProductName": "Valio mustikka (Suomi)",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustikka-suomi/",
+   "ingredientUses": 21,
+   "relatedUses": 21,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469489",
+     "name": "Valio mustikka (Suomi) 2,5 kg x 2 / 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87028": {
+   "recipeProductName": "Valio rahka-jogurttitäyte laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rahka-jogurttitayte-laktoositon/",
+   "ingredientUses": 26,
+   "relatedUses": 26,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469072",
+     "name": "Valio rahka-jogurttitäyte 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87046": {
+   "recipeProductName": "Valio mansikkatäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikkatayte/",
+   "ingredientUses": 7,
+   "relatedUses": 7,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "463882",
+     "name": "Valio mansikkatäyte 10 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87133": {
+   "recipeProductName": "Valio mango-appelsiini-limetäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mango-appelsiini-limetayte/",
+   "ingredientUses": 19,
+   "relatedUses": 18,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464367",
+     "name": "Valio mango-appelsiini-limetäyte 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87251": {
+   "recipeProductName": "Valio mustikkatäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mustikkatayte/",
+   "ingredientUses": 34,
+   "relatedUses": 32,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471225",
+     "name": "Valio mustikkatäyte 2,5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "469116",
+     "name": "Valio mustikkatäyte 10 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87302": {
+   "recipeProductName": "Valio Koskenlaskija® juustotäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-koskenlaskija-juustotayte/",
+   "ingredientUses": 10,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469037",
+     "name": "Valio Koskenlaskija® juustotäyte 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87303": {
+   "recipeProductName": "Valio ananas-passiontäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ananas-passiontayte/",
+   "ingredientUses": 20,
+   "relatedUses": 17,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469147",
+     "name": "Valio ananas-passiontäyte 10 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87316": {
+   "recipeProductName": "Valio berry curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-berry-curd-tayte/",
+   "ingredientUses": 6,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469720",
+     "name": "Valio berry curd täyte 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87317": {
+   "recipeProductName": "Valio sekahedelmätäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-sekahedelmatayte/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469246",
+     "name": "Valio sekahedelmätäyte 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87351": {
+   "recipeProductName": "Valio voi curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-voi-curd-tayte/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471368",
+     "name": "Valio voi curd täyte 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87352": {
+   "recipeProductName": "Valio salty caramel curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-salty-caramel-curd-tayte/",
+   "ingredientUses": 3,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471417",
+     "name": "Valio salty caramel curd täyte 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87355": {
+   "recipeProductName": "Valio lemon curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-lemon-curd-tayte/25-kg-sanko/",
+   "ingredientUses": 32,
+   "relatedUses": 26,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "471315",
+     "name": "Valio lemon curd täyte 2,5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.5,
+     "weightSource": "productData"
+    },
+    {
+     "id": "469129",
+     "name": "Valio lemon curd täyte 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87380": {
+   "recipeProductName": "Valio kardemumma curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kardemumma-curd-tayte/",
+   "ingredientUses": 3,
+   "relatedUses": 3,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472853",
+     "name": "Valio kardemumma curd täyte 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87389": {
+   "recipeProductName": "Valio Gold&Green® tomaatti-basilikatäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-goldgreen-tomaatti-basilikatayte/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472504",
+     "name": "Valio Gold&Green® tomaatti-basilikatäyte 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87393": {
+   "recipeProductName": "Valio karpalo-puolukkatäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-karpalo-puolukkatayte/",
+   "ingredientUses": 18,
+   "relatedUses": 16,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472919",
+     "name": "Valio karpalo-puolukkatäyte 10 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87394": {
+   "recipeProductName": "Valio fruity curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-fruity-curd-tayte/",
+   "ingredientUses": 7,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "472846",
+     "name": "Valio fruity curd täyte 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87397": {
+   "recipeProductName": "Valio AURA® juustotäyte laktoositon",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-aura-juustotayte-laktoositon/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "473446",
+     "name": "Valio AURA® juustotäyte 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87398": {
+   "recipeProductName": "Valio salaattijuustotäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-salaattijuustotayte/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "473357",
+     "name": "Valio salaattijuustotäyte 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87407": {
+   "recipeProductName": "Valio paholaisen paprikatäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-paholaisen-paprikatayte/",
+   "ingredientUses": 11,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "474891",
+     "name": "Valio paholaisen paprikatäyte 10 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87410": {
+   "recipeProductName": "Valio rahkakreemitäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-rahkakreemitayte/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "474730",
+     "name": "Valio rahkakreemitäyte 10 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87420": {
+   "recipeProductName": "Valio mansikkahillo",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikkahillo-2/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469137",
+     "name": "Valio mansikkahillo 6 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 6.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87421": {
+   "recipeProductName": "Valio puolukkahillo",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-puolukkahillo-2/",
+   "ingredientUses": 9,
+   "relatedUses": 9,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469033",
+     "name": "Valio puolukkahillo 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87422": {
+   "recipeProductName": "Valio vadelmahillo",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vadelmahillo-2/",
+   "ingredientUses": 25,
+   "relatedUses": 22,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469279",
+     "name": "Valio vadelmahillo 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87426": {
+   "recipeProductName": "Valio valkosipuli-tuorejuustotäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-valkosipuli-tuorejuustotayte/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": "only vanilja-tuorejuustotäyte 469783 exists",
+   "aimoProducts": []
+  },
+  "87427": {
+   "recipeProductName": "Valio paahdettu voi curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-paahdettu-voi-curd-tayte/",
+   "ingredientUses": 5,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": "roasted-butter curd not in catalog; nearest is 471368 Valio voi curd täyte",
+   "aimoProducts": []
+  },
+  "87428": {
+   "recipeProductName": "Valio appelsiini-suklaa curd täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-appelsiini-suklaa-curd-tayte/",
+   "ingredientUses": 8,
+   "relatedUses": 6,
+   "packHint": null,
+   "confidence": "not_in_catalog",
+   "note": null,
+   "aimoProducts": []
+  },
+  "87713": {
+   "recipeProductName": "Valio mansikka leipomomarmeladi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikka-leipomomarmeladi/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469227",
+     "name": "Valio mansikka leipomomarmeladi 25 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87714": {
+   "recipeProductName": "Valio luumumarmeladi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-luumumarmeladi/",
+   "ingredientUses": 13,
+   "relatedUses": 13,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469144",
+     "name": "Valio luumumarmeladi 6 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 6.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87745": {
+   "recipeProductName": "Valio vadelma leipomomarmeladi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vadelma-leipomomarmeladi/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469127",
+     "name": "Valio vadelma leipomomarmeladi 25 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87760": {
+   "recipeProductName": "Valio omena leipomomarmeladi",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-omena-leipomomarmeladi/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "468284",
+     "name": "Valio omena leipomomarmeladi 25 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87793": {
+   "recipeProductName": "Valio appelsiinikuoritäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-appelsiinikuoritayte/",
+   "ingredientUses": 24,
+   "relatedUses": 21,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469275",
+     "name": "Valio appelsiinikuoritäyte 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87821": {
+   "recipeProductName": "Valio mansikka kakkutäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikka-kakkutayte/",
+   "ingredientUses": 4,
+   "relatedUses": 4,
+   "packHint": null,
+   "confidence": "probable",
+   "note": "catalog has mansikka kakkuhillo, not kakkutäyte",
+   "aimoProducts": [
+    {
+     "id": "469073",
+     "name": "Valio mansikka kakkuhillo 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87870": {
+   "recipeProductName": "Valio sekamarjatäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-sekamarjatayte/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469128",
+     "name": "Valio sekamarjatäyte 25 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87887": {
+   "recipeProductName": "Valio mansikkapala leipomotäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-mansikkapala-leipomotayte/",
+   "ingredientUses": 5,
+   "relatedUses": 5,
+   "packHint": null,
+   "confidence": "probable",
+   "note": "catalog calls it mansikkapala leipomohillo",
+   "aimoProducts": [
+    {
+     "id": "469300",
+     "name": "Valio mansikkapala leipomohillo 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87893": {
+   "recipeProductName": "Valio ananas-greippitäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-ananas-greippitayte/",
+   "ingredientUses": 25,
+   "relatedUses": 24,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "465679",
+     "name": "Valio ananas-greippitäyte 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87894": {
+   "recipeProductName": "Valio metsämansikkainen täyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-metsamansikkainen-tayte/",
+   "ingredientUses": 1,
+   "relatedUses": 1,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469105",
+     "name": "Valio metsämansikkainen täyte 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87904": {
+   "recipeProductName": "Valio vadelma leipomotäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-vadelma-leipomotayte/",
+   "ingredientUses": 14,
+   "relatedUses": 14,
+   "packHint": null,
+   "confidence": "probable",
+   "note": "Valio vadelmatäyte 10 kg; 469041 vadelma leipomohillo is the alternative",
+   "aimoProducts": [
+    {
+     "id": "468233",
+     "name": "Valio vadelmatäyte 10 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "87908": {
+   "recipeProductName": "Valio appelsiini-omenatäyte",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-appelsiini-omenatayte/",
+   "ingredientUses": 11,
+   "relatedUses": 11,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469171",
+     "name": "Valio appelsiini-omenatäyte 12 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "96524": {
+   "recipeProductName": "Valio kokomunamassa",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kokomunamassa/",
+   "ingredientUses": 25,
+   "relatedUses": 25,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Valio vapaan kanan munamassa 5 kg",
+   "aimoProducts": [
+    {
+     "id": "471847",
+     "name": "Valio vapaan kanan munamassa 5 kg x 1 / 5 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "130343": {
+   "recipeProductName": "Valio Eila® kaulintavoi suolaamaton",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-kaulintavoi-suolaamaton/",
+   "ingredientUses": 110,
+   "relatedUses": 107,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "464761",
+     "name": "Valio Eila® kaulintavoi 4x5 kg suolaamaton laktoositon",
+     "salesUnit": "PAK",
+     "baseUnit": "PAK",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 20.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "207085": {
+   "recipeProductName": "Valio Eila® NUTRI F+ laktoositon maitoproteiinijauhe",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-eila-nutri-f-laktoositon-maitoproteiinijauhe/",
+   "ingredientUses": 18,
+   "relatedUses": 17,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469036",
+     "name": "Valio Eila® NUTRI F+ laktoositon maitoproteiinijauhe instant 20 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 20.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "208041": {
+   "recipeProductName": "Valio kirnumaitojauhe",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-kirnumaitojauhe/",
+   "ingredientUses": 2,
+   "relatedUses": 2,
+   "packHint": null,
+   "confidence": "high",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469186",
+     "name": "Valio kirnumaitojauhe 25 kg",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 25.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "209563": {
+   "recipeProductName": "Valio turkkilainen ruokajogurtti sanko",
+   "recipeProductUrl": "https://www.valioaimo.fi/tuotteet/valio-turkkilainen-ruokajogurtti-sanko/",
+   "ingredientUses": 157,
+   "relatedUses": 155,
+   "packHint": "sanko",
+   "confidence": "reviewed",
+   "note": null,
+   "aimoProducts": [
+    {
+     "id": "469079",
+     "name": "Valio turkkilainen ruokajogurtti 6% 5 kg laktoositon",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 5.0,
+     "weightSource": "productData"
+    }
+   ]
+  }
+ }
+}
