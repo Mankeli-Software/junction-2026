@@ -192,8 +192,8 @@ codes:
 # Sentences that belong to no single code. The agent speaks the summary (#36).
 texts:
   SUMMARY_READY:
-    fi: "Tarjous on valmis. Toimitus {dates}, tuotteita {count}, yhteensä {total}."
-    en: "The quote is ready. Delivery {dates}, products: {count}, total {total}."
+    fi: "Tarjous on valmis."
+    en: "The quote is ready."
   # One per priced line: the top pick (vision §5). Only the first few lines are named.
   SUMMARY_LINE:
     fi: "{product}, {quantity} {unit}, {total}."

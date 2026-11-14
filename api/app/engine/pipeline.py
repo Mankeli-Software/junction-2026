@@ -50,6 +50,7 @@ STEP_ORDER = [
 AMBIGUITY_WINDOW = 5  # top search results looked at for "spans categories"
 MAX_OPTIONS = 3
 MAX_ALTERNATIVES = 2
+SPOKEN_LINES = 3  # lines named in the spoken summary; the rest are counted
 
 
 @dataclass
@@ -328,15 +329,23 @@ def _order(results: list[LineResult], data: EngineInput) -> EngineOutput:
         decision, speak = Decision.needs_clarification, clarification.question
     elif lines:
         decision = Decision.ready
-        parts = [
-            text.text(
-                rules,
-                TextKey.SUMMARY_READY,
-                count=len(lines),
-                total=text.euros(total),
-                dates=_dates(dates),
+        parts = [text.text(rules, TextKey.SUMMARY_READY)]
+        parts += [_spoken_line(line, rules) for line in lines[:SPOKEN_LINES]]
+        if len(lines) == 1 and lines[0].alternatives:
+            alternative = lines[0].alternatives[0]
+            parts.append(
+                text.text(
+                    rules,
+                    TextKey.SUMMARY_ALTERNATIVE,
+                    product=alternative.label,
+                    total=text.euros(alternative.line_total_cents),
+                )
             )
-        ]
+        if len(lines) > SPOKEN_LINES:
+            parts.append(text.text(rules, TextKey.SUMMARY_MORE, count=len(lines) - SPOKEN_LINES))
+        parts.append(
+            text.text(rules, TextKey.SUMMARY_TOTAL, dates=_dates(dates), total=text.euros(total))
+        )
         parts += [text.join(r.text, r.next_step) for r in rejections]
         if flags:
             parts.append(text.text(rules, TextKey.SUMMARY_NOTES, notes=len(flags)))
@@ -372,6 +381,18 @@ def _order(results: list[LineResult], data: EngineInput) -> EngineOutput:
         delivery=DeliverySummary(earliest=dates[0], latest=dates[-1]) if dates else None,
         speak=speak,
         rules_ref=rules.ref,
+    )
+
+
+def _spoken_line(line: QuoteLine, rules: RuleSet) -> Localized:
+    """The top pick for one line (vision §5): product, amount and line total."""
+    return text.text(
+        rules,
+        TextKey.SUMMARY_LINE,
+        product=line.name,
+        quantity=text.number(Decimal(line.quantity_sales_units)),
+        unit=text.unit_name(rules, line.sales_unit, plural=line.quantity_sales_units != 1),
+        total=text.euros(line.line_total_cents),
     )
 
 

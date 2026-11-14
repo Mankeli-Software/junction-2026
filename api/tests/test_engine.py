@@ -64,17 +64,31 @@ def test_unverified_stock_is_flagged_for_acknowledgement():
     ]
 
 
-def test_ready_speech_is_a_short_summary_in_both_languages():
+def test_ready_speech_names_the_top_pick_and_one_alternative():
     speak = decide(engine_input()).speak
 
     assert speak.fi == (
-        "Tarjous on valmis. Toimitus maanantaina 16.11., tuotteita 1,"
-        " yhteensä 1\u00a0150,00\u00a0€. Tarkistettavia kohtia vahvistussivulla: 1."
+        "Tarjous on valmis. Valio Arki kevytmaito 1 l, 1000 kappaletta, 1\u00a0150,00\u00a0€."
+        " Vaihtoehtona Valio rasvaton maito 1 l UHT, 1\u00a0512,00\u00a0€."
+        " Toimitus maanantaina 16.11., yhteensä 1\u00a0150,00\u00a0€."
+        " Tarkistettavia kohtia vahvistussivulla: 1."
     )
     assert speak.en == (
-        "The quote is ready. Delivery Monday 16 November, products: 1, total €1,150.00."
+        "The quote is ready. Valio Arki kevytmaito 1 l, 1000 pieces, €1,150.00."
+        " Alternatively Valio rasvaton maito 1 l UHT, €1,512.00."
+        " Delivery Monday 16 November, total €1,150.00."
         " Notes to check on the confirmation page: 1."
     )
+
+
+def test_a_long_order_names_three_lines_and_counts_the_rest():
+    lines = [milk_line(f"l{i}", quantity="10") for i in range(5)]
+    out = decide(engine_input(*lines, candidates={f"l{i}": MILK_SEARCH for i in range(5)}))
+
+    assert out.decision == Decision.ready
+    assert out.speak.en.count("Valio Arki kevytmaito 1 l, 10 pieces") == 3
+    assert "More products: 2." in out.speak.en
+    assert "Alternatively" not in out.speak.en
 
 
 def test_case_products_are_converted_through_the_pack_size():
