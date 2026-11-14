@@ -285,9 +285,8 @@ async def test_mcp_rejects_expired_unknown_and_missing_tokens(app_db, live_clien
         assert response.status_code == 401, token
         # Points connectors at the OAuth metadata (#48); a bad token also says so.
         challenge = response.headers["www-authenticate"]
-        assert challenge.startswith(
-            'Bearer resource_metadata="http://localhost/.well-known/oauth-protected-resource/mcp"'
-        )
+        metadata = f"{get_settings().public_base_url}/.well-known/oauth-protected-resource/mcp"
+        assert challenge.startswith(f'Bearer resource_metadata="{metadata}"')
         assert challenge.endswith('error="invalid_token"') == (token is not None)
 
 

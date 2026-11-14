@@ -22,11 +22,14 @@ from app.interfaces.deps import SESSION_COOKIE, web_session_user
 from app.main import app
 from app.services.accounts import create_unclaimed_account
 from app.services.caller import Caller
+from app.settings import get_settings
 
 pytestmark = pytest.mark.usefixtures("app_db", "no_caller")
 
 CLAUDE_CALLBACK = "https://claude.ai/api/mcp/auth_callback"
 PASSWORD = "correct horse battery"
+# PUBLIC_BASE_URL, which the metadata routes read once when the app is built.
+ORIGIN = get_settings().public_base_url
 
 
 def new_number() -> str:
@@ -69,7 +72,7 @@ def authorize(client: TestClient, client_id: str, challenge: str, redirect_uri=C
     )
     assert response.status_code == 302, response.text
     location = urlsplit(response.headers["location"])
-    assert (location.scheme, location.netloc, location.path) == ("http", "localhost", "/connect")
+    assert f"{location.scheme}://{location.netloc}{location.path}" == f"{ORIGIN}/connect"
     return parse_qs(location.query)["request"][0]
 
 
@@ -127,18 +130,18 @@ def test_metadata_points_from_mcp_to_the_authorization_server():
     client = TestClient(app, base_url="http://localhost")
     challenge = client.post("/mcp", json={}).headers["www-authenticate"]
     url = challenge.split('resource_metadata="')[1].split('"')[0]
-    assert url == "http://localhost/.well-known/oauth-protected-resource/mcp"
+    assert url == f"{ORIGIN}/.well-known/oauth-protected-resource/mcp"
 
     resource = client.get(urlsplit(url).path).json()
-    assert resource["resource"] == "http://localhost/mcp"
+    assert resource["resource"] == f"{ORIGIN}/mcp"
     assert client.get("/.well-known/oauth-protected-resource").json() == resource
 
     issuer = resource["authorization_servers"][0]
     server = client.get("/.well-known/oauth-authorization-server").json()
     assert server["issuer"] == issuer
-    assert server["authorization_endpoint"] == "http://localhost/oauth/authorize"
-    assert server["token_endpoint"] == "http://localhost/oauth/token"
-    assert server["registration_endpoint"] == "http://localhost/oauth/register"
+    assert server["authorization_endpoint"] == f"{ORIGIN}/oauth/authorize"
+    assert server["token_endpoint"] == f"{ORIGIN}/oauth/token"
+    assert server["registration_endpoint"] == f"{ORIGIN}/oauth/register"
     assert server["code_challenge_methods_supported"] == ["S256"]
     assert "none" in server["token_endpoint_auth_methods_supported"]
 

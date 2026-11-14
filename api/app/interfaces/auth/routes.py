@@ -46,11 +46,11 @@ REGISTRATION_PATH = "/oauth/register"
 
 def resource_url() -> str:
     """The MCP server URL exactly as a user types it into Claude or ChatGPT."""
-    return f"{get_settings().public_origin}{MCP_PATH}"
+    return f"{get_settings().public_base_url}{MCP_PATH}"
 
 
 def resource_metadata_url() -> str:
-    return f"{get_settings().public_origin}{RESOURCE_METADATA_PATH}{MCP_PATH}"
+    return f"{get_settings().public_base_url}{RESOURCE_METADATA_PATH}{MCP_PATH}"
 
 
 def _cors(app: ASGIApp, methods: list[str]) -> ASGIApp:
@@ -69,7 +69,7 @@ def _limited(handler: Callable[[Request], Awaitable[Response]]) -> ASGIApp:
 
 def auth_routes(provider: PostgresOAuthProvider | None = None) -> list[BaseRoute]:
     provider = provider or PostgresOAuthProvider()
-    origin = get_settings().public_origin
+    origin = get_settings().public_base_url
     issuer = AnyHttpUrl(origin)
 
     registration = ClientRegistrationOptions(enabled=True)

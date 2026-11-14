@@ -27,7 +27,7 @@ from app.settings import get_settings
 
 def consent_url(request_id: str) -> str:
     """The SvelteKit consent page, which sends the browser to /login first if needed."""
-    return f"{get_settings().public_origin}/connect?request={request_id}"
+    return f"{get_settings().public_base_url}/connect?request={request_id}"
 
 
 class PostgresOAuthProvider(

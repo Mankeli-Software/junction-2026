@@ -104,7 +104,10 @@ class Settings(BaseSettings):
 
     session_secret: str = ""
 
-    # Where the web app is served. Confirmation links are `<public_base_url>/c/<token>`.
+    # The public origin, where the web app is served: confirmation links are
+    # `<public_base_url>/c/<token>`, and it is the OAuth issuer, the /mcp resource URL in the
+    # protected-resource metadata and where the login and consent pages are (#48).
+    # https://simo.mankeli.co on the VM.
     public_base_url: str = "http://localhost:5173"
 
     # Rule files (technical-plan.md §4.3). The container mounts them read-only.
@@ -118,10 +121,6 @@ class Settings(BaseSettings):
     # False lets /mcp requests without a bearer token act as the fixed demo customer, to try
     # a connector with auth off (#48, technical-plan.md §7.3). Never turn it off for long.
     mcp_auth_required: bool = True
-
-    # The public origin: the OAuth issuer, the /mcp resource URL in the protected-resource
-    # metadata, and where the consent and login pages are. https://simo.mankeli.co on the VM.
-    public_base_url: str = "http://localhost"
 
     # Host header values /mcp accepts (DNS-rebinding protection). `name:*` allows any port.
     # Browser clients such as MCP Inspector may also send an Origin; http and https origins
@@ -154,10 +153,6 @@ class Settings(BaseSettings):
     @classmethod
     def _no_trailing_slash(cls, value: str) -> str:
         return value.rstrip("/")
-
-    @property
-    def public_origin(self) -> str:
-        return self.public_base_url.rstrip("/")
 
     @property
     def mcp_allowed_host_list(self) -> list[str]:
