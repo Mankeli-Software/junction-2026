@@ -12,6 +12,7 @@
 	import type { ChatMenu, MenuDay } from '../types';
 	import CardShell from './CardShell.svelte';
 	import Icon from './Icon.svelte';
+	import Thumb from './Thumb.svelte';
 
 	const ORDER = ['mon', 'tue', 'wed', 'thu', 'fri'] as const;
 
@@ -82,6 +83,7 @@
 					{@const asked = Boolean(store.actedOn(surfaceId, swapKey(d)))}
 					<li class="day" class:asked data-testid="menu-day">
 						<b class="dname">{dayName(d.day, L)}</b>
+						<Thumb src={d.image_url} width={54} height={36} placeholder="plate" radius={4} />
 						<span class="dish">
 							<span class="name">{d.name}</span>
 							{#if asked}
@@ -127,7 +129,7 @@
 	.day {
 		display: flex;
 		align-items: center;
-		gap: 12px;
+		gap: 10px;
 		min-height: 52px;
 		padding: 4px 0;
 		border-top: 1px solid var(--divider);
@@ -142,7 +144,7 @@
 		border-radius: 6px;
 	}
 	.dname {
-		width: 40px;
+		width: 34px;
 		flex-shrink: 0;
 		font-size: 15px;
 	}

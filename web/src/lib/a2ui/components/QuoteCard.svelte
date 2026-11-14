@@ -18,6 +18,7 @@
 	import type { Quote } from '../types';
 	import CardShell from './CardShell.svelte';
 	import Icon from './Icon.svelte';
+	import Thumb from './Thumb.svelte';
 
 	let { quoteId, surfaceId, componentId }: { quoteId: string; surfaceId: string; componentId: string } = $props();
 	const { store, data, lang, revision } = chatContext();
@@ -163,7 +164,9 @@
 			{#each sections as s, i (i)}
 				{#if sections.length > 1 || s.kind !== 'other'}
 					<div class="grp" class:sep={i > 0}>
-						{#if s.kind === 'photo'}<Icon name="camera" stroke="var(--petrol)" />{/if}
+						{#if s.imageUrl}
+							<Thumb src={s.imageUrl} width={48} height={32} placeholder="none" radius={4} />
+						{:else if s.kind === 'photo'}<Icon name="camera" stroke="var(--petrol)" />{/if}
 						<span class="grow">
 							{#if s.kind === 'photo'}
 								{s.draftId && draftPortions[s.draftId]
@@ -182,13 +185,16 @@
 					<div class="line" data-testid="quote-line" data-line-id={line.line_id}>
 						<span class="asked">{t(L, 'youAsked', { asked: askedLabel(line, L) })}</span>
 						<div class="line-main">
-							<b class="product"
-								>{productLabel(line, L)}
-								{#each lineFlagCodes(quote, line.line_id) as code (code)}<span class="a2-tag">{codeTitle(code, L)}</span>{/each}</b
-							>
+							<Thumb src={line.image_url} width={44} height={44} fit="contain" placeholder="box" radius={6} />
+							<div class="what">
+								<b class="product"
+									>{productLabel(line, L)}
+									{#each lineFlagCodes(quote, line.line_id) as code (code)}<span class="a2-tag">{codeTitle(code, L)}</span>{/each}</b
+								>
+								<span class="a2-cap">{line.reason_text[L]}</span>
+							</div>
 							<b class="price">{money(line.line_total_cents)}</b>
 						</div>
-						<span class="a2-cap">{line.reason_text[L]}</span>
 					</div>
 				{/each}
 			{/each}
@@ -363,12 +369,19 @@
 	}
 	.line-main {
 		display: flex;
-		justify-content: space-between;
+		align-items: flex-start;
 		gap: 10px;
+		margin-top: 3px;
+	}
+	.what {
+		flex-grow: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
 	}
 	.product {
 		font-size: 15px;
-		min-width: 0;
 		overflow-wrap: anywhere;
 	}
 	.price {

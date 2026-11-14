@@ -124,6 +124,12 @@ test('weekly menu: swap a day, build the order', async ({ page }) => {
 	const menuCard = panel(page).locator('[data-surface-id="menu"]');
 	await expect(menuCard).toContainText('Chicken and vegetable curry');
 	await expect(menuCard).toContainText('Pea soup and pancakes');
+	// Each day shows its recipe's image from the API, lazy and without a Referer; Friday has none.
+	const dayImages = menuCard.getByTestId('menu-day').locator('img');
+	await expect(dayImages).toHaveCount(4);
+	await expect(dayImages.first()).toHaveAttribute('referrerpolicy', 'no-referrer');
+	await expect(dayImages.first()).toHaveAttribute('loading', 'lazy');
+	await expect(menuCard.getByTestId('menu-day').last().locator('[data-testid="thumb"][data-empty="true"]')).toHaveCount(1);
 
 	await menuCard.getByRole('button', { name: 'Swap Wednesday' }).click();
 	await expect(panel(page).getByTestId('chat-action').last()).toHaveText(/Swap Wednesday/);
@@ -135,6 +141,11 @@ test('weekly menu: swap a day, build the order', async ({ page }) => {
 	const quoteCard = panel(page).locator('[data-surface-id="menu-quote"]');
 	await expect(quoteCard).toContainText('Chicken and vegetable curry');
 	await expect(quoteCard).toContainText(/salt/);
+	// The curry group shows its recipe image; the soup group has none and no placeholder.
+	await expect(quoteCard.locator('.grp img')).toHaveCount(1);
+	// Product thumbnails: an image for the oat base, the placeholder for the oil.
+	await expect(quoteCard.getByTestId('quote-line').first().locator('img')).toHaveAttribute('src', /api\.valioaimo\.fi\/medias/);
+	await expect(quoteCard.getByTestId('quote-line').last().locator('[data-testid="thumb"][data-empty="true"]')).toHaveCount(1);
 	expect(fake.bodies[2].action).toMatchObject({ name: 'menu_build', context: { menuId: 'menu-1' } });
 });
 

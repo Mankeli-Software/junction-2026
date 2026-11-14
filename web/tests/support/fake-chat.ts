@@ -20,14 +20,49 @@ export interface ChatBody {
 
 const loc = (en: string, fi = en) => ({ en, fi });
 
-function line(id: string, asked: string, quantity: number, name: string, cents: number, group: string | null = null) {
+/** Image URLs on the hosts the API's `image_url` points at; `stubImages` answers them locally. */
+export const PRODUCT_IMAGE = 'https://api.valioaimo.fi/medias/300Wx300H-1200Wx1200H-null?context=fake-product';
+export const RECIPE_IMAGE = (slug: string) => `https://cdn-wp.valio.fi/valio-wp-network/sites/32/2024/11/${slug}-400x267.jpeg`;
+
+/**
+ * Answers every product and recipe image with a small local SVG, so tests never fetch
+ * from Valio's servers. Each URL gets its own colour; `broken` URLs answer 404 to show
+ * the placeholder.
+ */
+export async function stubImages(page: Page, broken: string[] = []) {
+	const answer = async (route: Route) => {
+		const url = route.request().url();
+		if (broken.some((b) => url.includes(b))) return route.fulfill({ status: 404, body: '' });
+		let hash = 0;
+		for (const ch of url) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+		const hue = hash % 360;
+		const recipe = url.includes('cdn-wp.valio.fi');
+		const [w, h] = recipe ? [400, 267] : [300, 300];
+		const body = recipe
+			? `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="hsl(${hue},45%,62%)"/><circle cx="200" cy="140" r="95" fill="hsl(${hue},30%,92%)"/><circle cx="200" cy="140" r="70" fill="hsl(${(hue + 30) % 360},55%,55%)"/></svg>`
+			: `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#fff"/><rect x="100" y="40" width="100" height="220" rx="12" fill="hsl(${hue},55%,45%)"/><rect x="100" y="120" width="100" height="50" fill="#fff"/></svg>`;
+		await route.fulfill({ status: 200, headers: { 'content-type': 'image/svg+xml' }, body });
+	};
+	await page.route('https://api.valioaimo.fi/medias/**', answer);
+	await page.route('https://cdn-wp.valio.fi/**', answer);
+}
+
+function line(
+	id: string,
+	asked: string,
+	quantity: number,
+	name: string,
+	cents: number,
+	group: string | null = null,
+	image_url: string | null = PRODUCT_IMAGE
+) {
 	return {
 		line_id: id,
 		group,
 		asked: { text: asked, quantity, unit: 'l', package_word: null, needed_by: '2026-11-16' },
 		product_id: `p-${id}`,
 		name: loc(name),
-		image_url: null,
+		image_url,
 		sales_unit: 'pcs',
 		sales_unit_label: loc('carton', 'tölkki'),
 		quantity_sales_units: quantity,
@@ -75,12 +110,12 @@ export const MENU_QUOTE = quote(
 	'q-menu',
 	[
 		line('m1', 'oat cream', 8, 'Valio Oddlygood oat cooking base 2 l', 4392, 'Chicken and vegetable curry'),
-		line('m2', 'rapeseed oil', 4, 'Rapeseed oil 1 l', 1596, 'Salmon soup, milk-free')
+		line('m2', 'rapeseed oil', 4, 'Rapeseed oil 1 l', 1596, 'Salmon soup, milk-free', null)
 	],
 	{
 		groups: [
-			{ group: 'Chicken and vegetable curry', line_ids: ['m1'], subtotal_cents: 4392 },
-			{ group: 'Salmon soup, milk-free', line_ids: ['m2'], subtotal_cents: 1596 }
+			{ group: 'Chicken and vegetable curry', line_ids: ['m1'], subtotal_cents: 4392, image_url: RECIPE_IMAGE('chicken-curry') },
+			{ group: 'Salmon soup, milk-free', line_ids: ['m2'], subtotal_cents: 1596, image_url: null }
 		],
 		not_ordered: [{ name: 'salt', quantity: null, unit: null, reason: loc('Not linked to a product', 'Ei linkitetty tuotteeseen') }]
 	}
@@ -105,7 +140,8 @@ export function menu(swapped = false) {
 			day,
 			recipe_id: `rec-${i}`,
 			name: swapped && day === 'wed' ? 'Salmon soup, milk-free' : name,
-			image_url: null,
+			// Friday has no image: the placeholder.
+			image_url: day === 'fri' ? null : RECIPE_IMAGE(`menu-${day}`),
 			portions: 80,
 			linked_count: 3,
 			ingredient_count: 6
@@ -188,6 +224,7 @@ export async function fakeChat(
 	data: { quotes?: Record<string, unknown>[]; menu?: () => unknown; draft?: () => unknown } = {}
 ): Promise<FakeChat> {
 	const fake: FakeChat = { bodies: [], uploads: [], current: { value: null } };
+	await stubImages(page);
 	const quotes = new Map((data.quotes ?? []).map((q) => [q.quote_id as string, q]));
 
 	await page.route('**/api/v1/chat', async (route: Route) => {

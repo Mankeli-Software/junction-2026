@@ -10,6 +10,8 @@ export interface QuoteSection {
 	kind: 'photo' | 'group' | 'other';
 	group: string | null;
 	draftId: string | null;
+	/** The recipe's image for the group header, from the API; null draws no image. */
+	imageUrl: string | null;
 	subtotalCents: number;
 	lines: QuoteLine[];
 }
@@ -26,6 +28,7 @@ export function quoteSections(quote: Quote): QuoteSection[] {
 			kind: g.source === 'photo' ? 'photo' : 'group',
 			group: g.group,
 			draftId: g.recipe_draft_id ?? null,
+			imageUrl: g.image_url ?? null,
 			subtotalCents: g.subtotal_cents,
 			lines
 		});
@@ -36,6 +39,7 @@ export function quoteSections(quote: Quote): QuoteSection[] {
 			kind: 'other',
 			group: null,
 			draftId: null,
+			imageUrl: null,
 			subtotalCents: rest.reduce((sum, l) => sum + l.line_total_cents, 0),
 			lines: rest
 		});

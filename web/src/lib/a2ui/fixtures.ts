@@ -5,7 +5,8 @@
  *
  * Ids: drafts `rd_notebook` (two low-confidence rows) and `rd_dish` (a dish photo with
  * a matched recipe); quotes `q_question` (groups, a flag, "not ordered", one
- * clarification), `q_ready` (ready to send) and `q_rejected`; recipe `r_1188`;
+ * clarification), `q_ready` (ready to send), `q_recipe` (one of our recipes, with the
+ * recipe's image on its group) and `q_rejected`; recipe `r_1188`;
  * menu `m_week`. Any other id answers 404.
  */
 import { ApiError } from './api';
@@ -23,6 +24,26 @@ import type {
 	RecipeHit,
 	SentLatest
 } from './types';
+
+// --- Images ---------------------------------------------------------------------------
+
+/**
+ * Image URLs as the API returns them: Valio's media server for products and the recipe
+ * CDN for recipes (technical-plan.md §5.5). Tests intercept both hosts (`IMAGE_HOSTS`),
+ * so nothing is fetched from the network.
+ */
+export const IMAGE_HOSTS = ['https://api.valioaimo.fi/medias/**', 'https://cdn-wp.valio.fi/**'];
+
+export const FIXTURE_IMAGES = {
+	wholeMilk: 'https://api.valioaimo.fi/medias/300Wx300H-1200Wx1200H-null?context=bWFzdGVyfHJvb3R8NjE4MzR8aW1hZ2Uvd2VicHxhREpoTDJobFlTODVNVFV6TnpVME5UazFNelU0THpNd01GZDRNekF3U0Y4eE1qQXdWM2d4TWpBd1NGOXVkV3hzfGE5NDg3NjcxZmQ3ZWRiOTVlMjM5NmQ5MGRmYjg5OGViYmI5OTRmNDJiNTFhZWY1YzUyZjg0Mzk1NTVlNmQ1ZmI',
+	skimmedMilk: 'https://api.valioaimo.fi/medias/300Wx300H-1200Wx1200H-null?context=bWFzdGVyfHJvb3R8NTE1MjF8aW1hZ2Uvd2VicHxhREZpTDJneU9DODVNVFUzTURnMk16UTNNamswTHpNd01GZDRNekF3U0Y4eE1qQXdWM2d4TWpBd1NGOXVkV3hzfDYzMGI2ZGExMjYxMjdhMGQ2MGNkOGFmMzQzZTE5MjMwMmZkY2Y1Mzk3YjBlNjhhYmViNTRmMzcwZTE1NzJjY2E',
+	cookingCream: 'https://api.valioaimo.fi/medias/300Wx300H-1200Wx1200H-null?context=bWFzdGVyfHJvb3R8NzU3MzB8aW1hZ2Uvd2VicHxhR0ZtTDJobVlpODVNVFUzTWpZM09EUTVNalEyTHpNd01GZDRNekF3U0Y4eE1qQXdWM2d4TWpBd1NGOXVkV3hzfGRiZDY1YTJlODYxNWRmYjRmODRjYjBkZjdmNzgxYjgxNWI0NmZlOTkwNGQzODA4NWJiOTY4OGQ0YzMzOTcxMWI',
+	butter: 'https://api.valioaimo.fi/medias/300Wx300H-1200Wx1200H-null?context=bWFzdGVyfHJvb3R8OTEwNzJ8aW1hZ2Uvd2VicHxhRE0xTDJnd01pODVNVFUyT0RRMk56UTNOamM0THpNd01GZDRNekF3U0Y4eE1qQXdWM2d4TWpBd1NGOXVkV3hzfGU3NDM2OWRlOWVjMjE0YzUyNTVjZDU5NjRjMjUzYTE4MDFjNGQzMTNlMDgyMGQ2ZWE0ODg2NDUzMDc5YzhlMGI',
+	salmonSoup: 'https://cdn-wp.valio.fi/valio-wp-network/sites/32/2024/11/43373-lohikeitto-slaavilaisittain-400x286.jpeg',
+	chickenSauce: 'https://cdn-wp.valio.fi/valio-wp-network/sites/32/2025/04/43771-kasvis-broilerikastike-fwe-400x267.jpeg',
+	meatballs: 'https://cdn-wp.valio.fi/valio-wp-network/sites/32/2024/11/37515-lihapullat-tomaattikastikkeessa-400x300.jpeg',
+	peaSoup: 'https://cdn-wp.valio.fi/valio-wp-network/sites/32/2024/11/40358-semituore-hernekeitto-400x286.jpeg'
+} as const;
 
 // --- Recipe drafts --------------------------------------------------------------------
 
@@ -69,7 +90,7 @@ export const fixtureNotebookDraft: RecipeDraft = {
 export const fixtureRecipeHit: RecipeHit = {
 	recipe_id: 'r_1188',
 	name: 'Kermainen lohikeitto',
-	image_url: null,
+	image_url: FIXTURE_IMAGES.salmonSoup,
 	default_portions: 10,
 	diet_tags: ['Gluteeniton', 'Laktoositon']
 };
@@ -115,7 +136,7 @@ export const fixtureDishDraft: RecipeDraft = {
 export const fixtureRecipe: Recipe = {
 	recipe_id: 'r_1188',
 	name: 'Kermainen lohikeitto',
-	image_url: null,
+	image_url: FIXTURE_IMAGES.salmonSoup,
 	portions: 10,
 	ingredients: recipeIngredients.map((i) => ({
 		index: i.index,
@@ -166,6 +187,7 @@ const milkLine = line({
 	asked: { text: 'maitoa', quantity: 6, unit: 'l', package_word: null, needed_by: '2026-11-17' },
 	product_id: '6408430000111',
 	name: { fi: 'Valio kevytmaito 1 l', en: 'Valio light milk 1 l' },
+	image_url: FIXTURE_IMAGES.skimmedMilk,
 	sales_unit_label: { fi: 'tölkkiä', en: 'cartons' },
 	quantity_sales_units: 6,
 	quantity_in_asked_unit: 6,
@@ -182,6 +204,7 @@ const butterLine = line({
 	asked: { text: 'voita', quantity: 0.6, unit: 'kg', package_word: null, needed_by: '2026-11-17' },
 	product_id: '6408430000222',
 	name: { fi: 'Valio voi 500 g', en: 'Valio butter 500 g' },
+	image_url: FIXTURE_IMAGES.butter,
 	sales_unit_label: { fi: 'pakettia', en: 'packs' },
 	quantity_sales_units: 2,
 	quantity_in_asked_unit: 1,
@@ -281,6 +304,47 @@ export const fixtureReadyQuote: Quote = {
 	clarification: null
 };
 
+/** One of our recipes ordered for 80 (`recipe_ref`): a group with the recipe's image. */
+export const fixtureRecipeQuote: Quote = {
+	...quoteBase,
+	quote_id: 'q_recipe',
+	decision: 'ready',
+	status: 'ready',
+	lines: [
+		line({
+			line_id: 'r0',
+			group: 'Kermainen lohikeitto',
+			asked: { text: 'Laktoositon ruokakerma', quantity: 4, unit: 'l', package_word: null, needed_by: '2026-11-17' },
+			product_id: '476880',
+			name: { fi: 'Valio ruokakerma 15 % 10 l laktoositon', en: 'Valio cooking cream 15 % 10 l lactose free' },
+			image_url: FIXTURE_IMAGES.cookingCream,
+			sales_unit_label: { fi: 'kpl', en: 'pcs' },
+			quantity_in_asked_unit: 10,
+			line_total_cents: 4590,
+			reason_text: { fi: 'Ainoa laktoositon kerma, joka ehtii tiistaiksi', en: 'The only lactose-free cream that arrives Tuesday' }
+		}),
+		line({
+			line_id: 'r2',
+			group: 'Kermainen lohikeitto',
+			asked: { text: 'Laktoositon maito', quantity: 6, unit: 'l', package_word: null, needed_by: '2026-11-17' },
+			product_id: '464073',
+			name: { fi: 'Valio täysmaito 1 l laktoositon', en: 'Valio whole milk 1 l lactose free' },
+			image_url: FIXTURE_IMAGES.wholeMilk,
+			sales_unit_label: { fi: 'tölkkiä', en: 'cartons' },
+			quantity_sales_units: 6,
+			quantity_in_asked_unit: 6,
+			line_total_cents: 1074
+		})
+	],
+	groups: [{ group: 'Kermainen lohikeitto', line_ids: ['r0', 'r2'], subtotal_cents: 5664, image_url: FIXTURE_IMAGES.salmonSoup }],
+	flags: [],
+	clarification: null,
+	rejections: [],
+	not_ordered: [],
+	total_cents: 5664,
+	delivery: { earliest: '2026-11-17', latest: '2026-11-17' }
+};
+
 export const fixtureRejectedQuote: Quote = {
 	...quoteBase,
 	quote_id: 'q_rejected',
@@ -308,10 +372,10 @@ export const fixtureRejectedQuote: Quote = {
 export const fixtureMenu: ChatMenu = {
 	menu_id: 'm_week',
 	days: [
-		{ day: 'mon', recipe_id: 'r_2001', name: 'Broileri-kookoscurry', image_url: null, portions: 80, linked_count: 2, ingredient_count: 9 },
-		{ day: 'tue', recipe_id: 'r_2002', name: 'Lihapullat ja perunamuusi', image_url: null, portions: 80, linked_count: 3, ingredient_count: 10 },
-		{ day: 'wed', recipe_id: 'r_1188', name: 'Kermainen lohikeitto', image_url: null, portions: 80, linked_count: 3, ingredient_count: 8 },
-		{ day: 'thu', recipe_id: 'r_2004', name: 'Hernekeitto', image_url: null, portions: 80, linked_count: 1, ingredient_count: 6 },
+		{ day: 'mon', recipe_id: 'r_2001', name: 'Broileri-kookoscurry', image_url: FIXTURE_IMAGES.chickenSauce, portions: 80, linked_count: 2, ingredient_count: 9 },
+		{ day: 'tue', recipe_id: 'r_2002', name: 'Lihapullat ja perunamuusi', image_url: FIXTURE_IMAGES.meatballs, portions: 80, linked_count: 3, ingredient_count: 10 },
+		{ day: 'wed', recipe_id: 'r_1188', name: 'Kermainen lohikeitto', image_url: FIXTURE_IMAGES.salmonSoup, portions: 80, linked_count: 3, ingredient_count: 8 },
+		{ day: 'thu', recipe_id: 'r_2004', name: 'Hernekeitto', image_url: FIXTURE_IMAGES.peaSoup, portions: 80, linked_count: 1, ingredient_count: 6 },
 		{ day: 'fri', recipe_id: 'r_2005', name: 'Lasagne', image_url: null, portions: 80, linked_count: 4, ingredient_count: 11 }
 	]
 };
@@ -342,7 +406,7 @@ export function fixtureData(options: FixtureOptions = {}): FixtureChatData {
 		[fixtureNotebookDraft, fixtureDishDraft].map((d) => [d.draft_id, structuredClone(d)])
 	);
 	const quotes = new Map<string, Quote>(
-		[fixtureQuestionQuote, fixtureReadyQuote, fixtureRejectedQuote].map((q) => [q.quote_id, structuredClone(q)])
+		[fixtureQuestionQuote, fixtureReadyQuote, fixtureRecipeQuote, fixtureRejectedQuote].map((q) => [q.quote_id, structuredClone(q)])
 	);
 	const calls: FixtureChatData['calls'] = [];
 	let copies = 0;
