@@ -18,7 +18,7 @@
  * - ends in 7001: the SMS goes out (`sms_status: sent`);
  * - ends in 7002: the SMS fails (`sms_status: failed`).
  */
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { maskPhone } from '../../demo/phone.ts';
 import type {
 	DemoAccount,
@@ -34,6 +34,7 @@ import type {
 export const SESSION_COOKIE = 'simo_session';
 
 interface Company {
+	id: string;
 	phone: string;
 	name: string;
 	exclusions: Exclusion[];
@@ -41,7 +42,9 @@ interface Company {
 }
 
 interface User {
+	/** The session token: the `simo_session` cookie. */
 	id: string;
+	userId: string;
 	phone: string;
 	inbox: InboxMessage[];
 }
@@ -81,8 +84,15 @@ export function createAccount(
 	if (request.phone_e164.endsWith('0429')) throw new FixtureLimitError();
 
 	let company = companies.get(request.phone_e164);
+	const newCompany = !company;
 	if (!company) {
-		company = { phone: request.phone_e164, name: uniqueName(request.phone_e164), exclusions: [], lang: request.lang };
+		company = {
+			id: randomUUID(),
+			phone: request.phone_e164,
+			name: uniqueName(request.phone_e164),
+			exclusions: [],
+			lang: request.lang
+		};
 		companies.set(company.phone, company);
 	}
 	// A change to the kitchen applies from the next call (spec §2.2).
@@ -90,23 +100,35 @@ export function createAccount(
 	company.lang = request.lang;
 
 	let user = sessionId ? users.get(sessionId) : undefined;
-	if (!user || user.phone !== request.phone_e164) {
-		user = { id: randomBytes(18).toString('base64url'), phone: request.phone_e164, inbox: [] };
+	const newUser = !user || user.phone !== request.phone_e164;
+	if (!user || newUser) {
+		user = { id: randomBytes(18).toString('base64url'), userId: randomUUID(), phone: request.phone_e164, inbox: [] };
 		users.set(user.id, user);
 	}
-	return { sessionId: user.id, account: accountView(company) };
+	return { sessionId: user.id, account: accountView(company, user, newCompany, newUser) };
 }
 
-export function accountFor(sessionId: string | null | undefined): (DemoAccount & { lang: Lang; phone: string }) | null {
+/** What the mock relay needs about the caller. */
+export function accountFor(
+	sessionId: string | null | undefined
+): { company_name: string; lang: Lang; phone: string } | null {
 	const company = companyFor(sessionId);
-	return company ? { ...accountView(company), lang: company.lang, phone: company.phone } : null;
+	return company ? { company_name: company.name, lang: company.lang, phone: company.phone } : null;
 }
 
 /** `GET /api/v1/me`. */
 export function me(sessionId: string | null | undefined): Me | null {
+	const user = sessionId ? store().users.get(sessionId) : undefined;
 	const company = companyFor(sessionId);
-	if (!company) return null;
-	return { company_name: company.name, exclusions: company.exclusions, phone_masked: maskPhone(company.phone) };
+	if (!user || !company) return null;
+	return {
+		user_id: user.userId,
+		company_id: company.id,
+		company_name: company.name,
+		phone_masked: maskPhone(company.phone),
+		exclusions: [...company.exclusions],
+		lang: company.lang
+	};
 }
 
 /** `GET /api/v1/private/inbox`, newest last. Null without a session. */
@@ -158,12 +180,16 @@ function companyFor(sessionId: string | null | undefined): Company | null {
 	return user ? (s.companies.get(user.phone) ?? null) : null;
 }
 
-function accountView(company: Company): DemoAccount {
+function accountView(company: Company, user: User, newCompany: boolean, newUser: boolean): DemoAccount {
 	return {
+		user_id: user.userId,
+		company_id: company.id,
 		company_name: company.name,
 		phone_masked: maskPhone(company.phone),
-		kitchen_profile: { exclusions: [...company.exclusions] },
-		usual_items: usualItems(company.exclusions)
+		exclusions: [...company.exclusions],
+		usual_items: usualItems(company.exclusions),
+		new_company: newCompany,
+		new_user: newUser
 	};
 }
 

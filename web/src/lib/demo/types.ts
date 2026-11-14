@@ -52,19 +52,32 @@ export interface DemoAccountRequest {
 	lang: Lang;
 }
 
-/** Response of `POST /api/v1/demo/accounts`. */
+/**
+ * Response of `POST /api/v1/demo/accounts`: `DemoAccount` in
+ * api/app/services/accounts.py, field for field, except the session token and its
+ * expiry, which travel in the `simo_session` cookie instead.
+ */
 export interface DemoAccount {
+	user_id: string;
+	company_id: string;
 	company_name: string;
 	phone_masked: string;
-	kitchen_profile: { exclusions: Exclusion[] };
+	exclusions: Exclusion[];
 	usual_items: UsualItem[];
+	/** The number's company was made by this request. */
+	new_company: boolean;
+	/** This browser got a new user (a new, empty inbox). */
+	new_user: boolean;
 }
 
-/** Response of `GET /api/v1/me`. */
+/** Response of `GET /api/v1/me`: `Account` in api/app/services/accounts.py. */
 export interface Me {
+	user_id: string;
+	company_id: string;
 	company_name: string;
-	exclusions: Exclusion[];
 	phone_masked: string;
+	exclusions: Exclusion[];
+	lang: Lang;
 }
 
 /** One message in the simulated phone inbox (`GET /api/v1/private/inbox`). */
