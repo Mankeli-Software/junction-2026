@@ -22,7 +22,7 @@ Four screens, in order, on one page:
 - Short intro: "Order from Valio Aimo by talking to an AI agent. You will confirm the order on this phone."
 - Phone number field. Country code defaults to +358; other countries are allowed because Twilio can send to them.
 - Notices, shown before the visitor continues, in plain words:
-  - "What you say is shown as text on our public demo dashboard. Your number is shown masked."
+  - "Your order shows on our public demo dashboard under a made-up company name. What you say and your number are shown only to you, in this browser."
   - "We send one SMS to this number with a link to confirm your order. This is a demo; no real order is placed."
 - One button: "Continue".
 
@@ -95,7 +95,7 @@ Never a dead end: each case says what happened and what to do.
 
 ## 4. What the dashboard sees
 
-Every step writes an audit event and appears live on the dashboard (`dashboard.md`):
+Every step writes an audit event and appears live on the dashboard (`dashboard.md`). The conversation and the masked number show only in the private view, to the visitor who made the call (`dashboard.md` section 2):
 
 - `session_started` (channel phone), `customer_identified` (company, masked number, new or returning account).
 - Conversation events: `buyer_said`, `agent_said` (transcripts), `tool_called`, `tool_returned`.
@@ -116,7 +116,8 @@ The demo trusts any typed number, so we limit what one person can do with someon
 
 - At most a few SMS per number per hour (for example 3), and a limit per browser session.
 - The SMS text says clearly that it is a demo and comes from our Junction project, so a stranger receiving it knows what it is.
-- Phone numbers are stored only for the event and deleted afterwards. The dashboard and the audit log only ever get the masked number.
+- Phone numbers are stored only for the event and deleted afterwards. The dashboard and the audit log only ever get the masked number, and the dashboard shows it only in the private view.
+- Transcripts are private: only the browser that made the call sees them on the dashboard. Typing someone else's number never shows their conversations (`dashboard.md` section 2).
 - No call audio is stored. Only the transcripts, as audit events.
 
 In production none of this is needed: the caller id identifies the account, and the link goes to the account's registered number (vision section 9, real flow).
@@ -139,3 +140,4 @@ None at the moment.
 - The phone is on speaker, not held to the ear. Live captions for both the visitor and the agent.
 - If the call drops after the visitor agreed to the quote, the link is still sent.
 - The call screen shows elapsed time. Any maximum call length is a backend decision, not decided yet.
+- The conversation and the number are private on the dashboard, shown only to the visitor who made the call. The rest of the order is public.
