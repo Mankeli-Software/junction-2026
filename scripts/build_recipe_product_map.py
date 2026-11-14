@@ -207,6 +207,56 @@ OVERRIDES: dict[str, dict] = {
     "34833": NO(),
 }
 
+# Generic recipe ingredients with no recipe product (productId null), linked by hand (#100).
+# Ingredient ids are shared across recipes, so a link applies to every recipe using them.
+# Keys are synthetic recipe product ids, 900001 and up, clear of the website's ids; the map
+# lists them under "mappings" like any recipe product and under "ingredientLinks".
+# Salt and white pepper stay unlinked: they are listed as not ordered.
+INGREDIENT_LINKS: dict[str, dict] = {
+    "900001": {
+        "name": "makaroni",
+        "ingredientIds": [20309],  # makaronia
+        **R(["466316", "461424", "462863"], "Myllyn Paras Makaroni 400 g, 1 kg, 10 kg; dark excluded"),
+    },
+    "900002": {
+        "name": "vähärasvainen naudan jauheliha",
+        "ingredientIds": [20078],  # vähärasvaista naudan jauhelihaa
+        **R(["463104"], "Atria Naudan 0 Jauheliha 10% 2 kg, fresh"),
+    },
+    "900003": {
+        "name": "pakastesipulikuutio",
+        "ingredientIds": [19807],  # pakastesipulikuutioita
+        **R(["461339", "461230"], "Apetit Sipulikuutio pakaste 200 g and 3 x 1.5 kg"),
+    },
+    "900004": {
+        "name": "kananmuna",
+        # kananmunia (19759, 22245), kananmunaa (19489, 19599)
+        "ingredientIds": [19759, 22245, 19489, 19599],
+        **R(
+            ["467676", "467880", "468445", "467464", "463982"],
+            "Kieku Vapaan kanan muna shell eggs, trays M10 to cases L180; organic and liquid egg excluded",
+        ),
+    },
+}
+
+
+def packs(by_id, ids, recipe_url):
+    """One entry per catalogue pack, lightest first."""
+    products = []
+    for i in ids:
+        p = by_id[i]
+        w, src = weight_info(p, recipe_url, len(ids) == 1)
+        products.append({
+            "id": i,
+            "name": fi_name(p),
+            "salesUnit": p["salesUnit"],
+            "baseUnit": p["baseUnit"],
+            "unitsPerSalesUnit": units_per_sales_unit(p),
+            "netWeightKg": w,
+            "weightSource": src,
+        })
+    return sorted(products, key=lambda x: (x["netWeightKg"] is None, x["netWeightKg"] or 0, x["id"]))
+
 
 def main(product_path, recipes_path, out_path):
     catalog = [p for p in json.load(open(product_path)) if not p.get("deleted") and fi_name(p)]
@@ -256,23 +306,28 @@ def main(product_path, recipes_path, out_path):
         else:
             entry["confidence"] = "unmatched"
             ids, entry["note"] = [], None
-        products = []
-        for i in ids:
-            p = by_id[i]
-            w, src = weight_info(p, rp["url"], len(ids) == 1)
-            products.append({
-                "id": i,
-                "name": fi_name(p),
-                "salesUnit": p["salesUnit"],
-                "baseUnit": p["baseUnit"],
-                "unitsPerSalesUnit": units_per_sales_unit(p),
-                "netWeightKg": w,
-                "weightSource": src,
-            })
-        entry["aimoProducts"] = sorted(
-            products, key=lambda x: (x["netWeightKg"] is None, x["netWeightKg"] or 0, x["id"])
-        )
+        entry["aimoProducts"] = packs(by_id, ids, rp["url"])
         out[pid] = entry
+
+    ingredient_uses = Counter(
+        i["id"] for r in recipes["recipes"]
+        for s in r["ingredientSegments"] for i in s["ingredients"] if not i["productId"]
+    )
+    ingredient_links = {}
+    for key, link in INGREDIENT_LINKS.items():
+        assert key not in out, f"synthetic id {key} collides with a recipe product"
+        out[key] = {
+            "recipeProductName": link["name"],
+            "recipeProductUrl": None,
+            "ingredientUses": sum(ingredient_uses[i] for i in link["ingredientIds"]),
+            "relatedUses": 0,
+            "packHint": None,
+            "confidence": link["confidence"],
+            "note": link["note"],
+            "aimoProducts": packs(by_id, link["ids"], ""),
+        }
+        for ingredient_id in link["ingredientIds"]:
+            ingredient_links[str(ingredient_id)] = key
 
     conf = Counter(e["confidence"] for e in out.values())
     result = {
@@ -293,10 +348,13 @@ def main(product_path, recipes_path, out_path):
                 "size removed; medium = one word differs (see note); reviewed = checked by hand; "
                 "probable = checked by hand, judgement call (see note); not_in_catalog = checked, "
                 "no such product in the file; unmatched = needs review. packHint 'sanko'/'suurpakkaus' "
-                "means the recipe means a bulk pack."
+                "means the recipe means a bulk pack. ingredientLinks: recipe ingredient id -> "
+                "synthetic recipe product id (900001 and up) for generic ingredients that have no "
+                "recipe product; it applies in every recipe using that ingredient."
             ),
         },
         "mappings": out,
+        "ingredientLinks": ingredient_links,
     }
     json.dump(result, open(out_path, "w"), ensure_ascii=False, indent=1)
     print(dict(conf))

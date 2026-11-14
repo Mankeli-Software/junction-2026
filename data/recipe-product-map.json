@@ -1,15 +1,15 @@
 {
  "meta": {
-  "generatedAt": "2026-11-14T08:33:05+00:00",
+  "generatedAt": "2026-11-14T21:04:23+00:00",
   "generator": "scripts/build_recipe_product_map.py",
-  "recipeProducts": 266,
+  "recipeProducts": 270,
   "confidence": {
    "high": 218,
-   "reviewed": 30,
+   "reviewed": 34,
    "probable": 8,
    "not_in_catalog": 10
   },
-  "notes": "Keys are recipe product ids (data/valio-recipes.json products / ingredient productId). aimoProducts are Aimo product codes from the product data file, one per pack size, sorted by netWeightKg = net weight of one base unit (one piece). weightSource: productData = unitConversions; name = pack size in the product name; nameVolume = volume in the name taken as 1 l = 1 kg (approximate); namePieceInCase = base unit is a case (KI) and only the piece size is known, so the case weight is unknown; recipeUrl = pack size in the recipe product URL. unitsPerSalesUnit = base units in one salesUnit (e.g. KI case of 5), so one ordered sales unit weighs netWeightKg * unitsPerSalesUnit. Confidence: high = name matches with pack size removed; medium = one word differs (see note); reviewed = checked by hand; probable = checked by hand, judgement call (see note); not_in_catalog = checked, no such product in the file; unmatched = needs review. packHint 'sanko'/'suurpakkaus' means the recipe means a bulk pack."
+  "notes": "Keys are recipe product ids (data/valio-recipes.json products / ingredient productId). aimoProducts are Aimo product codes from the product data file, one per pack size, sorted by netWeightKg = net weight of one base unit (one piece). weightSource: productData = unitConversions; name = pack size in the product name; nameVolume = volume in the name taken as 1 l = 1 kg (approximate); namePieceInCase = base unit is a case (KI) and only the piece size is known, so the case weight is unknown; recipeUrl = pack size in the recipe product URL. unitsPerSalesUnit = base units in one salesUnit (e.g. KI case of 5), so one ordered sales unit weighs netWeightKg * unitsPerSalesUnit. Confidence: high = name matches with pack size removed; medium = one word differs (see note); reviewed = checked by hand; probable = checked by hand, judgement call (see note); not_in_catalog = checked, no such product in the file; unmatched = needs review. packHint 'sanko'/'suurpakkaus' means the recipe means a bulk pack. ingredientLinks: recipe ingredient id -> synthetic recipe product id (900001 and up) for generic ingredients that have no recipe product; it applies in every recipe using that ingredient."
  },
  "mappings": {
   "12": {
@@ -5969,6 +5969,158 @@
      "weightSource": "productData"
     }
    ]
+  },
+  "900001": {
+   "recipeProductName": "makaroni",
+   "recipeProductUrl": null,
+   "ingredientUses": 1,
+   "relatedUses": 0,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Myllyn Paras Makaroni 400 g, 1 kg, 10 kg; dark excluded",
+   "aimoProducts": [
+    {
+     "id": "466316",
+     "name": "Myllyn Paras Makaroni 400g",
+     "salesUnit": "ST",
+     "baseUnit": "ST",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.4,
+     "weightSource": "productData"
+    },
+    {
+     "id": "461424",
+     "name": "Myllyn Paras Makaroni 1kg",
+     "salesUnit": "BAG",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.0,
+     "weightSource": "productData"
+    },
+    {
+     "id": "462863",
+     "name": "Myllyn Paras Makaroni 10kg",
+     "salesUnit": "SK",
+     "baseUnit": "SK",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 10.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "900002": {
+   "recipeProductName": "vähärasvainen naudan jauheliha",
+   "recipeProductUrl": null,
+   "ingredientUses": 5,
+   "relatedUses": 0,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Atria Naudan 0 Jauheliha 10% 2 kg, fresh",
+   "aimoProducts": [
+    {
+     "id": "463104",
+     "name": "Atria Naudan 0 Jauheliha 10% 2kg",
+     "salesUnit": "PAK",
+     "baseUnit": "PAK",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 2.0,
+     "weightSource": "productData"
+    }
+   ]
+  },
+  "900003": {
+   "recipeProductName": "pakastesipulikuutio",
+   "recipeProductUrl": null,
+   "ingredientUses": 306,
+   "relatedUses": 0,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Apetit Sipulikuutio pakaste 200 g and 3 x 1.5 kg",
+   "aimoProducts": [
+    {
+     "id": "461339",
+     "name": "Apetit Kotimainen Sipulikuutio pakaste 200g",
+     "salesUnit": "BAG",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.2,
+     "weightSource": "productData"
+    },
+    {
+     "id": "461230",
+     "name": "3 x Apetit Sipulikuutio pakaste 1,5kg",
+     "salesUnit": "KI",
+     "baseUnit": "BAG",
+     "unitsPerSalesUnit": 3.0,
+     "netWeightKg": 1.5,
+     "weightSource": "name"
+    }
+   ]
+  },
+  "900004": {
+   "recipeProductName": "kananmuna",
+   "recipeProductUrl": null,
+   "ingredientUses": 651,
+   "relatedUses": 0,
+   "packHint": null,
+   "confidence": "reviewed",
+   "note": "Kieku Vapaan kanan muna shell eggs, trays M10 to cases L180; organic and liquid egg excluded",
+   "aimoProducts": [
+    {
+     "id": "468445",
+     "name": "20 x Kieku Vapaan kanan muna L6 408g",
+     "salesUnit": "KI",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 20.0,
+     "netWeightKg": 0.408,
+     "weightSource": "name"
+    },
+    {
+     "id": "467676",
+     "name": "Kieku Vapaan kanan muna M10",
+     "salesUnit": "RAS",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 0.58,
+     "weightSource": "productData"
+    },
+    {
+     "id": "467880",
+     "name": "Kieku Vapaan kanan muna L15 1020g",
+     "salesUnit": "RAS",
+     "baseUnit": "RAS",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 1.02,
+     "weightSource": "productData"
+    },
+    {
+     "id": "467464",
+     "name": "Kieku Vapaan kanan muna irto S90 4320g",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 4.32,
+     "weightSource": "productData"
+    },
+    {
+     "id": "463982",
+     "name": "Kieku Vapaan kanan muna L180 12300g",
+     "salesUnit": "KI",
+     "baseUnit": "KI",
+     "unitsPerSalesUnit": 1.0,
+     "netWeightKg": 12.3,
+     "weightSource": "productData"
+    }
+   ]
   }
+ },
+ "ingredientLinks": {
+  "20309": "900001",
+  "20078": "900002",
+  "19807": "900003",
+  "19759": "900004",
+  "22245": "900004",
+  "19489": "900004",
+  "19599": "900004"
  }
 }
