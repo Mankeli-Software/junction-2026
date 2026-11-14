@@ -152,9 +152,46 @@ def action_sentence(action: Mapping[str, Any], conversation: Conversation) -> st
             return f'The buyer tapped "{name[:64]}".'
 
 
-def action_plain(action: Mapping[str, Any]) -> str:
-    """The action as the buyer's turn in the audit log, in plain words."""
-    return f"[{str(action.get('name', ''))[:64]}]"
+_DAY_WORDS = {
+    "mon": ("maanantaille", "Monday"),
+    "tue": ("tiistaille", "Tuesday"),
+    "wed": ("keskiviikolle", "Wednesday"),
+    "thu": ("torstaille", "Thursday"),
+    "fri": ("perjantaille", "Friday"),
+}
+
+
+def action_plain(action: Mapping[str, Any], lang: str) -> str:
+    """The action as the buyer's turn in the audit log (public on the dashboard): a short
+    plain sentence in the conversation's language, with no ids."""
+    name = str(action.get("name", ""))
+    context = action.get("context") or {}
+    portions = context.get("portions")
+    count = int(portions) if isinstance(portions, int | float) and 0 < portions <= 1000 else None
+    day = _DAY_WORDS.get(str(context.get("day")), ("toiselle päivälle", "another day"))
+    texts: dict[str, tuple[str, str]] = {
+        "recipe_confirmed": (
+            f"Vahvistin reseptin{f' {count} annokselle' if count else ''}.",
+            f"I confirmed the recipe{f' for {count} portions' if count else ''}.",
+        ),
+        "recipe_discarded": ("Aloitan reseptin alusta.", "I'm starting the recipe over."),
+        "recipe_edit_as_new": (
+            "Muokkaan vahvistettua reseptiä uutena luonnoksena.",
+            "I'm editing the confirmed recipe as a new draft.",
+        ),
+        "clarification_answered": ("Valitsin vaihtoehdon.", "I picked an option."),
+        "send_for_confirmation": ("Lähetä puhelimeeni.", "Send it to my phone."),
+        "recipe_selected": (
+            f"Valitsin tämän reseptin{f' {count} annokselle' if count else ''}.",
+            f"I'll take this recipe{f' for {count} portions' if count else ''}.",
+        ),
+        "recipe_swap": ("Haluan toisen reseptin.", "I'd like another recipe."),
+        "menu_swap_day": (f"Vaihda ruoka {day[0]}.", f"Swap the dish for {day[1]}."),
+        "menu_build": ("Tee tilaus tästä menusta.", "Build the order from this menu."),
+        "rejection_next_step": ("Tehdään ehdotettu seuraava vaihe.", "Let's do the next step."),
+    }
+    fi, en = texts.get(name, (f"Napautin: {name[:64]}", f"I tapped: {name[:64]}"))
+    return fi if lang == "fi" else en
 
 
 # --- One turn -------------------------------------------------------------------------------
@@ -162,15 +199,18 @@ def action_plain(action: Mapping[str, Any]) -> str:
 
 @dataclass
 class ChatMode:
-    """What a turn may do. The webshop chat has every agent tool and `show_menu`; the
-    confirmation page's chat has only `update_quote`, always on the link's quote."""
+    """What a turn may do. The webshop chat has every agent tool, `show_menu` and the domain
+    cards. The confirmation page's chat has only `update_quote`, answered by the page's own
+    edit path, and text only: no domain cards."""
 
     tool_names: frozenset[str] | None = None  # None: every agent tool
     show_menu: bool = True
-    # Rewrites the arguments of a call before it goes to /mcp.
-    prepare: Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]] | None = None
-    # Runs after a quote tool returned a quote.
-    after_quote: Callable[[str], Awaitable[None]] | None = None
+    # Tools the chat answers itself instead of /mcp, with their own tool_called and
+    # tool_returned events.
+    local: dict[str, Callable[[dict[str, Any]], Awaitable[dict[str, Any]]]] = field(
+        default_factory=dict
+    )
+    cards: bool = True
 
 
 @dataclass
@@ -188,10 +228,13 @@ class Turn:
         try:
             if name == menus.SHOW_MENU:
                 response = await self._show_menu(args)
+            elif name in self.mode.local:
+                response = await self.mode.local[name](args)
+                async with get_sessionmaker()() as db:
+                    await voice_calls.record_local_tool(db, self.session_id, name, args, response)
+                    await db.commit()
             else:
                 assert self.tools is not None
-                if self.mode.prepare is not None:
-                    args = await self.mode.prepare(name, args)
                 response = await self.tools.call_tool(name, args)
             await self._note(name, response)
         finally:
@@ -206,8 +249,6 @@ class Turn:
             quote_id = str(output["quote_id"])
             self.conversation.latest_quote_id = quote_id
             self.cards.expect("QuoteCard", quote_id, slot="quote")
-            if self.mode.after_quote is not None:
-                await self.mode.after_quote(quote_id)
         elif name == PROPOSE_RECIPE and output.get("draft_id"):
             self.cards.expect("RecipeDraftCard", str(output["draft_id"]))
         elif name == REQUEST_CONFIRMATION:
@@ -294,7 +335,12 @@ async def run_turn(
 ) -> AsyncIterator[Event]:
     """The turn's `text`, `a2ui` and `tool` events, then `done` or `error`."""
     settings = get_settings()
-    turn = Turn(conversation=conversation, session_id=session_id, mode=mode)
+    turn = Turn(
+        conversation=conversation,
+        session_id=session_id,
+        mode=mode,
+        cards=surfaces.TurnCards(domain=mode.cards),
+    )
     if expect_draft:
         turn.cards.expect("RecipeDraftCard", expect_draft)
     scrubber = surfaces.LinkScrubber()
@@ -304,10 +350,17 @@ async def run_turn(
         turn.tools = tools
         result = get_ai().generate_stream(
             model=chat_model(settings.chat_model),
-            system=conversation.system_prompt,
+            system=conversation.system_prompt
+            + ("" if mode.cards else "\n\n" + surfaces.text_only_instructions()),
             messages=[*conversation.history, message],
             tools=chat_tools(turn, await tools.list_tools()),
-            use=[Surfaces(catalog=surfaces.catalog_id())],
+            # Text only: our reduced instructions instead of the whole catalog's.
+            use=[
+                Surfaces(
+                    catalog=surfaces.catalog_id(),
+                    instructions="system" if mode.cards else "none",
+                )
+            ],
             max_turns=MAX_TURNS,
         )
 

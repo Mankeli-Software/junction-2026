@@ -54,6 +54,7 @@ from app.schemas import (
     CancelRequest,
     Channel,
     ChooseAlternativeEdit,
+    Clarification,
     ConfirmationCompany,
     ConfirmationErrorDetail,
     ConfirmationQuote,
@@ -568,7 +569,7 @@ async def _replace(
                 raise _NotReady(response)
     except _NotReady as not_ready:
         text = _why_not(not_ready.response, refuse_line)
-        raise ConfirmationRefused(422, text, refuse_line) from None
+        raise ConfirmationRefused(422, text, refuse_line) from not_ready
     except StateError as error:
         raise ConfirmationRefused(409, CLOSED) from error
 
@@ -620,27 +621,35 @@ async def chat_target(db: AsyncSession, token: str, *, now: datetime | None = No
     )
 
 
-async def adopt_chat_quote(
-    db: AsyncSession, token: str, quote_id: str, *, now: datetime | None = None
-) -> bool:
-    """Points the link at the quote the chat's `update_quote` just made from the link's
-    quote, as an edit with the page controls does (`_replace`). False, and nothing changes,
-    when `quote_id` is not a new version of the link's current quote."""
+@dataclass(frozen=True)
+class ChatEdit:
+    """The result of the chat's change: the new quote, or why the page refused it (and the
+    engine's question when the result needed one)."""
+
+    quote: QuoteResponse | None
+    refused: Localized | None = None
+    clarification: Clarification | None = None
+
+
+async def chat_edit(
+    db: AsyncSession, token: str, lines: list[LineRequest], *, now: datetime | None = None
+) -> ChatEdit:
+    """The chat's `update_quote` on the link's quote, exactly as an edit with the page
+    controls (`_replace`): a result that isn't ready is refused and nothing changes, so the
+    link stays on its quote. ConfirmationRefused (409, 410) when the order is closed."""
     now = now or datetime.now(UTC)
     confirmation, quote = await _open(db, token)
-    new = await db.get(Quote, uuid.UUID(quote_id), with_for_update=True)
-    if new is None or new.parent_quote_id != quote.id:
-        return False
-    if new.status == QuoteStatus.ready:
-        new.status = QuoteStatus.pending_confirmation
-    confirmation.quote_id = str(new.id)
-    if new.quote_hash is not None:
-        confirmation.quote_hash = new.quote_hash
-    confirmation.change_reason = "edit"
-    session = await sessions.quote_session(db, new, now=now)
-    sessions.set_state(session, SessionState.link_opened, now)
-    await db.flush()
-    return True
+    await _require_open(db, confirmation, quote, _screen_hash(quote), now)
+    try:
+        new = await _replace(db, confirmation, quote, lines, "edit", "", now)
+    except ConfirmationRefused as refused:
+        if refused.status != 422:
+            raise
+        cause = refused.__cause__
+        clarification = cause.response.clarification if isinstance(cause, _NotReady) else None
+        return ChatEdit(quote=None, refused=refused.text, clarification=clarification)
+    caller = await _caller(db, confirmation, new)
+    return ChatEdit(quote=await quotes.get_quote(db, caller, str(new.id)))
 
 
 class _NotReady(Exception):

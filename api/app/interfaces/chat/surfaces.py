@@ -58,6 +58,20 @@ def catalog_id() -> str:
     return catalog()["id"]
 
 
+@cache
+def text_only_instructions() -> str:
+    """Genkit's A2UI instructions for the catalog without the domain cards, for the
+    confirmation page's chat: the model is never offered a card the page can't load."""
+    from genkit_a2ui import A2uiCatalog
+    from genkit_a2ui._catalog import render_catalog_instructions
+
+    reduced = dict(catalog())
+    reduced["components"] = [c for c in catalog()["components"] if c["name"] not in CARD_ID]
+    parsed = A2uiCatalog.from_value(reduced)
+    assert parsed is not None
+    return render_catalog_instructions(parsed)
+
+
 def has_link(value: Any) -> bool:
     text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
     return LINK_MARK in text
@@ -128,7 +142,10 @@ def _clean_component(component: Any) -> dict[str, Any] | None:
 class TurnCards:
     """The cards of one turn: what the model drew, and what the tools call for."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, domain: bool = True) -> None:
+        # False: text only (the confirmation page's chat): domain cards are dropped and
+        # never added, only Column, Row, Text, Notice and Button stay.
+        self.domain = domain
         self.drawn: set[tuple[str, str]] = set()
         self.expected: dict[str, tuple[str, str]] = {}  # slot -> (component, id)
 
@@ -159,7 +176,7 @@ class TurnCards:
                     continue
                 key = _card_key(component)
                 if key is not None:
-                    if key in self.drawn:
+                    if not self.domain or key in self.drawn:
                         dropped.add(component["id"])
                         continue
                     self.drawn.add(key)
@@ -182,6 +199,8 @@ class TurnCards:
     def missing(self) -> list[dict[str, Any]]:
         """Server surfaces for the expected cards the model didn't draw."""
         out: list[dict[str, Any]] = []
+        if not self.domain:
+            return out
         for component, card_id in self.expected.values():
             if (component, card_id) in self.drawn:
                 continue

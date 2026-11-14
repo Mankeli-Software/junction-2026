@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy import select
 from sse_starlette import EventSourceResponse, ServerSentEvent
 
@@ -28,6 +29,7 @@ from app.interfaces.chat.conversations import Conversation, store
 from app.interfaces.chat.schemas import ChatMenu, ChatRequest, ChatSentLatest
 from app.interfaces.deps import web_session_user
 from app.models import Confirmation, SmsMessage
+from app.schemas import UpdateQuoteRequest
 from app.services import (
     accounts,
     confirmation_page,
@@ -75,7 +77,30 @@ and the full new line list, keeping the `line_id`s of the lines that stay. The l
 {lines}
 The page then shows the new quote; the buyer checks any flags and confirms with the page's \
 own button. You can't confirm, cancel or send a link, and the buyer needs no new link: the \
-page follows the change. After a change, say in a few words what changed."""
+page follows the change. After a change, say in a few words what changed. \
+The page shows the order itself, so don't draw quote or recipe cards here."""
+
+
+def refusal(edit: confirmation_page.ChatEdit) -> str:
+    """The tool result for a change the page refused: the link stays on its quote."""
+    assert edit.refused is not None
+    text = (
+        "Not changed: the order on the page stays as it was. The engine says: "
+        f"{edit.refused.en} / {edit.refused.fi}"
+    )
+    if edit.clarification is not None:
+        options = "; ".join(
+            f"{o.label.en} / {o.label.fi} (product_id {o.product_id})"
+            for o in edit.clarification.options
+        )
+        text += (
+            f" Ask the buyer this question in words{': ' + options if options else ''}. When "
+            "they answer, call update_quote again with the full line list, the clarified line "
+            "with the chosen product_id."
+        )
+    else:
+        text += " Tell the buyer in a sentence and ask how they want to change it instead."
+    return text
 
 
 def chat_caller(user: Caller) -> Caller:
@@ -115,7 +140,11 @@ def _buyer_turn(conversation: Conversation, body: ChatRequest) -> tuple[str, str
     """The model's user turn text, the buyer's words for the log, and the action."""
     if body.action is not None:
         action = body.action.model_dump()
-        return agent.action_sentence(action, conversation), agent.action_plain(action), action
+        return (
+            agent.action_sentence(action, conversation),
+            agent.action_plain(action, conversation.lang),
+            action,
+        )
     text = (body.message or "").strip()
     return text, text, None
 
@@ -147,8 +176,12 @@ async def _stream(
                 "which the page shows as a card for them to check and confirm. Wait for "
                 "recipe_confirmed before quoting it.]"
             )
-            said = said or "[recipe photo]"
-        lang = agent.turn_language(conversation, said)
+            said = said or (
+                "Lähetin reseptikuvan." if conversation.lang == "fi" else "I sent a recipe photo."
+            )
+        if body.action is None:
+            agent.turn_language(conversation, said)
+        lang = conversation.lang
         await agent.record_said(session_id, "buyer", said, lang)
         message = agent.user_message(text, action)
         async for kind, data in agent.run_turn(
@@ -295,27 +328,31 @@ async def confirmation_chat(token: str, body: ChatRequest) -> EventSourceRespons
     )
     _require_idle(conversation)
 
-    async def current_quote_id() -> str:
+    async def update_quote(arguments: dict[str, Any]) -> dict[str, Any]:
+        """The chat's change, through the page's own edit path, on the link's quote
+        whatever id the model wrote."""
+        try:
+            lines = UpdateQuoteRequest.model_validate(
+                {"quote_id": "link", "lines": arguments.get("lines")}
+            ).lines
+        except ValidationError as error:
+            return {"error": f"invalid lines: {error.errors(include_url=False)}"}
         async with get_sessionmaker()() as db:
-            current = await confirmation_page.chat_target(db, token)
+            try:
+                edit = await confirmation_page.chat_edit(db, token, lines)
+            except ServiceError as error:
+                await db.commit()
+                return {"error": str(error)}
             await db.commit()
-        return current.quote_id
-
-    async def prepare_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-        # Always the link's current quote, whatever id the model wrote.
-        return {**arguments, "quote_id": await current_quote_id()}
-
-    async def adopt(quote_id: str) -> None:
-        async with get_sessionmaker()() as db:
-            if not await confirmation_page.adopt_chat_quote(db, token, quote_id):
-                log.warning("The chat's quote %s is not a version of the link's quote", quote_id)
-            await db.commit()
+        if edit.quote is not None:
+            return {"output": edit.quote.model_dump(mode="json")}
+        return {"error": refusal(edit)}
 
     mode = agent.ChatMode(
         tool_names=frozenset({UPDATE_QUOTE}),
         show_menu=False,
-        prepare=prepare_call,
-        after_quote=adopt,
+        local={UPDATE_QUOTE: update_quote},
+        cards=False,
     )
 
     async def prepare(conversation: Conversation) -> tuple[Any, str, agent.ChatMode, str | None]:

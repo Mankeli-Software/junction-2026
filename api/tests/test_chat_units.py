@@ -107,6 +107,31 @@ def test_genkits_button_and_heading_variants_become_ours():
     assert b["primary"] is True and "variant" not in b
 
 
+def test_text_only_cards_drop_the_domain_cards_and_add_none():
+    cards = surfaces.TurnCards(domain=False)
+    cards.expect("QuoteCard", "q", slot="quote")
+    out = cards.filter(
+        surface(
+            "s1",
+            {"id": "root", "component": "Column", "children": ["q", "n", "b"]},
+            {"id": "q", "component": "QuoteCard", "quoteId": "q"},
+            {"id": "n", "component": "Notice", "text": "Check the flags"},
+            {"id": "b", "component": "Button", "label": "Yes", "action": {"name": "yes"}},
+        )
+    )
+    assert [c["component"] for c in out[1]["updateComponents"]["components"]] == [
+        "Column",
+        "Notice",
+        "Button",
+    ]
+    assert out[1]["updateComponents"]["components"][0]["children"] == ["n", "b"]
+    assert cards.filter(surface("s2", {"id": "root", "component": "SentNotice"})) == []
+    assert cards.missing() == []
+    text = surfaces.text_only_instructions()
+    assert "Notice" in text and "Button" in text
+    assert not any(card in text for card in surfaces.CARD_ID)
+
+
 def test_a_second_card_for_the_same_id_is_dropped_with_its_surface():
     cards = surfaces.TurnCards()
     first = cards.filter(surface("s1", {"id": "root", "component": "QuoteCard", "quoteId": "q"}))
@@ -267,6 +292,17 @@ def test_actions_become_plain_sentences():
     assert "new draft d-2" in say("recipe_edit_as_new", draftId="d-2", copiedFrom="d-1")
     assert "line 3 of quote q" in say("rejection_next_step", quoteId="q", lineId="3")
     assert say("something_else") == 'The buyer tapped "something_else".'
+
+    plain = agent.action_plain
+    assert plain({"name": "recipe_confirmed", "context": {"draftId": "d-1"}}, "en") == (
+        "I confirmed the recipe."
+    )
+    assert plain({"name": "menu_swap_day", "context": {"day": "tue"}}, "fi") == (
+        "Vaihda ruoka tiistaille."
+    )
+    assert plain({"name": "send_for_confirmation", "context": {"quoteId": "q"}}, "en") == (
+        "Send it to my phone."
+    )
 
 
 def test_chat_request_takes_exactly_one_of_message_and_action():

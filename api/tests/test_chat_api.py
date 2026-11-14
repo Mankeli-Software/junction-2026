@@ -18,6 +18,7 @@ from app.main import app
 from app.models import AuditEvent, OrderSession, Quote
 from app.settings import get_settings
 from tests import chat_fakes as fx
+from tests.test_recipe_drafts import PROPOSAL
 
 LINE = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
 
@@ -257,14 +258,22 @@ async def test_the_confirmation_page_chat_can_only_update_the_links_quote(
             "update_quote", {"quote_id": "not-this-one", "lines": [{**LINE, "quantity": 30}]}
         )
 
-    chat.reset(update, fx.text("Done: 30 litres now."))
+    drawn = fx.fence(
+        {"id": "root", "component": "Column", "children": ["q", "t"]},
+        {"id": "q", "component": "QuoteCard", "quoteId": "anything"},
+        {"id": "t", "component": "Text", "text": "Changed."},
+    )
+    chat.reset(update, fx.text("Done: 30 litres now." + drawn))
 
     pairs = send(page, f"/api/v1/confirmations/{token}/chat", message="Make it 30 litres")
 
     done = pairs[-1][1]
     assert done["quote_id"] and done["quote_id"] != built["quote_id"]
+    # Text only: no domain card is offered, drawn or added.
+    assert [c["component"] for c in fx.cards(pairs)] == ["Column", "Text"]
     system = "".join(p.text or "" for p in chat.requests[0].messages[0].content)
     assert built["quote_id"] in system and '"maito"' in system
+    assert "Notice" in system and "QuoteCard" not in system and "RecipeDraftCard" not in system
     view = page.get(f"/api/v1/confirmations/{token}").json()
     assert view["state"] == "ready"
     assert view["quote"]["quote_id"] == done["quote_id"]
@@ -292,3 +301,82 @@ def test_the_chat_takes_the_cookie_and_a_model(monkeypatch):
         == 422
     )
     get_settings.cache_clear()
+
+
+async def confirmation_link(client: TestClient) -> tuple[dict, str]:
+    built = client.post("/api/v1/quotes", json={"lines": [LINE]}).json()
+    client.post(f"/api/v1/quotes/{built['quote_id']}/confirmation-request")
+    [message] = client.get("/api/v1/private/inbox").json()
+    return built, message["link"].rsplit("/c/", 1)[1]
+
+
+async def test_the_confirmation_page_chat_refuses_a_change_that_needs_a_question(
+    chat, live_client, app_db
+):
+    built, token = await confirmation_link(live_client)
+    page = TestClient(app)
+    chat.reset(
+        fx.call(
+            "update_quote", {"quote_id": built["quote_id"], "lines": [{**LINE, "text": "zzz"}]}
+        ),
+        fx.text("Which product did you mean?"),
+    )
+
+    pairs = send(page, f"/api/v1/confirmations/{token}/chat", message="Make it zzz")
+
+    [result] = chat.tool_results(1)
+    assert result["error"].startswith("Not changed")
+    assert "Ask the buyer this question in words" in result["error"]
+    assert pairs[-1] == ("done", {"quote_id": built["quote_id"]})
+    view = page.get(f"/api/v1/confirmations/{token}").json()
+    assert view["state"] == "ready" and view["quote"]["quote_id"] == built["quote_id"]
+    async with AsyncSession(app_db) as db:
+        children = (
+            await db.scalars(
+                select(Quote).where(Quote.parent_quote_id == uuid.UUID(built["quote_id"]))
+            )
+        ).all()
+        original = await db.get_one(Quote, uuid.UUID(built["quote_id"]))
+    assert children == [] and original.status == "pending_confirmation"
+    # The refused call is still in the log, as the chat's own tool call.
+    session = await quote_session(app_db, built["quote_id"])
+    types = [e.type for e in await session_events(app_db, session.id)]
+    assert "tool_called" in types and "tool_returned" in types
+
+
+async def test_a_recipe_photo_turn_shows_its_draft_card(chat, live_client, app_db):
+    proposed = live_client.post("/api/v1/recipe-drafts", json=PROPOSAL)
+    assert proposed.status_code == 200, proposed.text
+    draft_id = proposed.json()["draft_id"]
+    chat.reset(fx.text("I read your recipe. Check it and confirm."))
+
+    pairs = send(
+        live_client,
+        conversation_id=None,
+        message="Here is my recipe",
+        action=None,
+        attachment_draft_id=draft_id,
+    )
+
+    assert fx.cards(pairs) == [{"id": "root", "component": "RecipeDraftCard", "draftId": draft_id}]
+    assert f"recipe draft {draft_id}" in chat.user_texts(0)[-1]
+    assert pairs[-1][0] == "done"
+
+    # Another user's draft is refused.
+    other = TestClient(app)
+    sign_in(other)
+    other_draft = other.post("/api/v1/recipe-drafts", json=PROPOSAL).json()["draft_id"]
+    refused = send(live_client, message="mine?", attachment_draft_id=other_draft)
+    assert refused[-1][0] == "error"
+
+
+async def test_an_action_is_logged_in_plain_words(chat, live_client, app_db):
+    chat.reset(fx.text("Ok."))
+    send(
+        live_client,
+        action={"name": "recipe_confirmed", "context": {"draftId": "d-1", "portions": 80}},
+    )
+    async with AsyncSession(app_db) as db:
+        [said] = (await db.scalars(select(AuditEvent).where(AuditEvent.type == "buyer_said"))).all()
+    assert said.payload["text"] == "I confirmed the recipe for 80 portions."
+    assert "d-1" not in said.payload["text"]
