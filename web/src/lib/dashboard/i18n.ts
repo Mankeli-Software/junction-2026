@@ -140,6 +140,7 @@ const STRINGS = {
 	arguments: { en: 'Arguments', fi: 'Argumentit' },
 	response_to_agent: { en: 'Response to agent', fi: 'Vastaus agentille' },
 	no_response_yet: { en: 'No response yet', fi: 'Ei vielä vastausta' },
+	tool_returned: { en: 'Returned', fi: 'Vastasi' },
 	show_more_steps: { en: 'Show {n} more steps', fi: 'Näytä {n} vaihetta lisää' },
 	connector_flow_note: {
 		en: "Conversation happens in the buyer's own {client} client and is not visible to us. Tool calls shown below.",

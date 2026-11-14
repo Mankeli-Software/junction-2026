@@ -103,6 +103,36 @@ function unquote(text: string): string {
 	return text.replace(/^"(.*)"$/s, '$1');
 }
 
+/**
+ * The words after the tool name: the payload's own `summary` when it has one, else the part
+ * of the step's sentence after the first comma ("build_quote, 1 line: ..."). The API's
+ * sentence, "The agent called build_quote", says no more than the name, so then nothing.
+ */
+function toolSummary(step: Step, called: Record<string, unknown>): Localized | null {
+	if (isLocalized(called.summary)) return called.summary;
+	const rest = (text: string) => (text.includes(',') ? text.replace(/^[^,]*,\s*/, '') : '');
+	const summary = { en: rest(step.text.en), fi: rest(step.text.fi) };
+	return summary.en || summary.fi ? summary : null;
+}
+
+/**
+ * The pill on a tool box: the engine's decision (`response.decision`), an error, or the
+ * result's own sentence. The API's bare "build_quote returned" shows as "Returned".
+ */
+function toolDecision(
+	tool: string,
+	returned: Step,
+	payload: Record<string, unknown>
+): { code: string; label: Localized | null } {
+	const response = obj(payload.response);
+	if (typeof response.decision === 'string') return { code: response.decision, label: null };
+	const status = typeof response.status === 'string' ? response.status : null;
+	if (status && isLocalized(response.label)) return { code: status, label: response.label };
+	if (payload.error !== undefined) return { code: 'error', label: returned.text };
+	if (!returned.text.en || returned.text.en === `${tool} returned`) return { code: status ?? 'returned', label: null };
+	return { code: status ?? 'returned', label: returned.text };
+}
+
 export function buildTimeline(
 	steps: readonly Step[],
 	events: readonly AuditEvent[],
@@ -159,38 +189,19 @@ export function buildTimeline(
 				used.add(returned.seq);
 				refs.push(returned.order_index);
 			}
-			const result = returned ? obj(payloadOf(returned).result) : {};
-			const decisionCode =
-				typeof result.decision === 'string'
-					? result.decision
-					: typeof result.status === 'string'
-						? result.status
-						: returned
-							? returned.text.en
-							: null;
 			const toolName =
 				typeof called.tool === 'string' ? called.tool : (step.text.en.split(',')[0] ?? step.type);
-			const summary = isLocalized(called.summary)
-				? called.summary
-				: {
-						en: step.text.en.replace(/^[^,]*,\s*/, ''),
-						fi: step.text.fi.replace(/^[^,]*,\s*/, '')
-					};
+			const answer = returned ? payloadOf(returned) : null;
 			rows.push({
 				kind: 'tool',
 				at: step.at,
 				refs,
 				tool: toolName,
-				summary,
-				decision: decisionCode
-					? {
-							code: decisionCode,
-							label: isLocalized(result.label) ? result.label : (returned && !result.decision ? returned.text : null)
-						}
-					: null,
+				summary: toolSummary(step, called),
+				decision: returned && answer ? toolDecision(toolName, returned, answer) : null,
 				notes,
-				args: called.args,
-				response: returned ? (payloadOf(returned).result ?? null) : null,
+				args: called.arguments,
+				response: answer ? (answer.response ?? answer.error ?? null) : null,
 				hasDetails: eventBySeq.has(step.seq)
 			});
 			continue;

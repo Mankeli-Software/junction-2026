@@ -21,10 +21,12 @@
 			"agent": "gemini-voice",
 			"prompt_version": "v7"
 		},
+		"text_fi": "Puhelu alkoi. Soittaja tunnistettiin: Hassu Hauki Oy (palaava). Keittiö välttää maitoa ja pähkinöitä.",
+		"text_en": "Call started. Caller identified as Hassu Hauki Oy (returning). Kitchen avoids milk and nuts.",
 		"payload_hash": "217f677365fdaf5f2f061aeeeb929b01d60d153d708620bcd69c194fd2b202a2",
-		"prev_hash": "80e607906b47cf2bb1158435edb2a0107939f19677aeaf417fdbee2aff3f8161",
+		"prev_hash": "69a426d15b0547c0f59daec8427db46f854d6276506c4632dcaaa89885f1b996",
 		"session_prev_hash": null,
-		"hash": "ced505709b6411b1646362f3501488b1d105aad62c0db920a789931818b5f288"
+		"hash": "d96466b1f0d992735b5ecf87e6a0cfee9ef9e1a0124b9401a10f4e7aaec74e50"
 	},
 	{
 		"seq": 1244,
@@ -45,10 +47,12 @@
 			"lang": "en",
 			"transcript": true
 		},
+		"text_fi": "\"Five kilos of ground beef for Monday, and a few other things.\"",
+		"text_en": "\"Five kilos of ground beef for Monday, and a few other things.\"",
 		"payload_hash": "6d077cc50d5adce7b8636b142837971dcd3dfe0b4dc453bc93fdab3ff990abce",
-		"prev_hash": "ced505709b6411b1646362f3501488b1d105aad62c0db920a789931818b5f288",
-		"session_prev_hash": "ced505709b6411b1646362f3501488b1d105aad62c0db920a789931818b5f288",
-		"hash": "71acaf578da7575fba9079ca054e7691aa64f9ff80d423e6f2868828231f4261"
+		"prev_hash": "d96466b1f0d992735b5ecf87e6a0cfee9ef9e1a0124b9401a10f4e7aaec74e50",
+		"session_prev_hash": "d96466b1f0d992735b5ecf87e6a0cfee9ef9e1a0124b9401a10f4e7aaec74e50",
+		"hash": "67ed5b379fad3178c36907a30e341bafc6069cac5ecb58904a961431f590ffd7"
 	},
 	{
 		"seq": 1245,
@@ -71,7 +75,7 @@
 				"en": "1 line: ground beef, 5 kg, needed by Mon 16 Nov",
 				"fi": "1 rivi: jauheliha, 5 kg, tarvitaan ma 16.11."
 			},
-			"args": {
+			"arguments": {
 				"lines": [
 					{
 						"text": "ground beef",
@@ -82,10 +86,12 @@
 				]
 			}
 		},
-		"payload_hash": "88a83b95764d9b3a0b16e7dd3fae9790a297dad71420da50bb30515cf4b1e5a4",
-		"prev_hash": "71acaf578da7575fba9079ca054e7691aa64f9ff80d423e6f2868828231f4261",
-		"session_prev_hash": "71acaf578da7575fba9079ca054e7691aa64f9ff80d423e6f2868828231f4261",
-		"hash": "3cbd6f0819c1a60fa77e8d706861c0c822b6a55e3f99c3cb608161850e1d5322"
+		"text_fi": "build_quote, 1 rivi: jauheliha, 5 kg, tarvitaan ma 16.11.",
+		"text_en": "build_quote, 1 line: ground beef, 5 kg, needed by Mon 16 Nov",
+		"payload_hash": "5166c19e3d7ad7669dfa9c13580e48be0efb375f2a6c3f702edde402dc0f0882",
+		"prev_hash": "67ed5b379fad3178c36907a30e341bafc6069cac5ecb58904a961431f590ffd7",
+		"session_prev_hash": "67ed5b379fad3178c36907a30e341bafc6069cac5ecb58904a961431f590ffd7",
+		"hash": "bf5a98a288d7a50680d1129d07fdd23543a5939f80b9e82505210dfdd7c5aff7"
 	},
 	{
 		"seq": 1248,
@@ -107,10 +113,12 @@
 			"quantity_sales_units": 2,
 			"line_total_cents": 4190
 		},
+		"text_fi": "Valittiin Naudan jauheliha 10 % 2,5 kg, 2 kpl = 5 kg, 41,90 €. Halvin 5 sopivasta tuotteesta.",
+		"text_en": "Chose Beef mince 10 % 2,5 kg, 2 pcs = 5 kg, 41.90 €. Cheapest of 5 safe products that arrive Monday.",
 		"payload_hash": "aa91b5939f50279a7c934f7409c810db309038f880d4424726592b8641f6d1e3",
-		"prev_hash": "867a36e140db3415b924f92b03f6a952638ffb459e061a24a9d00a3daa9e4c8b",
-		"session_prev_hash": "3cbd6f0819c1a60fa77e8d706861c0c822b6a55e3f99c3cb608161850e1d5322",
-		"hash": "1d86c3d5042793d81f4fe2eb24d811fc38d7dcbc1735c0753735d98e72f7291f"
+		"prev_hash": "dbb3a02cb47fb1b7256f082dc2c68828f3cdcb67f98155fe346d70df63abef2f",
+		"session_prev_hash": "bf5a98a288d7a50680d1129d07fdd23543a5939f80b9e82505210dfdd7c5aff7",
+		"hash": "52f0ccca1245b28de03a9a20caf969500ff84b6e297fde177b2385bc37600808"
 	},
 	{
 		"seq": 1249,
@@ -129,17 +137,19 @@
 		"payload": {
 			"call_id": "call_1",
 			"tool": "build_quote",
-			"result": {
+			"response": {
 				"decision": "ready",
 				"quote_id": "q_8c21",
 				"lines": 1,
 				"total_cents": 4190
 			}
 		},
-		"payload_hash": "15d35ce828397be2ed1bb436bb4c4ab841914d907eed359619bcb5a5eb52baa7",
-		"prev_hash": "1d86c3d5042793d81f4fe2eb24d811fc38d7dcbc1735c0753735d98e72f7291f",
-		"session_prev_hash": "1d86c3d5042793d81f4fe2eb24d811fc38d7dcbc1735c0753735d98e72f7291f",
-		"hash": "7d34f85ea376fa0ad6f17868080044e14c17bf39472b7c27b2919c8528cca107"
+		"text_fi": "ready",
+		"text_en": "ready",
+		"payload_hash": "2b6dc34a95f7121447512abf15d04caa4ef1aad415f742793ceb861ae9308bc8",
+		"prev_hash": "52f0ccca1245b28de03a9a20caf969500ff84b6e297fde177b2385bc37600808",
+		"session_prev_hash": "52f0ccca1245b28de03a9a20caf969500ff84b6e297fde177b2385bc37600808",
+		"hash": "098c1861e44e97ed984808f080dc62d8eb225787aa1e93c20f24faaf777b67ff"
 	},
 	{
 		"seq": 1250,
@@ -160,10 +170,12 @@
 			"lang": "en",
 			"transcript": true
 		},
+		"text_fi": "\"Beef mince 10 %, two 2.5 kg packs for Monday. What else?\"",
+		"text_en": "\"Beef mince 10 %, two 2.5 kg packs for Monday. What else?\"",
 		"payload_hash": "03f3106bd8f47f375a4504d53cc3704fe0c04aceb80324e0f0298c0730d584fc",
-		"prev_hash": "7d34f85ea376fa0ad6f17868080044e14c17bf39472b7c27b2919c8528cca107",
-		"session_prev_hash": "7d34f85ea376fa0ad6f17868080044e14c17bf39472b7c27b2919c8528cca107",
-		"hash": "fe5293af5ae1c54c058816b0cdfa028dc2e936e3de8e82c8e75462f4aac3b39a"
+		"prev_hash": "098c1861e44e97ed984808f080dc62d8eb225787aa1e93c20f24faaf777b67ff",
+		"session_prev_hash": "098c1861e44e97ed984808f080dc62d8eb225787aa1e93c20f24faaf777b67ff",
+		"hash": "dee155d6c0e3d2f5389e768dc92a2c65003dbf950457d4ce70cc43ef1beaa423"
 	},
 	{
 		"seq": 1253,
@@ -184,10 +196,12 @@
 			"lang": "en",
 			"transcript": true
 		},
+		"text_fi": "\"Two kilos of butter, the lactose-free one.\"",
+		"text_en": "\"Two kilos of butter, the lactose-free one.\"",
 		"payload_hash": "ec4e96561f7873a317879309efba1300f852d2e5ff5e7328391827a0301b6c1b",
-		"prev_hash": "4087d1d9afbfddc6b57ee99373248f568859779f22055187e2a9287707c7e1d9",
-		"session_prev_hash": "fe5293af5ae1c54c058816b0cdfa028dc2e936e3de8e82c8e75462f4aac3b39a",
-		"hash": "46819ee668cb6597005a861c9bdaa074bfb19ca93203abdae55bb9826a2c7ff3"
+		"prev_hash": "42f7e8deb6d65b508b4c3219d84c6d2bcf60b8d9425e90133cc53361f2dc37b8",
+		"session_prev_hash": "dee155d6c0e3d2f5389e768dc92a2c65003dbf950457d4ce70cc43ef1beaa423",
+		"hash": "165b4641c5dd4a966b2f0505f0ddba1c870652368af7e537596fb4234192e116"
 	},
 	{
 		"seq": 1254,
@@ -210,7 +224,7 @@
 				"en": "add 1 line: lactose-free butter, 2 kg",
 				"fi": "1 rivi lisää: laktoositon voi, 2 kg"
 			},
-			"args": {
+			"arguments": {
 				"quote_id": "q_8c21",
 				"add_lines": [
 					{
@@ -222,10 +236,12 @@
 				]
 			}
 		},
-		"payload_hash": "125a34031b093da6dc46fdc441911cc19f0d2d6385073ec74ae28a772b597590",
-		"prev_hash": "46819ee668cb6597005a861c9bdaa074bfb19ca93203abdae55bb9826a2c7ff3",
-		"session_prev_hash": "46819ee668cb6597005a861c9bdaa074bfb19ca93203abdae55bb9826a2c7ff3",
-		"hash": "84e05cba915accce785e28b1bec3f10b21481c2af155152fb7e6a94d5cde9971"
+		"text_fi": "update_quote, 1 rivi lisää: laktoositon voi, 2 kg",
+		"text_en": "update_quote, add 1 line: lactose-free butter, 2 kg",
+		"payload_hash": "98a696c665ae82818a4c74e4ac38a39c4b46e8b527518c5adc7c87c7f3222691",
+		"prev_hash": "165b4641c5dd4a966b2f0505f0ddba1c870652368af7e537596fb4234192e116",
+		"session_prev_hash": "165b4641c5dd4a966b2f0505f0ddba1c870652368af7e537596fb4234192e116",
+		"hash": "74cc38336e640e8b0fa34507513045f7a3ef2e4cf3e7685c16525386b1e4a22e"
 	},
 	{
 		"seq": 1255,
@@ -246,10 +262,12 @@
 			"searched": 17546,
 			"matched": 6
 		},
+		"text_fi": "Haettiin 17 546 tuotteesta, 6 voituotetta sopii.",
+		"text_en": "Searched 17 546 products, 6 butter products match.",
 		"payload_hash": "faa467c64bf92a0ca04e0ee91c4a466b644804ec1eb70a10d5a83ff86aa8296d",
-		"prev_hash": "84e05cba915accce785e28b1bec3f10b21481c2af155152fb7e6a94d5cde9971",
-		"session_prev_hash": "84e05cba915accce785e28b1bec3f10b21481c2af155152fb7e6a94d5cde9971",
-		"hash": "1a24311af4cda87e272d41aae7a48c3559cfca897c286d58f36a88bc47cfbf0e"
+		"prev_hash": "74cc38336e640e8b0fa34507513045f7a3ef2e4cf3e7685c16525386b1e4a22e",
+		"session_prev_hash": "74cc38336e640e8b0fa34507513045f7a3ef2e4cf3e7685c16525386b1e4a22e",
+		"hash": "be9306253d0d2ab0bb6a256e27ea49ceae9680e925a2f145067bcff4077149cb"
 	},
 	{
 		"seq": 1256,
@@ -276,9 +294,11 @@
 			],
 			"source": "snapshot"
 		},
+		"text_fi": "Tarkistetaan saldo 6 tuotteelle.",
+		"text_en": "Checking stock for 6 products.",
 		"payload_hash": "1e1dc32c712535ed63a5c010d64be30d7bd878def40f849dc29ff05d90652df6",
-		"prev_hash": "1a24311af4cda87e272d41aae7a48c3559cfca897c286d58f36a88bc47cfbf0e",
-		"session_prev_hash": "1a24311af4cda87e272d41aae7a48c3559cfca897c286d58f36a88bc47cfbf0e",
-		"hash": "b1f37653ea5380b3e7f732e279f5496bff48184d08fab822bc1297c4c4f5dd91"
+		"prev_hash": "be9306253d0d2ab0bb6a256e27ea49ceae9680e925a2f145067bcff4077149cb",
+		"session_prev_hash": "be9306253d0d2ab0bb6a256e27ea49ceae9680e925a2f145067bcff4077149cb",
+		"hash": "08bcb13e940f1b7a3ae001c14fb58a3b958f2cc5ef4180393af0e6f892cfc675"
 	}
 ]

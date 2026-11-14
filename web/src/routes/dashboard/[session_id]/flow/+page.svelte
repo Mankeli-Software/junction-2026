@@ -94,7 +94,7 @@
 	function decisionTone(code: string): string {
 		if (code === 'ready') return 'tone-confirmed';
 		if (code === 'needs_clarification') return 'tone-waiting';
-		if (code === 'rejected') return 'tone-attention';
+		if (code === 'rejected' || code === 'error') return 'tone-attention';
 		return 'tone-active';
 	}
 
@@ -150,7 +150,11 @@
 					{#if row.summary}<span>{pick(row.summary, ui.lang)}</span>{/if}
 					{#if row.decision}
 						<span class="dec {decisionTone(row.decision.code)}"
-							>{row.decision.label ? pick(row.decision.label, ui.lang) : row.decision.code}</span
+							>{row.decision.label
+								? pick(row.decision.label, ui.lang)
+								: row.decision.code === 'returned'
+									? t('tool_returned', ui.lang)
+									: row.decision.code}</span
 						>
 					{/if}
 					<span class="grow"></span>

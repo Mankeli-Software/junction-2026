@@ -86,7 +86,7 @@ const d1042: Session = {
 				call_id: 'call_1',
 				tool: 'build_quote',
 				summary: { en: '1 line: ground beef, 5 kg, needed by Sun 15 Nov', fi: '1 rivi: jauheliha, 5 kg, tarvitaan su 15.11.' },
-				args: { lines: [{ text: 'ground beef', quantity: 5, unit: 'kg', needed_by: '2026-11-15' }] }
+				arguments: { lines: [{ text: 'ground beef', quantity: 5, unit: 'kg', needed_by: '2026-11-15' }] }
 			}
 		},
 		{
@@ -107,7 +107,7 @@ const d1042: Session = {
 			payload: {
 				call_id: 'call_1',
 				tool: 'build_quote',
-				result: {
+				response: {
 					decision: 'needs_clarification',
 					quote_id: Q,
 					question_en: 'Sunday is not a delivery day. Is Monday 16 Nov fine?'
@@ -137,7 +137,7 @@ const d1042: Session = {
 				call_id: 'call_2',
 				tool: 'update_quote',
 				summary: { en: 'needed by Mon 16 Nov', fi: 'tarvitaan ma 16.11.' },
-				args: { quote_id: Q, answer: { needed_by: '2026-11-16' } }
+				arguments: { quote_id: Q, answer: { needed_by: '2026-11-16' } }
 			}
 		},
 		{
@@ -185,7 +185,7 @@ const d1042: Session = {
 			payload: {
 				call_id: 'call_2',
 				tool: 'update_quote',
-				result: {
+				response: {
 					decision: 'ready',
 					quote_id: Q,
 					lines: 1,
@@ -227,7 +227,7 @@ const d1042: Session = {
 					en: 'add 2 lines: usual oat drink 20 l, rapeseed oil 10 l',
 					fi: '2 riviä lisää: tavallinen kaurajuoma 20 l, rypsiöljy 10 l'
 				},
-				args: {
+				arguments: {
 					quote_id: Q,
 					add_lines: [
 						{ text: 'my usual oat drink', quantity: 20, unit: 'l', needed_by: '2026-11-16' },
@@ -303,7 +303,7 @@ const d1042: Session = {
 			payload: {
 				call_id: 'call_3',
 				tool: 'update_quote',
-				result: {
+				response: {
 					decision: 'ready',
 					quote_id: Q,
 					version: 1,
@@ -347,7 +347,7 @@ const d1042: Session = {
 				call_id: 'call_4',
 				tool: 'request_confirmation',
 				summary: { en: 'quote q_7f3a v1, no recipient argument', fi: 'tarjous q_7f3a v1, ei vastaanottaja-argumenttia' },
-				args: { quote_id: Q }
+				arguments: { quote_id: Q }
 			}
 		},
 		{
@@ -359,7 +359,7 @@ const d1042: Session = {
 			payload: {
 				call_id: 'call_4',
 				tool: 'request_confirmation',
-				result: {
+				response: {
 					status: 'queued',
 					deliver: 'end_of_call',
 					label: { en: 'SMS queued for end of call', fi: 'SMS jonossa puhelun loppuun' }
@@ -452,7 +452,7 @@ const liveCall: Session = {
 				call_id: 'call_1',
 				tool: 'build_quote',
 				summary: { en: '1 line: ground beef, 5 kg, needed by Mon 16 Nov', fi: '1 rivi: jauheliha, 5 kg, tarvitaan ma 16.11.' },
-				args: { lines: [{ text: 'ground beef', quantity: 5, unit: 'kg', needed_by: '2026-11-16' }] }
+				arguments: { lines: [{ text: 'ground beef', quantity: 5, unit: 'kg', needed_by: '2026-11-16' }] }
 			}
 		},
 		{
@@ -471,7 +471,7 @@ const liveCall: Session = {
 			type: 'tool_returned',
 			quote_id: 'q_8c21',
 			text: same('ready'),
-			payload: { call_id: 'call_1', tool: 'build_quote', result: { decision: 'ready', quote_id: 'q_8c21', lines: 1, total_cents: 4190 } }
+			payload: { call_id: 'call_1', tool: 'build_quote', response: { decision: 'ready', quote_id: 'q_8c21', lines: 1, total_cents: 4190 } }
 		},
 		{
 			at: at('10:41:16'),
@@ -497,7 +497,7 @@ const liveCall: Session = {
 				call_id: 'call_2',
 				tool: 'update_quote',
 				summary: { en: 'add 1 line: lactose-free butter, 2 kg', fi: '1 rivi lisää: laktoositon voi, 2 kg' },
-				args: { quote_id: 'q_8c21', add_lines: [{ text: 'lactose-free butter', quantity: 2, unit: 'kg', needed_by: '2026-11-16' }] }
+				arguments: { quote_id: 'q_8c21', add_lines: [{ text: 'lactose-free butter', quantity: 2, unit: 'kg', needed_by: '2026-11-16' }] }
 			}
 		},
 		{
@@ -523,6 +523,8 @@ interface Built extends Spec {
 	session_id: string;
 	channel: string;
 	identity_masked: string | null;
+	text_fi: string | null;
+	text_en: string | null;
 	payload_hash: string;
 	prev_hash: string;
 	session_prev_hash: string | null;
@@ -584,6 +586,9 @@ async function build(session: Session): Promise<Built[]> {
 			identity_masked: session.identity_masked,
 			quote_id,
 			payload: spec.payload,
+			// As /events sends them: the raw sentences that payload_hash covers.
+			text_fi: spec.text.fi,
+			text_en: spec.text.en,
 			payload_hash,
 			prev_hash: prevHash,
 			session_prev_hash: sessionPrev,
@@ -630,7 +635,9 @@ victim.text = {
 	en: 'Searched 17 546 products: 2 oat drinks and 9 rapeseed oils match.',
 	fi: 'Haettiin 17 546 tuotteesta: 2 kaurajuomaa ja 9 rypsiöljyä sopii.'
 };
-victim.payload_hash = await payloadHash(victim.payload, victim.text.fi, victim.text.en);
+victim.text_fi = victim.text.fi;
+victim.text_en = victim.text.en;
+victim.payload_hash = await payloadHash(victim.payload, victim.text_fi, victim.text_en);
 
 write('d1042-events.json', d1042Events);
 write('d1042-events-tampered.json', tampered);

@@ -93,7 +93,7 @@ function genericSpecs(card: OrderCard, company: CompanyRef): GenSpec[] {
 			actor: 'mcp',
 			en: `build_quote, ${card.title.en}`,
 			fi: `build_quote, ${card.title.fi}`,
-			payload: { call_id: 'call_1', tool: 'build_quote', summary: card.title, args: { request: card.title.en } }
+			payload: { call_id: 'call_1', tool: 'build_quote', summary: card.title, arguments: { request: card.title.en } }
 		}
 	];
 	if (card.total_cents !== null) {
@@ -110,7 +110,7 @@ function genericSpecs(card: OrderCard, company: CompanyRef): GenSpec[] {
 				actor: 'mcp',
 				en: 'ready',
 				fi: 'ready',
-				payload: { call_id: 'call_1', tool: 'build_quote', result: { decision: 'ready', quote_id: quoteId } }
+				payload: { call_id: 'call_1', tool: 'build_quote', response: { decision: 'ready', quote_id: quoteId } }
 			}
 		);
 	}
@@ -187,6 +187,8 @@ async function generateEvents(sessionId: string): Promise<AuditEvent[]> {
 			actor: spec.actor,
 			type: spec.type,
 			text: { en: spec.en, fi: spec.fi },
+			text_fi: spec.fi,
+			text_en: spec.en,
 			payload_hash,
 			prev_hash: prev,
 			session_prev_hash: sessionPrev,

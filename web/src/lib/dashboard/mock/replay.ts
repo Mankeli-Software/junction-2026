@@ -99,6 +99,8 @@ async function addStep(actor: string, type: string, text: Localized, payload: Re
 		actor,
 		type,
 		text,
+		text_fi: text.fi,
+		text_en: text.en,
 		payload,
 		payload_hash,
 		prev_hash: lastLive.hash,
@@ -153,7 +155,7 @@ const SCRIPT: Array<() => Promise<void> | void> = [
 		await addStep('mcp', 'tool_returned', same('ready'), {
 			call_id: 'call_2',
 			tool: 'update_quote',
-			result: { decision: 'ready', quote_id: 'q_8c21', lines: 2, total_cents: 6950, flags: 1 }
+			response: { decision: 'ready', quote_id: 'q_8c21', lines: 2, total_cents: 6950, flags: 1 }
 		});
 		updateCard(LIVE, {
 			state: 'quote_ready',
@@ -179,13 +181,13 @@ const SCRIPT: Array<() => Promise<void> | void> = [
 				call_id: 'call_3',
 				tool: 'request_confirmation',
 				summary: { en: 'quote q_8c21 v1, no recipient argument', fi: 'tarjous q_8c21 v1, ei vastaanottaja-argumenttia' },
-				args: { quote_id: 'q_8c21' }
+				arguments: { quote_id: 'q_8c21' }
 			}
 		);
 		await addStep('mcp', 'tool_returned', { en: 'SMS queued for end of call', fi: 'SMS jonossa puhelun loppuun' }, {
 			call_id: 'call_3',
 			tool: 'request_confirmation',
-			result: { status: 'queued', deliver: 'end_of_call', label: { en: 'SMS queued for end of call', fi: 'SMS jonossa puhelun loppuun' } }
+			response: { status: 'queued', deliver: 'end_of_call', label: { en: 'SMS queued for end of call', fi: 'SMS jonossa puhelun loppuun' } }
 		});
 	},
 	async () => {
