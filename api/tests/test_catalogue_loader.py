@@ -3,13 +3,21 @@
 import json
 from pathlib import Path
 
-from sqlalchemy import func, select
+import pytest
+from sqlalchemy import func, select, text
 
 from app.loaders.catalogue import ALLERGEN_CODE_FILE, CATEGORY_FILE, load
 from app.loaders.product_file import read_allergen_codes, read_categories
 from app.models import Product, ProductAllergen, ProductClaim, ProductUnit
 
 SAMPLE = Path(__file__).parent / "fixtures" / "products_sample.json"
+
+
+@pytest.fixture(autouse=True)
+async def no_products(db_engine):
+    """Start from an empty catalogue: other tests leave the shared test catalogue loaded."""
+    async with db_engine.begin() as conn:
+        await conn.execute(text("DELETE FROM products"))
 
 
 async def _load(engine, products=None):

@@ -1,10 +1,13 @@
 """Shared fixtures. Database tests run only when DATABASE_URL is exported (CLAUDE.md)."""
 
 import asyncio
+import json
 import os
 import subprocess
 from collections.abc import AsyncIterator, Iterator
+from functools import cache
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,10 +22,18 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 import app.db
+from app.loaders.catalogue import ALLERGEN_CODE_FILE, CATEGORY_FILE, load
+from app.loaders.product_file import read_allergen_codes, read_categories
 from app.main import app as fastapi_app
 from app.settings import get_settings, psycopg_url
 
 API_DIR = Path(__file__).resolve().parents[1]
+FIXTURES = Path(__file__).parent / "fixtures"
+
+# The test catalogue (#29, #30): the loader sample (the milk shortlist of
+# valio-api-analysis.md §11, whose prices and availability are recorded in data/snapshots/)
+# plus the search sample (distractors and an oat drink).
+CATALOGUE_SAMPLES = ("products_sample.json", "products_search_sample.json")
 
 # What the HTTP-level tests write, emptied after each of them.
 ACCOUNT_TABLES = (
@@ -81,9 +92,38 @@ async def db_engine() -> AsyncIterator[AsyncEngine]:
     await engine.dispose()
 
 
+@cache
+def catalogue_products() -> list[dict[str, Any]]:
+    products: list[dict[str, Any]] = []
+    for name in CATALOGUE_SAMPLES:
+        products += json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+    return products
+
+
 @pytest.fixture
-async def db(db_engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
-    """A session inside a transaction that is rolled back after the test.
+async def catalogue(db_engine: AsyncEngine) -> AsyncEngine:
+    """The test catalogue in the test database, committed. Loaded again only when the
+    stored products differ, for example after the loader tests."""
+    products = catalogue_products()
+    async with db_engine.connect() as conn:
+        stored = sorted((await conn.scalars(text("SELECT id FROM products"))).all())
+    if stored != sorted(p["id"] for p in products):
+        if stored:
+            async with db_engine.begin() as conn:
+                await conn.execute(text("DELETE FROM products"))
+        await load(
+            db_engine,
+            products,
+            read_categories(CATEGORY_FILE),
+            read_allergen_codes(ALLERGEN_CODE_FILE),
+        )
+    return db_engine
+
+
+@pytest.fixture
+async def db(db_engine: AsyncEngine, catalogue: AsyncEngine) -> AsyncIterator[AsyncSession]:
+    """A session inside a transaction that is rolled back after the test, with the test
+    catalogue loaded.
 
     Commits in the code under test become savepoints, so nothing is left behind.
     """
@@ -120,9 +160,10 @@ def no_caller(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture
 async def app_db(
-    db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch
+    db_engine: AsyncEngine, catalogue: AsyncEngine, monkeypatch: pytest.MonkeyPatch
 ) -> AsyncIterator[AsyncEngine]:
-    """Point the app's own database sessions at the test database, for HTTP-level tests.
+    """Point the app's own database sessions at the test database, for HTTP-level tests,
+    with the test catalogue loaded.
 
     The app commits for real, so the tables it writes are emptied after the test, leaving
     them clean for the `db` tests. NullPool, because TestClient runs requests in other
