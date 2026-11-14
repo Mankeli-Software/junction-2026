@@ -36,7 +36,10 @@ The server reads them from its process environment, for example `CONFIRMATION_SO
 | `/c/[token]` | The confirmation page (`docs/specs/confirmation-page.md`) |
 | `/dashboard` | The live order dashboard (`docs/specs/dashboard.md`, #50) |
 | `/shop` | The webshop with the WebMCP tools (#56): our own page in the Aimo webshop's style, twelve Valio products, the phone's number entry |
+| `/login`, `/signup` | Connector login and sign-up (#48): email and password, the phone step for a hand-out account, then `?next=` (a path on this site) or `/phone?inbox=1` |
+| `/connect?request=<id>` | The connector consent step (#48): "Allow Claude to order for <company>?". FastAPI's `/oauth/authorize` sends the browser here; without a session it goes to `/login?next=...` first |
 | `/api/v1/demo/accounts`, `/api/v1/me`, `/api/v1/private/inbox`, `/api/v1/private/inbox/stream` | The fixture for `technical-plan.md` §9.2 with `DEMO_SOURCE=fixture`; passed through to FastAPI with `api` |
+| `/api/v1/signup`, `/api/v1/session`, `/api/v1/me/phone`, `/api/v1/oauth/requests/[id]` | The same for the connector login (#48). In the fixture, any `judge...@simo.mankeli.co` with the password `handout-pass` is a hand-out account without a number, and Allow goes to `/phone?inbox=1&code=fixture` |
 | The agent tools' REST twins (`/api/v1/products`, `/api/v1/quotes`, ...) | Passed through to FastAPI with `DEMO_SOURCE=api`. With `fixture` they answer 503: there is no engine fixture |
 
 ### The demo phone with the fixtures
