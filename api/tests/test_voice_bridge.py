@@ -29,7 +29,11 @@ def test_inline_refs_refuses_a_recursive_schema():
 async def test_every_mcp_tool_becomes_a_self_contained_declaration():
     tools = await mcp.list_tools()
     declarations = bridge.declarations(tools)
-    assert [d.name for d in declarations] == [*AGENT_TOOLS, END_CALL]
+    phone_tools = [name for name in AGENT_TOOLS if name not in bridge.NOT_ON_PHONE]
+    assert [d.name for d in declarations] == [*phone_tools, END_CALL]
+    # A recipe photo can't be shown on a call (#80).
+    assert {"propose_recipe", "confirm_recipe"} == bridge.NOT_ON_PHONE
+    assert not {d.name for d in declarations} & bridge.NOT_ON_PHONE
     for declaration in declarations:
         text = json.dumps(declaration.parameters_json_schema)
         assert "$ref" not in text and "$defs" not in text, declaration.name

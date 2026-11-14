@@ -25,6 +25,9 @@ log = logging.getLogger(__name__)
 
 TOOL_TIMEOUT = timedelta(seconds=45)
 
+# Agent tools the phone never gets: a recipe photo can't be shown on a call (#80).
+NOT_ON_PHONE = frozenset({"propose_recipe", "confirm_recipe"})
+
 END_CALL_DESCRIPTION = (
     "Hang up the call. Call it after your goodbye, once the confirmation link has been "
     "requested or when the caller says they are done. Never in the middle of an order."
@@ -82,7 +85,9 @@ def end_call_declaration() -> types.FunctionDeclaration:
 
 
 def declarations(tools: list[Tool]) -> list[types.FunctionDeclaration]:
-    return [declaration(tool) for tool in tools if tool.name != END_CALL] + [end_call_declaration()]
+    """The MCP tools the phone may use, then the relay's own `end_call`."""
+    kept = [tool for tool in tools if tool.name != END_CALL and tool.name not in NOT_ON_PHONE]
+    return [declaration(tool) for tool in kept] + [end_call_declaration()]
 
 
 def tool_response(result: CallToolResult) -> dict[str, Any]:
