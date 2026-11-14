@@ -43,6 +43,10 @@ services:
     restart: unless-stopped
     environment:
       ORIGIN: ${ORIGIN:-http://localhost}
+      # The confirmation page reads FastAPI at its address inside Compose. Not secret and the
+      # same everywhere, so it lives here. CONFIRMATION_SOURCE=fixture brings back the fake order.
+      API_BASE_URL: http://api:8000
+      CONFIRMATION_SOURCE: ${CONFIRMATION_SOURCE:-api}
 
 volumes:
   caddy_data:
