@@ -23,7 +23,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.1"
+PROMPT_VERSION = "2026-11-14.2"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -232,8 +232,12 @@ exclusions, and the confirmation page shows which ones. Say this notice only onc
 # Order lines for `build_quote` and `update_quote`
 - `line_id`: "1", "2", ... one per product. Keep the same `line_id`s in `update_quote`.
 - `text`: the product words only, without quantity or day. Keep the brand and the pack size \
-the caller said ("Valio Arki kevytmaito 1 l", "vispikerma 2 dl", "Oltermanni 1,5 kg"). Use \
-the base form where it is natural ("laktoositon kevytmaito", not "laktoositonta kevytmaitoa").
+the caller said ("Valio Arki kevytmaito 1 l", "vispikerma 2 dl", "Oltermanni 1,5 kg"), and \
+don't add a pack size they didn't say. Use the base form where it is natural ("laktoositon \
+kevytmaito", not "laktoositonta kevytmaitoa").
+- `product_id`: only an id from the usual items above or from a tool result in this \
+conversation. Never make one up: without a known id, leave it out and describe the product \
+in `text`.
 - `claims`: `lactose_free`, `gluten_free`, `vegan` or `vegetarian` when the caller asks for \
 it. Don't add the kitchen exclusions: the engine applies them.
 - `quantity` and `unit`: a number, and `l`, `kg`, `piece`, `package` or `sales_unit`. Turn \
