@@ -384,6 +384,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/confirmations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Confirmation
+         * @description The page's view. Never uses the token up; stays readable as the receipt.
+         */
+        get: operations["get_confirmation_api_v1_confirmations__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/confirmations/{token}/acknowledgements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acknowledge */
+        post: operations["acknowledge_api_v1_confirmations__token__acknowledgements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/confirmations/{token}/edits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Edit */
+        post: operations["edit_api_v1_confirmations__token__edits_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/confirmations/{token}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_api_v1_confirmations__token__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/confirmations/{token}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel */
+        post: operations["cancel_api_v1_confirmations__token__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -405,6 +493,31 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AcknowledgeRequest
+         * @description `option_id` is the buyer's pick for a `choose` flag. An option that changes the
+         *     order makes a new quote, with the flag acknowledged on it.
+         */
+        AcknowledgeRequest: {
+            /** Quote Hash */
+            quote_hash: string;
+            /** Flag Key */
+            flag_key: string;
+            /** Option Id */
+            option_id?: string | null;
+        };
+        /** AcknowledgedFlag */
+        AcknowledgedFlag: {
+            /** Flag Key */
+            flag_key: string;
+            /** Code */
+            code: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+        };
         /** Alternative */
         Alternative: {
             /** Product Id */
@@ -438,12 +551,31 @@ export interface components {
             /** Lines */
             lines: components["schemas"]["LineRequest"][];
         };
+        /** CancelRequest */
+        CancelRequest: {
+            /** Quote Hash */
+            quote_hash: string;
+        };
         /**
          * Channel
          * @description The channel a session came in through, one tile each on the overview.
          * @enum {string}
          */
         Channel: "phone" | "web_chat" | "webmcp" | "mcp";
+        /** ChooseAlternativeEdit */
+        ChooseAlternativeEdit: {
+            /** Quote Hash */
+            quote_hash: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "choose_alternative";
+            /** Line Id */
+            line_id: string;
+            /** Alternative Id */
+            alternative_id: string;
+        };
         /**
          * Claim
          * @description Product claims, as the product data states them.
@@ -463,6 +595,47 @@ export interface components {
             /** Options */
             options: components["schemas"]["Alternative"][];
         };
+        /** ConfirmRequest */
+        ConfirmRequest: {
+            /** Quote Hash */
+            quote_hash: string;
+        };
+        /** ConfirmResponse */
+        ConfirmResponse: {
+            /** Order Number */
+            order_number: string;
+            /**
+             * Confirmed At
+             * Format: date-time
+             */
+            confirmed_at: string;
+        };
+        /** ConfirmationCompany */
+        ConfirmationCompany: {
+            /** Name */
+            name: string;
+        };
+        /**
+         * ConfirmationErrorDetail
+         * @description The `detail` of a refused action: `{"detail": {"text": {...}, "line_id": ...}}`.
+         */
+        ConfirmationErrorDetail: {
+            text: components["schemas"]["Localized"];
+            /** Line Id */
+            line_id?: string | null;
+        };
+        /** ConfirmationQuote */
+        ConfirmationQuote: {
+            /** Quote Id */
+            quote_id: string;
+            /** Version */
+            version: number;
+            /** Quote Hash */
+            quote_hash: string;
+            /** Total Cents */
+            total_cents: number;
+            delivery: components["schemas"]["DeliverySummary"] | null;
+        };
         /** ConfirmationRequestResponse */
         ConfirmationRequestResponse: {
             /** Sent To Masked */
@@ -474,6 +647,57 @@ export interface components {
             delivery_status: "held" | "sent" | "failed" | "off";
             /** Inbox */
             inbox: boolean;
+        };
+        /** ConfirmationSession */
+        ConfirmationSession: {
+            channel: components["schemas"]["Channel"];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+        };
+        /** ConfirmationView */
+        ConfirmationView: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "ready" | "requote_needed" | "confirmed" | "cancelled" | "expired" | "invalid";
+            /**
+             * Lang
+             * @enum {string}
+             */
+            lang: "fi" | "en";
+            /** Expires At */
+            expires_at: string | null;
+            company: components["schemas"]["ConfirmationCompany"];
+            session: components["schemas"]["ConfirmationSession"];
+            /** Exclusions */
+            exclusions: components["schemas"]["ExclusionLabel"][];
+            quote: components["schemas"]["ConfirmationQuote"];
+            /** Lines */
+            lines: components["schemas"]["QuoteLine"][];
+            /** Groups */
+            groups: components["schemas"]["GroupSubtotal"][];
+            /** Not Ordered */
+            not_ordered: components["schemas"]["NotOrdered"][];
+            /** Flags */
+            flags: components["schemas"]["ViewFlag"][];
+            change: components["schemas"]["QuoteChange"] | null;
+            order: components["schemas"]["ConfirmedOrder"] | null;
+        };
+        /** ConfirmedOrder */
+        ConfirmedOrder: {
+            /** Order Number */
+            order_number: string;
+            /**
+             * Confirmed At
+             * Format: date-time
+             */
+            confirmed_at: string;
+            /** Acknowledged */
+            acknowledged: components["schemas"]["AcknowledgedFlag"][];
         };
         /**
          * ConnectDecision
@@ -811,6 +1035,22 @@ export interface components {
             /** Origin */
             origin: string | null;
         };
+        /**
+         * QuoteChange
+         * @description What changed compared with the previous quote, after an edit or a requote.
+         */
+        QuoteChange: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "edit" | "requote";
+            /** Previous Total Cents */
+            previous_total_cents: number;
+            /** Line Ids */
+            line_ids: string[];
+            text: components["schemas"]["Localized"] | null;
+        };
         /** QuoteLine */
         QuoteLine: {
             /** Line Id */
@@ -955,6 +1195,18 @@ export interface components {
             text: components["schemas"]["Localized"];
             next_step: components["schemas"]["Localized"];
         };
+        /** RemoveLineEdit */
+        RemoveLineEdit: {
+            /** Quote Hash */
+            quote_hash: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "remove";
+            /** Line Id */
+            line_id: string;
+        };
         /**
          * RequestedUnit
          * @description The unit the buyer asked in. With `package`, the word is in `package_word`.
@@ -970,6 +1222,20 @@ export interface components {
         SearchRecipesResponse: {
             /** Results */
             results: components["schemas"]["RecipeHit"][];
+        };
+        /** SetQuantityEdit */
+        SetQuantityEdit: {
+            /** Quote Hash */
+            quote_hash: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            op: "set_quantity";
+            /** Line Id */
+            line_id: string;
+            /** Quantity */
+            quantity: number;
         };
         /**
          * SignupRequest
@@ -1042,6 +1308,37 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * ViewFlag
+         * @description A contract flag plus what the confirmation adds to it.
+         */
+        ViewFlag: {
+            /** Flag Key */
+            flag_key: string;
+            /** Code */
+            code: string;
+            /** Line Ids */
+            line_ids: string[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "acknowledge" | "choose";
+            text: components["schemas"]["Localized"];
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["FlagOption"][];
+            /** Requires Ack */
+            requires_ack: boolean;
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+            /** Current Option Id */
+            current_option_id: string | null;
+            /** Is New */
+            is_new: boolean;
         };
     };
     responses: never;
@@ -1658,6 +1955,278 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_confirmation_api_v1_confirmations__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationView"];
+                };
+            };
+            /** @description Unknown link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    acknowledge_api_v1_confirmations__token__acknowledgements_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcknowledgeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale quote, closed, or requoted */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Expired (production only) */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Not possible, or a flag unchecked */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+        };
+    };
+    edit_api_v1_confirmations__token__edits_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetQuantityEdit"] | components["schemas"]["RemoveLineEdit"] | components["schemas"]["ChooseAlternativeEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale quote, closed, or requoted */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Expired (production only) */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Not possible, or a flag unchecked */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+        };
+    };
+    confirm_api_v1_confirmations__token__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmResponse"];
+                };
+            };
+            /** @description Unknown link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale quote, closed, or requoted */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Expired (production only) */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Not possible, or a flag unchecked */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+        };
+    };
+    cancel_api_v1_confirmations__token__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Stale quote, closed, or requoted */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Expired (production only) */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
+                };
+            };
+            /** @description Not possible, or a flag unchecked */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationErrorDetail"];
                 };
             };
         };

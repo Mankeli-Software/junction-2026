@@ -933,6 +933,350 @@
 				}
 			}
 		},
+		"/api/v1/confirmations/{token}": {
+			"get": {
+				"tags": [
+					"confirmation page"
+				],
+				"summary": "Get Confirmation",
+				"description": "The page's view. Never uses the token up; stays readable as the receipt.",
+				"operationId": "get_confirmation_api_v1_confirmations__token__get",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Token"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationView"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Unknown link"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/confirmations/{token}/acknowledgements": {
+			"post": {
+				"tags": [
+					"confirmation page"
+				],
+				"summary": "Acknowledge",
+				"operationId": "acknowledge_api_v1_confirmations__token__acknowledgements_post",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Token"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AcknowledgeRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Successful Response"
+					},
+					"404": {
+						"description": "Unknown link"
+					},
+					"409": {
+						"description": "Stale quote, closed, or requoted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"410": {
+						"description": "Expired (production only)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Not possible, or a flag unchecked",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/confirmations/{token}/edits": {
+			"post": {
+				"tags": [
+					"confirmation page"
+				],
+				"summary": "Edit",
+				"operationId": "edit_api_v1_confirmations__token__edits_post",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Token"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"oneOf": [
+									{
+										"$ref": "#/components/schemas/SetQuantityEdit"
+									},
+									{
+										"$ref": "#/components/schemas/RemoveLineEdit"
+									},
+									{
+										"$ref": "#/components/schemas/ChooseAlternativeEdit"
+									}
+								],
+								"discriminator": {
+									"propertyName": "op",
+									"mapping": {
+										"set_quantity": "#/components/schemas/SetQuantityEdit",
+										"remove": "#/components/schemas/RemoveLineEdit",
+										"choose_alternative": "#/components/schemas/ChooseAlternativeEdit"
+									}
+								},
+								"title": "Body"
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Successful Response"
+					},
+					"404": {
+						"description": "Unknown link"
+					},
+					"409": {
+						"description": "Stale quote, closed, or requoted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"410": {
+						"description": "Expired (production only)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Not possible, or a flag unchecked",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/confirmations/{token}/confirm": {
+			"post": {
+				"tags": [
+					"confirmation page"
+				],
+				"summary": "Confirm",
+				"operationId": "confirm_api_v1_confirmations__token__confirm_post",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Token"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ConfirmRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Unknown link"
+					},
+					"409": {
+						"description": "Stale quote, closed, or requoted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"410": {
+						"description": "Expired (production only)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Not possible, or a flag unchecked",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/confirmations/{token}/cancel": {
+			"post": {
+				"tags": [
+					"confirmation page"
+				],
+				"summary": "Cancel",
+				"operationId": "cancel_api_v1_confirmations__token__cancel_post",
+				"parameters": [
+					{
+						"name": "token",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Token"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CancelRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Successful Response"
+					},
+					"404": {
+						"description": "Unknown link"
+					},
+					"409": {
+						"description": "Stale quote, closed, or requoted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"410": {
+						"description": "Expired (production only)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Not possible, or a flag unchecked",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConfirmationErrorDetail"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/health": {
 			"get": {
 				"summary": "Health",
@@ -958,6 +1302,62 @@
 	},
 	"components": {
 		"schemas": {
+			"AcknowledgeRequest": {
+				"properties": {
+					"quote_hash": {
+						"type": "string",
+						"title": "Quote Hash"
+					},
+					"flag_key": {
+						"type": "string",
+						"title": "Flag Key"
+					},
+					"option_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Option Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_hash",
+					"flag_key"
+				],
+				"title": "AcknowledgeRequest",
+				"description": "`option_id` is the buyer's pick for a `choose` flag. An option that changes the\norder makes a new quote, with the flag acknowledged on it."
+			},
+			"AcknowledgedFlag": {
+				"properties": {
+					"flag_key": {
+						"type": "string",
+						"title": "Flag Key"
+					},
+					"code": {
+						"type": "string",
+						"title": "Code"
+					},
+					"at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "At"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"flag_key",
+					"code",
+					"at"
+				],
+				"title": "AcknowledgedFlag"
+			},
 			"Alternative": {
 				"properties": {
 					"product_id": {
@@ -1054,6 +1454,20 @@
 				],
 				"title": "BuildQuoteRequest"
 			},
+			"CancelRequest": {
+				"properties": {
+					"quote_hash": {
+						"type": "string",
+						"title": "Quote Hash"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_hash"
+				],
+				"title": "CancelRequest"
+			},
 			"Channel": {
 				"type": "string",
 				"enum": [
@@ -1064,6 +1478,36 @@
 				],
 				"title": "Channel",
 				"description": "The channel a session came in through, one tile each on the overview."
+			},
+			"ChooseAlternativeEdit": {
+				"properties": {
+					"quote_hash": {
+						"type": "string",
+						"title": "Quote Hash"
+					},
+					"op": {
+						"type": "string",
+						"const": "choose_alternative",
+						"title": "Op"
+					},
+					"line_id": {
+						"type": "string",
+						"title": "Line Id"
+					},
+					"alternative_id": {
+						"type": "string",
+						"title": "Alternative Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_hash",
+					"op",
+					"line_id",
+					"alternative_id"
+				],
+				"title": "ChooseAlternativeEdit"
 			},
 			"Claim": {
 				"type": "string",
@@ -1103,6 +1547,119 @@
 				"title": "Clarification",
 				"description": "The single question back to the buyer. `options` may be empty for an open question."
 			},
+			"ConfirmRequest": {
+				"properties": {
+					"quote_hash": {
+						"type": "string",
+						"title": "Quote Hash"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_hash"
+				],
+				"title": "ConfirmRequest"
+			},
+			"ConfirmResponse": {
+				"properties": {
+					"order_number": {
+						"type": "string",
+						"title": "Order Number"
+					},
+					"confirmed_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Confirmed At"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"order_number",
+					"confirmed_at"
+				],
+				"title": "ConfirmResponse"
+			},
+			"ConfirmationCompany": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"name"
+				],
+				"title": "ConfirmationCompany"
+			},
+			"ConfirmationErrorDetail": {
+				"properties": {
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"line_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Line Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"text"
+				],
+				"title": "ConfirmationErrorDetail",
+				"description": "The `detail` of a refused action: `{\"detail\": {\"text\": {...}, \"line_id\": ...}}`."
+			},
+			"ConfirmationQuote": {
+				"properties": {
+					"quote_id": {
+						"type": "string",
+						"title": "Quote Id"
+					},
+					"version": {
+						"type": "integer",
+						"title": "Version"
+					},
+					"quote_hash": {
+						"type": "string",
+						"title": "Quote Hash"
+					},
+					"total_cents": {
+						"type": "integer",
+						"title": "Total Cents"
+					},
+					"delivery": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/DeliverySummary"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_id",
+					"version",
+					"quote_hash",
+					"total_cents",
+					"delivery"
+				],
+				"title": "ConfirmationQuote"
+			},
 			"ConfirmationRequestResponse": {
 				"properties": {
 					"sent_to_masked": {
@@ -1132,6 +1689,171 @@
 					"inbox"
 				],
 				"title": "ConfirmationRequestResponse"
+			},
+			"ConfirmationSession": {
+				"properties": {
+					"channel": {
+						"$ref": "#/components/schemas/Channel"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Started At"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"channel",
+					"started_at"
+				],
+				"title": "ConfirmationSession"
+			},
+			"ConfirmationView": {
+				"properties": {
+					"state": {
+						"type": "string",
+						"enum": [
+							"ready",
+							"requote_needed",
+							"confirmed",
+							"cancelled",
+							"expired",
+							"invalid"
+						],
+						"title": "State"
+					},
+					"lang": {
+						"type": "string",
+						"enum": [
+							"fi",
+							"en"
+						],
+						"title": "Lang"
+					},
+					"expires_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Expires At"
+					},
+					"company": {
+						"$ref": "#/components/schemas/ConfirmationCompany"
+					},
+					"session": {
+						"$ref": "#/components/schemas/ConfirmationSession"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/ExclusionLabel"
+						},
+						"type": "array",
+						"title": "Exclusions"
+					},
+					"quote": {
+						"$ref": "#/components/schemas/ConfirmationQuote"
+					},
+					"lines": {
+						"items": {
+							"$ref": "#/components/schemas/QuoteLine"
+						},
+						"type": "array",
+						"title": "Lines"
+					},
+					"groups": {
+						"items": {
+							"$ref": "#/components/schemas/GroupSubtotal"
+						},
+						"type": "array",
+						"title": "Groups"
+					},
+					"not_ordered": {
+						"items": {
+							"$ref": "#/components/schemas/NotOrdered"
+						},
+						"type": "array",
+						"title": "Not Ordered"
+					},
+					"flags": {
+						"items": {
+							"$ref": "#/components/schemas/ViewFlag"
+						},
+						"type": "array",
+						"title": "Flags"
+					},
+					"change": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/QuoteChange"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"order": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/ConfirmedOrder"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"state",
+					"lang",
+					"expires_at",
+					"company",
+					"session",
+					"exclusions",
+					"quote",
+					"lines",
+					"groups",
+					"not_ordered",
+					"flags",
+					"change",
+					"order"
+				],
+				"title": "ConfirmationView"
+			},
+			"ConfirmedOrder": {
+				"properties": {
+					"order_number": {
+						"type": "string",
+						"title": "Order Number"
+					},
+					"confirmed_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Confirmed At"
+					},
+					"acknowledged": {
+						"items": {
+							"$ref": "#/components/schemas/AcknowledgedFlag"
+						},
+						"type": "array",
+						"title": "Acknowledged"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"order_number",
+					"confirmed_at",
+					"acknowledged"
+				],
+				"title": "ConfirmedOrder"
 			},
 			"ConnectDecision": {
 				"properties": {
@@ -1964,6 +2686,49 @@
 				],
 				"title": "ProductHit"
 			},
+			"QuoteChange": {
+				"properties": {
+					"reason": {
+						"type": "string",
+						"enum": [
+							"edit",
+							"requote"
+						],
+						"title": "Reason"
+					},
+					"previous_total_cents": {
+						"type": "integer",
+						"title": "Previous Total Cents"
+					},
+					"line_ids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Line Ids"
+					},
+					"text": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Localized"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"reason",
+					"previous_total_cents",
+					"line_ids",
+					"text"
+				],
+				"title": "QuoteChange",
+				"description": "What changed compared with the previous quote, after an edit or a requote."
+			},
 			"QuoteLine": {
 				"properties": {
 					"line_id": {
@@ -2464,6 +3229,31 @@
 				],
 				"title": "Rejection"
 			},
+			"RemoveLineEdit": {
+				"properties": {
+					"quote_hash": {
+						"type": "string",
+						"title": "Quote Hash"
+					},
+					"op": {
+						"type": "string",
+						"const": "remove",
+						"title": "Op"
+					},
+					"line_id": {
+						"type": "string",
+						"title": "Line Id"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_hash",
+					"op",
+					"line_id"
+				],
+				"title": "RemoveLineEdit"
+			},
 			"RequestedUnit": {
 				"type": "string",
 				"enum": [
@@ -2509,6 +3299,38 @@
 					"results"
 				],
 				"title": "SearchRecipesResponse"
+			},
+			"SetQuantityEdit": {
+				"properties": {
+					"quote_hash": {
+						"type": "string",
+						"title": "Quote Hash"
+					},
+					"op": {
+						"type": "string",
+						"const": "set_quantity",
+						"title": "Op"
+					},
+					"line_id": {
+						"type": "string",
+						"title": "Line Id"
+					},
+					"quantity": {
+						"type": "integer",
+						"maximum": 10000.0,
+						"minimum": 1.0,
+						"title": "Quantity"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"quote_hash",
+					"op",
+					"line_id",
+					"quantity"
+				],
+				"title": "SetQuantityEdit"
 			},
 			"SignupRequest": {
 				"properties": {
@@ -2677,6 +3499,90 @@
 					"type"
 				],
 				"title": "ValidationError"
+			},
+			"ViewFlag": {
+				"properties": {
+					"flag_key": {
+						"type": "string",
+						"title": "Flag Key"
+					},
+					"code": {
+						"type": "string",
+						"title": "Code"
+					},
+					"line_ids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Line Ids"
+					},
+					"kind": {
+						"type": "string",
+						"enum": [
+							"acknowledge",
+							"choose"
+						],
+						"title": "Kind"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"options": {
+						"items": {
+							"$ref": "#/components/schemas/FlagOption"
+						},
+						"type": "array",
+						"title": "Options",
+						"default": []
+					},
+					"requires_ack": {
+						"type": "boolean",
+						"title": "Requires Ack"
+					},
+					"acknowledged_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Acknowledged At"
+					},
+					"current_option_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Current Option Id"
+					},
+					"is_new": {
+						"type": "boolean",
+						"title": "Is New"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"flag_key",
+					"code",
+					"line_ids",
+					"kind",
+					"text",
+					"requires_ack",
+					"acknowledged_at",
+					"current_option_id",
+					"is_new"
+				],
+				"title": "ViewFlag",
+				"description": "A contract flag plus what the confirmation adds to it."
 			}
 		}
 	}
