@@ -140,6 +140,21 @@ async def test_a_caller_without_an_account_gets_nothing_sent(db):
     ) is None
 
 
+async def test_an_unclaimed_account_gets_nothing_sent(db):
+    # A hand-out account has no number yet (#48), so there is nowhere to send the link.
+    quote = await ready_quote(db, await sign_in(db, new_number()))
+    unclaimed = await accounts.create_unclaimed_account(
+        db, "unclaimed.confirm@example.com", "correct horse battery"
+    )
+    caller = DEV_CALLER.model_copy(update={"user_id": unclaimed.id})
+
+    with pytest.raises(StateError):
+        await confirmations.request_confirmation(db, caller, quote)
+    assert (
+        await db.scalar(select(Confirmation).where(Confirmation.quote_id == quote.quote_id))
+    ) is None
+
+
 @pytest.mark.parametrize(
     ("lang", "text"),
     [

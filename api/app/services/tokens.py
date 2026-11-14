@@ -83,7 +83,8 @@ async def issue_caller_token(
 async def resolve_access_token(
     db: AsyncSession, raw_token: str, *, now: datetime | None = None
 ) -> TokenCaller | None:
-    """The caller for a bearer token, or None if it is unknown or expired."""
+    """The caller for a bearer token, or None if it is unknown or expired, or its user is a
+    hand-out account that has no number and so no company yet (#48)."""
     now = now or datetime.now(UTC)
     row = (
         await db.execute(
@@ -95,6 +96,8 @@ async def resolve_access_token(
     if row is None:
         return None
     token, company_id = row
+    if company_id is None:
+        return None
     return TokenCaller(
         user_id=token.user_id,
         company_id=company_id,

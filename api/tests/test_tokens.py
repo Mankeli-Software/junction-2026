@@ -66,3 +66,14 @@ async def test_caller_token_expires_after_15_minutes(db):
 
 async def test_unknown_token_resolves_to_none(db):
     assert await resolve_access_token(db, new_token()) is None
+
+
+async def test_a_token_of_an_unclaimed_account_resolves_to_none(db):
+    # A hand-out account has no number and so no company until its first login (#48).
+    user = User(email="unclaimed.token@example.com", password_hash="x", lang="en")
+    db.add(user)
+    await db.flush()
+
+    raw = await issue_caller_token(db, user.id, "phone", "S.I.MO phone")
+
+    assert await resolve_access_token(db, raw) is None
