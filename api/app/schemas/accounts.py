@@ -5,7 +5,7 @@ The shapes match the phone page (`web/src/lib/demo/types.ts`).
 
 from uuid import UUID
 
-from .common import Exclusion, Lang, StrictModel
+from .common import Exclusion, KitchenType, Lang, StrictModel
 from .engine import UsualItem
 
 
@@ -32,6 +32,7 @@ class DemoAccountResponse(StrictModel):
     usual_items: list[UsualItem]
     new_company: bool  # the number was new, so its company was just created
     new_user: bool  # this browser got a new user (a new browser, or another number)
+    kitchen_type: KitchenType | None = None  # chosen from the number (#32)
 
 
 class Me(StrictModel):
@@ -43,6 +44,7 @@ class Me(StrictModel):
     phone_masked: str
     exclusions: list[Exclusion]
     lang: Lang
+    kitchen_type: KitchenType | None = None  # chosen from the number (#32)
 
 
 # --- Connector accounts and the OAuth consent step (#48, `technical-plan.md` §7.3) ---

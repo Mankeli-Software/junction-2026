@@ -50,6 +50,18 @@ class Exclusion(StrEnum):
     vegan = "vegan"
 
 
+class KitchenType(StrEnum):
+    """The kind of kitchen a demo company is, chosen from its phone number (#32, #61)."""
+
+    pizza_restaurant = "pizza_restaurant"
+    school_kitchen = "school_kitchen"
+    lunch_restaurant = "lunch_restaurant"
+    bar = "bar"
+    vegan_catering = "vegan_catering"
+    cafe = "cafe"
+    tech_office = "tech_office"
+
+
 class RequestedUnit(StrEnum):
     """The unit the buyer asked in. With `package`, the word is in `package_word`."""
 

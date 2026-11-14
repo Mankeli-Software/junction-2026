@@ -115,6 +115,7 @@ def test_response_shape_and_masked_number():
         "usual_items",
         "new_company",
         "new_user",
+        "kitchen_type",
     }
     assert uuid.UUID(body["user_id"]) and uuid.UUID(body["company_id"])
     assert body["new_company"] is True and body["new_user"] is True
@@ -186,6 +187,7 @@ def test_me_falls_back_to_the_dev_caller_without_a_session():
         "phone_masked",
         "exclusions",
         "lang",
+        "kitchen_type",
     }
     assert me.json()["company_name"] == DEV_CALLER.company_name
 

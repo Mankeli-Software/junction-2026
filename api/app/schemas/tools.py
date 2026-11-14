@@ -12,6 +12,7 @@ from .common import (
     Claim,
     Exclusion,
     JsonDecimal,
+    KitchenType,
     Lang,
     Localized,
     QuoteStatus,
@@ -64,6 +65,8 @@ class CustomerContext(StrictModel):
     exclusions: list[ExclusionLabel]
     usual_items: list[UsualItem]
     lang: Lang
+    kitchen_type: KitchenType | None = None  # what kind of kitchen this is (#32)
+    last_order: list[UsualItem] = []  # the latest order, for "the same as last time"
 
 
 # search_recipes

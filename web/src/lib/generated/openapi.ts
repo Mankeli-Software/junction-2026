@@ -939,6 +939,12 @@ export interface components {
              * @enum {string}
              */
             lang: "fi" | "en";
+            kitchen_type?: components["schemas"]["KitchenType"] | null;
+            /**
+             * Last Order
+             * @default []
+             */
+            last_order: components["schemas"]["UsualItem"][];
         };
         /**
          * Decision
@@ -1003,6 +1009,7 @@ export interface components {
             new_company: boolean;
             /** New User */
             new_user: boolean;
+            kitchen_type?: components["schemas"]["KitchenType"] | null;
         };
         /**
          * Exclusion
@@ -1077,6 +1084,12 @@ export interface components {
             /** Link */
             link: string;
         };
+        /**
+         * KitchenType
+         * @description The kind of kitchen a demo company is, chosen from its phone number (#32, #61).
+         * @enum {string}
+         */
+        KitchenType: "pizza_restaurant" | "school_kitchen" | "lunch_restaurant" | "bar" | "vegan_catering" | "cafe" | "tech_office";
         /**
          * LineRequest
          * @description One structured line from the agent. The engine never sees raw speech.
@@ -1171,6 +1184,7 @@ export interface components {
              * @enum {string}
              */
             lang: "fi" | "en";
+            kitchen_type?: components["schemas"]["KitchenType"] | null;
         };
         /**
          * NotOrdered

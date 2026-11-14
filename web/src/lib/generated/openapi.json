@@ -2522,6 +2522,24 @@
 							"en"
 						],
 						"title": "Lang"
+					},
+					"kitchen_type": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/KitchenType"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"last_order": {
+						"items": {
+							"$ref": "#/components/schemas/UsualItem"
+						},
+						"type": "array",
+						"title": "Last Order",
+						"default": []
 					}
 				},
 				"additionalProperties": false,
@@ -2638,6 +2656,16 @@
 					"new_user": {
 						"type": "boolean",
 						"title": "New User"
+					},
+					"kitchen_type": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/KitchenType"
+							},
+							{
+								"type": "null"
+							}
+						]
 					}
 				},
 				"additionalProperties": false,
@@ -2827,6 +2855,20 @@
 				],
 				"title": "InboxMessage",
 				"description": "One message in the simulated phone (`InboxMessage` in `web/src/lib/demo/types.ts`)."
+			},
+			"KitchenType": {
+				"type": "string",
+				"enum": [
+					"pizza_restaurant",
+					"school_kitchen",
+					"lunch_restaurant",
+					"bar",
+					"vegan_catering",
+					"cafe",
+					"tech_office"
+				],
+				"title": "KitchenType",
+				"description": "The kind of kitchen a demo company is, chosen from its phone number (#32, #61)."
 			},
 			"LineRequest": {
 				"properties": {
@@ -3038,6 +3080,16 @@
 							"en"
 						],
 						"title": "Lang"
+					},
+					"kitchen_type": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/KitchenType"
+							},
+							{
+								"type": "null"
+							}
+						]
 					}
 				},
 				"additionalProperties": false,
