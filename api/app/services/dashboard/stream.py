@@ -147,3 +147,14 @@ class Broadcaster:
                 yield item.to_sse()
         finally:
             self._subscribers.discard(subscriber)
+
+
+_broadcaster: Broadcaster | None = None
+
+
+def get_broadcaster() -> Broadcaster:
+    """The one broadcaster of this process (uvicorn runs one worker, §10.2)."""
+    global _broadcaster
+    if _broadcaster is None:
+        _broadcaster = Broadcaster()
+    return _broadcaster
