@@ -18,6 +18,11 @@ class ReasonCode(StrEnum):
 
     # Validate and resolve
     INPUT_INVALID = "INPUT_INVALID"
+    # Input errors (#106): the call is refused and each one names the line, field and fix.
+    PACKAGE_WORD_MISSING = "PACKAGE_WORD_MISSING"
+    NEEDED_BY_PAST = "NEEDED_BY_PAST"
+    LINE_EMPTY = "LINE_EMPTY"
+    DUPLICATE_LINE_ID = "DUPLICATE_LINE_ID"
     PRODUCT_NOT_FOUND = "PRODUCT_NOT_FOUND"
     NO_MATCH = "NO_MATCH"
     AMBIGUOUS_MATCH = "AMBIGUOUS_MATCH"
@@ -121,6 +126,10 @@ REMOVAL_CODES = frozenset(
 # Codes that can reject a line. Each needs a next step for the buyer.
 REJECTING_CODES = (REMOVAL_CODES - {ReasonCode.OFFER_UNAVAILABLE}) | {
     ReasonCode.INPUT_INVALID,
+    ReasonCode.PACKAGE_WORD_MISSING,
+    ReasonCode.NEEDED_BY_PAST,
+    ReasonCode.LINE_EMPTY,
+    ReasonCode.DUPLICATE_LINE_ID,
     ReasonCode.PRODUCT_NOT_FOUND,
     ReasonCode.CALLBACK_REQUESTED,
 }

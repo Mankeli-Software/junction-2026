@@ -36,6 +36,28 @@ codes:
     fi: "Tilausta ei voitu käsitellä, koska siinä oli virheellisiä tietoja."
     en: "The order could not be processed because some of its details were invalid."
     next: {fi: "Kerro tuote, määrä ja toivottu toimituspäivä uudelleen.", en: "Please tell me the product, quantity and delivery date again."}
+  # Input errors (#106). The agent reads these, fixes the line and calls again; the buyer
+  # is not asked again for what the agent already has.
+  PACKAGE_WORD_MISSING:
+    kind: reason
+    fi: "Rivin yksikkö (unit) on package, mutta pakkaussana (package_word) puuttuu."
+    en: "The line's unit is package but its package_word is missing."
+    next: {fi: "Lähetä package_word ostajan käyttämällä sanalla, esimerkiksi laatikko, tai käytä yksikköä sales_unit, piece, kg tai l.", en: "Send package_word with the buyer's own word, for example case, or use the unit sales_unit, piece, kg or l."}
+  NEEDED_BY_PAST:
+    kind: reason
+    fi: "Rivin toimituspäivä (needed_by) on menneisyydessä."
+    en: "The line's delivery date (needed_by) is in the past."
+    next: {fi: "Lähetä needed_by, joka on tänään tai myöhemmin.", en: "Send a needed_by that is today or later."}
+  LINE_EMPTY:
+    kind: reason
+    fi: "Rivillä ei ole tuotetta: product_id, usual, text ja category puuttuvat."
+    en: "The line names no product: it has no product_id, usual, text or category."
+    next: {fi: "Lähetä rivillä tuotteen product_id tai sen nimi kentässä text.", en: "Send the product's product_id, or its name in text."}
+  DUPLICATE_LINE_ID:
+    kind: reason
+    fi: "Useammalla rivillä on sama line_id."
+    en: "More than one line has this line_id."
+    next: {fi: "Anna jokaiselle riville oma line_id.", en: "Give every line its own line_id."}
   PRODUCT_NOT_FOUND:
     kind: reason
     fi: "En löytänyt tuotetta tuotenumerolla {product}."
