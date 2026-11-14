@@ -1,8 +1,8 @@
 /**
  * Where the confirmation page gets its data. Two implementations:
- * - `fixture`: an in-memory stand-in for the engine, used until the FastAPI
- *   endpoints (#47) exist, and by the Playwright tests.
- * - `api`: the FastAPI endpoints from technical-plan.md §9.4.
+ * - `fixture`: an in-memory stand-in for the engine, for `pnpm dev` and the
+ *   Playwright tests.
+ * - `api`: the FastAPI endpoints from technical-plan.md §9.4 (#47).
  * Pick one with the CONFIRMATION_SOURCE environment variable.
  */
 import type { ConfirmationView, EditOp, Text } from '#lib/confirmation/types.js';

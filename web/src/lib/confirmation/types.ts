@@ -7,7 +7,8 @@
  *
  * The second part is the confirmation view: what `GET /api/v1/confirmations/{token}`
  * returns (technical-plan.md §9.4). It wraps the contract models with the page state
- * and the buyer's acknowledgements. #47 implements it; keep the two in step.
+ * and the buyer's acknowledgements. #47 serves it from api/app/schemas/confirmation.py;
+ * keep the two in step.
  */
 
 export type Lang = 'fi' | 'en';

@@ -6,10 +6,14 @@ import { writeFakeVoice } from './tests/support/fake-voice';
  * fixtures (CONFIRMATION_SOURCE=fixture, DEMO_SOURCE=fixture) and the mock voice
  * relay on /voice/ws (mock/serve.ts), so no API, database or Gemini is needed.
  *
+ * With E2E_API_URL set, the confirmation page reads that FastAPI instead
+ * (CONFIRMATION_SOURCE=api), for tests/confirmation-api.spec.ts only.
+ *
  * Chromium gets a fake microphone that plays a speech-like WAV file, and the
  * microphone prompt is accepted automatically, so the call works headless.
  */
 const PORT = 4173;
+const E2E_API_URL = process.env.E2E_API_URL;
 
 export default defineConfig({
 	testDir: 'tests',
@@ -39,7 +43,8 @@ export default defineConfig({
 		env: {
 			PORT: String(PORT),
 			ORIGIN: `http://localhost:${PORT}`,
-			CONFIRMATION_SOURCE: 'fixture',
+			CONFIRMATION_SOURCE: E2E_API_URL ? 'api' : 'fixture',
+			...(E2E_API_URL ? { API_BASE_URL: E2E_API_URL } : {}),
 			DEMO_SOURCE: 'fixture'
 		}
 	}
