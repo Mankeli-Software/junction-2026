@@ -51,7 +51,15 @@ from app.schemas import (
     UsualItem,
 )
 from app.search.substitutes import category_substitutes
-from app.services import audit, catalog, confirmations, customers, sessions, signing
+from app.services import (
+    audit,
+    catalog,
+    confirmations,
+    customers,
+    recipes,
+    sessions,
+    signing,
+)
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
 from app.services.policy import get_rule_set
@@ -267,6 +275,8 @@ async def _new_quote(
         Localized(fi=f"Tilauspyyntö, {len(lines)} riviä", en=f"Order request, {len(lines)} lines"),
     )
 
+    # A whole recipe becomes one line per linked ingredient; the rest is not ordered (#34).
+    lines, not_ordered = await recipes.expand_lines(db, lines)
     usual_items = await customers.usual_items(db, caller)
     rules = get_rule_set()
     exclusions = await _exclusions(db, caller)
@@ -336,6 +346,7 @@ async def _new_quote(
         business_now=rules.policy.business_time,
         issued_at=now,
         lang=caller.lang,
+        not_ordered=not_ordered,
     )
     # The engine is pure; its span is made here, from its output (#84).
     engine_timer = telemetry.Timer()
