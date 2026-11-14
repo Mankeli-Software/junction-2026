@@ -3,17 +3,24 @@
 import asyncio
 import os
 import subprocess
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.pool import NullPool
 
+import app.db
+from app.main import app as fastapi_app
 from app.settings import get_settings, psycopg_url
 
 API_DIR = Path(__file__).resolve().parents[1]
+
+# What the HTTP-level account tests write, emptied after each of them.
+ACCOUNT_TABLES = ("access_tokens", "web_sessions", "users", "kitchen_profiles", "companies")
 
 
 @pytest.fixture(scope="session")
@@ -77,3 +84,36 @@ def dev_caller(monkeypatch: pytest.MonkeyPatch):
 def no_caller(monkeypatch: pytest.MonkeyPatch):
     """Nobody is signed in (DEV_FAKE_CALLER=false)."""
     yield from _set_fake_caller(monkeypatch, False)
+
+
+@pytest.fixture
+async def app_db(
+    db_engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch
+) -> AsyncIterator[AsyncEngine]:
+    """Point the app's own database sessions at the test database, for HTTP-level tests.
+
+    The app commits for real, so the account tables are emptied after the test, leaving
+    them clean for the `db` tests. NullPool, because TestClient runs requests in other
+    event loops.
+    """
+    engine = create_async_engine(db_engine.url, poolclass=NullPool)
+    monkeypatch.setattr(app.db, "get_engine", lambda: engine)
+    app.db.get_sessionmaker.cache_clear()
+    try:
+        yield engine
+    finally:
+        app.db.get_sessionmaker.cache_clear()
+        async with engine.begin() as conn:
+            await conn.execute(text(f"TRUNCATE {', '.join(ACCOUNT_TABLES)} CASCADE"))
+        await engine.dispose()
+
+
+@pytest.fixture(scope="session")
+def live_client() -> Iterator[TestClient]:
+    """A client with the app's lifespan running, which `/mcp` needs.
+
+    The MCP session manager can run only once per process, so every test that calls `/mcp`
+    over HTTP shares this one.
+    """
+    with TestClient(fastapi_app, base_url="http://localhost") as client:
+        yield client
