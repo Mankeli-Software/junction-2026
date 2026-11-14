@@ -19,7 +19,8 @@ from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.interfaces.deps import resolve_caller
+from app.interfaces.auth.routes import resource_metadata_url
+from app.interfaces.deps import bearer_token, resolve_caller
 from app.interfaces.mcp import descriptions
 from app.interfaces.tool_calls import Service, run_tool
 from app.schemas import (
@@ -174,8 +175,9 @@ mcp = FastMCP(
 class RequireCaller:
     """Resolves the bearer token on the mount, before the MCP transport.
 
-    Answers 401 when nobody is signed in; otherwise leaves the caller in the scope's state,
-    where the tools pick it up, so a request looks the token up once.
+    Answers 401 when nobody is signed in, pointing at the protected-resource metadata so a
+    connector can start the OAuth login (#48); otherwise leaves the caller in the scope's
+    state, where the tools pick it up, so a request looks the token up once.
     """
 
     def __init__(self, app: ASGIApp) -> None:
@@ -185,10 +187,13 @@ class RequireCaller:
         if scope["type"] == "http":
             caller = await resolve_caller(HTTPConnection(scope), "mcp")
             if caller is None:
+                challenge = f'Bearer resource_metadata="{resource_metadata_url()}"'
+                if bearer_token(HTTPConnection(scope)):
+                    challenge += ', error="invalid_token"'
                 response = JSONResponse(
                     {"detail": "Not signed in"},
                     status_code=401,
-                    headers={"WWW-Authenticate": "Bearer"},
+                    headers={"WWW-Authenticate": challenge},
                 )
                 await response(scope, receive, send)
                 return

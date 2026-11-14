@@ -1,4 +1,5 @@
-"""FastAPI entry point: the REST API under /api/v1 and the MCP server at /mcp."""
+"""FastAPI entry point: the REST API under /api/v1, the MCP server at /mcp and its OAuth
+routes (`/.well-known/*`, `/oauth/*`)."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -8,10 +9,12 @@ from sqlalchemy import text
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.db import get_engine
+from app.interfaces.auth.routes import auth_routes
 from app.interfaces.mcp.server import mcp, mcp_app
 from app.interfaces.rest import accounts as rest_accounts
 from app.interfaces.rest import dashboard as rest_dashboard
 from app.interfaces.rest import inbox as rest_inbox
+from app.interfaces.rest import oauth as rest_oauth
 from app.interfaces.rest import tools as rest_tools
 
 
@@ -44,7 +47,9 @@ app.include_router(rest_tools.router, prefix="/api/v1")
 app.include_router(rest_dashboard.router, prefix="/api/v1")
 app.include_router(rest_accounts.router, prefix="/api/v1")
 app.include_router(rest_inbox.router, prefix="/api/v1")
+app.include_router(rest_oauth.router, prefix="/api/v1")
 rest_tools.add_error_handlers(app)
+app.router.routes.extend(auth_routes())
 app.mount("/mcp", mcp_app())
 
 

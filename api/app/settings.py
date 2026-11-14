@@ -115,6 +115,14 @@ class Settings(BaseSettings):
     # fixed demo customer. Off means it gets 401. /me and web_session_user() never use it.
     dev_fake_caller: bool = False
 
+    # False lets /mcp requests without a bearer token act as the fixed demo customer, to try
+    # a connector with auth off (#48, technical-plan.md §7.3). Never turn it off for long.
+    mcp_auth_required: bool = True
+
+    # The public origin: the OAuth issuer, the /mcp resource URL in the protected-resource
+    # metadata, and where the consent and login pages are. https://simo.mankeli.co on the VM.
+    public_base_url: str = "http://localhost"
+
     # Host header values /mcp accepts (DNS-rebinding protection). `name:*` allows any port.
     # Browser clients such as MCP Inspector may also send an Origin; http and https origins
     # for the same names are allowed.
@@ -146,6 +154,10 @@ class Settings(BaseSettings):
     @classmethod
     def _no_trailing_slash(cls, value: str) -> str:
         return value.rstrip("/")
+
+    @property
+    def public_origin(self) -> str:
+        return self.public_base_url.rstrip("/")
 
     @property
     def mcp_allowed_host_list(self) -> list[str]:

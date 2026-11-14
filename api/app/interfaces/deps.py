@@ -5,7 +5,9 @@
 1. REST: the `simo_session` cookie, a web session, so the caller's channel is `web`.
 2. MCP: `Authorization: Bearer <token>`, an access token (the relay's and chat's caller
    tokens, later #48's OAuth tokens), with the token's channel and client name.
-3. `DEV_FAKE_CALLER=true` (tests and local dev only): the fixed demo customer.
+3. `DEV_FAKE_CALLER=true` (tests and local dev only): the fixed demo customer. On `/mcp`
+   only, `MCP_AUTH_REQUIRED=false` does the same, for trying a connector with auth off
+   (#48); it defaults to true.
 
 Each surface reads only its own credential: a bearer token never works on REST and a
 cookie never works on `/mcp`. `web_session_user()` is stricter still: the cookie only, no
@@ -71,7 +73,8 @@ async def resolve_caller(connection: HTTPConnection | None, surface: Surface) ->
                     caller = await _caller_from_token(db, raw)
                 if caller is not None:
                     return caller
-    if get_settings().dev_fake_caller:
+    settings = get_settings()
+    if settings.dev_fake_caller or (surface == "mcp" and not settings.mcp_auth_required):
         return DEV_CALLER.model_copy(update={"channel": _DEV_CHANNEL[surface]})
     return None
 

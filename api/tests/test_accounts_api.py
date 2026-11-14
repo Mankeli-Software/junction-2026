@@ -283,7 +283,12 @@ async def test_mcp_rejects_expired_unknown_and_missing_tokens(app_db, live_clien
     for token in (expired, "not-a-token", None):
         response = _call_tool(live_client, token, "get_customer_context", {})
         assert response.status_code == 401, token
-        assert response.headers["www-authenticate"] == "Bearer"
+        # Points connectors at the OAuth metadata (#48); a bad token also says so.
+        challenge = response.headers["www-authenticate"]
+        assert challenge.startswith(
+            'Bearer resource_metadata="http://localhost/.well-known/oauth-protected-resource/mcp"'
+        )
+        assert challenge.endswith('error="invalid_token"') == (token is not None)
 
 
 @pytest.mark.usefixtures("no_caller")
