@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard: order summary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1E4F68}a:hover{color:#123A4E}
+.hd{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-0.2px;margin:0}
+.tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;background:#FFE14D;color:#10303F;padding:2px 7px;border-radius:3px;letter-spacing:0.5px}
+.card{background:#fff;border:1px solid #DCE3E8;border-radius:10px}
+.tab{padding:12px 4px;font-size:16px;font-weight:700;color:#4A5F6B;text-decoration:none;border-bottom:3px solid transparent}
+.tab-on{color:#10303F;border-bottom-color:#1E4F68}
+.kv{background:#fff;border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kv span{font-size:13px;color:#4A5F6B}
+.kv b{font-size:18px}
+.asked{font-size:13px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#4A5F6B}
+.thumb{width:64px;height:64px;flex-shrink:0;border-radius:8px;background:#F3F6F8;display:flex;align-items:center;justify-content:center}
+.lrow{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;padding:18px 20px}
+.why{font-size:15px;font-weight:700;color:#1E4F68;background:#E9EFF3;border:0;border-radius:18px;padding:8px 14px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
+.fl{display:flex;align-items:center;gap:10px;font-size:15px;padding:8px 0;border-bottom:1px solid #EEF2F4}
+.cand{display:grid;grid-template-columns:28px minmax(0,1fr) 110px 150px;gap:12px;align-items:center;font-size:15px;padding:9px 0;border-bottom:1px solid #EEF2F4}
+.flag{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #EEF2F4}
+.ico{width:30px;height:30px;flex-shrink:0;border-radius:15px;display:flex;align-items:center;justify-content:center;background:#FFF3B0}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1420px; box-sizing: border-box; background: #F3F6F8; font-family: 'Figtree', system-ui, sans-serif; color: #10303F">
+  <div style="background: #1E4F68; color: #fff">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 32px; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span class="hd" style="font-size: 24px; color: #fff">Order Agent</span>
+        
+        <a href="Dash-1-Overview.dc.html" style="font-size: 15px; color: #CFE0E8; margin-left: 8px">Live dashboard</a>
+      </div>
+      <div style="display: flex; align-items: center; gap: 18px; font-size: 14px">
+        <span style="display: flex; align-items: center; gap: 6px; font-weight: 700"><span style="width: 9px; height: 9px; border-radius: 5px; background: #C6E02A"></span>Live</span>
+        <span style="color: #CFE0E8">Demo time Thu 12 Nov 09:00</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #EEE9F5">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 18px 32px 0 32px; display: flex; flex-direction: column; gap: 16px">
+      <nav style="font-size: 14px; display: flex; gap: 8px; align-items: center"><a href="Dash-1-Overview.dc.html" style="font-weight: 700; text-decoration: none">All orders</a><span style="color: #7D919C">›</span><span style="font-weight: 700">Order D-1042</span></nav>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <h1 class="hd" style="font-size: 52px; line-height: 1; color: #1E4F68">Hassu Hauki Oy</h1>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+            <span style="font-size: 15px; font-weight: 700; padding: 5px 12px; border-radius: 14px; background: #E6F2C2; color: #3F5A00">Confirmed 10:04</span>
+            <span style="font-size: 15px; color: #2C4655">by the buyer, after checking 3 flags</span>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(120px, auto)); gap: 8px">
+          <div class="kv"><span>Delivery</span><b>Mon 16 Nov</b></div>
+          <div class="kv"><span>Total incl. VAT</span><b>128,40 €</b></div>
+          <div class="kv"><span>Channel</span><b>Phone</b></div>
+          <div class="kv"><span>Kitchen avoids</span><b>Milk, nuts</b></div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 28px">
+        <a href="Dash-2-Summary.dc.html" class="tab tab-on">Summary</a>
+        <a href="Dash-3-FullFlow.dc.html" class="tab">Full flow</a>
+        <a href="Dash-4-AuditLog.dc.html" class="tab">Audit log</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width: 1360px; margin: 0 auto; padding: 24px 32px 40px 32px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+    <div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+      <h2 class="hd" style="font-size: 30px">What was ordered, and why</h2>
+
+      <div class="card" style="border: 2px solid #1E4F68">
+        <div class="lrow">
+          <div style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+            <span class="asked">Asked</span>
+            <span style="font-size: 18px; font-weight: 700">5 kg ground beef, by Monday</span>
+          </div>
+          <svg width="28" height="20" viewBox="0 0 28 20" fill="none" stroke="#7D919C" stroke-width="2" aria-hidden="true"><path d="M2 10h22M18 4l6 6-6 6"/></svg>
+          <div style="flex: 2 1 320px; min-width: 0; display: flex; gap: 14px; align-items: center">
+            <div class="thumb"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7D919C" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M7 7V5h10v2"/></svg></div>
+            <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+              <span style="font-size: 18px; font-weight: 700; color: #1E4F68">Beef mince 10 % 2,5 kg <span style="font-size: 13px; color: #7D919C; font-weight: 500">#801922</span></span>
+              <span style="font-size: 15px; color: #4A5F6B">2 pcs = 5 kg, 20,95 € / pcs</span>
+              <span style="font-size: 15px">Cheapest mince that arrives Monday</span>
+            </div>
+          </div>
+          <b style="font-size: 22px">41,90 €</b>
+          <button class="why">Why
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+          </button>
+        </div>
+        <div style="border-top: 1px solid #DCE3E8; padding: 18px 20px 20px 20px; display: flex; flex-wrap: wrap; gap: 28px; background: #FAFCFD; border-radius: 0 0 10px 10px">
+          <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <h3 class="hd" style="font-size: 22px; margin-bottom: 4px">14 found, 5 left</h3>
+            <div style="display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin-bottom: 6px">
+              <span style="flex: 4; background: #E7A49C"></span><span style="flex: 3; background: #F0C46A"></span><span style="flex: 2; background: #B9A4D6"></span><span style="flex: 5; background: #1E4F68"></span>
+            </div>
+            <button class="fl" style="background: none; border-left: 0; border-right: 0; border-top: 0; font: inherit; color: inherit; text-align: left; cursor: pointer"><span style="width: 12px; height: 12px; border-radius: 3px; background: #E7A49C"></span><b style="width: 24px">4</b><span style="flex-grow: 1">arrive after Monday</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <button class="fl" style="background: none; border-left: 0; border-right: 0; border-top: 0; font: inherit; color: inherit; text-align: left; cursor: pointer"><span style="width: 12px; height: 12px; border-radius: 3px; background: #F0C46A"></span><b style="width: 24px">3</b><span style="flex-grow: 1">out of stock</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <button class="fl" style="background: none; border-left: 0; border-right: 0; border-top: 0; font: inherit; color: inherit; text-align: left; cursor: pointer"><span style="width: 12px; height: 12px; border-radius: 3px; background: #B9A4D6"></span><b style="width: 24px">2</b><span style="flex-grow: 1">contain milk (AM, CONTAINS)</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div class="fl" style="border-bottom: 0"><span style="width: 12px; height: 12px; border-radius: 3px; background: #1E4F68"></span><b style="width: 24px">5</b><span style="flex-grow: 1; font-weight: 600">safe, in stock, on time</span></div>
+          </div>
+          <div style="flex: 2 1 420px; min-width: 0; display: flex; flex-direction: column">
+            <h3 class="hd" style="font-size: 22px; margin-bottom: 8px">Ranked by price</h3>
+            <div class="cand" style="font-size: 13px; color: #4A5F6B; font-weight: 700; padding-top: 0"><span>#</span><span>Product</span><span>Per kg</span><span>Stock</span></div>
+            <div class="cand" style="background: #EEF6D6; border-radius: 6px; padding-left: 8px; padding-right: 8px"><b>1</b><b>Beef mince 10 % 2,5 kg</b><b>8,38 €</b><span>Chosen</span></div>
+            <div class="cand"><span>2</span><span>Finnish beef mince 17 % 1 kg</span><span>9,90 €</span><span>In stock</span></div>
+            <div class="cand"><span>3</span><span>Beef and pork mince 2 kg</span><span>10,20 €</span><span>In stock</span></div>
+            <div class="cand"><span>4</span><span>Organic beef mince 2 kg</span><span>13,45 €</span><span>Not confirmed</span></div>
+            <div class="cand" style="border-bottom: 0"><span>5</span><span>Beef mince 7 % 400 g</span><span>14,70 €</span><span>In stock</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="lrow">
+          <div style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+            <span class="asked">Asked</span>
+            <span style="font-size: 18px; font-weight: 700">My usual oat drink, 20 l</span>
+          </div>
+          <svg width="28" height="20" viewBox="0 0 28 20" fill="none" stroke="#7D919C" stroke-width="2" aria-hidden="true"><path d="M2 10h22M18 4l6 6-6 6"/></svg>
+          <div style="flex: 2 1 320px; min-width: 0; display: flex; gap: 14px; align-items: center">
+            <div class="thumb"><svg width="22" height="30" viewBox="0 0 20 28" fill="none" stroke="#7D919C" stroke-width="1.8" aria-hidden="true"><path d="M4 8l3-5h6l3 5v18H4z"/></svg></div>
+            <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+              <span style="font-size: 18px; font-weight: 700; color: #1E4F68">Oat drink 1 l <span style="font-size: 13px; color: #7D919C; font-weight: 500">#465120</span></span>
+              <span style="font-size: 15px; color: #4A5F6B">2 cases = 24 l, rounded up from 20 l</span>
+              <span style="font-size: 15px">The one this kitchen usually orders</span>
+            </div>
+          </div>
+          <b style="font-size: 22px">51,60 €</b>
+          <button class="why">Why
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="lrow">
+          <div style="flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+            <span class="asked">Asked</span>
+            <span style="font-size: 18px; font-weight: 700">10 l rapeseed oil</span>
+          </div>
+          <svg width="28" height="20" viewBox="0 0 28 20" fill="none" stroke="#7D919C" stroke-width="2" aria-hidden="true"><path d="M2 10h22M18 4l6 6-6 6"/></svg>
+          <div style="flex: 2 1 320px; min-width: 0; display: flex; gap: 14px; align-items: center">
+            <div class="thumb"><svg width="22" height="30" viewBox="0 0 20 28" fill="none" stroke="#7D919C" stroke-width="1.8" aria-hidden="true"><path d="M7 3h6v4l3 3v16H4V10l3-3z"/></svg></div>
+            <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+              <span style="font-size: 18px; font-weight: 700; color: #1E4F68">Rapeseed oil 5 l <span style="font-size: 13px; color: #7D919C; font-weight: 500">#412877</span></span>
+              <span style="font-size: 15px; color: #4A5F6B">2 pcs = 10 l, 17,45 € / pcs</span>
+              <span style="font-size: 15px">Cheapest nut-free oil that arrives Monday</span>
+            </div>
+          </div>
+          <b style="font-size: 22px">34,90 €</b>
+          <button class="why">Why
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+      <div class="card" style="padding: 18px 20px">
+        <h2 class="hd" style="font-size: 26px; margin-bottom: 4px">Flags the buyer checked</h2>
+        <div class="flag">
+          <div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="2.2" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
+          <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><b style="font-size: 15px">Rounded up 20 l → 24 l</b><span style="font-size: 14px; color: #4A5F6B">Kept 24 l over the exact-fit option</span></div>
+          <span style="font-size: 13px; color: #3F5A00; font-weight: 700">✓ 10:04</span>
+        </div>
+        <div class="flag">
+          <div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="2.2" aria-hidden="true"><path d="M4 12h16M12 4v16"/></svg></div>
+          <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><b style="font-size: 15px">Stock not confirmed</b><span style="font-size: 14px; color: #4A5F6B">Rapeseed oil 5 l</span></div>
+          <span style="font-size: 13px; color: #3F5A00; font-weight: 700">✓ 10:03</span>
+        </div>
+        <div class="flag" style="border-bottom: 0">
+          <div class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg></div>
+          <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1"><b style="font-size: 15px">No allergen info listed</b><span style="font-size: 14px; color: #4A5F6B">Rapeseed oil 5 l</span></div>
+          <span style="font-size: 13px; color: #3F5A00; font-weight: 700">✓ 10:04</span>
+        </div>
+      </div>
+      <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+        <h2 class="hd" style="font-size: 26px">Can we trust it?</h2>
+        <div style="display: flex; gap: 10px; align-items: center; font-size: 15px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5A00" stroke-width="2.2" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span style="flex-grow: 1">Quote signed and verified</span></div>
+        <div style="display: flex; gap: 10px; align-items: center; font-size: 15px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F5A00" stroke-width="2.2" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><a href="Dash-4-AuditLog.dc.html" style="flex-grow: 1">Audit chain intact, 31 events</a></div>
+        <div style="display: flex; gap: 10px; align-items: center; font-size: 15px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><a href="Dash-3-FullFlow.dc.html" style="flex-grow: 1">Quote v1, no edits. See full flow</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1420}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

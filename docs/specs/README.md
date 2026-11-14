@@ -1,6 +1,6 @@
 # UI specs for the demo
 
-What each demo screen shows and does. Visual style is decided after these are agreed.
+What each demo screen shows and does. How the screens look is in [`docs/design`](../design/README.md), with exported screens and the link to the design canvas. The design review made a few decisions that are not in these specs yet; they are listed at the end of that README.
 
 | Spec | Status |
 |---|---|

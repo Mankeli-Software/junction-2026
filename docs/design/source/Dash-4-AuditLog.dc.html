@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard: audit log</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Figtree:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1E4F68}a:hover{color:#123A4E}
+.hd{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-0.2px;margin:0}
+.tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;background:#FFE14D;color:#10303F;padding:2px 7px;border-radius:3px;letter-spacing:0.5px}
+.tab{padding:12px 4px;font-size:16px;font-weight:700;color:#4A5F6B;text-decoration:none;border-bottom:3px solid transparent}
+.tab-on{color:#10303F;border-bottom-color:#1E4F68}
+.mono{font-family:'JetBrains Mono',monospace;font-size:13px}
+.row{display:grid;grid-template-columns:44px 84px 170px minmax(0,1fr) 96px;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid #EEF2F4;font-size:15px;background:none;border-left:0;border-right:0;border-top:0;text-align:left;font-family:inherit;color:inherit;width:100%;cursor:pointer}
+.ty{font-family:'JetBrains Mono',monospace;font-size:13px;padding:2px 6px;border-radius:4px;justify-self:start}
+.btn{height:42px;padding:0 16px;border-radius:8px;font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.kv{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;font-size:14px;padding:6px 0;border-bottom:1px solid #EEF2F4}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1100px; box-sizing: border-box; background: #F3F6F8; font-family: 'Figtree', system-ui, sans-serif; color: #10303F">
+  <div style="background: #1E4F68; color: #fff">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 0 32px; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span class="hd" style="font-size: 24px; color: #fff">Order Agent</span>
+        
+        <a href="Dash-1-Overview.dc.html" style="font-size: 15px; color: #CFE0E8; margin-left: 8px">Live dashboard</a>
+      </div>
+      <span style="font-size: 14px; color: #CFE0E8">Demo time Thu 12 Nov 09:00</span>
+    </div>
+  </div>
+  <div style="background: #EEE9F5">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 18px 32px 0 32px; display: flex; flex-direction: column; gap: 12px">
+      <nav style="font-size: 14px; display: flex; gap: 8px; align-items: center"><a href="Dash-1-Overview.dc.html" style="font-weight: 700; text-decoration: none">All orders</a><span style="color: #7D919C">›</span><a href="Dash-2-Summary.dc.html" style="font-weight: 700; text-decoration: none">Order D-1042</a><span style="color: #7D919C">›</span><span style="font-weight: 700">Audit log</span></nav>
+      <h1 class="hd" style="font-size: 44px; line-height: 1; color: #1E4F68">The raw record</h1>
+      <div style="display: flex; gap: 28px">
+        <a href="Dash-2-Summary.dc.html" class="tab">Summary</a>
+        <a href="Dash-3-FullFlow.dc.html" class="tab">Full flow</a>
+        <a href="Dash-4-AuditLog.dc.html" class="tab tab-on">Audit log</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width: 1360px; margin: 0 auto; padding: 20px 32px 40px 32px; display: flex; flex-direction: column; gap: 16px">
+    <div style="background: #EEF6D6; border: 1px solid #C9DE7C; border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+      <div style="width: 40px; height: 40px; border-radius: 20px; background: #C6E02A; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="2.2" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+        <b style="font-size: 18px">Chain intact</b>
+        <span style="font-size: 14px; color: #2C4655">31 events recomputed in your browser just now. Quote signature valid.</span>
+      </div>
+      <button class="btn" style="border: 2px solid #1E4F68; background: #fff; color: #1E4F68"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.4" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>Verify again</button>
+      <button class="btn" style="border: 0; background: #1E4F68; color: #fff"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download JSON</button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+      <div style="flex: 999 1 640px; min-width: 0; background: #fff; border: 1px solid #DCE3E8; border-radius: 10px; overflow-x: auto">
+        <div class="row" style="font-size: 13px; font-weight: 700; color: #4A5F6B; cursor: default; background: #F8FAFB"><span>#</span><span>Time</span><span>Type</span><span>What happened</span><span>Hash</span></div>
+        <button class="row"><span class="mono">1</span><span class="mono">10:02:14</span><span class="ty" style="background: #EEF2F4">session_started</span><span>Call started, phone channel</span><span class="mono" style="color: #7D919C">a41f9c</span></button>
+        <button class="row"><span class="mono">2</span><span class="mono">10:02:20</span><span class="ty" style="background: #EEF2F4">buyer_said</span><span>"I need five kilos of ground beef for tomorrow."</span><span class="mono" style="color: #7D919C">0bd27e</span></button>
+        <button class="row"><span class="mono">3</span><span class="mono">10:02:24</span><span class="ty" style="background: #F4F0F9">tool_called</span><span>build_quote, 1 line</span><span class="mono" style="color: #7D919C">9e10c4</span></button>
+        <button class="row"><span class="mono">4</span><span class="mono">10:02:24</span><span class="ty" style="background: #EEF2F4">clarification_asked</span><span>Sunday is not a delivery day</span><span class="mono" style="color: #7D919C">5c7a21</span></button>
+        <button class="row"><span class="mono">5</span><span class="mono">10:02:24</span><span class="ty" style="background: #F4F0F9">tool_returned</span><span>needs_clarification</span><span class="mono" style="color: #7D919C">e3b801</span></button>
+        <button class="row"><span class="mono">6</span><span class="mono">10:02:27</span><span class="ty" style="background: #EEF2F4">agent_said</span><span>"Tomorrow is Sunday. The earliest delivery is Monday."</span><span class="mono" style="color: #7D919C">71fd0a</span></button>
+        <button class="row"><span class="mono">7</span><span class="mono">10:02:33</span><span class="ty" style="background: #EEF2F4">buyer_said</span><span>"Yes, Monday works."</span><span class="mono" style="color: #7D919C">c28e55</span></button>
+        <button class="row" style="background: #E3EDF2; box-shadow: inset 4px 0 0 #1E4F68"><span class="mono">8</span><span class="mono">10:02:34</span><span class="ty" style="background: #fff">tool_called</span><b>update_quote, needed by Mon 16 Nov</b><span class="mono" style="color: #1E4F68">4fa913</span></button>
+        <button class="row"><span class="mono">9</span><span class="mono">10:02:35</span><span class="ty" style="background: #EEF2F4">products_searched</span><span>17 546 searched, 14 match</span><span class="mono" style="color: #7D919C">8d02bb</span></button>
+        <button class="row"><span class="mono">10</span><span class="mono">10:02:35</span><span class="ty" style="background: #EEF2F4">candidates_filtered</span><span>9 removed: late 4, no stock 3, milk 2</span><span class="mono" style="color: #7D919C">16ac7f</span></button>
+        <button class="row"><span class="mono">11</span><span class="mono">10:02:35</span><span class="ty" style="background: #EEF2F4">availability_checked</span><span>Price and stock for 5 products</span><span class="mono" style="color: #7D919C">b9e4d0</span></button>
+        <button class="row"><span class="mono">12</span><span class="mono">10:02:36</span><span class="ty" style="background: #EEF2F4">line_resolved</span><span>Beef mince 10 % 2,5 kg, 2 pcs</span><span class="mono" style="color: #7D919C">2f7c90</span></button>
+        <button class="row" style="justify-content: center; color: #1E4F68; font-weight: 700; display: flex">Show events 13 to 31</button>
+      </div>
+
+      <div style="flex: 1 1 380px; min-width: 0; background: #fff; border: 1px solid #DCE3E8; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline">
+          <h2 class="hd" style="font-size: 26px">Event 8</h2>
+          <a href="Dash-3-FullFlow.dc.html" style="font-size: 14px; font-weight: 700">Show in full flow</a>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div class="kv"><span style="color: #4A5F6B">Type</span><span class="mono">tool_called</span></div>
+          <div class="kv"><span style="color: #4A5F6B">Session</span><span class="mono">s_2611_0042</span></div>
+          <div class="kv"><span style="color: #4A5F6B">Channel</span><span>Phone</span></div>
+          <div class="kv"><span style="color: #4A5F6B">Identity</span><span>+358 40 *** **12</span></div>
+          <div class="kv"><span style="color: #4A5F6B">Previous</span><span class="mono" style="word-break: break-all">c28e55f1a09d3b7e</span></div>
+          <div class="kv" style="border-bottom: 0"><span style="color: #4A5F6B">Hash</span><span class="mono" style="word-break: break-all">4fa913c07be26d5a</span></div>
+        </div>
+        <pre class="mono" style="margin: 0; background: #F3F6F8; border-radius: 8px; padding: 12px 14px; white-space: pre-wrap; color: #2C4655; line-height: 1.5">{
+  "seq": 8,
+  "ts": "2026-11-12T10:02:34+02:00",
+  "type": "tool_called",
+  "payload": {
+    "tool": "update_quote",
+    "args": {
+      "quote_id": "q_7f3a",
+      "answer": { "needed_by": "2026-11-16" }
+    }
+  },
+  "text_en": "Agent answered the date question: Mon 16 Nov."
+}</pre>
+        <span style="font-size: 13px; color: #4A5F6B">Read-only. Nothing here can be changed from the dashboard.</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
