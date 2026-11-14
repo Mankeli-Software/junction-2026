@@ -40,17 +40,27 @@ class KitchenProfile(Base):
 
 
 class User(Base):
-    """A person acting for a company. Each browser that types a number is its own user."""
+    """A person acting for a company. Each browser that types a number is its own user.
+
+    A connector account (#48) also has an email and a password. A hand-out account starts
+    unclaimed: no phone number and so no company until its first login asks for the number.
+    """
 
     __tablename__ = "users"
-    __table_args__ = (CheckConstraint("lang IN ('fi', 'en')", name="lang"),)
+    __table_args__ = (
+        CheckConstraint("lang IN ('fi', 'en')", name="lang"),
+        # The number and the company come together; only an email account may lack them.
+        CheckConstraint("(phone_e164 IS NULL) = (company_id IS NULL)", name="phone_company"),
+        CheckConstraint("phone_e164 IS NOT NULL OR email IS NOT NULL", name="unclaimed_email"),
+        CheckConstraint("email = lower(email)", name="email_lower"),
+    )
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True
+    company_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE"), index=True
     )
-    phone_e164: Mapped[str] = mapped_column(Text, nullable=False)
-    # Email and password come with the connector signup (#48).
+    phone_e164: Mapped[str | None] = mapped_column(Text)
+    # Email (lower-cased) and an argon2 password hash for connector accounts (#48).
     email: Mapped[str | None] = mapped_column(Text, unique=True)
     password_hash: Mapped[str | None] = mapped_column(Text)
     lang: Mapped[str] = mapped_column(Text, nullable=False, server_default="fi")

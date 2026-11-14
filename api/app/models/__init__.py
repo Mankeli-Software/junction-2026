@@ -16,6 +16,7 @@ from app.models.catalogue import (
 )
 from app.models.confirmations import Confirmation, SmsMessage
 from app.models.customers import Company, KitchenProfile, User
+from app.models.oauth import OAuthClient, OAuthCode, OAuthRefreshToken, OAuthRequest
 from app.models.ordering import OrderSession, Quote, QuoteLine
 from app.models.valio import ApiCache
 
@@ -29,6 +30,10 @@ __all__ = [
     "Company",
     "Confirmation",
     "KitchenProfile",
+    "OAuthClient",
+    "OAuthCode",
+    "OAuthRefreshToken",
+    "OAuthRequest",
     "OrderSession",
     "Product",
     "ProductAllergen",
