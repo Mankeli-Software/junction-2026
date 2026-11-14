@@ -182,6 +182,16 @@ def test_checklist_rules_are_present():
     assert "Never offer email, SMS" in text
 
 
+def test_the_rest_of_a_recipe_is_found_only_on_request():
+    # #103: on an explicit request, by name through the engine; picks only when any will do.
+    text = prompt()
+    assert "only when the caller asks you to find products for the" in text
+    assert "`order_unlinked` true in its `recipe_ref`" in text
+    assert "never pick a product for them yourself" in text
+    assert "the caller gets them elsewhere, unless they asked you to find them" in text
+    assert "when the caller said any product will do, don't ask" in text
+
+
 def test_phone_replies_are_short():
     phone, chat = prompt("phone"), prompt("web_chat")
     assert "at most one or two short sentences per turn, and at most one question" in phone
