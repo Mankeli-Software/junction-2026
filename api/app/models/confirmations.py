@@ -76,15 +76,18 @@ class ConfirmationAcknowledgement(Base):
 
 
 class SmsMessage(Base):
-    """One message per delivery path: `inbox` now, `twilio` later."""
+    """One message per delivery path: the simulated `inbox`, and a real SMS through
+    `twilio` for an allowlisted number with the flag on (#46)."""
 
     __tablename__ = "sms_messages"
     __table_args__ = (
         CheckConstraint("path IN ('inbox', 'twilio')", name="path"),
-        # held: waiting for the call to end (phone channel). delivered: in the simulated
-        # inbox. queued, sent, failed: Twilio's statuses, for the `twilio` path later.
+        # Both paths: held, waiting for the call to end (phone channel). inbox: delivered,
+        # in the simulated phone. twilio: pending (committed, to be sent), sending (the
+        # request to Twilio is on its way), then Twilio's queued, sent, delivered or failed.
         CheckConstraint(
-            "status IN ('held', 'delivered', 'queued', 'sent', 'failed')", name="status"
+            "status IN ('held', 'pending', 'sending', 'delivered', 'queued', 'sent', 'failed')",
+            name="status",
         ),
     )
 
@@ -104,3 +107,7 @@ class SmsMessage(Base):
     link: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = timestamp_now()
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # `twilio` path: Twilio's message sid, which its status callback names, and its error
+    # code when the message was refused or not delivered.
+    twilio_sid: Mapped[str | None] = mapped_column(Text, unique=True)
+    error_code: Mapped[str | None] = mapped_column(Text)
