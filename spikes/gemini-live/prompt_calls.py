@@ -606,7 +606,7 @@ PLACED = (
     "i have placed",
     "order is confirmed",
 )
-FI_WORDS = {"ja", "on", "ei", "se", "että", "kiitos", "tilaus", "haluatko", "litraa", "euroa", "hei", "moi", "selvä", "vielä", "muuta", "tulee", "puhelimeesi"}
+FI_WORDS = {"ja", "ei", "että", "kiitos", "tilaus", "haluatko", "litraa", "euroa", "hei", "moi", "selvä", "vielä", "muuta", "tulee", "puhelimeesi"}
 
 
 EN_WORDS = {"the", "and", "is", "for", "you", "your", "of", "to", "anything", "else", "it", "would", "order", "link", "got", "that"}
