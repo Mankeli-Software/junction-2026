@@ -8,7 +8,7 @@ malformed session id gives 404.
 from datetime import datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, FastAPI, Header
+from fastapi import APIRouter, Depends, FastAPI, Header, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette import EventSourceResponse
@@ -52,10 +52,12 @@ async def get_orders(
     state: StateGroup | None = None,
     channel: Channel | None = None,
     since: datetime | None = None,
+    test_run: Annotated[str | None, Query(max_length=100)] = None,
 ) -> JSONResponse:
     """Totals since `EVENT_START`, then at most 200 cards that match the filters, grouped by
-    company, newest activity first."""
-    return public_json(await load_overview(db, state, channel, since))
+    company, newest activity first. Live test runs (#98) are left out; `test_run` shows one
+    run's sessions instead."""
+    return public_json(await load_overview(db, state, channel, since, test_run=test_run))
 
 
 @router.get("/orders/{session_id}", response_model=OrderSummary)

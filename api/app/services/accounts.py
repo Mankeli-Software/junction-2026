@@ -98,6 +98,7 @@ async def create_demo_account(
     *,
     now: datetime | None = None,
     names: Iterator[str] | None = None,
+    test_run: str | None = None,
 ) -> DemoAccount:
     """Log this browser in as a user of the number's company (the demo-account flow).
 
@@ -106,12 +107,14 @@ async def create_demo_account(
     3. Reuse this browser's user if its current session is for the same number; otherwise
        create a new user.
     4. Create a web session, replacing the browser's previous one.
+
+    `test_run` marks a company a live test creates (#98); an existing company keeps its own.
     """
     now = now or datetime.now(UTC)
     phone_e164 = normalize_phone(phone)
     chosen = _clean_exclusions(exclusions)
 
-    company, new_company = await _find_or_create_company(db, phone_e164, names)
+    company, new_company = await _find_or_create_company(db, phone_e164, names, test_run)
     previous = await db.scalar(
         select(KitchenProfile.exclusions).where(KitchenProfile.company_id == company.id)
     )
@@ -407,7 +410,7 @@ async def set_phone(
 
 
 async def _find_or_create_company(
-    db: AsyncSession, phone_e164: str, names: Iterator[str] | None
+    db: AsyncSession, phone_e164: str, names: Iterator[str] | None, test_run: str | None = None
 ) -> tuple[Company, bool]:
     company = await _company_by_phone(db, phone_e164)
     if company is not None:
@@ -418,7 +421,7 @@ async def _find_or_create_company(
         # DO NOTHING covers both a taken name and the same number created concurrently.
         company_id = await db.scalar(
             insert(Company)
-            .values(name=name, phone_e164=phone_e164)
+            .values(name=name, phone_e164=phone_e164, test_run=test_run)
             .on_conflict_do_nothing()
             .returning(Company.id)
         )

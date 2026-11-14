@@ -308,7 +308,8 @@ export interface paths {
         /**
          * Get Orders
          * @description Totals since `EVENT_START`, then at most 200 cards that match the filters, grouped by
-         *     company, newest activity first.
+         *     company, newest activity first. Live test runs (#98) are left out; `test_run` shows one
+         *     run's sessions instead.
          */
         get: operations["get_orders_api_v1_public_orders_get"];
         put?: never;
@@ -2686,6 +2687,7 @@ export interface operations {
                 state?: components["schemas"]["StateGroup"] | null;
                 channel?: components["schemas"]["Channel"] | null;
                 since?: string | null;
+                test_run?: string | null;
             };
             header?: never;
             path?: never;

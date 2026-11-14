@@ -10,6 +10,8 @@ handled, so a lost or reordered notification only delays an event, and after a r
 - `order_updated`: the session's card with fresh totals (once per session per batch, with
   the id of the session's last row in it).
 
+Sessions of a live test run (#98) are skipped: their companies are marked `test_run`.
+
 The broadcaster redacts everything again before it goes out.
 """
 
@@ -27,7 +29,7 @@ from app.schemas import StepEvent, TranscriptEvent
 
 from .listener import PgListener
 from .orders import order_index_of, step_of, transcript_line_of
-from .overview import load_order_updated
+from .overview import hidden_sessions, load_order_updated
 from .stream import Broadcaster, StreamEvent
 
 log = logging.getLogger(__name__)
@@ -94,9 +96,11 @@ class DashboardFeed:
             for status_id, event in rows:
                 if event.session_id is not None:
                     last_of_session[event.session_id] = status_id
+            hidden = await hidden_sessions(db, last_of_session)
             for status_id, event in rows:
                 try:
-                    await self._publish_row(db, status_id, event, last_of_session)
+                    if event.session_id not in hidden:
+                        await self._publish_row(db, status_id, event, last_of_session)
                 except Exception:
                     log.exception("status_events: could not publish row %s", status_id)
                 self.last_id = status_id

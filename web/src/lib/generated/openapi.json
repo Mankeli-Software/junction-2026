@@ -788,7 +788,7 @@
 					"dashboard"
 				],
 				"summary": "Get Orders",
-				"description": "Totals since `EVENT_START`, then at most 200 cards that match the filters, grouped by\ncompany, newest activity first.",
+				"description": "Totals since `EVENT_START`, then at most 200 cards that match the filters, grouped by\ncompany, newest activity first. Live test runs (#98) are left out; `test_run` shows one\nrun's sessions instead.",
 				"operationId": "get_orders_api_v1_public_orders_get",
 				"parameters": [
 					{
@@ -838,6 +838,23 @@
 								}
 							],
 							"title": "Since"
+						}
+					},
+					{
+						"name": "test_run",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string",
+									"maxLength": 100
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Test Run"
 						}
 					}
 				],

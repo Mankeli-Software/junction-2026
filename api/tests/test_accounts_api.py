@@ -9,10 +9,12 @@ from typing import Annotated
 import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from app.interfaces.deps import DEV_CALLER, SESSION_COOKIE, web_session_user
 from app.main import app
+from app.models import Company
 from app.schemas import KitchenType
 from app.services.accounts import SessionUser, resolve_session
 from app.services.caller import Caller
@@ -69,6 +71,21 @@ async def test_same_number_in_two_browsers_shares_the_company_not_the_user(app_d
     one, two = await session_of(app_db, first), await session_of(app_db, second)
     assert one.company_id == two.company_id
     assert one.user_id != two.user_id
+
+
+async def test_a_live_test_run_marks_the_company_it_creates(app_db):
+    marked, plain = new_number(), new_number()
+    stamp = {"X-Simo-Test-Run": "demo-script-1"}
+    body = {"exclusions": [], "lang": "fi"}
+
+    browser().post("/api/v1/demo/accounts", json={"phone_e164": marked, **body}, headers=stamp)
+    log_in(browser(), plain)
+    # A company that exists already keeps its own mark.
+    browser().post("/api/v1/demo/accounts", json={"phone_e164": plain, **body}, headers=stamp)
+
+    async with AsyncSession(app_db) as db:
+        runs = dict((await db.execute(select(Company.phone_e164, Company.test_run))).all())
+    assert runs == {marked: "demo-script-1", plain: None}
 
 
 async def test_same_browser_twice_stays_the_same_user(app_db):

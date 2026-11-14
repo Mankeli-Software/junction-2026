@@ -13,6 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import telemetry
 from app.db import get_session
 from app.interfaces.deps import SESSION_COOKIE, current_caller, session_user
 from app.models import Company
@@ -76,7 +77,12 @@ async def create_demo_account(
     """
     try:
         account = await accounts.create_demo_account(
-            db, body.phone_e164, body.exclusions, body.lang, request.cookies.get(SESSION_COOKIE)
+            db,
+            body.phone_e164,
+            body.exclusions,
+            body.lang,
+            request.cookies.get(SESSION_COOKIE),
+            test_run=telemetry.test_tags(request.headers).get("test_run"),
         )
     except InvalidPhoneNumber as error:
         raise _invalid("phone_e164", f"Invalid phone number: {error}", body.phone_e164) from error

@@ -133,6 +133,8 @@ _SESSIONS = text(
     LEFT JOIN kitchen_profiles k ON k.company_id = s.company_id
     WHERE (CAST(:event_start AS timestamptz) IS NULL OR s.started_at >= :event_start)
       AND (CAST(:session_ids AS uuid[]) IS NULL OR s.id = ANY(:session_ids))
+      AND (CAST(:session_ids AS uuid[]) IS NOT NULL
+           OR c.test_run IS NOT DISTINCT FROM CAST(:test_run AS text))
     """
 ).bindparams(
     bindparam("session_ids", type_=ARRAY(UUID(as_uuid=True))),
@@ -188,15 +190,21 @@ async def load_sessions(
     db: AsyncSession,
     *,
     session_ids: Sequence[uuid.UUID] | None = None,
+    test_run: str | None = None,
     now: datetime | None = None,
 ) -> list[SessionRow]:
-    """The sessions in scope (since `EVENT_START`), with their current quotes and orders."""
+    """The sessions in scope (since `EVENT_START`), with their current quotes and orders.
+
+    Without `session_ids`, the sessions of live test runs (#98) are left out; `test_run`
+    gives the sessions of that run instead. A session asked for by id is always loaded.
+    """
     now = now or datetime.now(UTC)
     result = await db.execute(
         _SESSIONS,
         {
             "event_start": get_settings().event_start,
             "session_ids": list(session_ids) if session_ids is not None else None,
+            "test_run": test_run,
         },
     )
     rows = [_session_row(row, now) for row in result.mappings()]
@@ -280,6 +288,24 @@ def _identity(channel: str, phone_e164: str | None, email: str | None) -> str | 
         except Exception:
             return None
     return None
+
+
+_TEST_SESSIONS = text(
+    """
+    SELECT s.id
+    FROM sessions s
+    JOIN companies c ON c.id = s.company_id
+    WHERE s.id = ANY(:session_ids) AND c.test_run IS NOT NULL
+    """
+).bindparams(bindparam("session_ids", type_=ARRAY(UUID(as_uuid=True))))
+
+
+async def hidden_sessions(db: AsyncSession, session_ids: Iterable[uuid.UUID]) -> set[uuid.UUID]:
+    """Which of these sessions belong to a live test run (#98) and stay off the stream."""
+    ids = list(session_ids)
+    if not ids:
+        return set()
+    return set((await db.execute(_TEST_SESSIONS, {"session_ids": ids})).scalars())
 
 
 # --- Building ---------------------------------------------------------------------------
@@ -470,10 +496,12 @@ async def load_overview(
     *,
     now: datetime | None = None,
     limit: int = MAX_CARDS,
+    test_run: str | None = None,
 ) -> OverviewResponse:
     """`GET /orders` and the snapshot: totals over everything, then at most `limit` cards
-    that match the filters, newest activity first."""
-    rows = await load_sessions(db, now=now)
+    that match the filters, newest activity first. With `test_run`, that live test run's
+    sessions instead of the public ones."""
+    rows = await load_sessions(db, test_run=test_run, now=now)
     totals = totals_of(rows)
     shown = sorted(
         (r for r in rows if _matches(r, state, channel) and (since is None or r.activity >= since)),

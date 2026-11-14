@@ -26,6 +26,9 @@ class Company(Base):
     created_at: Mapped[datetime] = timestamp_now()
     # Chosen from the number on first use (#32); null for a company created before that.
     kitchen_type: Mapped[str | None] = mapped_column(Text)
+    # The run id of the live test that created it (`X-Simo-Test-Run`, #98). Its sessions
+    # stay off the public dashboard's overview and stream.
+    test_run: Mapped[str | None] = mapped_column(Text)
 
 
 class KitchenProfile(Base):

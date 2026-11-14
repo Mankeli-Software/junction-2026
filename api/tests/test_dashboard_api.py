@@ -60,6 +60,7 @@ async def _seed(
     client_name: str | None = None,
     email: str | None = None,
     company: str | None = None,
+    test_run: str | None = None,
 ) -> uuid.UUID:
     """One company, user and session (and a minimal quote when `total_cents` is set)."""
     now = datetime.now(UTC)
@@ -68,7 +69,9 @@ async def _seed(
     async with AsyncSession(engine) as db:
         company_id = await db.scalar(
             insert(Company)
-            .values(name=company or f"Oy {uuid.uuid4().hex[:8]}", phone_e164=phone)
+            .values(
+                name=company or f"Oy {uuid.uuid4().hex[:8]}", phone_e164=phone, test_run=test_run
+            )
             .returning(Company.id)
         )
         await db.execute(insert(KitchenProfile).values(company_id=company_id, exclusions=[]))
@@ -268,6 +271,25 @@ async def test_event_start_hides_older_sessions(client, app_db, monkeypatch):
         get_settings.cache_clear()
     assert [c["session_id"] for c in _cards(overview)] == [str(newer)]
     assert overview["totals"]["by_channel"]["phone"] == 1
+
+
+async def test_a_live_test_runs_sessions_stay_off_the_overview(client, app_db):
+    public = await _seed(app_db, total_cents=1000, state=SessionState.confirmed)
+    hidden = await _seed(app_db, total_cents=5000, state=SessionState.confirmed, test_run="run-1")
+    other = await _seed(app_db, test_run="run-2")
+
+    overview = client.get(f"{API}/orders").json()
+    assert [c["session_id"] for c in _cards(overview)] == [str(public)]
+    assert overview["totals"]["confirmed"] == 1
+    assert overview["totals"]["confirmed_cents"] == 1000
+
+    run = client.get(f"{API}/orders", params={"test_run": "run-1"}).json()
+    assert [c["session_id"] for c in _cards(run)] == [str(hidden)]
+    assert run["totals"]["confirmed_cents"] == 5000
+
+    # Asked for by id, a test session is still there to read.
+    assert client.get(f"{API}/orders/{other}").status_code == 200
+    assert client.get(f"{API}/orders/{other}/steps").status_code == 200
 
 
 # --- One order --------------------------------------------------------------------------
@@ -547,6 +569,35 @@ async def test_last_event_id_resume_gets_missed_events_then_live_ones(app_db):
     assert live["data"]["line"]["who"] == "agent"
     assert live["data"]["line"]["text"] == "Lähetänkö tarjouksen?"
     await events.aclose()
+
+
+async def test_a_live_test_runs_events_stay_off_the_stream(app_db):
+    hub = Broadcaster()
+    feed = DashboardFeed(hub, async_sessionmaker(app_db, expire_on_commit=False))
+    await feed.on_connect()
+    public = await _seed(app_db)
+    hidden = await _seed(app_db, test_run="run-1")
+    async with AsyncSession(app_db) as db:
+        for session_id in (hidden, public, hidden):
+            await audit.record(
+                db,
+                type="buyer_said",
+                actor="buyer",
+                session_id=session_id,
+                payload={"text": "Hei", "lang": "fi", "transcript": True},
+                text=Localized(fi='"Hei"', en='"Hi"'),
+            )
+        await db.commit()
+
+    await feed.on_connect()
+    published = len(hub._history)
+
+    sessions = {e.data.get("session_id") or e.data["order"]["session_id"] for e in hub._history}
+    assert sessions == {str(public)}
+    assert {e.event for e in hub._history} == {"step", "transcript", "order_updated"}
+    # The hidden rows are passed, not tried again.
+    await feed.on_connect()
+    assert len(hub._history) == published
 
 
 # --- Orders and acknowledgements from the confirmation page (#47) -----------------------
