@@ -180,11 +180,13 @@ The opposite direction failed once: an English caller (en01, transcribed perfect
 
 `prompt_calls.py` runs scripted calls against the real S.I.MO system prompt (`api/app/agent/prompt.py`). It checks the #53 checklist before the relay (#52) and the MCP server (#43) exist.
 
-- **Prompt and tools.** The system prompt comes from `build_system_prompt(context, channel, today=...)` for a demo account: Hassu Hauki Oy, a lactose-free kitchen with usual butter. The function declarations are the contract's request models (`api/app/schemas/tools.py`, listed in `AGENT_TOOLS`), turned into JSON Schema with the `$ref`s inlined. On the phone the relay's local `end_call` is added. Each tool description is one line from vision §8; the real descriptions will come from the MCP server.
-- **Tool answers.** The stub engine (`api/app/engine/stub.py`) answers `build_quote` and `update_quote`, wrapped as a `QuoteResponse` without the trace. The harness forces the stub's paths per call:
+- **Prompt and tools.** The system prompt comes from `build_system_prompt(context, channel, today=...)` for a demo account: Hassu Hauki Oy, a lactose-free kitchen with usual butter. The function declarations are the contract's request models (`api/app/schemas/tools.py`, listed in `AGENT_TOOLS`), turned into JSON Schema with the `$ref`s inlined. On the phone the relay's local `end_call` is added. Each tool description is one line from vision §8, or with `--mcp-descriptions` the MCP server's own text (`api/app/interfaces/mcp/descriptions.py`).
+- **Tool answers.** The stub engine answers `build_quote` and `update_quote`, wrapped as a `QuoteResponse` without the trace. The harness forces the stub's paths per call:
   - the first quote in the clarification call takes the "unclear" path;
   - a cheese line in the chat call takes the "reject" path;
   - the Finnish and English calls get an `ALLERGEN_NO_LISTING` flag.
+
+  #36 replaced `api/app/engine/stub.py` with the real pipeline, so the harness keeps its own copy of the stub in `stub_engine.py`.
 
   `request_confirmation` gets a fake `ConfirmationRequestResponse` (`held` on the phone). Arguments are checked against the contract models, so a bad argument goes back to the model as an error, as MCP would return it.
 - **Phone calls** run on `gemini-3.8-live` (`v1beta`, voice Aoede), one Live session per call.
@@ -200,6 +202,7 @@ uv run prompt_calls.py --only fi_clarify          # one call
 uv run prompt_calls.py --audio --only fi_milk     # caller turns spoken (TTS, cached in audio/prompt_calls/)
 uv run prompt_calls.py --recheck out/prompt_calls/<time>   # score a saved run again, no API calls
 uv run prompt_calls.py --dry-run                  # print the prompt and the declarations
+uv run prompt_calls.py --mcp-descriptions         # the MCP server's tool descriptions instead of the vision lines
 ```
 
 The script imports from `../../api`. That is why `pydantic`, `pydantic-settings` and `pyyaml` are in this folder's `pyproject.toml`.
@@ -256,6 +259,16 @@ Only the unit tests cover the `call_language` line (`fi`, `en`); no call forced 
 - The agent answered "Nimeni on S.I.MO", then sent the link and hung up. The model took a yes from the audio itself, which was right here, but the caption shows how easily a short Finnish answer is misheard.
 - The run passed no `custom_vocabulary`; the relay should pass one (see the #51 results).
 - This time the agent left out the goodbye before `end_call`.
+
+**MCP tool descriptions** (prompt .7, `--mcp-descriptions`, 2026-11-14). The three phone calls ran with the descriptions from `api/app/interfaces/mcp/descriptions.py` in place of the vision lines. 5 Live sessions.
+
+| Run | Calls | Result |
+|---|---|---|
+| 1 | fi_milk, en_order, fi_clarify | fi_milk and fi_clarify passed every check. en_order called `build_quote` right after "And my usual butter as well", before the caller finished or asked for the price. Fix: the `build_quote` text says to wait until the buyer says the order is complete or asks for the price, never while they are still adding lines. |
+| 2, 3 | en_order, twice | Passed every check: `build_quote` at "What would that come to?", no link on "where does the link go?", English throughout. |
+
+- In run 1, fi_milk's spoken read-back came back from Live's output transcription with stray `</td>` and line breaks between words. Nothing in the prompt or the descriptions has HTML, so it looks like a transcription glitch; the relay (#52) should strip markup from transcripts before it shows or stores them.
+- Not rerun with the final text: fi_milk and fi_clarify (passed with the first text, which differs only in the `build_quote` trigger sentence) and the chat call.
 
 ### What stays open
 
