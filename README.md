@@ -14,9 +14,13 @@ No agent tool can confirm an order. The only place to confirm is the page behind
 
 ## Try it
 
-The demo runs at **https://simo.mankeli.co**. The start page leads to the call, the webshop, the live dashboard and the connector setup.
+The demo runs at **https://simo.mankeli.co**. The start page leads to the call, the webshop, the live dashboard and the connector setup. The MCP server is at `/mcp` and the REST API's docs are at `/api/v1/docs`.
 
-No real order is ever placed. In the demo, the confirmation link lands in a simulated phone inbox on the call page. Real SMS sits behind a flag that is off by default.
+- **Your number makes your company.** Typing a phone number creates a demo company for it. It is one of seven kitchen types (pizza restaurant, school kitchen, lunch restaurant, bar, vegan catering company, cafe or tech office), picked from the number, with eight weeks of seeded order history. The same number always gets the same company (`vision.md` §13).
+- **The link goes to your simulated phone.** Every confirmation link lands in the simulated phone inbox on the call page, which is private to the browser that typed the number. On production, real SMS through Twilio also goes out, but only to numbers on an allowlist (`SMS_TWILIO_ENABLED` and `SMS_ALLOWLIST`).
+- **The dashboard is public.** Anyone with the URL sees every order, step and conversation, with no login. Phone numbers and emails only show masked (`+358 40 *** **12`). The confirmation token and link, and the simulated inbox, are never public.
+
+No real order is ever placed.
 
 ## Status
 
