@@ -204,8 +204,9 @@ async def _vocabulary(db: AsyncConnection | AsyncSession) -> Vocabulary:
     return _VOCABULARIES[key]
 
 
-async def _query_vector(db: AsyncConnection | AsyncSession, q: str) -> str | None:
-    """The cached query vector; with SEARCH_VECTORS=live a missing one is embedded now."""
+async def query_embedding(db: AsyncConnection | AsyncSession, q: str) -> str | None:
+    """The cached query vector; with SEARCH_VECTORS=live a missing one is embedded now.
+    Recipe search (#34) uses it too, so both share the query cache."""
     mode = get_settings().search_vectors
     if mode == "off":
         return None
@@ -392,7 +393,7 @@ async def _search_products(
     # trigram lookup would only cost time ("valio" checks 1,600 rows).
     term_of_word = [t for t in query.terms for _ in t.alternatives]
     paths = [i for i, t in enumerate(term_of_word) if t.folded[0] not in brands]
-    query_vector = await _query_vector(db, q) if W_VECTOR > 0 and query.terms else None
+    query_vector = await query_embedding(db, q) if W_VECTOR > 0 and query.terms else None
     statement = _candidates_sql(
         paths, bool(claims), category is not None, not query.terms, query_vector is not None
     )
