@@ -99,7 +99,7 @@ This is the heart of the guardrail story, and it is deliberately simple.
 
 ### The confirmation link and page
 
-- The SMS always goes to the number on the customer account. An agent can never choose or change the recipient.
+- The SMS goes to the confirmation person configured on the customer account, or to the caller's own registered number if none is configured. An agent can never choose or change the recipient.
 - The link carries a random single-use token (128 bits or more, stored hashed), bound to the quote, its hash and the recipient. It expires with the quote (default 30 minutes).
 - The page is server-rendered from engine data only. It shows lines, quantities in sales units and in the unit the buyer asked for, delivery date, gross total and a readable trace of why each product was chosen.
 - **Odd things are shown first, in plain words,** each with its own acknowledgement. Examples:
@@ -154,12 +154,27 @@ One engine, no per-channel limits. Identification only tells us which customer a
 
 | Channel | Client | Identified by | Role in the demo |
 |---|---|---|---|
-| Phone | Web "virtual phone" page, Gemini voice, MCP | Caller's number matches the customer account | Main stage demo |
+| Phone | Web "virtual phone" page, Gemini voice, MCP | Caller's number matches the customer account (in the demo: the number the visitor types in) | Main stage demo |
 | Browser | Mock Aimo webshop page registering the tools through WebMCP | Logged-in webshop session | Shown working with an OpenAI client |
 | Chat connector | Claude connector or the OpenAI equivalent on the remote MCP | Email and password login | For judges and peers to try themselves |
 
 - Unknown phone number: the agent says so and ends the call, optionally sending account activation instructions to that number.
 - All channels must work end to end, because other people will test them.
+
+### Phone: real flow and demo flow
+
+**Real flow.** Only a number that belongs to a customer account can order by phone. The caller is identified by that number, and the confirmation link goes to the account's configured confirmation person, or to the caller if the account has none. Caller id only identifies. The link is what authorises.
+
+**Demo flow.** Everyone "has an account", so anyone at the booth can try it:
+
+1. The visitor opens our demo website and enters their own phone number. We create a demo account for that number on the spot, with a default kitchen profile and seeded order history.
+2. The page turns into a phone-style call screen (dial pad look, call timer, mute and hang-up) and connects to our server over the web. The audio runs through the browser to the Gemini voice agent. No real phone call is placed.
+3. The visitor talks to the agent and makes an order, holding their own phone to their ear like a normal call.
+4. When the call ends, the confirmation SMS goes to the number they entered, and they confirm on the same phone.
+
+The number they type is the only thing that differs from the real flow: it stands in for the caller id and the account lookup. Everything after that is the real path.
+
+The call screen does not dim when held to the ear. Browsers do not give web pages reliable access to the proximity sensor, so we leave it out.
 
 ## 10. Data and Valio API rules
 
