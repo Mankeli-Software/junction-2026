@@ -25,6 +25,10 @@ services:
     env_file:
       - path: ../.env
         required: false
+    environment:
+      # Set on the VM (deploy/vm.env). The API then reads its secrets from Key Vault with the
+      # VM's managed identity. Empty on laptops.
+      KEY_VAULT_URL: ${KEY_VAULT_URL:-}
 
   web:
     build: ../web

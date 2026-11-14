@@ -85,6 +85,8 @@ pnpm build
 
 Only the database: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up -d db`. CI (`.github/workflows/ci.yml`) runs the same lint, migration and test commands only on pushes to `production`, so run them locally before pushing to `main`.
 
+VM (`simo.mankeli.co`, Azure): in the repo on the VM, after `git pull` on `production`, run `docker compose --env-file deploy/vm.env -f deploy/docker-compose.yml up -d --build`. `deploy/vm.env` holds the non-secret settings. Secrets come from Key Vault `kv-simo-junction26` through the VM's managed identity: `database-url` (user `simo_app`) for the app and `database-admin-url` for migrations, which run at container start.
+
 ## Database and secrets
 
 - **Laptops** run Postgres with pgvector in Docker (`deploy/docker-compose.dev.yml`) and read a local `.env`. Only `.env.example` is committed.
