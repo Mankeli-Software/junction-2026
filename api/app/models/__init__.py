@@ -1,5 +1,6 @@
 """SQLAlchemy models. Import every model module here so Alembic sees all tables."""
 
+from app.models.audit import AuditEvent
 from app.models.auth import AccessToken, WebSession
 from app.models.base import Base
 from app.models.catalogue import (
@@ -15,15 +16,18 @@ from app.models.catalogue import (
 )
 from app.models.confirmations import Confirmation, SmsMessage
 from app.models.customers import Company, KitchenProfile, User
+from app.models.ordering import OrderSession, Quote, QuoteLine
 
 __all__ = [
     "AccessToken",
     "AllergenCode",
+    "AuditEvent",
     "Base",
     "Category",
     "Company",
     "Confirmation",
     "KitchenProfile",
+    "OrderSession",
     "Product",
     "ProductAllergen",
     "ProductClaim",
@@ -32,6 +36,8 @@ __all__ = [
     "ProductUnit",
     "ProductUnitConversion",
     "SmsMessage",
+    "Quote",
+    "QuoteLine",
     "User",
     "WebSession",
 ]
