@@ -1236,6 +1236,71 @@
 				}
 			}
 		},
+		"/api/v1/shop/categories": {
+			"get": {
+				"tags": [
+					"shop"
+				],
+				"summary": "Get Categories",
+				"description": "Sections > groups > categories, in the shop's order. Only categories with at least\none product that has an image are listed.",
+				"operationId": "get_categories_api_v1_shop_categories_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ShopCatalogue"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/shop/categories/{category_id}/products": {
+			"get": {
+				"tags": [
+					"shop"
+				],
+				"summary": "Get Category Products",
+				"description": "The category's top 20 products with an image, best first. Unknown category: 404.",
+				"operationId": "get_category_products_api_v1_shop_categories__category_id__products_get",
+				"parameters": [
+					{
+						"name": "category_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Category Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ShopProducts"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/demo/accounts": {
 			"post": {
 				"tags": [
@@ -5567,6 +5632,179 @@
 					"quantity"
 				],
 				"title": "SetQuantityEdit"
+			},
+			"ShopCatalogue": {
+				"properties": {
+					"sections": {
+						"items": {
+							"$ref": "#/components/schemas/ShopSection"
+						},
+						"type": "array",
+						"title": "Sections"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"sections"
+				],
+				"title": "ShopCatalogue",
+				"description": "Every section that has at least one product to show, in the shop's order."
+			},
+			"ShopCategory": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"title": "Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"product_count": {
+						"type": "integer",
+						"title": "Product Count"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"id",
+					"name",
+					"product_count"
+				],
+				"title": "ShopCategory",
+				"description": "A leaf category: one of the product file's categories."
+			},
+			"ShopGroup": {
+				"properties": {
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"categories": {
+						"items": {
+							"$ref": "#/components/schemas/ShopCategory"
+						},
+						"type": "array",
+						"title": "Categories"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"name",
+					"categories"
+				],
+				"title": "ShopGroup",
+				"description": "The second level of the shop tree, for example Fresh products > Cheese."
+			},
+			"ShopProduct": {
+				"properties": {
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"brand": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Brand"
+					},
+					"pack_size": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Pack Size"
+					},
+					"sales_unit": {
+						"type": "string",
+						"title": "Sales Unit"
+					},
+					"units_per_sales_unit": {
+						"type": "integer",
+						"title": "Units Per Sales Unit"
+					},
+					"image_url": {
+						"type": "string",
+						"title": "Image Url"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"product_id",
+					"name",
+					"brand",
+					"pack_size",
+					"sales_unit",
+					"units_per_sales_unit",
+					"image_url"
+				],
+				"title": "ShopProduct"
+			},
+			"ShopProducts": {
+				"properties": {
+					"section": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"group": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"category": {
+						"$ref": "#/components/schemas/ShopCategory"
+					},
+					"products": {
+						"items": {
+							"$ref": "#/components/schemas/ShopProduct"
+						},
+						"type": "array",
+						"title": "Products"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"section",
+					"group",
+					"category",
+					"products"
+				],
+				"title": "ShopProducts",
+				"description": "A leaf category's top products, best first (#118)."
+			},
+			"ShopSection": {
+				"properties": {
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"groups": {
+						"items": {
+							"$ref": "#/components/schemas/ShopGroup"
+						},
+						"type": "array",
+						"title": "Groups"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"name",
+					"groups"
+				],
+				"title": "ShopSection",
+				"description": "The top level of the shop tree, for example Fresh products."
 			},
 			"SignupRequest": {
 				"properties": {

@@ -435,6 +435,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/shop/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Categories
+         * @description Sections > groups > categories, in the shop's order. Only categories with at least
+         *     one product that has an image are listed.
+         */
+        get: operations["get_categories_api_v1_shop_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/shop/categories/{category_id}/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Category Products
+         * @description The category's top 20 products with an image, best first. Unknown category: 404.
+         */
+        get: operations["get_category_products_api_v1_shop_categories__category_id__products_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/demo/accounts": {
         parameters: {
             query?: never;
@@ -2017,6 +2058,70 @@ export interface components {
             quantity: number;
         };
         /**
+         * ShopCatalogue
+         * @description Every section that has at least one product to show, in the shop's order.
+         */
+        ShopCatalogue: {
+            /** Sections */
+            sections: components["schemas"]["ShopSection"][];
+        };
+        /**
+         * ShopCategory
+         * @description A leaf category: one of the product file's categories.
+         */
+        ShopCategory: {
+            /** Id */
+            id: string;
+            name: components["schemas"]["Localized"];
+            /** Product Count */
+            product_count: number;
+        };
+        /**
+         * ShopGroup
+         * @description The second level of the shop tree, for example Fresh products > Cheese.
+         */
+        ShopGroup: {
+            name: components["schemas"]["Localized"];
+            /** Categories */
+            categories: components["schemas"]["ShopCategory"][];
+        };
+        /** ShopProduct */
+        ShopProduct: {
+            /** Product Id */
+            product_id: string;
+            name: components["schemas"]["Localized"];
+            /** Brand */
+            brand: string | null;
+            /** Pack Size */
+            pack_size: string | null;
+            /** Sales Unit */
+            sales_unit: string;
+            /** Units Per Sales Unit */
+            units_per_sales_unit: number;
+            /** Image Url */
+            image_url: string;
+        };
+        /**
+         * ShopProducts
+         * @description A leaf category's top products, best first (#118).
+         */
+        ShopProducts: {
+            section: components["schemas"]["Localized"];
+            group: components["schemas"]["Localized"];
+            category: components["schemas"]["ShopCategory"];
+            /** Products */
+            products: components["schemas"]["ShopProduct"][];
+        };
+        /**
+         * ShopSection
+         * @description The top level of the shop tree, for example Fresh products.
+         */
+        ShopSection: {
+            name: components["schemas"]["Localized"];
+            /** Groups */
+            groups: components["schemas"]["ShopGroup"][];
+        };
+        /**
          * SignupRequest
          * @description `POST /api/v1/signup`: open sign-up for the connectors. Nothing is verified.
          *
@@ -3098,6 +3203,57 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": components["schemas"]["OverviewResponse"] | components["schemas"]["OrderUpdated"] | components["schemas"]["StepEvent"] | components["schemas"]["TranscriptEvent"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_categories_api_v1_shop_categories_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShopCatalogue"];
+                };
+            };
+        };
+    };
+    get_category_products_api_v1_shop_categories__category_id__products_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShopProducts"];
                 };
             };
             /** @description Validation Error */
