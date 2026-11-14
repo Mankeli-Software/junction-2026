@@ -3,7 +3,8 @@
 The fixed dev caller (`app.interfaces.deps.DEV_CALLER`) has fixed UUIDs but no rows, and
 sessions and quotes have foreign keys to `users` and `companies`. The tool-call wrapper
 calls `ensure_rows()` only when the request was resolved to the dev caller, which happens
-only with DEV_FAKE_CALLER=true, so production paths never write these rows.
+only with DEV_FAKE_CALLER=true or, on /mcp, MCP_AUTH_REQUIRED=false (#48), so production
+paths with auth on never write these rows.
 """
 
 from sqlalchemy.dialects.postgresql import insert

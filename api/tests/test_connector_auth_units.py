@@ -59,7 +59,8 @@ def mcp_auth_off(monkeypatch: pytest.MonkeyPatch):
     get_settings.cache_clear()
 
 
-@pytest.mark.usefixtures("mcp_auth_off")
+# app_db: every tool call writes its audit events (#45).
+@pytest.mark.usefixtures("app_db", "mcp_auth_off")
 def test_auth_off_opens_mcp_only(live_client: TestClient):
     response = live_client.post(
         "/mcp",

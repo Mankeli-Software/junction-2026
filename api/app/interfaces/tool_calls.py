@@ -105,4 +105,8 @@ async def _known_quote(
 
 
 def _is_dev_caller(caller: Caller) -> bool:
-    return get_settings().dev_fake_caller and caller.user_id == DEV_CALLER.user_id
+    # resolve_caller hands out the demo customer with DEV_FAKE_CALLER=true, and on /mcp also
+    # with MCP_AUTH_REQUIRED=false (#48).
+    settings = get_settings()
+    demo_allowed = settings.dev_fake_caller or not settings.mcp_auth_required
+    return demo_allowed and caller.user_id == DEV_CALLER.user_id
