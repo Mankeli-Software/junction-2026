@@ -10,9 +10,12 @@ If the service raises a `ServiceError`, its writes are rolled back to a savepoin
 error is recorded as `tool_returned`, the transaction commits and the error is raised
 again for the interface to map. Any other exception rolls back the whole call.
 
-Tool events are public on the dashboard (technical-plan.md §9.5). No tool argument or
-response carries a token, a link or a full phone number (vision §8), so they are stored as
-they are.
+Tool events are public on the dashboard (technical-plan.md §9.5), and audit events hold
+masked identities only (§8.5). A buyer may still type a phone number, an email or a
+confirmation link into a line, so the request is masked first, with the dashboard's own
+`redact()` (#90): the service, the engine, the stored quote, every event and the response
+all see the same masked text, and a quote replays exactly from its events. The audit
+writer's refusal stays as the safety net.
 """
 
 import inspect
@@ -31,6 +34,7 @@ from app.models import Quote
 from app.schemas import Localized
 from app.services import audit, dev_caller, sessions
 from app.services.caller import Caller
+from app.services.dashboard.redact import redact
 from app.services.errors import ServiceError
 from app.settings import get_settings
 
@@ -44,6 +48,7 @@ async def run_tool(
 ) -> BaseModel:
     """Run the tool inside its own span and correlation context (#84): every span and log
     line under it carries the tool, the channel, the company and, once known, the session."""
+    request = _masked(request)
     arguments = request.model_dump(mode="json") if request is not None else {}
     timer = telemetry.Timer()
     with (
@@ -115,6 +120,15 @@ async def _run(
     if error is not None:
         raise error
     return result
+
+
+def _masked(request: BaseModel | None) -> BaseModel | None:
+    """The request with phone numbers, emails and confirmation links masked in its text."""
+    if request is None:
+        return None
+    data = request.model_dump(mode="json")
+    masked = redact(data)
+    return request if masked == data else type(request).model_validate(masked)
 
 
 def _outcome(response: dict[str, Any]) -> tuple[str, dict[str, int]]:
