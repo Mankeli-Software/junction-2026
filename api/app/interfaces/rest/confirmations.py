@@ -10,6 +10,8 @@ at confirm replaces the quote and then answers 409. A refusal answers
 `{"detail": {"text": {"fi", "en"}, "line_id"}}`, which the page shows.
 """
 
+import logging
+import re
 from collections.abc import Awaitable, Callable
 from typing import Annotated, Any
 
@@ -95,3 +97,28 @@ async def _refused(request: Request, error: Exception) -> JSONResponse:
 
 def add_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(ConfirmationRefused, _refused)
+
+
+# The token is in these paths, so the access log must not show them as they are (#46: the
+# link is never in a log line).
+TOKEN_IN_PATH = re.compile(r"(/confirmations/)[^/?#\s]+")
+
+
+def redact_path(path: str) -> str:
+    return TOKEN_IN_PATH.sub(r"\1…", path)
+
+
+class TokenRedactingFilter(logging.Filter):
+    """Masks the token in access log lines (uvicorn's `uvicorn.access` logger)."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.args, tuple):
+            record.args = tuple(redact_path(a) if isinstance(a, str) else a for a in record.args)
+        record.msg = redact_path(str(record.msg))
+        return True
+
+
+def redact_access_log() -> None:
+    logger = logging.getLogger("uvicorn.access")
+    if not any(isinstance(f, TokenRedactingFilter) for f in logger.filters):
+        logger.addFilter(TokenRedactingFilter())
