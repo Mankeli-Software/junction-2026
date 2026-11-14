@@ -132,7 +132,9 @@ async def build_quote(
         )
         drafts.append(draft)
     refuse_invalid_lines(lines)
-    _, response = await _new_quote(db, caller, session, lines, now=now, drafts=drafts)
+    _, response = await _new_quote(
+        db, caller, session, lines, now=now, drafts=drafts, order_exclusions=request.exclusions
+    )
     telemetry.quote_duration.record(
         timer.ms, telemetry.metric_attrs(tool="build_quote", decision=response.decision.value)
     )
@@ -165,7 +167,7 @@ async def update_quote(
     refused: list[Rejection] = []
     try:
         async with db.begin_nested():
-            response = await _replace(db, caller, old, merged, now)
+            response = await _replace(db, caller, old, merged, now, request.exclusions)
             refused = [r for r in response.rejections if r.line_id in previous]
             if refused:
                 raise _ChangeRefused
@@ -174,7 +176,7 @@ async def update_quote(
         await db.refresh(old)
         kept = {r.line_id for r in refused}
         merged = [previous[line.line_id] if line.line_id in kept else line for line in merged]
-        response = await _replace(db, caller, old, merged, now)
+        response = await _replace(db, caller, old, merged, now, request.exclusions)
         again = {r.line_id for r in response.rejections}
         response = response.model_copy(
             update={
@@ -249,10 +251,18 @@ async def _editable(db: AsyncSession, quote: Quote) -> None:
 
 
 async def _replace(
-    db: AsyncSession, caller: Caller, old: Quote, lines: list[LineRequest], now: datetime
+    db: AsyncSession,
+    caller: Caller,
+    old: Quote,
+    lines: list[LineRequest],
+    now: datetime,
+    order_exclusions: Sequence[Exclusion] | None = None,
 ) -> QuoteResponse:
-    """The next version of `old`, in its session, from these lines. `old` becomes `void`."""
+    """The next version of `old`, in its session, from these lines. `old` becomes `void`.
+    The order's one-off exclusions carry over unless new ones are given (#102)."""
     session = await sessions.quote_session(db, old, now=now)
+    if order_exclusions is None:
+        order_exclusions = [Exclusion(e) for e in old.engine_input.get("order_exclusions", [])]
     # The new lines still carry a recipe draft's group: the group keeps its photo label.
     groups = {line.group for line in lines}
     drafts = [
@@ -260,7 +270,16 @@ async def _replace(
         for draft in map(RecipeDraftRef.model_validate, old.engine_input.get("recipe_drafts", []))
         if draft.group in groups
     ]
-    new, response = await _new_quote(db, caller, session, lines, now=now, parent=old, drafts=drafts)
+    new, response = await _new_quote(
+        db,
+        caller,
+        session,
+        lines,
+        now=now,
+        parent=old,
+        drafts=drafts,
+        order_exclusions=order_exclusions,
+    )
 
     old.status = QuoteStatus.void
     await db.flush()
@@ -426,6 +445,7 @@ async def _new_quote(
     now: datetime,
     parent: Quote | None = None,
     drafts: Sequence[RecipeDraftRef] = (),
+    order_exclusions: Sequence[Exclusion] = (),
 ) -> tuple[Quote, QuoteResponse]:
     """Steps 2 to 10 of #45's spec: candidates, offers, decide, store, audit."""
     quote_id = uuid.uuid4()
@@ -442,7 +462,10 @@ async def _new_quote(
     lines, not_ordered = await recipes.expand_lines(db, lines)
     usual_items = await customers.usual_items(db, caller)
     rules = get_rule_set()
-    exclusions = await _exclusions(db, caller)
+    # What the buyer asked for this order only applies like the kitchen's own exclusions
+    # (#102), to every line, recipe ingredient and substitute.
+    asked = {*await _exclusions(db, caller), *order_exclusions}
+    exclusions = [e for e in Exclusion if e in asked]
     with telemetry.span("quote search", lines=len(lines)):
         ranked, substitutes = await _ranked_candidates(db, lines, usual_items, exclusions, rules)
         kept = cap_candidates(ranked, MAX_CANDIDATES)
@@ -498,6 +521,7 @@ async def _new_quote(
     engine_input = EngineInput(
         lines=lines,
         kitchen=KitchenProfile(exclusions=exclusions),
+        order_exclusions=[e for e in Exclusion if e in set(order_exclusions)],
         history=HistorySummary(
             usual_items=usual_items, recent_lines=await customers.recent_lines(db, caller)
         ),
@@ -554,8 +578,12 @@ async def _new_quote(
 
     # Stored once in `rule_sets` (with its audit event), so `rules_ref` resolves on replay.
     await audit.ensure_rule_set(db, rules)
-    # Without a draft, the stored input is exactly as before #80.
-    exclude = {"rules"} if engine_input.recipe_drafts else {"rules", "recipe_drafts"}
+    # Without a draft or one-off exclusions, the stored input is exactly as before them.
+    exclude = {"rules"}
+    if not engine_input.recipe_drafts:
+        exclude.add("recipe_drafts")
+    if not engine_input.order_exclusions:
+        exclude.add("order_exclusions")
     stored_input = engine_input.model_dump(mode="json", exclude=exclude)
     stored_output = output.model_dump(mode="json")
     quote = Quote(
@@ -798,6 +826,14 @@ async def _ranked_candidates(
                     limit=NAMED_ALTERNATIVES,
                 )
                 subs += [hit.product_id for hit in similar]
+                # A named product this order can't have (the regular milk of a recipe in a
+                # milk-free order, #102): safe products from the categories mapped from its
+                # own, so the engine can offer one instead of a dead end.
+                if may_block(record, exclusions, rules):
+                    mapped = await _mapped_substitutes(
+                        db, line.text or without_size(record.name.fi), line.claims, record.category
+                    )
+                    subs += [r.product_id for r in mapped if not may_block(r, exclusions, rules)]
         else:
             hits = await catalog.search_candidates(
                 db, line.text, line.claims, line.category, limit=SEARCH_LIMIT
@@ -811,19 +847,7 @@ async def _ranked_candidates(
                 # prefer a cheap wrong kind (vegan meatballs for "nakit").
                 # Without a query vector ("maito" matches no word in a plant-drink name),
                 # the category's products by product id, like the same-category step.
-                mapped = []
-                for to_category in category_substitutes().get(hits[0].category, ()):
-                    found = await catalog.search_candidates(
-                        db,
-                        line.text,
-                        line.claims,
-                        to_category,
-                        limit=MAPPED_SUBSTITUTES,
-                        semantic=True,
-                    )
-                    mapped += found or await catalog.search_candidates(
-                        db, None, line.claims, to_category, limit=MAPPED_SUBSTITUTES
-                    )
+                mapped = await _mapped_substitutes(db, line.text, line.claims, hits[0].category)
                 same_category = await catalog.search_candidates(
                     db, None, line.claims, hits[0].category, limit=SEARCH_LIMIT
                 )
@@ -844,6 +868,23 @@ async def _ranked_candidates(
         ranked[line.line_id] = unique
         substitutes[line.line_id] = [i for i in unique if i not in ids]
     return ranked, substitutes
+
+
+async def _mapped_substitutes(
+    db: AsyncSession, words: str | None, claims: Sequence[Any], category: str
+) -> list[Any]:
+    """The best few products by meaning in each category mapped from `category`
+    (data/category_substitutes.csv, #78). Without a query vector ("maito" matches no word
+    in a plant-drink name), the category's products by product id."""
+    mapped: list[Any] = []
+    for to_category in category_substitutes().get(category, ()):
+        found = await catalog.search_candidates(
+            db, words, claims, to_category, limit=MAPPED_SUBSTITUTES, semantic=True
+        )
+        mapped += found or await catalog.search_candidates(
+            db, None, claims, to_category, limit=MAPPED_SUBSTITUTES
+        )
+    return mapped
 
 
 async def _offers(

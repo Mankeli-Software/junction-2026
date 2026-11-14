@@ -16,6 +16,7 @@ from app import engine
 from app.adapters import valio
 from app.interfaces.deps import DEV_CALLER
 from app.loaders import recipes as loader
+from app.models import KitchenProfile as KitchenProfileRow
 from app.models import Recipe as RecipeRow
 from app.recipes import data as files
 from app.recipes import search as recipe_search
@@ -24,9 +25,11 @@ from app.schemas import (
     BuildQuoteRequest,
     Decision,
     EngineInput,
+    Exclusion,
     GetRecipeRequest,
     LineRequest,
     SearchRecipesRequest,
+    UpdateQuoteRequest,
 )
 from app.services import accounts, quotes, recipes
 from app.services.audit import load_rule_set_by_ref
@@ -37,6 +40,7 @@ from tests.conftest import load_recipes
 from tests.phones import new_number
 
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
+DAY = "2026-11-16"
 # Rukiinen piimäleipä, 6 portions: piimä and butter are linked to products in the test
 # catalogue; salt, yeast and the two flours are not linked.
 BREAD = "31863"
@@ -520,3 +524,97 @@ async def test_a_plain_group_has_no_image(db, caller):
     response = await quotes.build_quote(db, caller, BuildQuoteRequest(lines=[line]), now=T0)
     [group] = response.groups
     assert group.group == "Juhlat" and group.image_url is None
+
+
+# --- One-off exclusions on a quote (#102) -----------------------------------------------
+
+MILK_PRODUCTS = {"463373", "463798", "464306"}  # the bread's piimä and butter, and a milk
+
+
+async def stored_input(db: AsyncSession, caller: Caller, quote_id: str) -> dict:
+    return (await quotes._load(db, caller, quote_id)).engine_input
+
+
+@pytest.mark.usefixtures("recipes", "borrowed_offers")
+async def test_a_one_off_exclusion_applies_to_every_ingredient_of_a_recipe(db, caller):
+    response = await quotes.build_quote(
+        db,
+        caller,
+        BuildQuoteRequest(lines=[recipe_line()], exclusions=[Exclusion.milk_free]),
+        now=T0,
+    )
+
+    # Neither milk ingredient is quoted. The piimä gets a safe product from the category
+    # map as a question; the butter has none here and is rejected with a next step.
+    assert not {line.product_id for line in response.lines} & MILK_PRODUCTS
+    assert response.clarification is not None and response.clarification.line_id == "r1-0"
+    offered = [option.product_id for option in response.clarification.options]
+    assert offered and not set(offered) & MILK_PRODUCTS
+    [rejection] = response.rejections
+    assert (rejection.line_id, rejection.reason_code) == ("r1-3", "ALLERGEN_CONFLICT")
+    assert rejection.next_step.en
+
+    # Stored with the quote, apart from the kitchen profile, which is not changed.
+    stored = await stored_input(db, caller, response.quote_id)
+    assert stored["order_exclusions"] == ["milk_free"]
+    assert stored["kitchen"]["exclusions"] == ["milk_free"]
+    profile = await db.scalar(
+        select(KitchenProfileRow.exclusions).where(
+            KitchenProfileRow.company_id == caller.company_id
+        )
+    )
+    assert profile == []
+
+
+@pytest.mark.usefixtures("recipes", "borrowed_offers")
+async def test_a_one_off_exclusion_stays_through_updates_until_it_is_cleared(db, caller):
+    first = await quotes.build_quote(
+        db,
+        caller,
+        BuildQuoteRequest(lines=[recipe_line()], exclusions=[Exclusion.milk_free]),
+        now=T0,
+    )
+    oat = first.clarification.options[0].product_id
+    asked = next(
+        line
+        for line in (await stored_input(db, caller, first.quote_id))["lines"]
+        if line["line_id"] == "r1-0"
+    )
+    milk = {"line_id": "m", "product_id": "464306", "quantity": 2, "unit": "l", "needed_by": DAY}
+
+    # The clarification answered and a milk added, with no exclusions sent: still milk-free.
+    second = await quotes.update_quote(
+        db,
+        caller,
+        UpdateQuoteRequest(
+            quote_id=first.quote_id,
+            lines=[LineRequest.model_validate({**asked, "product_id": oat}), milk],
+        ),
+        now=T0,
+    )
+    assert (await stored_input(db, caller, second.quote_id))["order_exclusions"] == ["milk_free"]
+    assert [line.product_id for line in second.lines] == [oat]
+    assert "m" in {r.line_id for r in second.rejections} | {
+        second.clarification.line_id if second.clarification else None
+    }
+
+    # An empty list clears it: the milk can be quoted now.
+    third = await quotes.update_quote(
+        db,
+        caller,
+        UpdateQuoteRequest(quote_id=second.quote_id, lines=[milk], exclusions=[]),
+        now=T0,
+    )
+    assert "order_exclusions" not in await stored_input(db, caller, third.quote_id)
+    assert "464306" in {line.product_id for line in third.lines}
+
+
+@pytest.mark.usefixtures("recipes", "borrowed_offers")
+async def test_a_quote_without_one_off_exclusions_is_stored_as_before(db, caller):
+    response = await quotes.build_quote(
+        db, caller, BuildQuoteRequest(lines=[recipe_line()]), now=T0
+    )
+
+    stored = await stored_input(db, caller, response.quote_id)
+    assert "order_exclusions" not in stored and stored["kitchen"]["exclusions"] == []
+    assert {line.product_id for line in response.lines} == {"463373", "463798"}
