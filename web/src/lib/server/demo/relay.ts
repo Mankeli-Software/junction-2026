@@ -45,7 +45,7 @@ interface Turn {
 
 const SCRIPT: Record<Lang, { greeting: (company: string) => string; turns: Turn[]; more: Turn }> = {
 	en: {
-		greeting: (company) => `Hi ${company}! I'm S.I.MO, an AI helper for Valio Aimo. What can I get you?`,
+		greeting: (company) => `Hi ${company}! I'm S.I.MO, Valio Aimo's AI helper. What can I get you?`,
 		turns: [
 			{
 				buyer: 'I need five kilos of ground beef for Monday.',
@@ -56,7 +56,7 @@ const SCRIPT: Record<Lang, { greeting: (company: string) => string; turns: Turn[
 				agent: 'Done. The link comes to your phone when we hang up. Anything else?',
 				agrees: true
 			},
-			{ buyer: "No, that's all.", agent: 'Thanks, bye!', endsCall: true }
+			{ buyer: "No, that's all.", agent: "I'll send the link to your phone now. Bye!", endsCall: true }
 		],
 		more: { buyer: 'Hmm, one more thing.', agent: 'Sure, go ahead.' }
 	},
@@ -68,7 +68,7 @@ const SCRIPT: Record<Lang, { greeting: (company: string) => string; turns: Turn[
 				agent: 'Naudan jauheliha 10 %, kaksi 2,5 kilon pakkausta, 41,90 euroa, perillä maanantaina. Lähetänkö vahvistuslinkin?'
 			},
 			{ buyer: 'Kyllä, lähetä.', agent: 'Selvä. Linkki tulee puhelimeesi, kun lopetamme puhelun. Muuta?', agrees: true },
-			{ buyer: 'Ei muuta.', agent: 'Kiitos, hei hei!', endsCall: true }
+			{ buyer: 'Ei muuta.', agent: 'Lähetän linkin puhelimeesi nyt. Hei hei!', endsCall: true }
 		],
 		more: { buyer: 'Vielä yksi asia.', agent: 'Kerro vain.' }
 	}

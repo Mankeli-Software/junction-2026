@@ -117,8 +117,8 @@ const strings = {
 		fi: 'Tilauksesi ja se mitä sanot näkyvät julkisessa demonäkymässämme keksityllä yritysnimellä. Numeroasi ei koskaan näytetä kokonaan.'
 	},
 	noticeInbox: {
-		en: 'The link to confirm your order arrives in the demo phone on this page. No real order is placed.',
-		fi: 'Linkki tilauksen vahvistamiseen tulee tämän sivun demopuhelimeen. Oikeaa tilausta ei tehdä.'
+		en: 'The link to confirm your order arrives in the demo phone on this page. This is a demo; no real order is placed.',
+		fi: 'Linkki tilauksen vahvistamiseen tulee tämän sivun demopuhelimeen. Tämä on demo; oikeaa tilausta ei tehdä.'
 	},
 	openDemoPhone: { en: 'Open demo phone', fi: 'Avaa demopuhelin' },
 	opening: { en: 'Opening...', fi: 'Avataan...' },
@@ -135,10 +135,10 @@ const strings = {
 	call: { en: 'Call', fi: 'Soita' },
 	callAria: { en: 'Call S.I.MO', fi: 'Soita S.I.MOlle' },
 	trySaying: { en: 'Try saying', fi: 'Kokeile sanoa' },
-	try1: { en: '"5 kilos of ground beef for tomorrow"', fi: '"5 kiloa jauhelihaa huomiseksi"' },
-	try2: { en: '"My usual order, please"', fi: '"Tavallinen tilaus, kiitos"' },
-	try3: { en: '"1,000 litres of lactose-free milk by Monday"', fi: '"1 000 litraa laktoositonta maitoa maanantaiksi"' },
-	try4: { en: '"A milk-free lasagne for 200 people"', fi: '"Maidoton lasagne 200 hengelle"' },
+	try1: { en: '"I need 1,000 litres of lactose-free milk by Monday."', fi: '"Tarvitsen 1 000 litraa laktoositonta maitoa maanantaiksi."' },
+	try2: { en: '"We ran out of ground beef, 5 kilos for tomorrow."', fi: '"Jauheliha loppui, 5 kiloa huomiseksi."' },
+	try3: { en: '"My usual butter, 20 kilos."', fi: '"Tavallinen voi, 20 kiloa."' },
+	try4: { en: '"A recipe for 200 people, milk-free."', fi: '"Resepti 200 hengelle, maidoton."' },
 	kitchen: { en: 'Kitchen', fi: 'Keittiö' },
 	avoids: { en: 'Avoids {list}', fi: 'Välttää: {list}' },
 	avoidsNothing: { en: 'No restrictions', fi: 'Ei rajoituksia' },
