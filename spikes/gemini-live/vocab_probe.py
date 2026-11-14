@@ -205,7 +205,7 @@ def report(out_dir: Path, meta: dict, rows: list[dict]) -> None:
         "",
         f"Vocabulary: {', '.join(meta['vocabulary']) or '(none)'}",
         "",
-        f"- switch_fi_en turn 3 (\"That's all, thanks.\"): {summary['switch_fi_en_turn3']}",
+        f'- switch_fi_en turn 3 ("That\'s all, thanks."): {summary["switch_fi_en_turn3"]}',
         f"- Short English lines right: {summary['short_en_right']}",
         f"- Short Finnish lines after English right: {summary['short_fi_right']}",
         f"- Key terms (#51 phrases): {summary['key_terms']}, mean WER {summary['mean_wer']}",
