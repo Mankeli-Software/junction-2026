@@ -134,7 +134,7 @@
 	</nav>
 
 	{#each overview.companies as company (company.name)}
-		<section class="company">
+		<section class="company" data-testid="company">
 			<div class="co">
 				<h2 class="hd">{company.name}</h2>
 				<span>{companyLine(company)}</span>

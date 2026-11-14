@@ -27,7 +27,7 @@
 	});
 </script>
 
-<a href="/dashboard/{encodeURIComponent(order.session_id)}" class="ocard" class:active class:attention class:flash>
+<a href="/dashboard/{encodeURIComponent(order.session_id)}" class="ocard" data-testid="order-card" class:active class:attention class:flash>
 	<div class="top">
 		<StatusPill state={order.state} since={order.state_since} channel={order.channel} />
 		<ChannelBadge channel={order.channel} client={order.client} />
@@ -37,6 +37,7 @@
 		<span class="step">{pick(order.step_text, ui.lang)}</span>
 	{/if}
 	<div class="meta">
+		{#if order.order_number}<span class="num" data-testid="order-number">{order.order_number}</span>{/if}
 		{#if order.line_count > 0}<span>{linesText}</span>{/if}
 		{#if order.total_cents !== null}<b>{formatMoney(order.total_cents, ui.lang)}</b>{/if}
 		{#if order.delivery_date}<span>{formatDay(order.delivery_date, ui.lang)}</span>{/if}
@@ -95,6 +96,10 @@
 	}
 	.meta b {
 		color: var(--d-ink);
+	}
+	.num {
+		font-weight: 600;
+		color: var(--d-petrol);
 	}
 	.flags {
 		font-size: 14px;
