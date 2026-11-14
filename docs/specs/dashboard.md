@@ -16,15 +16,15 @@ It is evidence for the judging criteria: end-to-end demo (30%), autonomy and con
 
 ## 2. Access: everything public, no login
 
-- **Everything is public, with no login** (changed 2026-11-14, `technical-plan.md` §9.5). Anyone with the URL sees every order: counters, cards, what was ordered and why, flags, engine steps, the conversation, tool call arguments and responses, event payloads, hashes and the chain check. Companies show by their generated name. That keeps the demo easy to follow and lets judges open it on their own device. This replaces an earlier split where the conversation and contact details were private; there is no operator login (#62 closed).
+- **Everything is public, with no login** (decided by the team 2026-11-14, `technical-plan.md` §9.5, vision sections 8 and 11). Anyone with the URL sees every order: counters, cards, what was ordered and why, flags, engine steps, the conversation, tool call arguments and responses, event payloads, hashes and the chain check. Companies show by their generated name. That keeps the demo easy to follow and lets judges open it on their own device. This replaces an earlier split where the conversation and contact details were private; there is no operator login (#62 closed).
 - **Never shown:** full phone numbers and emails (only masked), the confirmation token and link, cookies and tokens. The server redacts every response and live event. The simulated inbox is the only private data, and it is not on the dashboard (`technical-plan.md` §9.2).
 - It is read-only. Nothing on the dashboard can confirm, cancel, edit or resend an order. Those actions exist only on the confirmation page (vision section 6).
 - It plays the role of the **Aimo operator view** from vision section 11. The **buyer view** is the confirmation page and the "order received" page, reached through the link. We do not build a buyer account for the dashboard.
-- Agents never read the dashboard. It is not an MCP tool and the MCP server has no route to its data (vision section 8, `technical-plan.md` §9). Nothing on it can act on an order.
-- **Privacy.** Booth visitors type their own real phone number. The dashboard never shows it in full, only masked as `+358 40 *** **12`. What they say on the call is shown as text on the public dashboard, including the big screen (section 3.3), and they are told so before the call starts. No other personal data exists.
+- The dashboard is not an agent tool. It is not an MCP tool and the MCP server has no route to its data (vision section 8, `technical-plan.md` §9). An agent could still open the public URL like anyone else and see the same redacted data. Nothing on it can act on an order.
+- **Privacy.** Booth visitors type their own real phone number. The dashboard never shows it in full, only masked as `+358 40 *** **12`. What they say on the call is shown as text on the public dashboard, including the big screen (section 3.3), and they are told so before the call starts. Webshop chat visitors are told the same before they chat (`webshop-chat.md` section 2). No other personal data exists.
 - **Demo companies.** Each new caller number gets its own generated company with a unique, funny-sounding Oy name (for example "Hassu Hauki Oy" or "Lihapulla ja Pojat Oy"). The same number calling again gets the same company. This makes the grouping by company on the overview meaningful and makes each visitor's order easy to spot on the screen.
 
-Production note for the pitch: in real use this view sits behind Aimo staff login, and buyers see only their own company. That is access control on top of the same read model, not a different dashboard.
+Production note for the pitch: in real use this view sits behind Aimo staff login, and buyers see only their own company. That is access control on top of the same read model, not a different dashboard. What production shows is revisited in #70.
 
 ## 3. Screens
 
@@ -142,14 +142,14 @@ Rules for conversation text:
 - It is data, not instructions. It is escaped when shown and is never used in an engine decision (vision section 8). The engine still only receives the structured tool call arguments.
 - Voice transcripts are speech-to-text output and can be wrong. They are labelled as transcripts.
 - It is part of the audit log (one event per turn), so it is hash-chained with everything else.
-- It is public (section 2), on the big screen too. The call screen tells visitors this before the call starts.
+- It is public (section 2), on the big screen too. The call screen and the webshop chat tell visitors this before they start.
 
 ### 3.4 Audit log
 
 The lowest level: the raw, hash-chained audit events behind one order session. Opened from the order summary's trust strip or from any entry in the full flow.
 
 - **Event list.** Every event of the session in order: sequence number, timestamp, event type, the plain-language sentence, and a short form of its hash. Nothing is summarised or hidden at this level; conversation turns, tool calls, rejected candidates, voided quotes and failed SMS attempts are all there.
-- **Event detail.** For the user who made the order (section 2), clicking an event shows its full record: all fields and the structured payload as formatted JSON (the one place raw JSON is shown), its `prev_hash` and `hash`.
+- **Event detail.** Public, like everything else (section 2): clicking an event shows its full record, with identities masked: all fields and the structured payload as formatted JSON (the one place raw JSON is shown), its `prev_hash` and `hash`.
 - **Chain check.** A "Verify chain" result at the top: the dashboard recomputes each hash from the event content and the previous hash and shows "Chain intact" or the first event where it breaks. This is how we show tamper evidence live, not only claim it. This needs the backend to chain events per session (or to give each event a per-session link as well as its place in a global chain); with one global chain only, one order's events cannot be checked on their own.
 - **Quote check.** For quote events, the quote hash and the result of checking its signature against the published key.
 - **Back links.** Each event links back to the entry it explains in the full flow or the order summary.
@@ -251,4 +251,4 @@ None at the moment.
 - No counter reset; counters run for the whole event.
 - The order summary shows only what was ordered and why. Conversation, tool calls and engine steps are in a separate full flow view.
 - Everything is audited, grouped by order. No global audit log view.
-- ~~General data is public with no login; the conversation and contact details are private; operators see everything.~~ Replaced later the same day: everything is public with no login, identities masked, no operators (section 2).
+- ~~General data is public with no login; the conversation and contact details are private; operators see everything.~~ Replaced later the same day, and agreed by the team: everything is public with no login, identities masked, no operators (section 2).

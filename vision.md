@@ -148,7 +148,7 @@ One MCP server over Streamable HTTP, with the same operations documented as Open
 
 Decisions returned by `build_quote`: `ready` (quote can be sent for confirmation), `needs_clarification` (one question, answerable in one turn), `rejected` (with a reason and a next step). Responses carry real sentences in Finnish and English, not only codes. For a decision that cannot be overridden the agent says so and moves on.
 
-Not available to any agent: confirm, cancel on the buyer's behalf, read the audit log, change customer data.
+Not available to any agent: confirm, cancel on the buyer's behalf, open or read confirmation links, change customer data. No tool reads the audit log, and the tools return only the caller's own orders. The public dashboard (section 11) shows every order and conversation in redacted form, so anyone with its URL can read it, an agent included, but it is not a tool and nothing on it can act on an order.
 
 Everything from an agent or a product record is data, not instructions: strict schemas, unknown fields rejected, free text never used in decisions and escaped when shown.
 
@@ -215,7 +215,8 @@ Our own rules on top:
 
 - Every engine step writes an append-only, hash-chained event: request, candidates considered, filters applied, choice and reason codes, quote, SMS sent, confirmation.
 - **Buyer view:** on the confirmation page and afterwards, a readable trace from "what you asked" to "what was chosen and why".
-- **Aimo operator view (dashboard):** all orders live, grouped by buyer company. Each order opens into the black box: the steps, rejected candidates, flags and confirmation state. Buyers see only their own company's orders.
+- **Aimo operator view (dashboard):** all orders live, grouped by buyer company. Each order opens into the black box: the steps, rejected candidates, flags and confirmation state, and the conversation and tool calls where we have them.
+- **For the event the dashboard is public, with no login** (decided 2026-11-14). Anyone with the URL sees every order and conversation in redacted form: phone numbers and emails only masked, and never the confirmation token or link, cookies or caller tokens. Visitors are told before they start. Only the simulated phone inbox stays private. In production it sits behind staff login and buyers see only their own company's orders; what it shows then is revisited in #70.
 - The dashboard reads from its own status stream, pushed live. It shows failures too: rejected, link expired, SMS failed, callback requested.
 - It must be readable from a distance: plain-language steps, not raw JSON.
 
@@ -261,6 +262,7 @@ Payment standards (x402 and similar) do not fit invoice-based B2B wholesale and 
 2. Flagged items need an explicit acknowledgement on the page before Confirm is enabled.
 3. OpenAI clients use WebMCP. For connectors we build the Claude connector first, then an OpenAI connector or similar.
 4. All recipes are searchable, not a hand-picked set.
+5. The dashboard is public for the event, with no login, conversations included, in redacted form (section 11). Phone numbers and emails only appear masked. The confirmation token and link, cookies and caller tokens are never shown, and only the simulated inbox stays private. Production is revisited in #70.
 
 ### Still open
 

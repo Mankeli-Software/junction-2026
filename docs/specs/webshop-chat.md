@@ -18,6 +18,7 @@ The same chat can also be opened on the confirmation page, so the buyer can ask 
 Same as the phone demo, no user accounts:
 
 - The visitor types their phone number. The same number gets the same demo company and kitchen profile as on the phone (`call-screen.md` section 2.2), and can choose the kitchen profile here too.
+- A notice, shown before the visitor chats, matching the call screen's (`call-screen.md` section 2.1): "Your order and what you write show on our public demo dashboard under a made-up company name." (decided by the team 2026-11-14, `dashboard.md` section 2)
 - The confirmation link goes to the demo phone's inbox of this browser's account, and by SMS only to an allowlisted number when real SMS is on (`confirmation-page.md`, "How the link reaches the buyer").
 - The inbox is shown on the phone page only, never in the shop: a browser agent works inside the shop page and could follow the link (vision section 8). The visitor reads the link on the phone page in the same browser (section 4.4).
 
