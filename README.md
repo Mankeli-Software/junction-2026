@@ -105,7 +105,16 @@ docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up 
 
 This starts Caddy, the API, the web app and a local Postgres on http://localhost. Try http://localhost/api/v1/health. Compose runs the confirmation page against the API; for its fixture at http://localhost/c/fx-ready-try, start with `CONFIRMATION_SOURCE=fixture`.
 
-The dev servers, tests, linters, migrations and the catalogue loader are in [`CLAUDE.md`](CLAUDE.md), section "Commands". The web app also has its own [`web/README.md`](web/README.md).
+Migrations run when the API container starts, but the database starts empty. To order anything, load the catalogue (needs `VALIO_API_KEY` in `.env`; it downloads the product file once) and the recipes (no API calls):
+
+```sh
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml exec api python -m app.loaders.catalogue --download
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml exec api python -m app.loaders.recipes
+```
+
+The call needs `GEMINI_API_KEY`. The webshop chat also needs `CHAT_MODEL`, and reading a recipe photo needs `RECIPE_VISION_MODEL`; without them those endpoints answer 503. Prices and stock come from the recorded Valio snapshots (`VALIO_SOURCE=snapshot`), so local work never polls the live API. `.env.example` explains every setting.
+
+The dev servers, tests, linters and migrations are in [`CLAUDE.md`](CLAUDE.md), section "Commands". The web app also has its own [`web/README.md`](web/README.md), with its fixtures and the WebMCP setup.
 
 Never commit `.env` or any API key.
 
