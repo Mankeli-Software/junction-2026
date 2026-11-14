@@ -1,0 +1,253 @@
+{
+	"_note": "Written by scripts/select_shop_products.py from the static product file. Static shop content only: prices and stock come from the agent tools.",
+	"shelves": [
+		{
+			"key": "milk",
+			"name": {
+				"en": "Milk",
+				"fi": "Maidot"
+			}
+		},
+		{
+			"key": "cream",
+			"name": {
+				"en": "Cream",
+				"fi": "Kermat"
+			}
+		},
+		{
+			"key": "butter",
+			"name": {
+				"en": "Butter",
+				"fi": "Voit"
+			}
+		},
+		{
+			"key": "yoghurt",
+			"name": {
+				"en": "Yoghurt and quark",
+				"fi": "Jogurtit ja rahkat"
+			}
+		},
+		{
+			"key": "cheese",
+			"name": {
+				"en": "Cheese",
+				"fi": "Juustot"
+			}
+		},
+		{
+			"key": "juice",
+			"name": {
+				"en": "Juices",
+				"fi": "Mehut"
+			}
+		}
+	],
+	"products": [
+		{
+			"product_id": "464073",
+			"name": {
+				"en": "Valio whole milk 1 l lactose free UHT",
+				"fi": "Valio täysmaito 1 l laktoositon UHT"
+			},
+			"category": "10400",
+			"category_name": {
+				"en": "Milk and sour milk drinks",
+				"fi": "Maidot ja piimät"
+			},
+			"shelf": "milk",
+			"pack_size": "1 l",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "476240",
+			"name": {
+				"en": "Valio Eila® skimmed milk drink 1 l lactose free",
+				"fi": "Valio Eila® rasvaton maitojuoma 1 l laktoositon"
+			},
+			"category": "10400",
+			"category_name": {
+				"en": "Milk and sour milk drinks",
+				"fi": "Maidot ja piimät"
+			},
+			"shelf": "milk",
+			"pack_size": "1 l",
+			"sales_unit": "KI",
+			"units_per_sales_unit": 5,
+			"image_url": null
+		},
+		{
+			"product_id": "476880",
+			"name": {
+				"en": "Valio cooking cream 15 % 10 l UHT lactose free novobox",
+				"fi": "Valio ruokakerma 15 % 10 l UHT laktoositon novobox"
+			},
+			"category": "10401",
+			"category_name": {
+				"en": "Cream and cooking cream",
+				"fi": "Valio kermat"
+			},
+			"shelf": "cream",
+			"pack_size": "10 l",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "469162",
+			"name": {
+				"en": "Valio cooking cream alternative 15 % 1 l lactose free",
+				"fi": "Valio Ruoka 15 % 1 l laktoositon"
+			},
+			"category": "10401",
+			"category_name": {
+				"en": "Cream and cooking cream",
+				"fi": "Valio kermat"
+			},
+			"shelf": "cream",
+			"pack_size": "1 l",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "476548",
+			"name": {
+				"en": "Valio sour cream 5 kg lactose free",
+				"fi": "Valio kermaviili 5 kg laktoositon"
+			},
+			"category": "10419",
+			"category_name": {
+				"en": "Sour cream and other soured milk products",
+				"fi": "Muut hapanmaitotuotteet"
+			},
+			"shelf": "cream",
+			"pack_size": "5 kg",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "475797",
+			"name": {
+				"en": "Valio butter 500 g salted",
+				"fi": "Valio voi 500 g normaalisuolainen"
+			},
+			"category": "10500",
+			"category_name": {
+				"en": "Butter",
+				"fi": "Voirasiat ja -paketit"
+			},
+			"shelf": "butter",
+			"pack_size": "500 g",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "476824",
+			"name": {
+				"en": "Valio A+™ natural yoghurt 1 kg lactose free",
+				"fi": "Valio A+™ luonnonjogurtti 1 kg laktoositon"
+			},
+			"category": "10412",
+			"category_name": {
+				"en": "Yoghurt",
+				"fi": "Jogurtit"
+			},
+			"shelf": "yoghurt",
+			"pack_size": "1 kg",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "477044",
+			"name": {
+				"en": "Valio quark 5 kg lactose free",
+				"fi": "Valio maitorahka 5 kg laktoositon"
+			},
+			"category": "10430",
+			"category_name": {
+				"en": "Quark and skyr",
+				"fi": "Rahkat"
+			},
+			"shelf": "yoghurt",
+			"pack_size": "5 kg",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "476721",
+			"name": {
+				"en": "Valio Edam 17 % e300 g slices",
+				"fi": "Valio Edam 17 % e300 g viipale"
+			},
+			"category": "10602",
+			"category_name": {
+				"en": "Cheese, sliced",
+				"fi": "Viipalejuustot"
+			},
+			"shelf": "cheese",
+			"pack_size": "300 g",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "476901",
+			"name": {
+				"en": "Valio cottage cheese 400 g",
+				"fi": "Valio raejuusto 400 g"
+			},
+			"category": "10603",
+			"category_name": {
+				"en": "Cheese, grated",
+				"fi": "Juustoraasteet, -murut ja -lastut"
+			},
+			"shelf": "cheese",
+			"pack_size": "400 g",
+			"sales_unit": "KI",
+			"units_per_sales_unit": 8,
+			"image_url": null
+		},
+		{
+			"product_id": "476970",
+			"name": {
+				"en": "Valio Koskenlaskija® 1,5 kg strong processed cheese lactose free",
+				"fi": "Valio Koskenlaskija® 1,5 kg voimakas sulatejuustotanko laktoositon"
+			},
+			"category": "10633",
+			"category_name": {
+				"en": "Processed and spreadable cheese",
+				"fi": "Sulatejuustot"
+			},
+			"shelf": "cheese",
+			"pack_size": "1,5 kg",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		},
+		{
+			"product_id": "476601",
+			"name": {
+				"en": "Valio orange juice 1 l traditional",
+				"fi": "Valio appelsiinitäysmehu 1 l perinteinen"
+			},
+			"category": "21403",
+			"category_name": {
+				"en": "Juices",
+				"fi": "Tuore- ja täysmehut"
+			},
+			"shelf": "juice",
+			"pack_size": "1 l",
+			"sales_unit": "ST",
+			"units_per_sales_unit": 1,
+			"image_url": null
+		}
+	]
+}
