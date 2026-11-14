@@ -156,7 +156,11 @@ class Offer(StrictModel):
 
 class EngineInput(StrictModel):
     lines: list[LineRequest] = Field(min_length=1, max_length=MAX_LINES)
+    # The exclusions that apply to this quote: the kitchen profile's and the order's own.
     kitchen: KitchenProfile
+    # The part of them the buyer asked for this order only (#102), kept apart so an
+    # update can carry them on and a page can tell them from the kitchen profile.
+    order_exclusions: list[Exclusion] = []
     history: HistorySummary
     # Search results per line, best first (#36). Ids refer to `products`; the quote
     # service fills it, so the engine never searches.

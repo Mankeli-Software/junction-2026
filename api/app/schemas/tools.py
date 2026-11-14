@@ -127,6 +127,10 @@ class BuildQuoteRequest(StrictModel):
     # When the draft's lines are needed by. Default: the earliest needed_by of `lines`,
     # or else the next weekday.
     needed_by: date | None = None
+    # What the buyer asked for this one order only ("make it milk-free", #102). Enforced on
+    # every line, recipe ingredient and substitute like the kitchen's own exclusions, and
+    # never saved to the kitchen profile.
+    exclusions: list[Exclusion] = []
 
     @model_validator(mode="after")
     def _lines_or_draft(self) -> "BuildQuoteRequest":
@@ -145,11 +149,16 @@ class UpdateQuoteBody(StrictModel):
 
     lines: list[LineRequest] = Field(default=[], max_length=MAX_LINES)
     remove_line_ids: list[str] = Field(default=[], max_length=MAX_LINES)
+    # The order's one-off exclusions (#102). Left out, the quote keeps the ones it has;
+    # sent, they replace them, and an empty list clears them.
+    exclusions: list[Exclusion] | None = None
 
     @model_validator(mode="after")
-    def _lines_or_removals(self) -> "UpdateQuoteBody":
-        if not self.lines and not self.remove_line_ids:
-            raise ValueError("give at least one line to add or change, or a line id to remove")
+    def _something_to_change(self) -> "UpdateQuoteBody":
+        if not self.lines and not self.remove_line_ids and self.exclusions is None:
+            raise ValueError(
+                "give at least one line to add or change, a line id to remove, or exclusions"
+            )
         return self
 
 

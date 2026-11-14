@@ -964,6 +964,11 @@ export interface components {
             recipe_draft_id?: string | null;
             /** Needed By */
             needed_by?: string | null;
+            /**
+             * Exclusions
+             * @default []
+             */
+            exclusions: components["schemas"]["Exclusion"][];
         };
         /** CancelRequest */
         CancelRequest: {
@@ -2270,6 +2275,8 @@ export interface components {
              * @default []
              */
             remove_line_ids: string[];
+            /** Exclusions */
+            exclusions?: components["schemas"]["Exclusion"][] | null;
         };
         /** UsualItem */
         UsualItem: {

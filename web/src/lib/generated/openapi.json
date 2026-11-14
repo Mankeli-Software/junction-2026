@@ -2511,6 +2511,14 @@
 							}
 						],
 						"title": "Needed By"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/Exclusion"
+						},
+						"type": "array",
+						"title": "Exclusions",
+						"default": []
 					}
 				},
 				"additionalProperties": false,
@@ -6185,6 +6193,20 @@
 						"maxItems": 50,
 						"title": "Remove Line Ids",
 						"default": []
+					},
+					"exclusions": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/Exclusion"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Exclusions"
 					}
 				},
 				"additionalProperties": false,

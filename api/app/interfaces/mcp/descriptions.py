@@ -56,7 +56,10 @@ BUILD_QUOTE = (
     'the product words and any pack size the buyer said ("kevytmaito 1 l"), and product_id '
     "is only an id a tool returned for that product (a get_customer_context usual item, a "
     "search_products result or a recipe ingredient), never invented. A whole recipe is one "
-    "line with recipe_ref (see get_recipe). Returns a decision (ready, needs_clarification or "
+    "line with recipe_ref (see get_recipe). When the buyer wants this one order without "
+    'something ("make it milk-free"), set exclusions: it is enforced on every line, recipe '
+    "ingredient and substitute of this order, stays through update_quote, and is not saved "
+    "to the kitchen. Returns a decision (ready, needs_clarification or "
     "rejected), priced lines, flags, a clarification question or rejections, not_ordered "
     "(recipe ingredients the buyer gets elsewhere), and speak, a short summary in Finnish "
     "and English. If a line has an input error (a package unit without package_word, a "
@@ -70,7 +73,8 @@ UPDATE_QUOTE = (
     "line_id or a changed line with its existing line_id (for a clarification, the asked "
     "line with the chosen option's product_id and the buyer's original quantity and unit). "
     "Lines you don't send stay in the quote as they were; to take one out, name it in "
-    "remove_line_ids. The result's lines are always the complete order. If the engine "
+    "remove_line_ids. The order's exclusions stay as they are unless you send exclusions "
+    "(an empty list clears them). The result's lines are always the complete order. If the engine "
     "rejects a change to a line, that line stays as it was and the rejection is listed; a "
     "rejected new line is listed too and the rest of the order stays. A line with an input "
     "error fails the call as in build_quote, and the quote stays as it was: correct the "
