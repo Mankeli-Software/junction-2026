@@ -7,6 +7,7 @@ What each demo screen shows and does. How the screens look is in [`docs/design`]
 | [Dashboard](dashboard.md) | Draft, no open questions |
 | [Confirmation page](confirmation-page.md) | Draft, no open questions |
 | [Web phone call screen](call-screen.md) | Draft, no open questions |
+| [Agent UI (A2UI) in the chat](a2ui.md) | Draft v0: use cases and components, open questions |
 | [Webshop chat](webshop-chat.md) (stretch) | Draft, no open questions |
 
 ## Changes to carry into vision.md
