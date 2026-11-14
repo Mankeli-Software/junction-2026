@@ -78,9 +78,16 @@ class OfferSource(StrEnum):
 
 
 class QuoteStatus(StrEnum):
-    """Quote lifecycle (technical-plan.md §8.1)."""
+    """Quote lifecycle (technical-plan.md §8.1).
+
+    A quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's
+    decision. Only a `ready` quote can be sent for confirmation; the other two are
+    answered or changed with `update_quote`.
+    """
 
     ready = "ready"
+    needs_clarification = "needs_clarification"
+    rejected = "rejected"
     pending_confirmation = "pending_confirmation"
     confirmed = "confirmed"
     cancelled = "cancelled"
