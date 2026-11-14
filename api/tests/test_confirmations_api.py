@@ -62,7 +62,7 @@ def test_rest_twin_sends_to_this_browsers_inbox_only():
     assert response.status_code == 200, response.text
     assert response.json() == {
         "sent_to_masked": f"+358 40 *** **{phone[-2:]}",
-        "sms_status": "off",
+        "delivery_status": "off",
         "inbox": True,
     }
     assert "/c/" not in response.text
@@ -152,7 +152,7 @@ async def test_mcp_on_a_phone_call_holds_the_message_until_released(
     assert response.status_code == 200, response.text
     result = _rpc_result(response)
     assert not result["isError"], result
-    assert result["structuredContent"]["sms_status"] == "held"
+    assert result["structuredContent"]["delivery_status"] == "held"
     assert result["structuredContent"]["inbox"] is True
     assert "/c/" not in response.text
     assert client.get("/api/v1/private/inbox").json() == []

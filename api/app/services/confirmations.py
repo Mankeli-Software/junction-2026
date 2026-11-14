@@ -146,7 +146,7 @@ async def request_confirmation(
     return ConfirmationRequestResponse(
         sent_to_masked=mask_phone(user.phone_e164),
         # Twilio is off for now (#46's Twilio items): `held` until the call ends, else `off`.
-        sms_status="held" if held else "off",
+        delivery_status="held" if held else "off",
         inbox=True,
     )
 

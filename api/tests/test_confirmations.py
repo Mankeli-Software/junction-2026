@@ -81,7 +81,7 @@ async def test_the_token_is_never_returned_and_is_stored_hashed(db, caplog):
     # Not in the response, nor anywhere in the confirmation row, nor in the logs.
     assert response.model_dump() == {
         "sent_to_masked": caller.phone_masked,
-        "sms_status": "off",
+        "delivery_status": "off",
         "inbox": True,
     }
     assert token not in response.model_dump_json()
@@ -190,7 +190,7 @@ async def test_the_phone_channel_holds_the_message_until_the_call_ends(db):
 
     response = await confirmations.request_confirmation(db, caller, quote)
 
-    assert response.sms_status == "held"
+    assert response.delivery_status == "held"
     assert response.inbox is True
     assert await confirmations.inbox(db, caller.user_id) == []
     [row] = await messages_of(db, caller)
@@ -210,7 +210,7 @@ async def test_other_channels_deliver_at_once(db, channel):
 
     response = await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
 
-    assert response.sms_status == "off"
+    assert response.delivery_status == "off"
     assert len(await confirmations.inbox(db, caller.user_id)) == 1
     assert await confirmations.release_held_messages(db, caller.user_id) == []
 
