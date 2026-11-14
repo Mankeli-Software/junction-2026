@@ -1,18 +1,62 @@
-"""Tool descriptions the agents read. Placeholders for now: Jesse writes the real,
-voice-oriented texts in #53, and this is the only file to edit for that.
+"""Tool descriptions the agents read, one per agent tool (#53).
+
+Every model client reads these: Gemini in the phone relay, the webshop chat, WebMCP browser
+agents and Claude or ChatGPT connectors. They must agree with the S.I.MO system prompt
+(`app.agent.prompt`), and also make sense to an outside agent that has no S.I.MO prompt.
+Keep them short and in plain English. Never mention SMS or email: the demo link lands in
+the phone inbox, and a real text message goes only to allowlisted numbers.
 """
 
 SEARCH_PRODUCTS = (
-    "Search the catalogue by text, claims and category; returns a shortlist with price "
-    "and availability."
+    "Search the Valio Aimo catalogue by product words, optionally filtered by claims and a "
+    "needed-by date; returns a shortlist with product_id, name, sales unit, gross price, stock "
+    "status and the earliest available date. Optional: build_quote finds the products itself, "
+    "so use this when the buyer asks what is available or what something costs, then order "
+    "with build_quote."
 )
-GET_CUSTOMER_CONTEXT = "Get the caller's kitchen profile, exclusions and usual items."
-SEARCH_RECIPES = "Search recipes by text, diet and occasion."
-GET_RECIPE = "Get one recipe with its ingredients scaled to the given portions."
+GET_CUSTOMER_CONTEXT = (
+    "Get the signed-in buyer's company name, kitchen exclusions, usual items (with product_id "
+    "and usual quantity), account language and the masked phone number the confirmation link "
+    "goes to. Call it at the start if you don't already have them. The engine applies the "
+    "exclusions to every line by itself."
+)
+SEARCH_RECIPES = (
+    "Search recipes by a dish or ingredient word, with optional Finnish diet tags (such as "
+    '"laktoositon" or "gluteeniton") and an occasion (such as "lounasruoka"); returns '
+    "recipe_ids, Finnish names, default portions and diet tags. Use it when the buyer orders "
+    "for a dish or a menu, then get_recipe."
+)
+GET_RECIPE = (
+    "Get one recipe scaled to the given number of portions: its ingredients (in Finnish) with "
+    "amounts, and a product_id where an ingredient is linked to a product. Order the "
+    "ingredients with build_quote, with group set to the recipe name; the engine applies the "
+    "kitchen's exclusions."
+)
 BUILD_QUOTE = (
-    "Build a quote from all order lines at once; returns a decision, priced lines and text "
-    "to speak."
+    "The main ordering call: call it once, with every line the buyer wants, after they say "
+    "the order is complete or ask for the price or a summary, not after each line. In each "
+    "line, text keeps the product words and any pack size the buyer said "
+    '("kevytmaito 1 l"), and product_id is only an id a tool returned for that product (a '
+    "get_customer_context usual item, a search_products result or a recipe ingredient), "
+    "never invented. Returns a decision (ready, needs_clarification or rejected), priced "
+    "lines, flags, a clarification question or rejections, and speak, a short summary in "
+    "Finnish and English."
 )
-UPDATE_QUOTE = "Answer a clarification or change the lines of a quote; returns a new quote."
-REQUEST_CONFIRMATION = "Send the confirmation link for a ready quote to the account's own phone."
-GET_ORDER_STATUS = "Get the status of a quote or order."
+UPDATE_QUOTE = (
+    "Answer the engine's clarification or change a quote's lines; returns a new quote that "
+    "replaces the old one. Send the quote_id and the full line list with the same line_ids: "
+    "for a clarification, the asked line gets the chosen option's product_id and the other "
+    "lines stay as they were. Answer the clarification with this call, not by searching for "
+    "products yourself."
+)
+REQUEST_CONFIRMATION = (
+    "Send the confirmation link for a ready quote to the buyer's own phone, the number on the "
+    "account; no recipient can be given. Call it only after the buyer clearly says yes to "
+    "getting the link. Nothing is ordered until the buyer confirms through the link, so never "
+    "say the order is placed."
+)
+GET_ORDER_STATUS = (
+    "Get the status of one of the buyer's quotes or orders by quote_id: ready, "
+    "pending_confirmation, confirmed (with the order number), cancelled, expired, or void "
+    "(with the quote that replaced it)."
+)
