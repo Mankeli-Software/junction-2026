@@ -1,7 +1,7 @@
 """Catalogue tables, loaded from the static product file (#29, technical-plan.md §5.2).
 
 The search columns are filled by the SQL function refresh_product_search() (#30).
-Product images come in #33.
+Product images come from our portal crawl, data/product_images.json.gz (#108).
 """
 
 from datetime import datetime
@@ -15,6 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
 
 CONTAINMENTS = ("CONTAINS", "MAY_CONTAIN", "FREE_FROM", "UNDECLARED")
+IMAGE_MATCHES = ("gtin", "name")
 
 
 class Category(Base):
@@ -153,3 +154,20 @@ class ProductSubstitution(Base):
         ForeignKey("products.id", ondelete="CASCADE"), primary_key=True, index=True
     )
     position: Mapped[int] = mapped_column(SmallInteger)
+
+
+class ProductImage(Base):
+    """Valio's own main image URL for a product, hotlinked (#108, technical-plan.md §5.5).
+
+    Its own table because it comes from another source than the product file (our portal
+    crawl joined by barcode) and is refreshed on its own (app.loaders.images). A product
+    with no row has no image and the clients show the placeholder.
+    """
+
+    __tablename__ = "product_images"
+    __table_args__ = (CheckConstraint("image_match IN ('gtin', 'name')", name="image_match"),)
+
+    product_id: Mapped[str] = _product_fk()
+    image_url: Mapped[str] = mapped_column(Text)
+    # gtin: joined by barcode; name: by the exact normalised Finnish name (166 products).
+    image_match: Mapped[str] = mapped_column(Text)
