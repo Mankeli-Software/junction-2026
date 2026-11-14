@@ -24,6 +24,7 @@
 		lang,
 		initial,
 		notices,
+		hint,
 		submitLabel,
 		busyLabel,
 		busy = false,
@@ -33,6 +34,8 @@
 		lang: Lang;
 		initial: SetupValues;
 		notices: EntryNotice[];
+		/** Under the number. Defaults to the phone's "The order link comes to this demo phone." */
+		hint?: string;
 		submitLabel: string;
 		busyLabel: string;
 		busy?: boolean;
@@ -92,7 +95,7 @@
 				<Icon name="alert" size={16} stroke="var(--red)" />{t(lang, 'phoneInvalid')}
 			</span>
 		{:else}
-			<span id="phone-hint" class="hint">{t(lang, 'phoneHint')}</span>
+			<span id="phone-hint" class="hint">{hint ?? t(lang, 'phoneHint')}</span>
 		{/if}
 	</div>
 
