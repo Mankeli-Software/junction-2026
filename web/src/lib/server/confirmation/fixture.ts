@@ -1,6 +1,6 @@
 /**
  * In-memory stand-in for the confirmation endpoints (technical-plan.md §9.4), used
- * until #47 exists and by the Playwright tests. Lines and flags have the shapes of the
+ * by `pnpm dev` and the Playwright tests. Lines and flags have the shapes of the
  * contract in api/app/schemas/ (#26), and flag codes and texts follow
  * policy/messages.yaml. It mirrors the order in the design screens 20 to 22
  * (Hassu Hauki Oy, 128,40 €) and behaves like the engine for the page's purposes:

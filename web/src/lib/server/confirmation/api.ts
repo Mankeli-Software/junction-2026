@@ -1,8 +1,9 @@
 /**
- * The confirmation endpoints of the FastAPI app (technical-plan.md §9.4).
- * Error bodies are assumed to be `{ detail?: { text?: Text, line_id?: string } }`;
- * align this with #47 when the endpoints exist. When FastAPI can't be reached,
- * every call throws a ConfirmationError with status 503.
+ * The confirmation endpoints of the FastAPI app (technical-plan.md §9.4, #47).
+ * A refused action answers `{ detail: { text: Text, line_id: string | null } }`
+ * (`ConfirmationErrorDetail` in api/app/schemas/confirmation.py); an unknown token
+ * answers 404. When FastAPI can't be reached, every call throws a ConfirmationError
+ * with status 503.
  */
 import type { EditOp, Text } from '#lib/confirmation/types.js';
 import { ConfirmationError, type ConfirmationSource } from './source';

@@ -16,6 +16,8 @@ pnpm test:e2e                             # Playwright: builds the app and runs 
 
 The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`). They need no API, database or Gemini. Chromium gets a fake microphone that plays a speech-like sound (`tests/support/fake-voice.ts`), so the call works headless.
 
+The confirmation page can also be tested against the real FastAPI endpoints (#47): migrate a database, start the API with `VALIO_SOURCE=snapshot` and `DEV_FAKE_CALLER=false`, then run `E2E_API_URL=http://localhost:8000 pnpm exec playwright test tests/confirmation-api.spec.ts`. Each test makes its own order through the API and takes the link from the account's inbox. Without `E2E_API_URL` that spec is skipped.
+
 ## Settings
 
 | Variable | Values | Default |
