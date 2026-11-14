@@ -10,7 +10,11 @@ import type { ConfirmationView, EditOp, Text } from '#lib/confirmation/types.js'
 export interface ConfirmationSource {
 	/** Returns null for an unknown or invalid token. Never uses the token up. */
 	get(token: string): Promise<ConfirmationView | null>;
-	acknowledge(token: string, quoteHash: string, flagKey: string): Promise<void>;
+	/**
+	 * Acknowledges a flag. For a `choose` flag, `optionId` is the buyer's pick; an option
+	 * that changes the order makes a new quote, with the flag acknowledged on it.
+	 */
+	acknowledge(token: string, quoteHash: string, flagKey: string, optionId?: string | null): Promise<void>;
 	edit(token: string, quoteHash: string, edit: EditOp): Promise<void>;
 	confirm(token: string, quoteHash: string): Promise<void>;
 	cancel(token: string, quoteHash: string): Promise<void>;

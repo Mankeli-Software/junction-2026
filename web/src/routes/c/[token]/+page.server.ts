@@ -80,8 +80,14 @@ function parseEdit(form: FormData): EditOp {
 export const actions: Actions = {
 	acknowledge: async ({ params, request, url }) => {
 		const form = await request.formData();
+		const option = form.get('option_id');
 		return run(url, () =>
-			confirmationSource().acknowledge(params.token, field(form, 'quote_hash'), field(form, 'flag_key'))
+			confirmationSource().acknowledge(
+				params.token,
+				field(form, 'quote_hash'),
+				field(form, 'flag_key'),
+				typeof option === 'string' && option !== '' ? option : null
+			)
 		);
 	},
 

@@ -13,6 +13,11 @@ export function money(cents: number): string {
 	return moneyFormat.format(cents / 100);
 }
 
+/** "7,5" in both languages, like the prices. */
+export function number(value: number, _lang: Lang): string {
+	return new Intl.NumberFormat('fi-FI', { maximumFractionDigits: 3 }).format(value);
+}
+
 /** "Mon 16 Nov" or "ma 16.11." */
 export function date(iso: string, lang: Lang): string {
 	const value = new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso);

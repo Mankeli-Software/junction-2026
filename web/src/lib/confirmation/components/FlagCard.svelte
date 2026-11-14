@@ -1,31 +1,43 @@
 <script lang="ts">
 	/**
-	 * One flag in "Check these first" (spec §4.2). Unacknowledged flags have a
-	 * "Got it" button, or a choice between options (keep the rounded amount or take
-	 * an exact fit). Picking the option already in the quote acknowledges the flag;
-	 * picking another one is an edit that makes a new quote.
+	 * One flag in "Check these first" (spec §4.2). A flag that needs a check has a
+	 * "Got it" button, or for a `choose` flag one button per option (keep the rounded
+	 * amount or take an exact fit). Picking an option acknowledges the flag; an option
+	 * that changes the order makes a new quote. Flags whose code needs no check
+	 * (policy/messages.yaml `ack: false`) are shown for information only.
 	 */
 	import { enhance } from '$app/forms';
+	import { flagTitle } from '../display';
+	import { money } from '../format';
 	import { actionUrl, submitWithPending, ui, type PageUrl } from '../forms.svelte';
 	import { t } from '../i18n';
-	import type { Flag, Lang } from '../types';
+	import type { Lang, QuoteLine, ViewFlag } from '../types';
 	import Icon from './Icon.svelte';
 
-	let { flag, lang, quoteHash, url }: { flag: Flag; lang: Lang; quoteHash: string; url: PageUrl } = $props();
+	let {
+		flag,
+		lines,
+		lang,
+		quoteHash,
+		url
+	}: { flag: ViewFlag; lines: QuoteLine[]; lang: Lang; quoteHash: string; url: PageUrl } = $props();
+
+	const done = $derived(flag.acknowledged_at !== null);
+	const open = $derived(flag.requires_ack && !done);
 </script>
 
 <article
 	class="flag"
-	class:done={flag.acknowledged}
-	class:choice={!flag.acknowledged && flag.choice}
+	class:done
+	class:choice={open && flag.kind === 'choose'}
 	data-testid="flag"
-	data-flag-key={flag.key}
+	data-flag-key={flag.flag_key}
 >
 	<div class="head">
 		<div class="ico">
-			{#if flag.acknowledged}
+			{#if done}
 				<Icon name="check" weight={3} />
-			{:else if flag.kind === 'rounded_up'}
+			{:else if flag.code === 'ROUNDED_UP'}
 				<Icon name="up" size={18} />
 			{:else}
 				<Icon name="alert" size={18} />
@@ -33,49 +45,42 @@
 		</div>
 		<div class="words">
 			<span class="title">
-				{flag.title[lang]}
-				{#if flag.is_new && !flag.acknowledged}<span class="new">{t(lang, 'newFlag')}</span>{/if}
+				{flagTitle(flag, lines, lang)}
+				{#if flag.is_new && !done}<span class="new">{t(lang, 'newFlag')}</span>{/if}
 			</span>
 			<span class="text">
-				{#if flag.line_id}
-					<a href="#line-{flag.line_id}">{flag.text[lang]}</a>
+				{#if flag.line_ids.length === 1}
+					<a href="#line-{flag.line_ids[0]}">{flag.text[lang]}</a>
 				{:else}
 					{flag.text[lang]}
 				{/if}
 			</span>
-			{#if flag.acknowledged}<span class="checked">{t(lang, 'checked')}</span>{/if}
+			{#if done}<span class="checked">{t(lang, 'checked')}</span>{/if}
 		</div>
 	</div>
 
-	{#if !flag.acknowledged}
-		{#if flag.choice}
+	{#if open}
+		{#if flag.kind === 'choose' && flag.options.length > 0}
 			<div class="options">
-				{#each flag.choice.options as option (option.id)}
-					{#if option.current || !option.alternative_id || !flag.line_id}
-						<form method="POST" action={actionUrl(url, 'acknowledge')} use:enhance={submitWithPending}>
-							<input type="hidden" name="quote_hash" value={quoteHash} />
-							<input type="hidden" name="flag_key" value={flag.key} />
-							<button class="opt" class:current={option.current} disabled={ui.pending}>
-								<b>{option.title[lang]}</b><span>{option.text[lang]}</span>
-							</button>
-						</form>
-					{:else}
-						<form method="POST" action={actionUrl(url, 'edit')} use:enhance={submitWithPending}>
-							<input type="hidden" name="quote_hash" value={quoteHash} />
-							<input type="hidden" name="op" value="choose_alternative" />
-							<input type="hidden" name="line_id" value={flag.line_id} />
-							<input type="hidden" name="alternative_id" value={option.alternative_id} />
-							<button class="opt" disabled={ui.pending}>
-								<b>{option.title[lang]}</b><span>{option.text[lang]}</span>
-							</button>
-						</form>
-					{/if}
+				{#each flag.options as option (option.option_id)}
+					<form method="POST" action={actionUrl(url, 'acknowledge')} use:enhance={submitWithPending}>
+						<input type="hidden" name="quote_hash" value={quoteHash} />
+						<input type="hidden" name="flag_key" value={flag.flag_key} />
+						<input type="hidden" name="option_id" value={option.option_id} />
+						<button
+							class="opt"
+							class:current={option.option_id === flag.current_option_id}
+							disabled={ui.pending}
+						>
+							<b>{option.label[lang]}</b><span>{money(option.line_total_cents)}</span>
+						</button>
+					</form>
 				{/each}
 			</div>
 		{:else}
 			<form method="POST" action={actionUrl(url, 'acknowledge')} use:enhance={submitWithPending} class="ack">
 				<input type="hidden" name="quote_hash" value={quoteHash} />
-				<input type="hidden" name="flag_key" value={flag.key} />
+				<input type="hidden" name="flag_key" value={flag.flag_key} />
 				<button class="ok" disabled={ui.pending}>{t(lang, 'gotIt')}</button>
 			</form>
 		{/if}
@@ -103,9 +108,6 @@
 		display: flex;
 		gap: 10px;
 		align-items: flex-start;
-	}
-	.done .head {
-		align-items: center;
 	}
 	.ico {
 		width: 32px;

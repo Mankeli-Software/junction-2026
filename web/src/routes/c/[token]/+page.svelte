@@ -24,15 +24,19 @@
 	const lang = $derived(data.lang);
 	const url = $derived(page.url);
 	const active = $derived(view.state === 'ready' || view.state === 'requote_needed');
-	const done = $derived(view.flags.filter((f) => f.acknowledged).length);
-
-	const openRequest = $derived(
-		data.lineId ? view.requests.find((r) => r.lines.some((l) => l.id === data.lineId)) : undefined
+	const checks = $derived(view.flags.filter((f) => f.requires_ack));
+	const done = $derived(checks.filter((f) => f.acknowledged_at !== null).length);
+	const openLine = $derived(data.lineId ? view.lines.find((l) => l.line_id === data.lineId) : undefined);
+	/** Lines in order, with a heading where a recipe group starts. */
+	const rows = $derived(
+		view.lines.map((line, i) => ({
+			line,
+			groupStart: line.group !== null && line.group !== view.lines[i - 1]?.group ? line.group : null
+		}))
 	);
-	const openLine = $derived(openRequest?.lines.find((l) => l.id === data.lineId));
 
 	const failure = $derived(form && 'status' in form ? form : null);
-	const sheetError = $derived(failure && failure.lineId && failure.lineId === openLine?.id ? failure.text : null);
+	const sheetError = $derived(failure && failure.lineId && failure.lineId === openLine?.line_id ? failure.text : null);
 	const pageError = $derived(
 		failure && !sheetError && !(failure.status === 409 && view.change?.reason === 'requote')
 			? (failure.text?.[lang] ?? (failure.status === 409 ? t(lang, 'errorStale') : t(lang, 'errorGeneric')))
@@ -83,44 +87,43 @@
 			<section class="block">
 				<div class="block-head">
 					<h2 class="hd">{t(lang, 'checkFirst')}</h2>
-					<span class="count" data-testid="flag-count">{t(lang, 'doneCount', { done, total: view.flags.length })}</span>
+					{#if checks.length > 0}
+						<span class="count" data-testid="flag-count">{t(lang, 'doneCount', { done, total: checks.length })}</span>
+					{/if}
 				</div>
-				{#each view.flags as flag (flag.key)}
-					<FlagCard {flag} {lang} quoteHash={view.quote.hash} {url} />
+				{#each view.flags as flag (flag.flag_key)}
+					<FlagCard {flag} lines={view.lines} {lang} quoteHash={view.quote.quote_hash} {url} />
 				{/each}
 			</section>
 		{/if}
 
 		<section class="block">
 			<h2 class="hd">{t(lang, 'askedAdded')}</h2>
-			{#each view.requests as request (request.id)}
-				{#each request.lines as line (line.id)}
-					<LineCard
-						{line}
-						asked={request.asked[lang]}
-						flags={view.flags}
-						{lang}
-						{url}
-						changed={Boolean(view.change?.line_ids.includes(line.id))}
-					/>
-				{/each}
-				{#if request.not_ordered.length > 0}
-					<p class="not-ordered">
-						{t(lang, 'notOrdered', { items: request.not_ordered.map((item) => item[lang]).join(', ') })}
-					</p>
-				{/if}
+			{#each rows as { line, groupStart } (line.line_id)}
+				{#if groupStart}<h3 class="group">{t(lang, 'groupLabel', { group: groupStart })}</h3>{/if}
+				<LineCard
+					{line}
+					flags={view.flags}
+					{lang}
+					{url}
+					changed={Boolean(view.change?.line_ids.includes(line.line_id))}
+				/>
 			{/each}
+			{#if view.not_ordered.length > 0}
+				<p class="not-ordered">
+					{t(lang, 'notOrdered', { items: view.not_ordered.map((item) => item.name).join(', ') })}
+				</p>
+			{/if}
 		</section>
 
 		<div class="spacer"></div>
 		<ConfirmBar {view} {lang} {url} askCancel={data.askCancel} />
 
-		{#if openLine && openRequest}
+		{#if openLine}
 			<LineSheet
 				line={openLine}
-				asked={openRequest.asked[lang]}
 				{lang}
-				quoteHash={view.quote.hash}
+				quoteHash={view.quote.quote_hash}
 				{url}
 				error={sheetError}
 			/>
@@ -189,6 +192,11 @@
 	.notice.error {
 		background: #fbe9e7;
 		color: var(--red);
+	}
+	.group {
+		margin: 6px 4px 0;
+		font-size: 15px;
+		color: var(--muted-2);
 	}
 	.not-ordered {
 		margin: -4px 4px 0;

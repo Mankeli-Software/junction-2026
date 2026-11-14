@@ -6,25 +6,28 @@
 	 */
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { money } from '../format';
+	import { askedText, askedUnit, unitPriceText } from '../display';
+	import { money, number } from '../format';
 	import { actionUrl, pageUrl, submitWithPending, ui, type PageUrl } from '../forms.svelte';
 	import { t } from '../i18n';
-	import type { Lang, Line, Text } from '../types';
+	import type { Lang, QuoteLine, Text } from '../types';
 	import Icon from './Icon.svelte';
 
 	let {
 		line,
-		asked,
 		lang,
 		quoteHash,
 		url,
 		error
-	}: { line: Line; asked: string; lang: Lang; quoteHash: string; url: PageUrl; error: Text | null } = $props();
+	}: { line: QuoteLine; lang: Lang; quoteHash: string; url: PageUrl; error: Text | null } = $props();
 
 	const closeUrl = $derived(pageUrl(url, { line: null }));
-	const askedAmount = $derived(line.quantity_text[lang].split(' = ')[1] ?? null);
-	const canLess = $derived(line.quantity - 1 >= line.min_quantity);
-	const canMore = $derived(line.max_quantity === null || line.quantity + 1 <= line.max_quantity);
+	const quantity = $derived(line.quantity_sales_units);
+	const askedAmount = $derived(
+		line.asked.unit === 'sales_unit' ? null : `${number(line.quantity_in_asked_unit, lang)} ${askedUnit(line, lang)}`
+	);
+	// The engine refuses an amount it can't deliver and says why; the page only stops at 1.
+	const canLess = $derived(quantity > 1);
 
 	let closeLink: HTMLAnchorElement | undefined = $state();
 
@@ -45,9 +48,9 @@
 		<div class="grip" aria-hidden="true"></div>
 		<div class="top">
 			<div class="names">
-				<span class="asked">{t(lang, 'youAsked', { asked })}</span>
-				<h2 class="hd" id="sheet-title">{line.product.name[lang]}</h2>
-				<span class="unit">{line.unit_price_text[lang]}</span>
+				<span class="asked">{t(lang, 'youAsked', { asked: askedText(line, lang) })}</span>
+				<h2 class="hd" id="sheet-title">{line.name[lang]}</h2>
+				<span class="unit">{unitPriceText(line, lang)}</span>
 			</div>
 			<a class="close" href={closeUrl} bind:this={closeLink} aria-label={t(lang, 'close')} data-sveltekit-reset="false"
 				><Icon name="close" size={18} /></a
@@ -57,36 +60,39 @@
 		<section class="trace">
 			<h3 class="hd">{t(lang, 'whyThisOne')}</h3>
 			<ul>
-				<li><b>{line.trace.found}</b><span>{line.trace.found_text[lang]}</span></li>
-				{#each line.trace.removed as removed (removed.reason.en)}
-					<li><b class="minus">&minus;{removed.count}</b><span>{removed.reason[lang]}</span></li>
+				<li><b>{line.trace.found}</b><span>{t(lang, 'traceFound')}</span></li>
+				{#each line.trace.removed as removed (removed.reason_code)}
+					<li><b class="minus">&minus;{removed.count}</b><span>{removed.text[lang]}</span></li>
 				{/each}
-				<li class="result"><b>{line.trace.remaining}</b><span>{line.trace.decided_by[lang]}</span></li>
+				<li class="result">
+					<b>{line.trace.left}</b><span
+						>{t(lang, 'traceLeft')}. {t(lang, 'tracePicked', { rule: line.trace.ranking_rule[lang] })}</span
+					>
+				</li>
 			</ul>
 		</section>
 
-		{#if line.alternatives.length > 1}
+		{#if line.alternatives.length > 0}
 			<section>
 				<h3 class="hd">{t(lang, 'otherOptions')}</h3>
 				<div class="alts">
-					{#each line.alternatives as alt (alt.id)}
-						{#if alt.in_order}
-							<div class="alt current" aria-current="true">
-								<span class="alt-words"><b>{alt.name[lang]}</b><span>{alt.note[lang]}</span></span>
-								<b class="alt-price">{alt.unit_price_text[lang]}</b>
-							</div>
-						{:else}
-							<form method="POST" action={actionUrl(url, 'edit')} use:enhance={submitWithPending}>
-								<input type="hidden" name="quote_hash" value={quoteHash} />
-								<input type="hidden" name="op" value="choose_alternative" />
-								<input type="hidden" name="line_id" value={line.id} />
-								<input type="hidden" name="alternative_id" value={alt.id} />
-								<button class="alt" disabled={ui.pending}>
-									<span class="alt-words"><b>{alt.name[lang]}</b><span>{alt.note[lang]}</span></span>
-									<b class="alt-price">{alt.unit_price_text[lang]}</b>
-								</button>
-							</form>
-						{/if}
+					<div class="alt current" aria-current="true">
+						<span class="alt-words"><b>{line.name[lang]}</b><span>{t(lang, 'inYourOrder')}</span></span>
+						<b class="alt-price">{money(line.line_total_cents)}</b>
+					</div>
+					{#each line.alternatives as alt (alt.product_id)}
+						<form method="POST" action={actionUrl(url, 'edit')} use:enhance={submitWithPending}>
+							<input type="hidden" name="quote_hash" value={quoteHash} />
+							<input type="hidden" name="op" value="choose_alternative" />
+							<input type="hidden" name="line_id" value={line.line_id} />
+							<input type="hidden" name="alternative_id" value={alt.product_id} />
+							<button class="alt" disabled={ui.pending}>
+								<span class="alt-words"
+									><b>{alt.label[lang]}</b><span>&times; {alt.quantity_sales_units}</span></span
+								>
+								<b class="alt-price">{money(alt.line_total_cents)}</b>
+							</button>
+						</form>
 					{/each}
 				</div>
 			</section>
@@ -98,28 +104,28 @@
 				<form method="POST" action={actionUrl(url, 'edit')} use:enhance={submitWithPending}>
 					<input type="hidden" name="quote_hash" value={quoteHash} />
 					<input type="hidden" name="op" value="set_quantity" />
-					<input type="hidden" name="line_id" value={line.id} />
+					<input type="hidden" name="line_id" value={line.line_id} />
 					<button
 						class="step"
 						name="quantity"
-						value={line.quantity - 1}
+						value={quantity - 1}
 						disabled={!canLess || ui.pending}
 						aria-label={t(lang, 'less')}><Icon name="minus" size={22} weight={2.6} /></button
 					>
 				</form>
 				<div class="amount" aria-live="polite">
-					<b data-testid="sheet-quantity">{line.quantity} {line.sales_unit[lang]}</b>
+					<b data-testid="sheet-quantity">{quantity} {line.sales_unit_label[lang]}</b>
 					<span>{askedAmount ? `= ${askedAmount}, ` : ''}{money(line.line_total_cents)}</span>
 				</div>
 				<form method="POST" action={actionUrl(url, 'edit')} use:enhance={submitWithPending}>
 					<input type="hidden" name="quote_hash" value={quoteHash} />
 					<input type="hidden" name="op" value="set_quantity" />
-					<input type="hidden" name="line_id" value={line.id} />
+					<input type="hidden" name="line_id" value={line.line_id} />
 					<button
 						class="step"
 						name="quantity"
-						value={line.quantity + 1}
-						disabled={!canMore || ui.pending}
+						value={quantity + 1}
+						disabled={ui.pending}
 						aria-label={t(lang, 'more')}><Icon name="plus" size={22} weight={2.6} /></button
 					>
 				</form>
@@ -133,7 +139,7 @@
 		<form class="remove" method="POST" action={actionUrl(url, 'edit')} use:enhance={submitWithPending}>
 			<input type="hidden" name="quote_hash" value={quoteHash} />
 			<input type="hidden" name="op" value="remove" />
-			<input type="hidden" name="line_id" value={line.id} />
+			<input type="hidden" name="line_id" value={line.line_id} />
 			<button disabled={ui.pending}><Icon name="trash" size={18} />{t(lang, 'removeLine')}</button>
 		</form>
 	</div>

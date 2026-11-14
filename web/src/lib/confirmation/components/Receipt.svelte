@@ -1,5 +1,6 @@
 <script lang="ts">
 	/** "Order received" (screen 22, spec §7): stays readable at the same link after confirming. */
+	import { quantityText } from '../display';
 	import { date, money, time } from '../format';
 	import { t } from '../i18n';
 	import type { ConfirmationView, Lang, Order } from '../types';
@@ -7,7 +8,6 @@
 
 	let { view, order, lang }: { view: ConfirmationView; order: Order; lang: Lang } = $props();
 
-	const lines = $derived(view.requests.flatMap((r) => r.lines));
 	const checked = $derived(order.acknowledged.length);
 </script>
 
@@ -23,7 +23,7 @@
 	<div class="facts">
 		<div class="fact">
 			<span class="label">{t(lang, 'delivery')}</span>
-			<span class="value">{date(view.quote.delivery.date, lang)}</span>
+			<span class="value">{view.quote.delivery ? date(view.quote.delivery.earliest, lang) : ''}</span>
 		</div>
 		<div class="fact">
 			<span class="label">{t(lang, 'totalInclVat')}</span>
@@ -32,9 +32,9 @@
 	</div>
 
 	<ul class="lines">
-		{#each lines as line (line.id)}
+		{#each view.lines as line (line.line_id)}
 			<li>
-				<span class="words"><b>{line.product.name[lang]}</b><span>{line.quantity_text[lang]}</span></span>
+				<span class="words"><b>{line.name[lang]}</b><span>{quantityText(line, lang)}</span></span>
 				<b>{money(line.line_total_cents)}</b>
 			</li>
 		{/each}

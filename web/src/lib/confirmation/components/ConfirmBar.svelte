@@ -12,8 +12,8 @@
 	let { view, lang, url, askCancel }: { view: ConfirmationView; lang: Lang; url: PageUrl; askCancel: boolean } =
 		$props();
 
-	const remaining = $derived(view.flags.filter((f) => !f.acknowledged).length);
-	const empty = $derived(view.requests.every((r) => r.lines.length === 0));
+	const remaining = $derived(view.flags.filter((f) => f.requires_ack && f.acknowledged_at === null).length);
+	const empty = $derived(view.lines.length === 0);
 	const status = $derived(
 		empty
 			? t(lang, 'nothingLeft')
@@ -31,7 +31,7 @@
 		<span>{t(lang, 'inclVat')}</span>
 	</div>
 	<form method="POST" action={actionUrl(url, 'confirm', ['lang'])} use:enhance={submitWithPending}>
-		<input type="hidden" name="quote_hash" value={view.quote.hash} />
+		<input type="hidden" name="quote_hash" value={view.quote.quote_hash} />
 		<button class="hd confirm" disabled={remaining > 0 || empty || ui.pending}>
 			{t(lang, 'confirm', { total: money(view.quote.total_cents) })}
 		</button>
@@ -42,7 +42,7 @@
 			<div class="cancel-actions">
 				<a href={pageUrl(url, { cancel: null })} data-sveltekit-reset="false">{t(lang, 'cancelNo')}</a>
 				<form method="POST" action={actionUrl(url, 'cancel', ['lang'])} use:enhance={submitWithPending}>
-					<input type="hidden" name="quote_hash" value={view.quote.hash} />
+					<input type="hidden" name="quote_hash" value={view.quote.quote_hash} />
 					<button class="cancel-yes" disabled={ui.pending}>{t(lang, 'cancelYes')}</button>
 				</form>
 			</div>
