@@ -7,7 +7,7 @@ import type { Exclusion, Lang, Text } from './types';
 
 const strings = {
 	language: { en: 'Language', fi: 'Kieli' },
-	brand: { en: 'Order Agent', fi: 'Order Agent' },
+	brand: { en: 'S.I.MO', fi: 'S.I.MO' },
 
 	// Start page (00, 01)
 	heroTitle: {

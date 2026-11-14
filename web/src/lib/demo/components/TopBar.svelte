@@ -1,5 +1,5 @@
 <script lang="ts">
-	/** Dark petrol bar with the product name and the EN/FI toggle (design 00, 01, 10). */
+	/** Dark petrol bar with S.I.MO and the EN/FI toggle (design 00, 01, 10; the agent is always written S.I.MO). */
 	import { t } from '../i18n';
 	import type { Lang } from '../types';
 
