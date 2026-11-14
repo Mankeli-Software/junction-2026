@@ -159,6 +159,12 @@ const strings = {
 	connecting: { en: 'Connecting...', fi: 'Yhdistetään...' },
 	speaking: { en: 'Speaking', fi: 'Puhuu' },
 	listening: { en: 'Listening', fi: 'Kuuntelee' },
+	// Thinking and working labels end in animated dots, drawn by the call screen.
+	thinking: { en: 'S.I.MO is thinking', fi: 'S.I.MO miettii' },
+	workingProducts: { en: 'Checking products', fi: 'Tarkistaa tuotteita' },
+	workingLink: { en: 'Preparing your order link', fi: 'Valmistelee tilauslinkkiä' },
+	workingAccount: { en: 'Looking up your account', fi: 'Hakee tilisi tiedot' },
+	workingOther: { en: 'Working on it', fi: 'Hetki' },
 	liveCaptions: { en: 'Live captions, automatic', fi: 'Livetekstitys, automaattinen' },
 	captionsHint: {
 		en: 'Captions are made automatically and can be wrong. If S.I.MO heard you wrong, just say it again.',
@@ -249,6 +255,21 @@ export function avoidsText(lang: Lang, exclusions: readonly Exclusion[]): string
 	if (exclusions.length === 0) return t(lang, 'avoidsNothing');
 	const names = exclusions.map((e) => exclusionLabel(lang, e).toLowerCase());
 	return t(lang, 'avoids', { list: joinList(lang, names) });
+}
+
+const TOOL_LABELS: Record<string, StringKey> = {
+	build_quote: 'workingProducts',
+	update_quote: 'workingProducts',
+	search_products: 'workingProducts',
+	get_recipe: 'workingProducts',
+	search_recipes: 'workingProducts',
+	request_confirmation: 'workingLink',
+	get_customer_context: 'workingAccount'
+};
+
+/** "Checking products" while S.I.MO runs a tool (the call screen adds the dots). */
+export function workingLabel(lang: Lang, tool: string | null): string {
+	return t(lang, (tool && TOOL_LABELS[tool]) || 'workingOther');
 }
 
 export function joinList(lang: Lang, items: string[]): string {

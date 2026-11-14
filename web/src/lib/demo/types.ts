@@ -104,9 +104,28 @@ export interface TranscriptMessage {
 	final: boolean;
 }
 
+/**
+ * What S.I.MO is doing, sent by the relay when it changes (proposed in #54,
+ * technical-plan.md §9.3):
+ * - `listening`: waiting for the caller (after `ready`, after each agent turn, after `interrupted`);
+ * - `thinking`: the caller's utterance ended, or a tool result went back, and no audio yet;
+ * - `working`: Gemini called a tool, named in `tool`, until its result goes back;
+ * - `speaking`: the first audio chunk of the turn arrived.
+ * `tool` is null except for `working`. A relay that never sends it still works:
+ * the browser then infers speaking or listening from the audio it plays.
+ */
+export type AgentState = 'listening' | 'thinking' | 'working' | 'speaking';
+
+export interface AgentStateMessage {
+	type: 'agent_state';
+	state: AgentState;
+	tool: string | null;
+}
+
 export type ServerMessage =
 	| { type: 'ready' }
 	| { type: 'interrupted' }
+	| AgentStateMessage
 	| TranscriptMessage
 	| EndedMessage;
 

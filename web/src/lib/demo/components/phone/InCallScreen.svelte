@@ -1,12 +1,13 @@
 <script lang="ts">
 	/**
-	 * In call with S.I.MO (design 12, docs/specs/call-screen.md §2.3): timer, speaking
-	 * indicator, live captions for both sides marked as automatic, Mute, Speaker,
+	 * In call with S.I.MO (design 12, docs/specs/call-screen.md §2.3): timer, activity
+	 * indicator (listening, thinking, working, speaking; `agent_state` in
+	 * technical-plan.md §9.3), live captions for both sides marked as automatic, Mute, Speaker,
 	 * Captions and the red hang-up button. The phone is on speaker, not at the ear.
 	 */
 	import { tick } from 'svelte';
 	import Icon from '../Icon.svelte';
-	import { duration, t } from '../../i18n';
+	import { duration, t, workingLabel } from '../../i18n';
 	import type { Lang } from '../../types';
 	import type { VoiceCall } from '#lib/voice/call.svelte.js';
 
@@ -16,7 +17,15 @@
 	let list: HTMLDivElement | undefined = $state();
 
 	const live = $derived(call.phase === 'live');
-	const indicator = $derived(!live ? 'connecting' : call.agentSpeaking ? 'speaking' : 'listening');
+	const indicator = $derived(live ? call.activity : 'connecting');
+	/** Thinking or working: the label, without its animated dots. */
+	const busyLabel = $derived(
+		indicator === 'thinking'
+			? t(lang, 'thinking')
+			: indicator === 'working'
+				? workingLabel(lang, call.agentTool)
+				: null
+	);
 
 	// Keep the newest caption in view as captions arrive and grow.
 	$effect(() => {
@@ -24,10 +33,13 @@
 		void call.captions.length;
 		void last?.text;
 		void last?.pending;
+		void busyLabel;
 		if (!list || !showCaptions) return;
 		void tick().then(() => list?.scrollTo({ top: list.scrollHeight, behavior: 'smooth' }));
 	});
 </script>
+
+{#snippet dots()}<span class="dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span>{/snippet}
 
 <div class="screen" data-testid="in-call" data-wake-lock={call.wakeLock ? 'held' : 'none'}>
 	<div class="status"><span></span><span>{call.speaker ? t(lang, 'onSpeaker') : t(lang, 'speakerOff')}</span></div>
@@ -50,6 +62,8 @@
 			{:else if indicator === 'listening'}
 				<span class="dot" class:talking={call.callerTalking}></span>
 				{t(lang, 'listening')}
+			{:else if busyLabel}
+				<span class="busy-label">{busyLabel}{@render dots()}</span>
 			{:else}
 				<span class="dot pulse"></span>
 				{t(lang, 'connecting')}
@@ -73,6 +87,13 @@
 						</div>
 					</div>
 				{/each}
+				{#if busyLabel}
+					<!-- The indicator above already announces it; this is for the eyes. -->
+					<div class="cap-row agent" data-testid="agent-busy" aria-hidden="true">
+						<span class="who-label">S.I.MO</span>
+						<div class="bubble busy">{busyLabel}{@render dots()}</div>
+					</div>
+				{/if}
 			</div>
 		{:else}
 			<p class="off">{t(lang, 'captionsOff')}</p>
@@ -228,10 +249,35 @@
 			opacity: 0.3;
 		}
 	}
+	.busy-label {
+		max-width: 150px;
+		line-height: 1.2;
+	}
+	.dots span {
+		animation: dot 1.2s ease-in-out infinite;
+	}
+	.dots span:nth-child(2) {
+		animation-delay: 0.2s;
+	}
+	.dots span:nth-child(3) {
+		animation-delay: 0.4s;
+	}
+	@keyframes dot {
+		0%,
+		60%,
+		100% {
+			opacity: 0.25;
+		}
+		30% {
+			opacity: 1;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
 		.bars rect,
-		.dot.pulse {
+		.dot.pulse,
+		.dots span {
 			animation: none;
+			opacity: 1;
 		}
 	}
 	.captions {
@@ -296,6 +342,13 @@
 	.agent .bubble.open {
 		background: #22556f;
 		color: #dceaf1;
+	}
+	.agent .bubble.busy {
+		background: transparent;
+		border: 1px dashed #2a6582;
+		color: #8fb2c2;
+		font-size: 15px;
+		font-style: italic;
 	}
 	.buyer .bubble {
 		background: #fff;
