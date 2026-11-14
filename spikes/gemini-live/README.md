@@ -351,3 +351,21 @@ On a real call through the relay, a caller who started in English and went on in
 - **A `language_codes` hint (`fi-FI`, `en-US`) didn't help** (run 3), so the relay still sends none and leaves detection automatic.
 - **Prompt .10.** In run 4 the English yes got the link sentence in the account's Finnish. The language section now says to stay in the language of the caller's latest turn until they switch again, also for the quote, the link and the goodbye. Run 5 passed every language check.
 - Every result above comes from one run, and the TTS lines are cleaner than a real caller's.
+
+## Vocabulary and short English lines (#116, 2026-11-14, in progress)
+
+`vocab_probe.py` runs one Live call per transcription vocabulary. Turns 1 to 4 are `switch_fi_en` with the same audio as #85; then the ten #51 phrases in Jesse's voice (#67) with short English lines between them, then `en01` and two short Finnish lines. So one session gives the #85 caption, the short-line captions and the product-name key terms (/66, as in #67).
+
+```sh
+uv run vocab_probe.py --list                                        # the variants and the turns
+uv run vocab_probe.py --variant fi --audio-dir recordings/jesse --budget 10
+```
+
+Results so far (one run each):
+
+| Session | Variant | Call | "That's all, thanks." (turn 3) | Short English lines right | Short Finnish lines right | Key terms |
+|---|---|---|---|---|---|---|
+| 1 | `fi` (the relay's, 25 terms) | probe | "That's all. Thanks." | 7/7 | 2/2 | 61/66 |
+| 2 | `fi` | `switch_fi_en` | "That's all. Thanks." | | | |
+
+The #85 failure did not come back: the same audio, vocabulary and prompt that gave "Tässä on" in 4 of 4 runs at 22:39 to 22:47 gave the right caption 3 times out of 3 at 23:13 to 23:18.
