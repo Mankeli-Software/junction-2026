@@ -1,0 +1,624 @@
+[
+	{
+		"name": "search_products",
+		"description": "Search the catalogue by text, claims and category; returns a shortlist with price and availability.",
+		"inputSchema": {
+			"$defs": {
+				"Claim": {
+					"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.",
+					"enum": [
+						"lactose_free",
+						"gluten_free",
+						"vegan",
+						"vegetarian"
+					],
+					"title": "Claim",
+					"type": "string"
+				}
+			},
+			"additionalProperties": false,
+			"properties": {
+				"q": {
+					"title": "Q",
+					"type": "string"
+				},
+				"claims": {
+					"default": [],
+					"items": {
+						"$ref": "#/$defs/Claim"
+					},
+					"title": "Claims",
+					"type": "array"
+				},
+				"category": {
+					"anyOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Category"
+				},
+				"needed_by": {
+					"anyOf": [
+						{
+							"format": "date",
+							"type": "string"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Needed By"
+				},
+				"limit": {
+					"default": 10,
+					"maximum": 20,
+					"minimum": 1,
+					"title": "Limit",
+					"type": "integer"
+				}
+			},
+			"required": [
+				"q"
+			],
+			"title": "search_productsArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "GET",
+			"path": "/api/v1/products"
+		}
+	},
+	{
+		"name": "get_customer_context",
+		"description": "Get the caller's kitchen profile, exclusions and usual items.",
+		"inputSchema": {
+			"additionalProperties": false,
+			"properties": {},
+			"title": "get_customer_contextArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "GET",
+			"path": "/api/v1/customer-context"
+		}
+	},
+	{
+		"name": "search_recipes",
+		"description": "Search recipes by text, diet and occasion.",
+		"inputSchema": {
+			"additionalProperties": false,
+			"properties": {
+				"q": {
+					"title": "Q",
+					"type": "string"
+				},
+				"diet": {
+					"default": [],
+					"items": {
+						"type": "string"
+					},
+					"title": "Diet",
+					"type": "array"
+				},
+				"occasion": {
+					"anyOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Occasion"
+				},
+				"limit": {
+					"default": 10,
+					"maximum": 20,
+					"minimum": 1,
+					"title": "Limit",
+					"type": "integer"
+				}
+			},
+			"required": [
+				"q"
+			],
+			"title": "search_recipesArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "GET",
+			"path": "/api/v1/recipes"
+		}
+	},
+	{
+		"name": "get_recipe",
+		"description": "Get one recipe with its ingredients scaled to the given portions.",
+		"inputSchema": {
+			"additionalProperties": false,
+			"properties": {
+				"recipe_id": {
+					"title": "Recipe Id",
+					"type": "string"
+				},
+				"portions": {
+					"maximum": 1000,
+					"minimum": 1,
+					"title": "Portions",
+					"type": "integer"
+				}
+			},
+			"required": [
+				"recipe_id",
+				"portions"
+			],
+			"title": "get_recipeArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "GET",
+			"path": "/api/v1/recipes/{recipe_id}"
+		}
+	},
+	{
+		"name": "build_quote",
+		"description": "Build a quote from all order lines at once; returns a decision, priced lines and text to speak.",
+		"inputSchema": {
+			"$defs": {
+				"Claim": {
+					"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.",
+					"enum": [
+						"lactose_free",
+						"gluten_free",
+						"vegan",
+						"vegetarian"
+					],
+					"title": "Claim",
+					"type": "string"
+				},
+				"LineRequest": {
+					"additionalProperties": false,
+					"description": "One structured line from the agent. The engine never sees raw speech (vision §5).",
+					"properties": {
+						"line_id": {
+							"maxLength": 40,
+							"minLength": 1,
+							"title": "Line Id",
+							"type": "string"
+						},
+						"product_id": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Product Id"
+						},
+						"usual": {
+							"default": false,
+							"title": "Usual",
+							"type": "boolean"
+						},
+						"text": {
+							"anyOf": [
+								{
+									"maxLength": 200,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Text"
+						},
+						"claims": {
+							"default": [],
+							"items": {
+								"$ref": "#/$defs/Claim"
+							},
+							"title": "Claims",
+							"type": "array"
+						},
+						"category": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Category"
+						},
+						"quantity": {
+							"anyOf": [
+								{
+									"exclusiveMinimum": 0.0,
+									"maximum": 100000.0,
+									"type": "number"
+								},
+								{
+									"type": "string"
+								}
+							],
+							"title": "Quantity"
+						},
+						"unit": {
+							"$ref": "#/$defs/RequestedUnit"
+						},
+						"package_word": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Package Word"
+						},
+						"needed_by": {
+							"format": "date",
+							"title": "Needed By",
+							"type": "string"
+						},
+						"recipe_ref": {
+							"anyOf": [
+								{
+									"$ref": "#/$defs/RecipeRef"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null
+						},
+						"group": {
+							"anyOf": [
+								{
+									"maxLength": 80,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Group"
+						}
+					},
+					"required": [
+						"line_id",
+						"quantity",
+						"unit",
+						"needed_by"
+					],
+					"title": "LineRequest",
+					"type": "object"
+				},
+				"RecipeRef": {
+					"additionalProperties": false,
+					"properties": {
+						"recipe_id": {
+							"title": "Recipe Id",
+							"type": "string"
+						},
+						"portions": {
+							"title": "Portions",
+							"type": "integer"
+						},
+						"ingredient_index": {
+							"title": "Ingredient Index",
+							"type": "integer"
+						}
+					},
+					"required": [
+						"recipe_id",
+						"portions",
+						"ingredient_index"
+					],
+					"title": "RecipeRef",
+					"type": "object"
+				},
+				"RequestedUnit": {
+					"description": "The unit the buyer asked in. With `package`, the word is in `package_word`.",
+					"enum": [
+						"l",
+						"kg",
+						"piece",
+						"sales_unit",
+						"package"
+					],
+					"title": "RequestedUnit",
+					"type": "string"
+				}
+			},
+			"additionalProperties": false,
+			"properties": {
+				"lines": {
+					"items": {
+						"$ref": "#/$defs/LineRequest"
+					},
+					"maxItems": 50,
+					"minItems": 1,
+					"title": "Lines",
+					"type": "array"
+				}
+			},
+			"required": [
+				"lines"
+			],
+			"title": "build_quoteArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "POST",
+			"path": "/api/v1/quotes"
+		}
+	},
+	{
+		"name": "update_quote",
+		"description": "Answer a clarification or change the lines of a quote; returns a new quote.",
+		"inputSchema": {
+			"$defs": {
+				"Claim": {
+					"description": "Product claims, from the product file's `nutritionalClaim` group.\n\nlactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.",
+					"enum": [
+						"lactose_free",
+						"gluten_free",
+						"vegan",
+						"vegetarian"
+					],
+					"title": "Claim",
+					"type": "string"
+				},
+				"LineRequest": {
+					"additionalProperties": false,
+					"description": "One structured line from the agent. The engine never sees raw speech (vision §5).",
+					"properties": {
+						"line_id": {
+							"maxLength": 40,
+							"minLength": 1,
+							"title": "Line Id",
+							"type": "string"
+						},
+						"product_id": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Product Id"
+						},
+						"usual": {
+							"default": false,
+							"title": "Usual",
+							"type": "boolean"
+						},
+						"text": {
+							"anyOf": [
+								{
+									"maxLength": 200,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Text"
+						},
+						"claims": {
+							"default": [],
+							"items": {
+								"$ref": "#/$defs/Claim"
+							},
+							"title": "Claims",
+							"type": "array"
+						},
+						"category": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Category"
+						},
+						"quantity": {
+							"anyOf": [
+								{
+									"exclusiveMinimum": 0.0,
+									"maximum": 100000.0,
+									"type": "number"
+								},
+								{
+									"type": "string"
+								}
+							],
+							"title": "Quantity"
+						},
+						"unit": {
+							"$ref": "#/$defs/RequestedUnit"
+						},
+						"package_word": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Package Word"
+						},
+						"needed_by": {
+							"format": "date",
+							"title": "Needed By",
+							"type": "string"
+						},
+						"recipe_ref": {
+							"anyOf": [
+								{
+									"$ref": "#/$defs/RecipeRef"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null
+						},
+						"group": {
+							"anyOf": [
+								{
+									"maxLength": 80,
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Group"
+						}
+					},
+					"required": [
+						"line_id",
+						"quantity",
+						"unit",
+						"needed_by"
+					],
+					"title": "LineRequest",
+					"type": "object"
+				},
+				"RecipeRef": {
+					"additionalProperties": false,
+					"properties": {
+						"recipe_id": {
+							"title": "Recipe Id",
+							"type": "string"
+						},
+						"portions": {
+							"title": "Portions",
+							"type": "integer"
+						},
+						"ingredient_index": {
+							"title": "Ingredient Index",
+							"type": "integer"
+						}
+					},
+					"required": [
+						"recipe_id",
+						"portions",
+						"ingredient_index"
+					],
+					"title": "RecipeRef",
+					"type": "object"
+				},
+				"RequestedUnit": {
+					"description": "The unit the buyer asked in. With `package`, the word is in `package_word`.",
+					"enum": [
+						"l",
+						"kg",
+						"piece",
+						"sales_unit",
+						"package"
+					],
+					"title": "RequestedUnit",
+					"type": "string"
+				}
+			},
+			"additionalProperties": false,
+			"properties": {
+				"quote_id": {
+					"title": "Quote Id",
+					"type": "string"
+				},
+				"lines": {
+					"items": {
+						"$ref": "#/$defs/LineRequest"
+					},
+					"maxItems": 50,
+					"minItems": 1,
+					"title": "Lines",
+					"type": "array"
+				}
+			},
+			"required": [
+				"quote_id",
+				"lines"
+			],
+			"title": "update_quoteArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "POST",
+			"path": "/api/v1/quotes/{quote_id}/update"
+		}
+	},
+	{
+		"name": "request_confirmation",
+		"description": "Send the confirmation link for a ready quote to the account's own phone.",
+		"inputSchema": {
+			"additionalProperties": false,
+			"properties": {
+				"quote_id": {
+					"title": "Quote Id",
+					"type": "string"
+				}
+			},
+			"required": [
+				"quote_id"
+			],
+			"title": "request_confirmationArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "POST",
+			"path": "/api/v1/quotes/{quote_id}/confirmation-request"
+		}
+	},
+	{
+		"name": "get_order_status",
+		"description": "Get the status of a quote or order.",
+		"inputSchema": {
+			"additionalProperties": false,
+			"properties": {
+				"quote_id": {
+					"title": "Quote Id",
+					"type": "string"
+				}
+			},
+			"required": [
+				"quote_id"
+			],
+			"title": "get_order_statusArguments",
+			"type": "object"
+		},
+		"rest": {
+			"method": "GET",
+			"path": "/api/v1/quotes/{quote_id}/status"
+		}
+	}
+]
