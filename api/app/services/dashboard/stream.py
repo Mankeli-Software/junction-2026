@@ -4,6 +4,9 @@ One `Broadcaster` per process. The `PgListener` (or anything else) calls `publis
 browser connected to `/api/v1/public/stream` reads `subscribe()`, which starts with a
 `snapshot` and then sends live events. A reconnect with `Last-Event-ID` gets the events it
 missed from a small in-memory buffer instead, when the buffer still has them.
+
+The simulated phone inbox (#46) reuses the class with one instance per user and no
+redaction, because its link is the point; see `app/services/confirmations.py`.
 """
 
 import asyncio
@@ -12,7 +15,7 @@ import logging
 from collections import deque
 from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from sse_starlette import ServerSentEvent
 
@@ -31,7 +34,7 @@ HISTORY_SIZE = 1000
 class StreamEvent:
     """One event for the stream. `id` is the `status_events` seq, when there is one."""
 
-    event: StreamEventType
+    event: StreamEventType | Literal["inbox_message"]
     data: Any  # JSON-ready data; `publish()` redacts it
     id: int | None = None
 
@@ -57,8 +60,16 @@ class _Subscriber:
 
 
 class Broadcaster:
-    def __init__(self, *, queue_size: int = QUEUE_SIZE, history_size: int = HISTORY_SIZE):
+    def __init__(
+        self,
+        *,
+        queue_size: int = QUEUE_SIZE,
+        history_size: int = HISTORY_SIZE,
+        redactor: Callable[[Any], Any] = redact,
+    ):
+        """`redactor` runs on every event and snapshot. Keep the default for anything public."""
         self._queue_size = queue_size
+        self._redact = redactor
         self._subscribers: set[_Subscriber] = set()
         self._history: deque[StreamEvent] = deque(maxlen=history_size)
         # Events with an id at or below this one may be missing from the history: they were
@@ -79,7 +90,7 @@ class Broadcaster:
         A subscriber whose queue is full is dropped; its browser reconnects and gets a
         snapshot (or the missed events, if the history still has them).
         """
-        event = StreamEvent(event.event, redact(event.data), event.id)
+        event = StreamEvent(event.event, self._redact(event.data), event.id)
         if event.id is not None:
             if self._floor is None:
                 self._floor = event.id - 1
@@ -93,7 +104,7 @@ class Broadcaster:
                 self._drop(subscriber)
 
     def _drop(self, subscriber: _Subscriber) -> None:
-        log.warning("Dropping a dashboard stream subscriber whose queue is full")
+        log.warning("Dropping a stream subscriber whose queue is full")
         self._subscribers.discard(subscriber)
         while not subscriber.queue.empty():
             subscriber.queue.get_nowait()
@@ -127,7 +138,7 @@ class Broadcaster:
             missed = None if last_event_id is None else self.missed_since(last_event_id)
             if missed is None:
                 snapshot_id = self.last_id
-                data = redact(await snapshot())
+                data = self._redact(await snapshot())
                 yield StreamEvent("snapshot", data, snapshot_id).to_sse()
             else:
                 for event in missed:
