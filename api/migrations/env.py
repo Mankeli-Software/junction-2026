@@ -1,4 +1,4 @@
-"""Alembic environment. The database URL comes from app.settings (DATABASE_URL)."""
+"""Alembic environment. The URL is MIGRATION_DATABASE_URL, else DATABASE_URL (app.settings)."""
 
 import asyncio
 from logging.config import fileConfig
@@ -21,7 +21,7 @@ target_metadata = None
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=get_settings().database_url,
+        url=get_settings().migrations_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -37,7 +37,7 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    engine = create_async_engine(get_settings().database_url, poolclass=pool.NullPool)
+    engine = create_async_engine(get_settings().migrations_url, poolclass=pool.NullPool)
     async with engine.connect() as connection:
         await connection.run_sync(do_run_migrations)
     await engine.dispose()
