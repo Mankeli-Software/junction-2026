@@ -9,6 +9,7 @@
 		buildTimeline,
 		collapse,
 		formatRefs,
+		joinSentences,
 		rowMatchesFilter,
 		stepCount,
 		type NoteRow,
@@ -189,9 +190,9 @@
 			<span class="eng" class:final={row.types.includes('order_confirmed')}>
 				{#if row.kind === 'engine'}
 					<b>{t('engine_prefix', ui.lang)}</b>
-					{row.texts.map((x: Localized) => pick(x, ui.lang)).join(' ')}
+					{joinSentences(row.texts.map((x: Localized) => pick(x, ui.lang)))}
 				{:else}
-					{@const [lead, rest] = splitLead(row.texts.map((x: Localized) => pick(x, ui.lang)).join(' '))}
+					{@const [lead, rest] = splitLead(joinSentences(row.texts.map((x: Localized) => pick(x, ui.lang))))}
 					<b>{lead}</b>{rest}
 				{/if}
 			</span>

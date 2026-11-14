@@ -229,6 +229,17 @@ export function buildTimeline(
 	return rows;
 }
 
+/**
+ * The sentences of a merged row as one text. The API's sentences have no full stop
+ * ("Searched 12 products"), so one is added between them where it is missing.
+ */
+export function joinSentences(texts: readonly string[]): string {
+	if (texts.length < 2) return texts.join('');
+	return texts
+		.map((text, i) => (i < texts.length - 1 && text && !/[.!?:]$/.test(text) ? `${text}.` : text))
+		.join(' ');
+}
+
 /** How many steps a set of rows covers, for "Show 12 more steps". */
 export function stepCount(rows: readonly TimelineRow[]): number {
 	return rows.reduce((n, row) => n + row.refs.length, 0);

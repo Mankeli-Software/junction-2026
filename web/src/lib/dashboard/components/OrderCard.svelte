@@ -39,7 +39,8 @@
 	<div class="meta">
 		{#if order.order_number}<span class="num" data-testid="order-number">{order.order_number}</span>{/if}
 		{#if order.line_count > 0}<span>{linesText}</span>{/if}
-		{#if order.total_cents !== null}<b>{formatMoney(order.total_cents, ui.lang)}</b>{/if}
+		<!-- The API sends 0 for a quote with no lines (a question to the buyer): no total then. -->
+		{#if order.total_cents !== null && (order.total_cents > 0 || order.line_count > 0)}<b>{formatMoney(order.total_cents, ui.lang)}</b>{/if}
 		{#if order.delivery_date}<span>{formatDay(order.delivery_date, ui.lang)}</span>{/if}
 	</div>
 	{#if flagsText}<span class="flags">{flagsText}</span>{/if}

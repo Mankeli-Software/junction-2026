@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import events from './fixtures/d1042-events.json';
 import transcript from './fixtures/d1042-transcript.json';
-import { buildTimeline, collapse, formatRefs, stepCount } from './timeline';
+import { buildTimeline, collapse, formatRefs, joinSentences, stepCount } from './timeline';
 import type { AuditEvent, TranscriptLine } from './types';
 
 describe('buildTimeline', () => {
@@ -27,6 +27,14 @@ describe('buildTimeline', () => {
 	it('takes conversation text from the transcript', () => {
 		const buyer = rows[1];
 		expect(buyer.kind === 'buyer' && buyer.text).toBe('I need five kilos of ground beef for tomorrow.');
+	});
+
+	it('ends the sentences of a merged row', () => {
+		expect(joinSentences(['Searched 12 products', 'Candidates filtered'])).toBe(
+			'Searched 12 products. Candidates filtered'
+		);
+		expect(joinSentences(['Call ended by buyer.', 'Link sent.'])).toBe('Call ended by buyer. Link sent.');
+		expect(joinSentences(['Conversation started'])).toBe('Conversation started');
 	});
 
 	it('collapses the middle of a long session', () => {
