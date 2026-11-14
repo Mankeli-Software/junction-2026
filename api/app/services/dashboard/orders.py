@@ -241,9 +241,10 @@ def _status_line(row: SessionRow, flags: list[SummaryFlag]) -> Localized | None:
         return row.step_text
     checked = sum(f.acknowledged_at is not None for f in flags)
     if checked:
+        one = checked == 1
         return Localized(
-            fi=f"ostajan vahvistama, {checked} huomiota kuitattu",
-            en=f"by the buyer, after checking {checked} flags",
+            fi=f"ostajan vahvistama, {checked} {'huomio' if one else 'huomiota'} kuitattu",
+            en=f"by the buyer, after checking {checked} {'flag' if one else 'flags'}",
         )
     return Localized(fi="ostajan vahvistama", en="by the buyer")
 

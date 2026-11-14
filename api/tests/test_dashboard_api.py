@@ -590,7 +590,7 @@ async def test_a_confirmed_order_shows_its_number_and_the_checked_flags(client, 
     assert summary["quote"]["version"] == 2
     stock = next(f for f in summary["flags"] if f["flag_key"] == STOCK_FLAG)
     assert stock["acknowledged_at"] is not None
-    assert summary["status_line"]["en"] == "by the buyer, after checking 1 flags"
+    assert summary["status_line"]["en"] == "by the buyer, after checking 1 flag"
 
     await feed.catch_up()
     update = _last_update(hub, session_id)
