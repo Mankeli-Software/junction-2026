@@ -90,7 +90,8 @@ export function channelName(channel: Channel, lang: Lang): string {
 /** The badge on a card: "Phone", "Webshop chat", "WebMCP", "Claude connector". */
 export function channelBadge(channel: Channel, client: string, lang: Lang): string {
 	if (channel === 'mcp') {
-		const name = client && client !== 'mcp' ? client : 'MCP';
+		// The API says "MCP client" when the connector gave no name.
+		const name = client && client !== 'mcp' && client !== 'MCP client' ? client : 'MCP';
 		return lang === 'fi' ? `${name}${t('connector', lang)}` : `${name} ${t('connector', lang)}`;
 	}
 	return channelName(channel, lang);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon, { type IconName } from '#lib/dashboard/components/Icon.svelte';
 	import OrderNav from '#lib/dashboard/components/OrderNav.svelte';
-	import { formatTimeSeconds } from '#lib/dashboard/format.ts';
+	import { capitalize, formatTimeSeconds } from '#lib/dashboard/format.ts';
 	import { pick, t, type StringKey } from '#lib/dashboard/i18n.ts';
 	import { combineSteps, combineTranscript, mergeStep, mergeTranscript } from '#lib/dashboard/merge.ts';
 	import { sessionLive } from '#lib/dashboard/session-live.svelte.ts';
@@ -112,7 +112,7 @@
 		<h1 class="hd">{t('flow_title', ui.lang)}</h1>
 		{#if summary.agent}
 			<span class="agent"
-				>{pick(summary.agent.name, ui.lang)}{summary.agent.prompt_version
+				>{capitalize(pick(summary.agent.name, ui.lang))}{summary.agent.prompt_version
 					? `, ${t('prompt', ui.lang)} ${summary.agent.prompt_version}`
 					: ''}.</span
 			>

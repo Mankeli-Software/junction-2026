@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { shortSessionId } from '../format';
 	import { t } from '../i18n';
 	import { useUi } from '../ui.svelte';
 
@@ -15,7 +16,7 @@
 
 	const base = $derived(`/dashboard/${encodeURIComponent(sessionId)}`);
 	const orderLabel = $derived(
-		orderNumber ? `${t('order', ui.lang)} ${orderNumber}` : `${t('session', ui.lang)} ${sessionId}`
+		orderNumber ? `${t('order', ui.lang)} ${orderNumber}` : `${t('session', ui.lang)} ${shortSessionId(sessionId)}`
 	);
 	const tabs = $derived([
 		{ key: 'summary', href: base, label: t('tab_summary', ui.lang) },

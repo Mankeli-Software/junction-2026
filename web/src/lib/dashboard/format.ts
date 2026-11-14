@@ -113,3 +113,13 @@ export function formatDemoTime(iso: string, lang: Lang): string {
 export function shortHash(hash: string, length = 6): string {
 	return hash.slice(0, length);
 }
+
+/** "browser agent" as a sentence start: "Browser agent". */
+export function capitalize(text: string): string {
+	return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** A session's UUID as its first block ("d8144d23"), for a label; other ids as they are. */
+export function shortSessionId(id: string): string {
+	return /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id) ? id.slice(0, 8) : id;
+}

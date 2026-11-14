@@ -10,6 +10,7 @@ import {
 } from './format';
 import { pick, resolveLang, t } from './i18n';
 import { channelBadge, exclusionsSentence, parseFilter, stateGroup, statusText } from './states';
+import { shortSessionId } from './format';
 
 const NBSP = ' ';
 
@@ -62,6 +63,13 @@ describe('time in state', () => {
 		expect(statusText({ ...card, channel: 'webmcp', state: 'in_conversation' }, 'en', now)).toBe(
 			'Building quote'
 		);
+	});
+});
+
+describe('shortSessionId', () => {
+	it('shortens a UUID and keeps other ids', () => {
+		expect(shortSessionId('d8144d23-9adc-4a0a-a488-0c3a4554235c')).toBe('d8144d23');
+		expect(shortSessionId('s_2611_0042')).toBe('s_2611_0042');
 	});
 });
 
@@ -120,6 +128,8 @@ describe('states and words', () => {
 	it('names the connector by its client', () => {
 		expect(channelBadge('mcp', 'Claude', 'en')).toBe('Claude connector');
 		expect(channelBadge('web_chat', 'web chat', 'en')).toBe('Webshop chat');
+		expect(channelBadge('mcp', 'MCP client', 'en')).toBe('MCP connector');
+		expect(channelBadge('webmcp', 'browser agent', 'en')).toBe('WebMCP');
 	});
 
 	it('reads only known filters from the URL', () => {

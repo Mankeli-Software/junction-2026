@@ -96,6 +96,10 @@ const STRINGS = {
 	asked: { en: 'Asked', fi: 'Pyydetty' },
 	why: { en: 'Why', fi: 'Miksi' },
 	found_left: { en: '{found} found, {left} left', fi: '{found} löytyi, {left} jäljellä' },
+	ranked_not_available: {
+		en: 'The ranked list of candidates is not available yet.',
+		fi: 'Ehdokkaiden järjestystä ei ole vielä saatavilla.'
+	},
 	safe_left: { en: 'safe, in stock, on time', fi: 'sopivia, varastossa, ajallaan' },
 	rank: { en: '#', fi: '#' },
 	product: { en: 'Product', fi: 'Tuote' },
@@ -113,7 +117,7 @@ const STRINGS = {
 	can_we_trust: { en: 'Can we trust it?', fi: 'Voiko tähän luottaa?' },
 	sig_valid: { en: 'Quote signed and verified', fi: 'Tarjous allekirjoitettu ja tarkistettu' },
 	sig_invalid: { en: 'Quote signature does not match', fi: 'Tarjouksen allekirjoitus ei täsmää' },
-	sig_unknown: { en: 'Quote signature not checked yet', fi: 'Tarjouksen allekirjoitusta ei ole vielä tarkistettu' },
+	sig_unknown: { en: 'Quote not signed yet', fi: 'Tarjousta ei ole vielä allekirjoitettu' },
 	chain_intact_n: { en: 'Audit chain intact, {n} events', fi: 'Lokiketju eheä, {n} tapahtumaa' },
 	chain_broken_at: { en: 'Audit chain broken at event #{n}', fi: 'Lokiketju katkeaa tapahtumassa #{n}' },
 	chain_checking: { en: 'Checking the audit chain', fi: 'Tarkistetaan lokiketjua' },
@@ -168,7 +172,7 @@ const STRINGS = {
 	},
 	sig_valid_short: { en: 'Quote signature valid.', fi: 'Tarjouksen allekirjoitus kunnossa.' },
 	sig_invalid_short: { en: 'Quote signature invalid.', fi: 'Tarjouksen allekirjoitus ei kelpaa.' },
-	sig_unknown_short: { en: 'Quote signature not checked yet.', fi: 'Tarjouksen allekirjoitusta ei vielä tarkistettu.' },
+	sig_unknown_short: { en: 'Quote not signed yet.', fi: 'Tarjousta ei ole vielä allekirjoitettu.' },
 	verify_again: { en: 'Verify again', fi: 'Tarkista uudelleen' },
 	download_json: { en: 'Download JSON', fi: 'Lataa JSON' },
 	col_time: { en: 'Time', fi: 'Aika' },

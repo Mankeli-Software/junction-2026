@@ -58,7 +58,13 @@
 		</div>
 	</div>
 
-	{#if trace.ranked?.length}
+	{#if trace.ranked.length === 0}
+		<!-- The API sends no candidates until the engine records them (#36, #39). -->
+		<div class="ranked">
+			<h3 class="hd">{pick(trace.ranking_rule, ui.lang)}</h3>
+			<p class="none" data-testid="ranked-not-available">{t('ranked_not_available', ui.lang)}</p>
+		</div>
+	{:else}
 		<div class="ranked">
 			<h3 class="hd">{pick(trace.ranking_rule, ui.lang)}</h3>
 			<div class="cand head">
@@ -169,6 +175,11 @@
 	}
 	.ranked h3 {
 		margin-bottom: 8px;
+	}
+	.none {
+		margin: 0;
+		font-size: 14px;
+		color: var(--d-muted);
 	}
 	.cand {
 		display: grid;
