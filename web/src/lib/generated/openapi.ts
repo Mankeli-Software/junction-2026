@@ -1494,14 +1494,19 @@ export interface components {
             /** Product Id */
             product_id: string | null;
         };
-        /** RecipeRef */
+        /**
+         * RecipeRef
+         * @description A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:
+         *     the quote service turns it into one line per ingredient with a product link and lists
+         *     the other ingredients in `not_ordered`.
+         */
         RecipeRef: {
             /** Recipe Id */
             recipe_id: string;
             /** Portions */
             portions: number;
             /** Ingredient Index */
-            ingredient_index: number;
+            ingredient_index?: number | null;
         };
         /** Rejection */
         Rejection: {

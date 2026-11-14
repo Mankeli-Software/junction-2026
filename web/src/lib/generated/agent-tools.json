@@ -311,24 +311,34 @@
 				},
 				"RecipeRef": {
 					"additionalProperties": false,
+					"description": "A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:\nthe quote service turns it into one line per ingredient with a product link and lists\nthe other ingredients in `not_ordered`.",
 					"properties": {
 						"recipe_id": {
 							"title": "Recipe Id",
 							"type": "string"
 						},
 						"portions": {
+							"maximum": 1000,
+							"minimum": 1,
 							"title": "Portions",
 							"type": "integer"
 						},
 						"ingredient_index": {
-							"title": "Ingredient Index",
-							"type": "integer"
+							"anyOf": [
+								{
+									"type": "integer"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Ingredient Index"
 						}
 					},
 					"required": [
 						"recipe_id",
-						"portions",
-						"ingredient_index"
+						"portions"
 					],
 					"title": "RecipeRef",
 					"type": "object"
@@ -514,24 +524,34 @@
 				},
 				"RecipeRef": {
 					"additionalProperties": false,
+					"description": "A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:\nthe quote service turns it into one line per ingredient with a product link and lists\nthe other ingredients in `not_ordered`.",
 					"properties": {
 						"recipe_id": {
 							"title": "Recipe Id",
 							"type": "string"
 						},
 						"portions": {
+							"maximum": 1000,
+							"minimum": 1,
 							"title": "Portions",
 							"type": "integer"
 						},
 						"ingredient_index": {
-							"title": "Ingredient Index",
-							"type": "integer"
+							"anyOf": [
+								{
+									"type": "integer"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": null,
+							"title": "Ingredient Index"
 						}
 					},
 					"required": [
 						"recipe_id",
-						"portions",
-						"ingredient_index"
+						"portions"
 					],
 					"title": "RecipeRef",
 					"type": "object"

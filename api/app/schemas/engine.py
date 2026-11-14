@@ -36,9 +36,13 @@ MAX_QUANTITY = Decimal("100000")
 
 
 class RecipeRef(StrictModel):
+    """A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:
+    the quote service turns it into one line per ingredient with a product link and lists
+    the other ingredients in `not_ordered`."""
+
     recipe_id: str
-    portions: int
-    ingredient_index: int
+    portions: int = Field(ge=1, le=1000)
+    ingredient_index: int | None = None
 
 
 class LineRequest(StrictModel):
@@ -152,6 +156,9 @@ class EngineInput(StrictModel):
     business_now: datetime  # business clock: cutoffs and delivery dates
     issued_at: datetime  # real clock
     lang: Lang
+    # Recipe ingredients without a product link (#34). The quote service lists them and
+    # the engine returns them as they are, so a stored input replays to the same output.
+    not_ordered: list[NotOrdered] = []
 
 
 class EngineOutput(StrictModel):
