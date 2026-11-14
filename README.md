@@ -116,7 +116,11 @@ The call needs `GEMINI_API_KEY`. The webshop chat also needs `CHAT_MODEL`, and r
 
 The dev servers, tests, linters and migrations are in [`CLAUDE.md`](CLAUDE.md), section "Commands". The web app also has its own [`web/README.md`](web/README.md), with its fixtures and the WebMCP setup.
 
-Never commit `.env` or any API key.
+Never commit `.env`, any API key or a real phone number.
+
+## Deploy
+
+The `production` branch deploys, not `main`. The VM (`simo.mankeli.co`) runs whatever `production` points at, and a release fast-forwards `production` to a tested commit on `main`. CI runs on pushes to `production` only. The VM reads its secrets from Azure Key Vault and its other settings from `deploy/vm.env`. The steps are in [`CLAUDE.md`](CLAUDE.md).
 
 ## Repository map
 
