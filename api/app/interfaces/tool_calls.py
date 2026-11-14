@@ -31,7 +31,7 @@ from app import telemetry
 from app.db import get_sessionmaker
 from app.interfaces.deps import DEV_CALLER
 from app.models import Quote
-from app.schemas import Localized
+from app.schemas import Localized, QuoteResponse
 from app.services import audit, dev_caller, sessions
 from app.services.caller import Caller
 from app.services.dashboard.redact import redact
@@ -70,7 +70,8 @@ async def run_tool(
             _observe(name, "error", timer, error=f"{type(error).__name__}: {error}")
             raise
         outcome, counts = _outcome(result.model_dump(mode="json"))
-        _observe(name, outcome, timer, result=telemetry.summary(result), **counts)
+        _observe(name, outcome, timer, result=_result_summary(result), **counts)
+        _record_quote_rejections(name, result)
         return result
 
 
@@ -159,6 +160,36 @@ def _observe(name: str, outcome: str, timer: telemetry.Timer, **attrs: Any) -> N
     metric = telemetry.metric_attrs(tool=name, outcome=outcome)
     telemetry.tool_duration.record(timer.ms, metric)
     telemetry.tool_calls.add(1, metric)
+
+
+def _record_quote_rejections(name: str, result: BaseModel) -> None:
+    """Keep every rejected line queryable without logging its text or raw identifier."""
+    if not isinstance(result, QuoteResponse):
+        return
+    for rejection in result.rejections:
+        telemetry.event(
+            "quote line rejected",
+            logging.WARNING,
+            tool=name,
+            quote_id=result.quote_id,
+            version=result.version,
+            line_id=redact(rejection.line_id)[:200],
+            reason_code=rejection.reason_code[:100],
+        )
+
+
+def _result_summary(result: BaseModel) -> str:
+    """Redacted result summary without free-form rejection text or follow-up prompts."""
+    data = redact(result)
+    if isinstance(result, QuoteResponse) and isinstance(data, dict):
+        for rejection in data.get("rejections", []):
+            if isinstance(rejection, dict):
+                rejection.pop("text", None)
+                rejection.pop("next_step", None)
+                for field, limit in (("line_id", 200), ("reason_code", 100)):
+                    if isinstance(rejection.get(field), str):
+                        rejection[field] = rejection[field][:limit]
+    return telemetry.summary(data)
 
 
 async def _call(

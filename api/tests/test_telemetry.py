@@ -125,6 +125,80 @@ async def test_a_tool_error_marks_its_span_failed():
     assert "no such quote" in tool.attributes["simo.error"]
 
 
+async def test_quote_rejection_events_are_complete_and_redacted(caplog, monkeypatch):
+    from app.interfaces.deps import DEV_CALLER
+    from app.schemas.common import Decision, Localized, QuoteStatus
+    from app.schemas.quote import Rejection
+    from app.schemas.tools import QuoteResponse
+    from app.services.dashboard.redact import redact
+
+    long_line_id = "line-" + "x" * 512
+    line_ids = [
+        "jane.doe@example.com",
+        "+358 40 123 4567",
+        "https://simo.mankeli.co/c/secret",
+        long_line_id,
+    ]
+    line_ids.extend(f"line-{index}" for index in range(66))
+    rejections = [
+        Rejection(
+            line_id=line_id,
+            reason_code="INPUT_INVALID" if index % 2 == 0 else "NO_CANDIDATES",
+            text=Localized(
+                fi="Contact jane.doe@example.com at +358 40 123 4567 /c/secret",
+                en="Contact jane.doe@example.com at +358 40 123 4567 /c/secret",
+            ),
+            next_step=Localized(fi="Ask again", en="Ask again"),
+        )
+        for index, line_id in enumerate(line_ids)
+    ]
+    response = QuoteResponse(
+        decision=Decision.rejected,
+        lines=[],
+        groups=[],
+        flags=[],
+        clarification=None,
+        rejections=rejections,
+        not_ordered=[],
+        total_cents=0,
+        delivery=None,
+        speak=Localized(fi="Korjaa tilaus", en="Fix the order"),
+        rules_ref="test",
+        quote_id="quote-123",
+        version=1,
+        parent_quote_id=None,
+        status=QuoteStatus.rejected,
+        expires_at=None,
+        quote_hash=None,
+    )
+
+    async def fake_run(name, caller, service, request, arguments):
+        return response
+
+    monkeypatch.setattr("app.interfaces.tool_calls._run", fake_run)
+    caplog.set_level(logging.INFO, logger="simo.events")
+
+    await run_tool("update_quote", DEV_CALLER, lambda *_: response, None)
+
+    events = [record for record in caplog.records if record.getMessage() == "quote line rejected"]
+    assert len(events) == len(rejections)
+    by_line_id = {record.__dict__["simo.line_id"]: record for record in events}
+    assert by_line_id["line-65"].__dict__["simo.reason_code"] == "NO_CANDIDATES"
+    assert "j***@example.com" in by_line_id
+    assert redact("+358 40 123 4567") in by_line_id
+    assert "https://simo.mankeli.co/c/…" in by_line_id
+    assert long_line_id[:200] in by_line_id
+    assert long_line_id not in by_line_id
+
+    exported = " ".join(f"{record.getMessage()} {record.__dict__}" for record in caplog.records)
+    assert "jane.doe@example.com" not in exported
+    assert "+358 40 123 4567" not in exported
+    assert "/c/secret" not in exported
+    assert long_line_id not in exported
+    assert "Ask again" not in exported
+    assert "Contact" not in exported
+
+
 async def test_every_audit_event_is_mirrored_as_a_log_line(db, caplog):
     from app.schemas import Localized
     from app.services import audit
