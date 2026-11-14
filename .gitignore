@@ -21,3 +21,6 @@ data/*.part
 
 # Hand-out account cards (scripts/create_handout_accounts.py): live passwords, never commit
 *handout*.csv
+
+# The voice smoke test's cached caller lines (scripts/voice_smoke_test.py)
+scripts/.voice_smoke_cache/
