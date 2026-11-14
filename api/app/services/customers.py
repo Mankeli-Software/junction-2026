@@ -6,17 +6,20 @@ A caller without a company row (only in tests) gets the fixture's usual items.
 """
 
 from collections.abc import Iterable
+from decimal import Decimal
 from functools import cache
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Company
+from app.models import Company, Order, OrderLine
 from app.schemas import (
     CustomerContext,
     Exclusion,
     ExclusionLabel,
     HistoryLine,
     KitchenType,
+    RequestedUnit,
     UsualItem,
 )
 from app.seed import history
@@ -55,9 +58,29 @@ async def usual_items(db: AsyncSession, caller: Caller) -> list[UsualItem]:
 
 
 async def recent_lines(db: AsyncSession, caller: Caller) -> list[HistoryLine]:
-    """The company's order history lines, for the engine's history summary."""
+    """The company's order history lines, for the engine's history summary: the seeded
+    history plus every confirmed order, in sales units at its confirmation time (#42)."""
     company = await _company(db, caller)
-    return [] if company is None else await history.recent_lines(db, company.id)
+    if company is None:
+        return []
+    confirmed = await db.execute(
+        select(OrderLine.product_id, OrderLine.quantity_sales_units, Order.confirmed_at)
+        .join(Order, Order.id == OrderLine.order_id)
+        .where(Order.company_id == company.id)
+        .order_by(Order.confirmed_at, OrderLine.line_id)
+    )
+    return [
+        *await history.recent_lines(db, company.id),
+        *(
+            HistoryLine(
+                product_id=product_id,
+                quantity=Decimal(quantity),
+                sales_unit=RequestedUnit.sales_unit.value,
+                ordered_at=confirmed_at,
+            )
+            for product_id, quantity, confirmed_at in confirmed
+        ),
+    ]
 
 
 async def last_order(db: AsyncSession, caller: Caller) -> list[UsualItem]:
