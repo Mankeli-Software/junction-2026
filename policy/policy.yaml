@@ -1,6 +1,6 @@
 # Engine rule set (technical-plan.md §4.3). Every quote records `version`
 # plus a sha256 over all files in policy/, so bump `version` when you change a rule.
-version: "2026-11-14.7"
+version: "2026-11-14.8"
 
 # Every order is confirmed by a human through the SMS link (vision §6).
 confirmation: always
@@ -39,6 +39,7 @@ substitution:
   max_price_increase_ratio: "0.10"
 
 # Same order again within this window raises a flag (P1, real clock).
+# DUPLICATE_ORDER in messages.yaml says "two hours": change both together.
 duplicate_window_seconds: 7200
 
 # Input limits for build_quote (vision §8).

@@ -145,7 +145,9 @@ codes:
     fi: "Pyöristin tuotteen {product} määrän ylöspäin kokonaisiin myyntiyksiköihin: {quantity} {unit}."
     en: "I rounded {product} up to {quantity} {unit} to make whole sales units."
   EXACT_FIT_ALTERNATIVE:
-    kind: reason
+    # A `choose` flag: keep the surplus or take the product that fits (#42).
+    kind: flag
+    ack: true
     fi: "Tuotteesta {product} jäisi ylimäärää. Vaihtoehtona {substitute} sopii tarvittavaan määrään tarkemmin."
     en: "{product} would leave a surplus. {substitute} fits the amount you need more exactly."
 
@@ -179,14 +181,15 @@ codes:
   QUANTITY_UNUSUAL:
     kind: flag
     ack: true
-    fi: "Määrä {quantity} {unit} tuotetta {product} poikkeaa tavallisista tilauksistanne."
-    en: "{quantity} {unit} of {product} is unusual compared with your earlier orders."
+    fi: "{quantity} {unit} tuotetta {product} on poikkeava määrä. Tilaatte yleensä {usual}."
+    en: "{quantity} {unit} of {product} is an unusual amount. You usually order {usual}."
   DUPLICATE_ORDER:
     kind: flag
     ack: true
-    fi: "Teitte saman tilauksen hetki sitten. Tarkistakaa, ettei tämä ole tuplatilaus."
-    en: "You placed the same order a moment ago. Please check this isn't a duplicate."
+    fi: "Tuote {product} oli jo tilauksessa, jonka vahvistitte kahden viime tunnin aikana. Tarkistakaa, ettei tämä ole tuplatilaus."
+    en: "{product} was already in an order you confirmed in the last two hours. Please check this isn't a duplicate."
   FIRST_TIME_PRODUCT:
+    # Not emitted: dropped in #42. Kept while the code is in the contract.
     kind: flag
     ack: true
     fi: "Ette ole tilanneet tuotetta {product} aiemmin."

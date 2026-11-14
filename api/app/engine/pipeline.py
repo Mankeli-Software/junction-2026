@@ -15,6 +15,7 @@ from app.schemas import (
     EngineInput,
     EngineOutput,
     Flag,
+    FlagOption,
     GroupSubtotal,
     LineRequest,
     Localized,
@@ -32,7 +33,7 @@ from app.schemas import (
     TraceRemoval,
 )
 
-from . import substitute, text
+from . import sanity, substitute, text
 from .filters import Candidate, Context, Removal, allergens_unknown, check
 
 # Order of the filter steps (§4.2), so the trace lists removals in pipeline order.
@@ -151,7 +152,14 @@ def _line(
 
     ranked = _rank(survivors, data)
     trace = _trace(len(ids), removals, ranked, rules)
-    result = _priced(line, ranked, trace, rules)
+    # A named product that leaves more surplus than the limits allow: offer the best
+    # candidate that fits within them as a choice on the page (vision §10, #42).
+    exact = None
+    if named and not ranked[0].within_limits and subs:
+        fits = [c for c, r in _check([products[pid] for pid in subs], ctx) if r is None]
+        fits = [c for c in fits if c.within_limits]
+        exact = _rank(fits, data)[0] if fits else None
+    result = _priced(line, ranked, trace, data, exact=exact)
     result.allergens_unknown = allergens_unknown(ranked[0].product, ctx.exclusions, rules)
     return result
 
@@ -195,7 +203,7 @@ def _substitute(
     ]
     if choice.code in substitute.AUTOMATIC.values():
         trace = _trace(len(checked) + len(sub_checked), removals, ranked, rules)
-        result = _priced(line, ranked, trace, rules, (choice.code, original.product, lead))
+        result = _priced(line, ranked, trace, data, (choice.code, original.product, lead))
         result.allergens_unknown = allergens_unknown(ranked[0].product, ctx.exclusions, rules)
         return result
 
@@ -314,11 +322,14 @@ def _priced(
     line: LineRequest,
     ranked: list[Candidate],
     trace: Trace,
-    rules: RuleSet,
+    data: EngineInput,
     swap: tuple[ReasonCode, ProductRecord, Localized] | None = None,
+    exact: Candidate | None = None,
 ) -> LineResult:
     """Price `ranked[0]`. `swap` is set when it replaces a product automatically: the
-    SUBSTITUTED_* code, the replaced product and why it was replaced."""
+    SUBSTITUTED_* code, the replaced product and why it was replaced. `exact` is a
+    candidate within the round-up limits, offered when `ranked[0]` is not."""
+    rules = data.rules
     chosen = ranked[0]
     product, amount = chosen.product, chosen.amount
     assert amount is not None
@@ -339,7 +350,10 @@ def _priced(
             "unit": text.unit_name(rules, chosen.sales_unit, plural=amount.sales_units != 1),
         }
         explain.append(text.message(rules, ReasonCode.ROUNDED_UP, product=product.name, **rounded))
-        if not chosen.within_limits:  # more waste than the limits allow: the buyer must see it
+        if not chosen.within_limits and exact is not None:
+            reasons.append(ReasonCode.EXACT_FIT_ALTERNATIVE)
+            flags.append(_exact_fit_flag(line, chosen, exact, rules))
+        elif not chosen.within_limits:  # more waste than the limits allow: the buyer must see it
             flags.append(_flag(ReasonCode.ROUNDED_UP, line, product, rules, **rounded))
     if amount.from_name:
         reasons.append(ReasonCode.PACK_SIZE_FROM_NAME)
@@ -347,6 +361,14 @@ def _priced(
     if chosen.stock == StockStatus.unverified:
         reasons.append(ReasonCode.AVAILABILITY_UNVERIFIED)
         flags.append(_flag(ReasonCode.AVAILABILITY_UNVERIFIED, line, product, rules))
+    # Sanity checks from the order history (#42): never blocking, always acknowledged.
+    history = data.history.recent_lines
+    if (fields := sanity.unusual_quantity(line, chosen, history, rules)) is not None:
+        reasons.append(ReasonCode.QUANTITY_UNUSUAL)
+        flags.append(_flag(ReasonCode.QUANTITY_UNUSUAL, line, product, rules, **fields))
+    if (fields := sanity.duplicate(chosen, history, data.issued_at, rules)) is not None:
+        reasons.append(ReasonCode.DUPLICATE_ORDER)
+        flags.append(_flag(ReasonCode.DUPLICATE_ORDER, line, product, rules, **fields))
 
     per_base, base_unit = _per_base(chosen)
     quote_line = QuoteLine(
@@ -383,6 +405,40 @@ def _priced(
         ][:MAX_ALTERNATIVES],
     )
     return LineResult(line=quote_line, flags=flags)
+
+
+def _exact_fit_flag(line: LineRequest, chosen: Candidate, exact: Candidate, rules: RuleSet) -> Flag:
+    """Keep the named product with its surplus, or take the one that fits (`20-confirm-check`).
+    Option ids follow the confirmation page: `keep`, or `exact:<product id>`."""
+    return Flag(
+        flag_key=f"{ReasonCode.EXACT_FIT_ALTERNATIVE.value}:{line.line_id}",
+        code=ReasonCode.EXACT_FIT_ALTERNATIVE,
+        line_ids=[line.line_id],
+        kind="choose",
+        text=text.message(
+            rules,
+            ReasonCode.EXACT_FIT_ALTERNATIVE,
+            product=chosen.product.name,
+            substitute=exact.product.name,
+        ),
+        options=[
+            FlagOption(option_id="keep", label=_amount_label(chosen, rules),
+                       line_total_cents=chosen.total_cents),
+            FlagOption(option_id=f"exact:{exact.product.product_id}",
+                       label=_amount_label(exact, rules), line_total_cents=exact.total_cents),
+        ],
+    )  # fmt: skip
+
+
+def _amount_label(c: Candidate, rules: RuleSet) -> Localized:
+    """ "Valio kevytmaito 1 l, 24 kpl": the product and how many sales units."""
+    assert c.amount is not None
+    count = text.number(Decimal(c.amount.sales_units))
+    unit = text.unit_name(rules, c.sales_unit, plural=c.amount.sales_units != 1)
+    return Localized(
+        fi=f"{c.product.name.fi}, {count.fi} {unit.fi}",
+        en=f"{c.product.name.en}, {count.en} {unit.en}",
+    )
 
 
 def _flag(

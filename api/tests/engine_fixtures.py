@@ -10,6 +10,7 @@ from app.schemas import (
     Claim,
     EngineInput,
     Exclusion,
+    HistoryLine,
     HistorySummary,
     KitchenProfile,
     LineRequest,
@@ -26,6 +27,7 @@ from app.schemas import (
 from tests.contract_fixtures import RULES
 
 BUSINESS_NOW = datetime.fromisoformat("2026-11-12T09:00:00+02:00")
+ISSUED_AT = datetime.fromisoformat("2026-11-14T12:00:00+02:00")
 MONDAY = date(2026, 11, 16)
 SENTINEL = Decimal("999999999")
 
@@ -129,18 +131,19 @@ def engine_input(
     offers: list[Offer] | None = None,
     exclusions: tuple[Exclusion, ...] = (),
     usual: tuple[UsualItem, ...] = (),
+    history: tuple[HistoryLine, ...] = (),
 ) -> EngineInput:
     lines = lines or (milk_line(),)
     return EngineInput(
         lines=list(lines),
         kitchen=KitchenProfile(exclusions=list(exclusions)),
-        history=HistorySummary(usual_items=list(usual), recent_lines=[]),
+        history=HistorySummary(usual_items=list(usual), recent_lines=list(history)),
         candidates=candidates if candidates is not None else {"milk": MILK_SEARCH},
         substitutes=substitutes or {},
         products=products if products is not None else MILK_PRODUCTS,
         offers=offers if offers is not None else MILK_OFFERS,
         rules=RULES,
         business_now=BUSINESS_NOW,
-        issued_at=datetime.fromisoformat("2026-11-14T12:00:00+02:00"),
+        issued_at=ISSUED_AT,
         lang="fi",
     )

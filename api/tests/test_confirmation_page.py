@@ -181,6 +181,23 @@ async def test_build_send_open_acknowledge_edit_confirm_creates_the_order(app_db
     assert types.count("quote_built") == 2  # the agent's quote and the edit's
 
 
+async def test_ordering_the_same_again_flags_a_possible_duplicate(app_db: AsyncEngine):
+    # A confirmed order reaches the engine's history, so the same products quoted again
+    # within two hours need an acknowledgement (#42).
+    browser, quote, token = ordered()
+    assert not [f for f in quote["flags"] if f["code"] == "DUPLICATE_ORDER"]
+    page = Page(token)
+    view = page.view()
+    page.ack(view["quote"]["quote_hash"], STOCK_FLAG)
+    assert page.post("confirm", {"quote_hash": view["quote"]["quote_hash"]}).status_code == 200
+
+    again = browser.post("/api/v1/quotes", json={"lines": LINES}).json()
+
+    duplicates = [f for f in again["flags"] if f["code"] == "DUPLICATE_ORDER"]
+    assert [f["flag_key"] for f in duplicates] == ["DUPLICATE_ORDER:l1", "DUPLICATE_ORDER:l2"]
+    assert again["decision"] == "ready"
+
+
 async def test_no_event_holds_the_token_or_the_link(app_db: AsyncEngine):
     _, quote, token = ordered()
     page = Page(token)
