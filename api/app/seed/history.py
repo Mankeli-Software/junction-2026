@@ -21,6 +21,7 @@ import yaml
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.engine.filters import may_block
 from app.models import Company, OrderHistoryLine, Product
 from app.schemas import Exclusion, HistoryLine, KitchenType, Localized, UsualItem
 from app.search.substitutes import category_substitutes
@@ -157,14 +158,13 @@ async def _swaps(
     # Here, not at the top: the quote service imports this module's readers.
     from app.services import catalog
     from app.services.policy import get_rule_set
-    from app.services.quotes import may_be_blocked
 
     rules = get_rule_set()
     records = {r.product_id: r for r in await catalog.get_products(db, sorted(product_ids))}
     swaps: dict[str, str | None] = {}
     for pid in sorted(product_ids):
         record = records.get(pid)
-        if record is None or not may_be_blocked(record, exclusions, rules):
+        if record is None or not may_block(record, exclusions, rules):
             continue
         swaps[pid] = None
         for to_category in category_substitutes().get(record.category, ()):
@@ -172,7 +172,7 @@ async def _swaps(
                 db, record.name.fi, [], to_category, limit=5, semantic=True
             )
             found = found or await catalog.search_candidates(db, None, [], to_category, limit=5)
-            safe = [r for r in found if not may_be_blocked(r, exclusions, rules)]
+            safe = [r for r in found if not may_block(r, exclusions, rules)]
             if safe:
                 swaps[pid] = safe[0].product_id
                 break

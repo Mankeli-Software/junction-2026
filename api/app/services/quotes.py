@@ -20,14 +20,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import engine, telemetry
 from app.adapters import valio
-from app.engine.filters import CLAIMS, UNSAFE
+from app.engine.filters import may_block
 from app.engine.units import without_size
 from app.models import KitchenProfile as KitchenProfileRow
 from app.models import Order, OrderSession, Quote
 from app.models import QuoteLine as QuoteLineRow
 from app.schemas import (
     BuildQuoteRequest,
-    ClaimRule,
     ConfirmationRequestResponse,
     Decision,
     EngineInput,
@@ -517,7 +516,7 @@ async def _ranked_candidates(
     among them.
 
     A named product or "my usual" brings its curated substitutes. A text line is its search
-    hits; only when every hit may be blocked by the kitchen (`may_be_blocked`) are the
+    hits; only when every hit may be blocked by the kitchen (`may_block`) are the
     substitute candidates added after them (docs/plans/30-product-search.md §7.2): the
     curated substitutes of the top hits, then the best few by meaning in the categories
     mapped from the top hit's category (data/category_substitutes.csv, #78), then a second
@@ -556,7 +555,7 @@ async def _ranked_candidates(
             )
             ids = [hit.product_id for hit in hits]
             subs = []
-            if hits and all(may_be_blocked(hit, exclusions, rules) for hit in hits):
+            if hits and all(may_block(hit, exclusions, rules) for hit in hits):
                 curated = [s for hit in hits[:SUBSTITUTES_OF_TOP] for s in hit.substitutions]
                 # Alternatives in other categories (#78): "maito" searched by meaning in
                 # plant-based drinks. Only the best few, so the engine's price ranking can't
@@ -590,38 +589,12 @@ async def _ranked_candidates(
                             *(r.product_id for r in same_category),
                         ]
                     )
-                    if i in records and not may_be_blocked(records[i], exclusions, rules)
+                    if i in records and not may_block(records[i], exclusions, rules)
                 ]
         unique = _unique([*ids, *subs])
         ranked[line.line_id] = unique
         substitutes[line.line_id] = [i for i in unique if i not in ids]
     return ranked, substitutes
-
-
-def may_be_blocked(product: ProductRecord, exclusions: list[Exclusion], rules: RuleSet) -> bool:
-    """Whether one of the kitchen's exclusions could remove this product: it lists (contains
-    or may contain) a code the exclusion blocks, or one it blocks unless the product has a
-    claim it lacks, or it lacks a claim the exclusion requires.
-
-    Only a hint for gathering substitute candidates, read from the same rule set: the
-    engine still filters every candidate and alone decides what is safe. A product with no
-    allergen listing is not blocked (the engine keeps it, with a notice).
-    """
-    listed = {a.code for a in product.allergens if a.containment in UNSAFE}
-
-    def has(claim_rules: Iterable[ClaimRule]) -> bool:
-        return all(CLAIMS.get((r.code, r.level)) in product.claims for r in claim_rules)
-
-    for exclusion in exclusions:
-        rule = rules.kitchen[exclusion]
-        if listed & set(rule.block):
-            return True
-        unless = rule.block_unless_claim
-        if unless and listed & set(unless.codes) and not has(unless.claim):
-            return True
-        if not has(rule.require_claim):
-            return True
-    return False
 
 
 async def _offers(

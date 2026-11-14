@@ -22,13 +22,11 @@ from app.main import app
 from app.models import AuditEvent, OrderSession, ProductSubstitution, Quote, QuoteLine
 from app.schemas import (
     BuildQuoteRequest,
-    Claim,
     Decision,
     EngineInput,
     Exclusion,
     GetOrderStatusRequest,
     LineRequest,
-    ProductRecord,
     QuoteStatus,
     RequestConfirmationRequest,
     SessionState,
@@ -38,7 +36,6 @@ from app.services import accounts, catalog, dev_caller, quotes, sessions, signin
 from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
-from app.services.policy import get_rule_set
 from tests.conftest import write_audit
 
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
@@ -534,45 +531,6 @@ async def test_candidate_order_is_deterministic(db, caller):
         b = (await stored(db, second.quote_id)).engine_input["candidates"]
         assert a == b
         assert len(a["a"]) == len(set(a["a"])) and "464306" in a["a"]
-
-
-def record(**changes) -> ProductRecord:
-    base = {
-        "product_id": "1",
-        "name": {"fi": "x", "en": "x"},
-        "category": "10400",
-        "sales_unit": "ST",
-        "base_unit": "ST",
-        "units": ["ST"],
-        "unit_conversions": [],
-        "allergens": [],
-        "allergen_listing": True,
-        "claims": [],
-        "origin": None,
-        "image_url": None,
-        "substitutions": [],
-    }
-    return ProductRecord.model_validate(base | changes)
-
-
-@pytest.mark.parametrize(
-    ("allergens", "claims", "exclusions", "blocked"),
-    [
-        ([], [], [], False),
-        ([("AM", "CONTAINS")], [], [], False),  # no exclusion
-        ([("AM", "CONTAINS")], [], [Exclusion.milk_free], True),
-        ([("AM", "MAY_CONTAIN")], [], [Exclusion.milk_free], True),
-        ([("AM", "FREE_FROM")], [], [Exclusion.milk_free], False),
-        ([("AM", "CONTAINS")], [], [Exclusion.lactose_free], True),
-        ([("AM", "CONTAINS")], [Claim.lactose_free], [Exclusion.lactose_free], False),
-        ([("AM", "CONTAINS")], [Claim.lactose_free], [Exclusion.milk_free], True),
-        ([], [], [Exclusion.vegan], True),  # vegan requires the claim
-        ([], [Claim.vegan], [Exclusion.vegan], False),
-    ],
-)
-def test_may_be_blocked_follows_the_kitchen_rules(allergens, claims, exclusions, blocked):
-    product = record(allergens=[{"code": c, "containment": k} for c, k in allergens], claims=claims)
-    assert quotes.may_be_blocked(product, exclusions, get_rule_set()) is blocked
 
 
 # --- The tool-call wrapper (REST twins) -------------------------------------------------
