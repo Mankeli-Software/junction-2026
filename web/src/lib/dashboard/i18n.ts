@@ -77,8 +77,12 @@ const STRINGS = {
 	flag: { en: 'flag', fi: 'huomio' },
 	flags: { en: 'flags', fi: 'huomiota' },
 	connector_note: {
-		en: "Conversation stays in the buyer's Claude. Tool calls shown.",
-		fi: 'Keskustelu jää ostajan Claudeen. Työkalukutsut näytetään.'
+		en: "Conversation stays in the buyer's own app. Tool calls shown.",
+		fi: 'Keskustelu jää ostajan omaan sovellukseen. Työkalukutsut näytetään.'
+	},
+	connector_note_named: {
+		en: "Conversation stays in the buyer's own app ({client}). Tool calls shown.",
+		fi: 'Keskustelu jää ostajan omaan sovellukseen ({client}). Työkalukutsut näytetään.'
 	},
 	all_orders: { en: 'All orders', fi: 'Kaikki tilaukset' },
 	order: { en: 'Order', fi: 'Tilaus' },

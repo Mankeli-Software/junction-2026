@@ -31,6 +31,8 @@
 		gap: 6px;
 		white-space: nowrap;
 		font-variant-numeric: tabular-nums;
+		/* Next to a long channel badge on a card, the badge shrinks, not the status. */
+		flex-shrink: 0;
 	}
 	.st.big {
 		font-size: 15px;

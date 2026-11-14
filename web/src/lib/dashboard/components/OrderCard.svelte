@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formatDay, formatMoney } from '../format';
 	import { pick, t } from '../i18n';
-	import { isActive, isAttention } from '../states';
+	import { connectorNote, isActive, isAttention } from '../states';
 	import type { OrderCard } from '../types';
 	import { useUi } from '../ui.svelte';
 	import ChannelBadge from './ChannelBadge.svelte';
@@ -45,7 +45,7 @@
 	</div>
 	{#if flagsText}<span class="flags">{flagsText}</span>{/if}
 	{#if attention && order.next_step}<span class="next">{pick(order.next_step, ui.lang)}</span>{/if}
-	{#if order.channel === 'mcp'}<span class="note">{t('connector_note', ui.lang)}</span>{/if}
+	{#if order.channel === 'mcp'}<span class="note">{connectorNote(order.client, ui.lang)}</span>{/if}
 </a>
 
 <style>
@@ -60,6 +60,8 @@
 		text-decoration: none;
 		color: var(--d-ink);
 		transition: border-color 0.2s;
+		/* A grid item: without this, long content widens the card past its column. */
+		min-width: 0;
 	}
 	.ocard:hover {
 		border-color: var(--d-petrol);

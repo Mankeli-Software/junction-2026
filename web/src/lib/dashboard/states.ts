@@ -87,14 +87,25 @@ export function channelName(channel: Channel, lang: Lang): string {
 	return t(`ch_${channel}`, lang);
 }
 
+/** A connector's own name ("Claude", "MCP Inspector"), or null when it gave none. */
+export function connectorName(client: string): string | null {
+	// The API says "MCP client" when the connector gave no name.
+	return client && client !== 'mcp' && client !== 'MCP client' ? client : null;
+}
+
 /** The badge on a card: "Phone", "Webshop chat", "WebMCP", "Claude connector". */
 export function channelBadge(channel: Channel, client: string, lang: Lang): string {
 	if (channel === 'mcp') {
-		// The API says "MCP client" when the connector gave no name.
-		const name = client && client !== 'mcp' && client !== 'MCP client' ? client : 'MCP';
+		const name = connectorName(client) ?? 'MCP';
 		return lang === 'fi' ? `${name}${t('connector', lang)}` : `${name} ${t('connector', lang)}`;
 	}
 	return channelName(channel, lang);
+}
+
+/** The card's note for a connector session, naming the connector when it gave a name. */
+export function connectorNote(client: string, lang: Lang): string {
+	const name = connectorName(client);
+	return name ? t('connector_note_named', lang).replace('{client}', name) : t('connector_note', lang);
 }
 
 const EXCLUSION_WORDS: Record<Exclusion, { en: string; fi: string }> = {

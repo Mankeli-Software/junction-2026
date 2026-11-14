@@ -7,7 +7,7 @@
 	const ui = useUi();
 </script>
 
-<span class="ch ch-{channel}">{channelBadge(channel, client, ui.lang)}</span>
+<span class="ch ch-{channel}" title={channelBadge(channel, client, ui.lang)}>{channelBadge(channel, client, ui.lang)}</span>
 
 <style>
 	.ch {
@@ -18,5 +18,10 @@
 		border-radius: 4px;
 		padding: 4px 8px;
 		white-space: nowrap;
+		/* A long client name ("MCP Inspector connector") shrinks with an ellipsis instead of
+		   pushing out of the card; the full name is in the title. */
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 </style>
