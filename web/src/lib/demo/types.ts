@@ -37,6 +37,13 @@ export function isExclusion(value: unknown): value is Exclusion {
 	return typeof value === 'string' && (EXCLUSIONS as readonly string[]).includes(value);
 }
 
+/** What the visitor typed in the number entry (the phone's set-up and the webshop). */
+export interface SetupValues {
+	countryCode: string;
+	number: string;
+	exclusions: Exclusion[];
+}
+
 /** `UsualItem` in api/app/schemas/engine.py. */
 export interface UsualItem {
 	product_id: string;

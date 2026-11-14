@@ -22,7 +22,9 @@
 		| 'chevron-right'
 		| 'chevron-left'
 		| 'arrow-out'
-		| 'alert';
+		| 'alert'
+		| 'cart'
+		| 'package';
 </script>
 
 <script lang="ts">
@@ -99,6 +101,10 @@
 			<path d="M7 17L17 7M9 7h8v8" />
 		{:else if name === 'alert'}
 			<circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16.5v.5" />
+		{:else if name === 'cart'}
+			<path d="M3 4h2l2.5 11h11L21 7H7" /><circle cx="9" cy="19" r="1.5" /><circle cx="18" cy="19" r="1.5" />
+		{:else if name === 'package'}
+			<path d="M4 7.5L12 3l8 4.5v9L12 21l-8-4.5z" /><path d="M4 7.5l8 4.5 8-4.5M12 12v9" />
 		{/if}
 	</svg>
 {/if}
