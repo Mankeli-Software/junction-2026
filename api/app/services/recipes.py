@@ -88,6 +88,20 @@ async def search_recipes(
     )
 
 
+async def recipe_hit(db: AsyncSession, recipe_id: str) -> RecipeHit | None:
+    """One recipe as a search hit, or None. For a recipe draft's matched recipe (#80)."""
+    recipe = await db.get(RecipeRow, int(recipe_id)) if recipe_id.isdigit() else None
+    if recipe is None:
+        return None
+    return RecipeHit(
+        recipe_id=str(recipe.id),
+        name=recipe.name,
+        image_url=recipe.image_url,
+        default_portions=recipe.default_portions,
+        diet_tags=(await _diet_tags(db, [recipe.id])).get(recipe.id, []),
+    )
+
+
 async def _tag_values(
     db: AsyncSession, groups: list[str], asked: list[str], what: str
 ) -> list[str]:
