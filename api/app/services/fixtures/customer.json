@@ -1,0 +1,17 @@
+{
+  "_note": "The demo customer's usual items. 475797 is the butter that data/recipe-product-map.json links to 'Valio voi normaalisuolainen'. Replaced by the real customer data (#44, #45).",
+  "usual_items": [
+    {
+      "product_id": "464306",
+      "name": {"fi": "Valio Arki kevytmaito 1 l", "en": "Valio Arki semi skimmed milk 1 l"},
+      "quantity": 20,
+      "unit": "ST"
+    },
+    {
+      "product_id": "475797",
+      "name": {"fi": "Valio voi 500 g normaalisuolainen", "en": "Valio butter 500 g salted"},
+      "quantity": 10,
+      "unit": "ST"
+    }
+  ]
+}

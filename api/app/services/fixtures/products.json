@@ -1,0 +1,234 @@
+{
+  "_note": "The seven milk products of valio-api-analysis.md section 11, with gross prices (net x 1.135) for delivery on 2026-11-16. Each entry is a ProductRecord, the recorded Offer and the stock status that the real adapter derives (#29, #31 replace this file).",
+  "sales_unit_labels": {
+    "ST": {"fi": "kappale", "en": "piece"},
+    "KI": {"fi": "laatikko", "en": "case"}
+  },
+  "products": [
+    {
+      "record": {
+        "product_id": "464073",
+        "name": {"fi": "Valio täysmaito 1 l UHT", "en": "Valio whole milk 1 l UHT"},
+        "category": "10400",
+        "sales_unit": "ST",
+        "base_unit": "l",
+        "units": ["ST", "KI"],
+        "unit_conversions": [
+          {"from_unit": "ST", "to_unit": "l", "factor": 1},
+          {"from_unit": "KI", "to_unit": "ST", "factor": 10}
+        ],
+        "allergens": [{"code": "AM", "containment": "CONTAINS"}, {"code": "ML", "containment": "FREE_FROM"}],
+        "allergen_listing": true,
+        "claims": ["lactose_free"],
+        "origin": "FI",
+        "image_url": null,
+        "substitutions": []
+      },
+      "offer": {
+        "product_id": "464073",
+        "ok": true,
+        "unit_price_gross": 1.86,
+        "price_valid_to": "2026-12-31",
+        "sales_unit": "ST",
+        "schedule": [{"available_date": "2026-11-16", "amount": 9999999999}],
+        "sales_block": false,
+        "closing_time": null,
+        "fetched_at": "2026-11-12T09:00:00+02:00",
+        "source": "snapshot"
+      },
+      "stock_status": "unverified"
+    },
+    {
+      "record": {
+        "product_id": "464201",
+        "name": {"fi": "Valio kevytmaito 1 l UHT", "en": "Valio semi skimmed milk 1 l UHT"},
+        "category": "10400",
+        "sales_unit": "ST",
+        "base_unit": "l",
+        "units": ["ST"],
+        "unit_conversions": [{"from_unit": "ST", "to_unit": "l", "factor": 1}],
+        "allergens": [{"code": "AM", "containment": "CONTAINS"}, {"code": "ML", "containment": "FREE_FROM"}],
+        "allergen_listing": true,
+        "claims": ["lactose_free"],
+        "origin": "FI",
+        "image_url": null,
+        "substitutions": []
+      },
+      "offer": {
+        "product_id": "464201",
+        "ok": true,
+        "unit_price_gross": 1.77,
+        "price_valid_to": "2026-12-31",
+        "sales_unit": "ST",
+        "schedule": [{"available_date": "2026-11-16", "amount": 9999999999}],
+        "sales_block": false,
+        "closing_time": null,
+        "fetched_at": "2026-11-12T09:00:00+02:00",
+        "source": "snapshot"
+      },
+      "stock_status": "unverified"
+    },
+    {
+      "record": {
+        "product_id": "464306",
+        "name": {"fi": "Valio Arki kevytmaito 1 l", "en": "Valio Arki semi skimmed milk 1 l"},
+        "category": "10400",
+        "sales_unit": "ST",
+        "base_unit": "l",
+        "units": ["ST", "KI"],
+        "unit_conversions": [
+          {"from_unit": "ST", "to_unit": "l", "factor": 1},
+          {"from_unit": "KI", "to_unit": "ST", "factor": 20}
+        ],
+        "allergens": [{"code": "AM", "containment": "CONTAINS"}, {"code": "ML", "containment": "FREE_FROM"}],
+        "allergen_listing": true,
+        "claims": ["lactose_free"],
+        "origin": "FI",
+        "image_url": null,
+        "substitutions": []
+      },
+      "offer": {
+        "product_id": "464306",
+        "ok": true,
+        "unit_price_gross": 1.15,
+        "price_valid_to": "2026-12-31",
+        "sales_unit": "ST",
+        "schedule": [{"available_date": "2026-11-16", "amount": 9999999999}],
+        "sales_block": false,
+        "closing_time": null,
+        "fetched_at": "2026-11-12T09:00:00+02:00",
+        "source": "snapshot"
+      },
+      "stock_status": "unverified"
+    },
+    {
+      "record": {
+        "product_id": "462775",
+        "name": {"fi": "Arla rasvaton maito 1 l", "en": "Arla fat free milk 1 l"},
+        "category": "10400",
+        "sales_unit": "ST",
+        "base_unit": "l",
+        "units": ["ST", "KI"],
+        "unit_conversions": [
+          {"from_unit": "ST", "to_unit": "l", "factor": 1},
+          {"from_unit": "KI", "to_unit": "ST", "factor": 12}
+        ],
+        "allergens": [{"code": "AM", "containment": "CONTAINS"}, {"code": "ML", "containment": "FREE_FROM"}],
+        "allergen_listing": true,
+        "claims": ["lactose_free"],
+        "origin": "FI",
+        "image_url": null,
+        "substitutions": []
+      },
+      "offer": {
+        "product_id": "462775",
+        "ok": true,
+        "unit_price_gross": 2.92,
+        "price_valid_to": "2026-12-31",
+        "sales_unit": "ST",
+        "schedule": [{"available_date": "2026-11-16", "amount": 51}],
+        "sales_block": false,
+        "closing_time": null,
+        "fetched_at": "2026-11-12T09:00:00+02:00",
+        "source": "snapshot"
+      },
+      "stock_status": "verified"
+    },
+    {
+      "record": {
+        "product_id": "463380",
+        "name": {"fi": "Arla Café maitojuoma 1 l", "en": "Arla Café milk drink 1 l"},
+        "category": "10400",
+        "sales_unit": "ST",
+        "base_unit": "l",
+        "units": ["ST", "KI"],
+        "unit_conversions": [
+          {"from_unit": "ST", "to_unit": "l", "factor": 1},
+          {"from_unit": "KI", "to_unit": "ST", "factor": 12}
+        ],
+        "allergens": [{"code": "AM", "containment": "CONTAINS"}, {"code": "ML", "containment": "FREE_FROM"}],
+        "allergen_listing": true,
+        "claims": ["lactose_free"],
+        "origin": "FI",
+        "image_url": null,
+        "substitutions": []
+      },
+      "offer": {
+        "product_id": "463380",
+        "ok": true,
+        "unit_price_gross": 3.01,
+        "price_valid_to": "2026-12-31",
+        "sales_unit": "ST",
+        "schedule": [{"available_date": "2026-11-16", "amount": 698}],
+        "sales_block": false,
+        "closing_time": null,
+        "fetched_at": "2026-11-12T09:00:00+02:00",
+        "source": "snapshot"
+      },
+      "stock_status": "verified"
+    },
+    {
+      "record": {
+        "product_id": "464119",
+        "name": {"fi": "Valio rasvaton maito 1 l laktoositon UHT", "en": "Valio skimmed milk 1 l lactose free UHT"},
+        "category": "10400",
+        "sales_unit": "KI",
+        "base_unit": "l",
+        "units": ["KI", "ST"],
+        "unit_conversions": [
+          {"from_unit": "KI", "to_unit": "l", "factor": 10},
+          {"from_unit": "KI", "to_unit": "ST", "factor": 10}
+        ],
+        "allergens": [{"code": "AM", "containment": "CONTAINS"}, {"code": "ML", "containment": "FREE_FROM"}],
+        "allergen_listing": true,
+        "claims": ["lactose_free"],
+        "origin": "FI",
+        "image_url": null,
+        "substitutions": []
+      },
+      "offer": {
+        "product_id": "464119",
+        "ok": true,
+        "unit_price_gross": 15.12,
+        "price_valid_to": "2026-12-31",
+        "sales_unit": "KI",
+        "schedule": [{"available_date": "2026-11-16", "amount": 9999999999}],
+        "sales_block": false,
+        "closing_time": null,
+        "fetched_at": "2026-11-12T09:00:00+02:00",
+        "source": "snapshot"
+      },
+      "stock_status": "unverified"
+    },
+    {
+      "record": {
+        "product_id": "464440",
+        "name": {"fi": "Valio kevytmaito 0,5 l", "en": "Valio semi skimmed milk 0.5 l"},
+        "category": "10400",
+        "sales_unit": "ST",
+        "base_unit": "l",
+        "units": ["ST"],
+        "unit_conversions": [{"from_unit": "ST", "to_unit": "l", "factor": 0.5}],
+        "allergens": [{"code": "AM", "containment": "CONTAINS"}, {"code": "ML", "containment": "FREE_FROM"}],
+        "allergen_listing": true,
+        "claims": ["lactose_free"],
+        "origin": "FI",
+        "image_url": null,
+        "substitutions": []
+      },
+      "offer": {
+        "product_id": "464440",
+        "ok": true,
+        "unit_price_gross": 1.00,
+        "price_valid_to": "2026-12-31",
+        "sales_unit": "ST",
+        "schedule": [],
+        "sales_block": false,
+        "closing_time": null,
+        "fetched_at": "2026-11-12T09:00:00+02:00",
+        "source": "snapshot"
+      },
+      "stock_status": "unavailable"
+    }
+  ]
+}
