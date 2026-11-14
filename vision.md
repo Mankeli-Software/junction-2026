@@ -202,7 +202,8 @@ Our own rules on top:
 - Allergen codes in the product file are the GS1 `AllergenTypeCode` vocabulary. We use the mapping in `data/gs1_allergen_codes.csv` (code, GS1 label, the matching EU 1169/2011 allergen). The same filter applies to every substitute.
   - Allergens are checked per product, from its own listing only. We never infer allergens, or their absence, from the category.
   - About 30% of food products have no allergen listing at all, and some list an allergen as `UNDECLARED`. Both are orderable but flagged: the buyer gets one notice per order, after all lines are added and before confirmation, and the confirmation page lists them as flagged items. Having a listing or not is not a ranking factor.
-  - "Nut-free" is a set of codes, not one: `AN` plus the specific nuts (`SA`, `SH`, `SW`, `SC`, `SP`, `SM`, `SR`, `ST`). Whether pine nut, coconut and peanut count, and whether lactose (`ML`) counts for milk-free, is decided in issue #6.
+  - "Nut-free" is a set of codes, not one: `AN` plus the specific nuts (`SA`, `SH`, `SW`, `SC`, `SP`, `SM`, `SR`, `ST`). Whether pine nut, coconut and peanut count is decided in issue #6.
+  - Milk-free and lactose-free are different rules. Milk-free is decided on the milk code (`AM`), never on lactose: a lactose-free milk still contains milk and is not safe for someone with a milk allergy. A lactose-free claim never makes a product milk-free.
   - `X99` means no obligatory allergens are present. It never triggers a block.
   - Lactose-free uses code `ML` together with the `LACTOSE` free-from claim.
 - **Food waste.** Rounding up is allowed, but when it would leave a real surplus the engine also looks for a similar product that fits the needed amount exactly and offers it. Example for a 10 L need: "12 L of Valio (4 x 3 L) or 10 L of another milk?"
