@@ -94,6 +94,8 @@ Only the database: `docker compose -f deploy/docker-compose.yml -f deploy/docker
 
 VM (`simo.mankeli.co`, Azure): in the repo on the VM, after `git pull` on `production`, run `docker compose --env-file deploy/vm.env -f deploy/docker-compose.yml up -d --build`. `deploy/vm.env` holds the non-secret settings. Secrets come from Key Vault `kv-simo-junction26` through the VM's managed identity: `database-url` (user `simo_app`) for the app and `database-admin-url` for migrations, which run at container start.
 
+After migration 0014 is deployed, load the recipes once with `docker compose --env-file deploy/vm.env -f deploy/docker-compose.yml exec api python -m app.loaders.recipes`. The loader reads recipe data, product links and committed vectors from the image without calling Gemini or Valio. Re-run it only when `data/valio-recipes.json`, `data/recipe-product-map.json` or `data/recipe-embeddings.json.gz` changes, or if the recipe tables are rebuilt or cleared. Regenerating vectors is a developer step, not part of a VM release.
+
 ## Database and secrets
 
 - **Laptops** run Postgres with pgvector in Docker (`deploy/docker-compose.dev.yml`) and read a local `.env`. Only `.env.example` is committed.
