@@ -29,6 +29,12 @@ services:
       # Set on the VM (deploy/vm.env). The API then reads its secrets from Key Vault with the
       # VM's managed identity. Empty on laptops.
       KEY_VAULT_URL: ${KEY_VAULT_URL:-}
+      # Engine rule files (#35), mounted read-only so the API can't change its own rules.
+      POLICY_DIR: /srv/policy
+      DATA_DIR: /srv/data
+    volumes:
+      - ../policy:/srv/policy:ro
+      - ../data:/srv/data:ro
 
   web:
     build: ../web
