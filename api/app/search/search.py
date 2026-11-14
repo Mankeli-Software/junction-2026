@@ -18,6 +18,9 @@ from sqlalchemy.types import Text
 from app.schemas.common import Claim
 from app.search.spelling import Vocabulary
 from app.search.text import Query, name_tokens, parse_query, unasked_modifiers
+from app.search.vectors import MODEL as EMBED_MODEL
+from app.search.vectors import query_key
+from app.settings import get_settings
 
 CLAIM_IDS: dict[Claim, str] = {
     Claim.lactose_free: "FREE_FROM_LACTOSE",  # never LOW_LACTOSE, never the name
@@ -52,6 +55,10 @@ CATEGORY_MARGIN = 0.05
 COMPOUND_MIN_LENGTH = 5
 # How much a word that names the product's category counts toward coverage (0: off).
 CATEGORY_TERM_COVERAGE = 0.6
+# Weight of the cosine similarity to the cached query vector (0: vectors off), and how many
+# nearest products the vector adds as candidates.
+W_VECTOR = 1.0
+VECTOR_CANDIDATES = 50
 # Correct words that are in no product name (spelling.py).
 SPELLING = True
 PLURALITY_POOL = 20
@@ -64,7 +71,11 @@ _WORDS = bindparam("words", type_=ARRAY(Text))
 
 
 def _candidates_sql(
-    trigram_paths: Sequence[int], has_claims: bool, has_category: bool, match_all: bool
+    trigram_paths: Sequence[int],
+    has_claims: bool,
+    has_category: bool,
+    match_all: bool,
+    has_vector: bool = False,
 ):
     """Each match path is its own indexed lookup (an OR across them would scan every row).
     The pool is cut by how many paths a product matched before the costly per-word
@@ -76,6 +87,8 @@ def _candidates_sql(
             "SELECT id FROM products, q WHERE search_fi @@ q.qfi",
             "SELECT id FROM products, q WHERE search_en @@ q.qen",
         ] + [f"SELECT id FROM products WHERE :w{i} <% search_trgm" for i in trigram_paths]
+        if has_vector:
+            paths.append("SELECT id FROM products WHERE id = ANY(:vector_ids)")
         matched = (
             "SELECT id, count(*) AS hits FROM (\n            "
             + "\n            UNION ALL ".join(paths)
@@ -116,7 +129,29 @@ def _candidates_sql(
     ).bindparams(_WORDS)
     if has_claims:
         statement = statement.bindparams(bindparam("claims", type_=ARRAY(Text)))
+    if has_vector:
+        statement = statement.bindparams(bindparam("vector_ids", type_=ARRAY(Text)))
     return statement
+
+
+# Vectors (spec §7.11): nearest products to the query vector add candidates, and the
+# cosine similarity adds W_VECTOR × similarity to the score. W_VECTOR 0 turns them off.
+_QUERY_VECTOR = text(
+    "SELECT embedding::text FROM query_embeddings WHERE query_text = :q AND model = :model"
+)
+_NEAREST = text(
+    """
+    SELECT product_id FROM product_embeddings
+    ORDER BY embedding <=> CAST(:qv AS vector), product_id
+    LIMIT :n
+    """
+)
+_VECTOR_SIMS = text(
+    """
+    SELECT product_id, 1 - (embedding <=> CAST(:qv AS vector)) FROM product_embeddings
+    WHERE product_id = ANY(:ids)
+    """
+).bindparams(bindparam("ids", type_=ARRAY(Text)))
 
 
 # Per query word: trigram similarity to the category name, and whether the stemmed word
@@ -156,6 +191,20 @@ async def _vocabulary(db: AsyncConnection | AsyncSession) -> Vocabulary:
         rows = await db.execute(text("SELECT name_fi, coalesce(name_en, '') FROM products"))
         _VOCABULARIES[key] = Vocabulary.from_names(f"{fi} {en}" for fi, en in rows)
     return _VOCABULARIES[key]
+
+
+async def _query_vector(db: AsyncConnection | AsyncSession, q: str) -> str | None:
+    """The cached query vector; with SEARCH_VECTORS=live a missing one is embedded now."""
+    mode = get_settings().search_vectors
+    if mode == "off":
+        return None
+    cached = await db.scalar(_QUERY_VECTOR, {"q": query_key(q), "model": EMBED_MODEL})
+    if cached is not None or mode != "live":
+        return cached
+    from app.search.embeddings import embed_query_live  # httpx and the client: only when live
+
+    engine = db.bind.engine if isinstance(db, AsyncSession) else db.engine
+    return await embed_query_live(engine, q)
 
 
 @dataclass(frozen=True)
@@ -284,9 +333,15 @@ async def search_products(
     # trigram lookup would only cost time ("valio" checks 1,600 rows).
     term_of_word = [t for t in query.terms for _ in t.alternatives]
     paths = [i for i, t in enumerate(term_of_word) if t.folded[0] not in brands]
-    statement = _candidates_sql(paths, bool(claims), category is not None, not query.terms)
+    query_vector = await _query_vector(db, q) if W_VECTOR > 0 and query.terms else None
+    statement = _candidates_sql(
+        paths, bool(claims), category is not None, not query.terms, query_vector is not None
+    )
     params: dict[str, object] = {"fts": query.fts, "words": words, "pool": POOL_SIZE}
     params |= {f"w{i}": words[i] for i in paths}
+    if query_vector is not None:
+        nearest = await db.scalars(_NEAREST, {"qv": query_vector, "n": VECTOR_CANDIDATES})
+        params["vector_ids"] = list(nearest.all())
     if claims:
         params["claims"] = sorted({CLAIM_IDS[c] for c in claims})
     if category is not None:
@@ -323,6 +378,13 @@ async def search_products(
     else:
         inferred, how = {}, ""
 
+    vector_sims: dict[str, float] = {}
+    if query_vector is not None and candidates:
+        rows = await db.execute(
+            _VECTOR_SIMS, {"qv": query_vector, "ids": [c.product_id for c in candidates]}
+        )
+        vector_sims = {pid: float(sim) for pid, sim in rows}
+
     hits: list[SearchHit] = []
     for c in candidates:
         matched_on = ["fts"] if c.fts > 0 else []
@@ -332,6 +394,9 @@ async def search_products(
         if c.category_id in inferred:
             score += W_CATEGORY * inferred[c.category_id]
             matched_on.append(f"{how}:{c.category_id}")
+        if c.product_id in vector_sims:
+            score += W_VECTOR * vector_sims[c.product_id]
+            matched_on.append(f"vector:{vector_sims[c.product_id]:.2f}")
         mods = unasked_modifiers(f"{c.name} {c.category_name}", query)
         if mods:
             score -= W_MODIFIER * len(mods)

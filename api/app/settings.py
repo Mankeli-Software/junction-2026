@@ -97,6 +97,10 @@ class Settings(BaseSettings):
     valio_api_key: str = ""
     valio_base_url: str = "https://junction26.valioaimo.fi/api"
     gemini_api_key: str = ""
+    # Product search vectors (#30). live: embed a query that is not cached yet (2 s timeout,
+    # text-only on failure). cache: use only cached query vectors, never the network (stage).
+    # off: text-only search.
+    search_vectors: Literal["live", "cache", "off"] = "live"
 
     sms_twilio_enabled: bool = False
     # Comma-separated phone numbers in E.164 form that may get a real SMS.

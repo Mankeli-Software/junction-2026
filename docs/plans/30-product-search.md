@@ -173,7 +173,7 @@ Extend `api/tests/fixtures/products_sample.json` with about 10 distractors (coff
 8. **Vague requests: pick a default, offer the options.** For "naudan jauheliha 10 kg" the buyer hears the default and what else exists in one turn ("Atria naudan jauheliha 10 %, 2 kg. Also 17 % or Snellman, should I change it?"), and the confirmation page shows the assumption. The default and the options come from the top of the search ranking. This narrows `technical-plan.md` §4.2 ("ambiguous matches go to the buyer") for matches of the same kind; it is for the engine (#36, #39) and the prompt (#53) to carry out, and their owners are told on those issues.
 9. **Typical-product signals**: category inference and the modifier penalty (§3.4). Recipe popularity and name length are not used.
 10. **No structured attributes.** Fat %, pack size, brand and state stay in the names; there are too many to structure. Refinement is a new search with the extra words (§3.5).
-11. **Vectors are a measured experiment, with Gemini embeddings.** After the text-only baseline, product names are embedded once and stored; the query is embedded at search time with the Gemini embedding model, cached per query text, and served from the cache in snapshot mode for the stage. Vectors only add candidates and a score term next to the text match (`technical-plan.md` §5.3), and they stay only if the harness shows a gain without `core` regressions.
+11. **Vectors with Gemini embeddings: kept, at `W_VECTOR` 1.0.** Each product's Finnish and English name and its category are embedded once (`gemini-embedding-001`, 768 dimensions) into `product_embeddings` (migration `0012`, HNSW index). The 50 nearest products add candidates, and `W_VECTOR × cosine similarity` adds to the score; text matching still decides amounts, brands and claims. Query vectors are cached per query text in `query_embeddings`, so the same text always gives the same vector. `SEARCH_VECTORS`: `live` (default) embeds a query that is not cached yet, with a 2 s timeout and text-only search if that fails; `cache` never calls the API (the stage demo, with its queries embedded beforehand); `off` is text-only (the tests). Run `python -m app.search.embeddings products` after each catalogue load; it embeds only new or changed products.
 
 ## 8. Tuning log
 
@@ -186,7 +186,13 @@ Every change was measured on all four sets against the saved baseline (`python -
 | Stemmed category names, more modifiers, `ground` synonym, scenario fixes | 92% / 95% / 96% | 89% | 64% / 88% | 61 ms |
 | No brand in full-text columns; brand words out of category inference; no plurality guess with a brand | 93% / 96% / 96% | 89% | 67% / 92% | 60 ms |
 | A word of 5+ letters inside a name word counts fully | 95% / 96% / 98% | 89% | 67% / 92% | 60 ms (recipes 191 ms) |
+| Spelling correction against the catalogue's words; a word naming the product's category counts at 0.6 | 97% / 99% / 98% | 97% | 68% / 92% | 51 to 223 ms |
+| Pool cut by match count before scoring; no trigram lookup for brand words; tokenizer accepts any letter | 97% / 99% / 98% | 96% | 68% / 93% | under 100 ms on every set |
+| Inflected known word before splitting ("kaurahiutaleet" -> "kaurahiutale") | 97% / 99% / 98% | 96% | 69% / 93% | under 100 ms |
+| Gemini vectors at `W_VECTOR` 1.0 | 99% / 100% / 98% | 100% | 80% / 96% | under 100 ms |
 
-Tried and dropped: full-text weight 0.25 and 0.1 (noisy up, recipes down), weighting categories by their share of the top matches (broke two chicken scenarios), a modifier penalty of 0.5 or 0.8 (56 to 70 scenarios broken: real products carry incidental modifier words).
+The catalogue-wide sets added later (every category, about 2,500 scenarios) moved with vectors as follows: `categories` 87% -> 90% pass, `specific` 84% -> 89%, `vague` rank 1 90% -> 88% but top 5 95% -> 96% and top 20 98% -> 99%.
 
-Still below target: `noisy` top 20 (89%, target 90%), `recipes` rank 1 (67%), and the p95 of long recipe queries (191 ms; `core` is 60 ms).
+Tried and dropped: `W_VECTOR` 0.3 and 0.6 (slightly below 1.0 on every set), full-text weight 0.25 and 0.1 (noisy up, recipes down), weighting categories by their share of the top matches (broke two chicken scenarios), a modifier penalty of 0.5 or 0.8 (56 to 70 scenarios broken: real products carry incidental modifier words).
+
+Every target in §6.2 is met. Weakest remaining: `recipes` rank 1 (80%; long product names with several pack sizes) and one-word `vague` queries at rank 1 (88%).

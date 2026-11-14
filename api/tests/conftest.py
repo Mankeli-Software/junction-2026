@@ -24,6 +24,11 @@ from sqlalchemy.pool import NullPool
 import app.db
 from app.loaders.catalogue import ALLERGEN_CODE_FILE, CATEGORY_FILE, load
 from app.loaders.product_file import read_allergen_codes, read_categories
+
+# Tests never call the Gemini API: search is text-only here (no product vectors in the
+# test database anyway). Environment variables win over .env.
+os.environ["SEARCH_VECTORS"] = "off"
+
 from app.main import app as fastapi_app
 from app.settings import get_settings, psycopg_url
 

@@ -21,6 +21,7 @@ from sqlalchemy import text
 from app.db import get_engine
 from app.search import search as search_module
 from app.search import search_products
+from app.search.embeddings import ensure_query_embeddings
 from app.search.eval.scenarios import SCENARIO_DIR, Scenario, load_all
 
 SETS = ("core", "noisy", "recipes", "negative", "categories", "specific", "vague")
@@ -75,6 +76,9 @@ async def run(sets: list[str], save: bool, misses: int, show_expected: bool) -> 
     engine = get_engine()
     async with engine.connect() as conn:
         scenarios = await load_all(conn, sets)
+        if search_module.W_VECTOR > 0:
+            new = await ensure_query_embeddings(engine, [s.q for s in scenarios])
+            print(f"{new} new query vectors embedded")
         empty = [s for s in scenarios if any(not v for v in s.expected.values())]
         if empty:
             print(f"! {len(empty)} scenarios have an expectation that matches no product:")
