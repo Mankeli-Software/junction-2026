@@ -1,34 +1,59 @@
 /**
- * The audit chain's hash function, shared by the in-browser verify and the fixtures.
+ * The audit chain's hash, as `docs/audit-chain.md` specifies it (#41). The browser's copy
+ * of `api/app/services/audit/chain.py`; both are tested against `docs/audit-chain-vectors.json`.
+ *
+ * Change the byte format only together with the doc, the vectors and the Python. Then
+ * regenerate the fixtures with `pnpm fixtures`.
  *
  * No imports, so the fixture generator (`scripts/generate-dashboard-fixtures.ts`) can run
  * it directly under Node.
  */
 
-/** `prev_hash` of the very first event in the global chain. Assumed, until #41 documents it. */
+/** `prev_hash` of the first event in the global chain (`seq` 1): 64 zeros. */
 export const GENESIS_HASH = '0'.repeat(64);
 
-export interface HashFields {
+/** Everything `hash` covers, in its order. The payload and sentences are in via `payload_hash`. */
+export interface ChainFields {
 	prev_hash: string;
-	payload_hash: string;
+	/** `hash` of the session's previous event; null for its first event and for events with no session. */
+	session_prev_hash: string | null;
 	seq: number;
+	/** `formatAt()` output, exactly as the API sends it. */
 	at: string;
 	type: string;
+	actor: string;
+	session_id: string | null;
+	quote_id: string | null;
+	payload_hash: string;
 }
 
 /**
- * ASSUMED BYTE FORMAT, change it here only.
- *
- * `technical-plan.md` §8.5 says `hash = SHA-256(prev_hash + payload_hash + seq, at, type)`.
- * #41 has not documented the exact bytes yet, so this takes it literally: the UTF-8 bytes
- * of the plain concatenation of lowercase hex `prev_hash`, lowercase hex `payload_hash`,
- * `seq` in decimal, `at` exactly as the API sends it (ISO 8601 string) and `type`, with no
- * separators. When #41 settles the format, change this function and regenerate the fixtures
- * (`pnpm fixtures`); the shared test vector in `verify.test.ts` must then match Python.
+ * The hashed form of a timestamp: UTC, exactly six fractional digits and `Z`
+ * (`2026-11-14T10:23:45.123456Z`). A `Date` has only milliseconds, so its last three
+ * digits are zeros.
  */
-export function hashInput(fields: HashFields): Uint8Array {
-	const text = `${fields.prev_hash}${fields.payload_hash}${fields.seq}${fields.at}${fields.type}`;
-	return new TextEncoder().encode(text);
+export function formatAt(at: Date): string {
+	const iso = at.toISOString(); // 2026-11-14T10:23:45.123Z
+	return `${iso.slice(0, -1)}000Z`;
+}
+
+/**
+ * The bytes `hash` is SHA-256 of, as text: the nine fields joined with `\n` in this order,
+ * a null as the empty string, `seq` in decimal, no newline at the end.
+ */
+export function chainHashInput(fields: ChainFields): string {
+	const parts = [
+		fields.prev_hash,
+		fields.session_prev_hash,
+		String(fields.seq),
+		fields.at,
+		fields.type,
+		fields.actor,
+		fields.session_id,
+		fields.quote_id,
+		fields.payload_hash
+	];
+	return parts.map((part) => part ?? '').join('\n');
 }
 
 export async function sha256Hex(bytes: Uint8Array): Promise<string> {
@@ -36,17 +61,19 @@ export async function sha256Hex(bytes: Uint8Array): Promise<string> {
 	return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function computeHash(fields: HashFields): Promise<string> {
-	return sha256Hex(hashInput(fields));
+/** The event's `hash`: SHA-256 over the UTF-8 bytes of `chainHashInput()`. */
+export function computeHash(fields: ChainFields): Promise<string> {
+	return sha256Hex(new TextEncoder().encode(chainHashInput(fields)));
 }
 
 /**
- * Canonical JSON for `payload_hash`: sorted keys, no whitespace. Used only by the fixture
- * generator and the mock; the browser verify does not need payloads (§8.5). Assumed to
- * match Python's `json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)`
- * for the integers and strings used in the fixtures.
+ * RFC 8785 canonical JSON: keys sorted by UTF-16 code units, no whitespace, strings and
+ * numbers written the way `JSON.stringify` writes them (RFC 8785 takes both from ECMAScript).
  */
 export function canonicalJson(value: unknown): string {
+	if (typeof value === 'number' && !Number.isFinite(value)) {
+		throw new TypeError('canonical JSON has no NaN or Infinity');
+	}
 	if (value === null || typeof value !== 'object') return JSON.stringify(value);
 	if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
 	const entries = Object.entries(value as Record<string, unknown>)
@@ -55,6 +82,8 @@ export function canonicalJson(value: unknown): string {
 	return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(',')}}`;
 }
 
-export function payloadHash(payload: unknown): Promise<string> {
-	return sha256Hex(new TextEncoder().encode(canonicalJson(payload)));
+/** `payload_hash`: SHA-256 over the canonical JSON of the payload and both sentences. */
+export function payloadHash(payload: unknown, text_fi: string | null, text_en: string | null): Promise<string> {
+	const document = { payload, text_fi, text_en };
+	return sha256Hex(new TextEncoder().encode(canonicalJson(document)));
 }

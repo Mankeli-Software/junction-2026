@@ -2,7 +2,7 @@
 	{
 		"seq": 1201,
 		"order_index": 1,
-		"at": "2026-11-12T10:02:14+02:00",
+		"at": "2026-11-12T08:02:14.000000Z",
 		"actor": "relay",
 		"type": "session_started",
 		"text": {
@@ -25,15 +25,15 @@
 			"agent": "gemini-voice",
 			"prompt_version": "v7"
 		},
-		"payload_hash": "6205520290ad953d2b0f7df5da42d441c7d33936136017c6ee4f5282e8a8fdbc",
+		"payload_hash": "c9841ad7b6d9c90c879b095a331bd08a9745bc9f8864b4a3d116d04c9d132d1e",
 		"prev_hash": "52422481c81f83dc6558d5904581e01da962ff54cc659254796e0f36958e0a18",
 		"session_prev_hash": null,
-		"hash": "7a4095c49dadc0fcc36bf968507c1a440fb4371a1eb698a74386f594652b924c"
+		"hash": "6763cf2cfbaec603ee9d1ca25838c2ff8d50bd814f008a12d167df2521970582"
 	},
 	{
 		"seq": 1202,
 		"order_index": 2,
-		"at": "2026-11-12T10:02:20+02:00",
+		"at": "2026-11-12T08:02:20.000000Z",
 		"actor": "buyer",
 		"type": "buyer_said",
 		"text": {
@@ -49,15 +49,15 @@
 			"lang": "en",
 			"transcript": true
 		},
-		"payload_hash": "1889d389154ebb770091ccdb76ec9c7d0c0b4dd385bb6b0ef5f03d03837d99ff",
-		"prev_hash": "7a4095c49dadc0fcc36bf968507c1a440fb4371a1eb698a74386f594652b924c",
-		"session_prev_hash": "7a4095c49dadc0fcc36bf968507c1a440fb4371a1eb698a74386f594652b924c",
-		"hash": "277f57d5cf19811f65e12954bbcccb06d19558abd1b5888f72ae7ecb03e17229"
+		"payload_hash": "204ee1fd826960e9646b8d4360bebb067f3027540d3c4b47f9796a1ab3e57583",
+		"prev_hash": "6763cf2cfbaec603ee9d1ca25838c2ff8d50bd814f008a12d167df2521970582",
+		"session_prev_hash": "6763cf2cfbaec603ee9d1ca25838c2ff8d50bd814f008a12d167df2521970582",
+		"hash": "464f4195ddd6135f7fbb656f2752009f88fc105f700189b537ee6c2ad5faf61e"
 	},
 	{
 		"seq": 1203,
 		"order_index": 3,
-		"at": "2026-11-12T10:02:24+02:00",
+		"at": "2026-11-12T08:02:24.000000Z",
 		"actor": "mcp",
 		"type": "tool_called",
 		"text": {
@@ -86,15 +86,15 @@
 				]
 			}
 		},
-		"payload_hash": "e86f3478fa882fb93bdac57bb2c43ffab6e4d694d627b1b720bcea74da570361",
-		"prev_hash": "277f57d5cf19811f65e12954bbcccb06d19558abd1b5888f72ae7ecb03e17229",
-		"session_prev_hash": "277f57d5cf19811f65e12954bbcccb06d19558abd1b5888f72ae7ecb03e17229",
-		"hash": "3aa31bb80b46d6cbfd31aec811e0d42d10d00bf289db0d92438c7b7b83e39d1a"
+		"payload_hash": "d9f21fa738d2d931642ca9d1d631bf4825fc0fd41ce471c2874d8d46750ac878",
+		"prev_hash": "464f4195ddd6135f7fbb656f2752009f88fc105f700189b537ee6c2ad5faf61e",
+		"session_prev_hash": "464f4195ddd6135f7fbb656f2752009f88fc105f700189b537ee6c2ad5faf61e",
+		"hash": "f7767b43c953b5de31081b1a9438aade200ae13cb97787796ddd5c4f5dfd0fc6"
 	},
 	{
 		"seq": 1204,
 		"order_index": 4,
-		"at": "2026-11-12T10:02:24+02:00",
+		"at": "2026-11-12T08:02:24.000000Z",
 		"actor": "engine",
 		"type": "clarification_asked",
 		"text": {
@@ -110,15 +110,15 @@
 			"reason_code": "not_delivery_day",
 			"earliest": "2026-11-16"
 		},
-		"payload_hash": "a4c8fead970e1a6d9c5d8890538c06548e2b39f4aa11f4ab3cc58083ffa32397",
-		"prev_hash": "3aa31bb80b46d6cbfd31aec811e0d42d10d00bf289db0d92438c7b7b83e39d1a",
-		"session_prev_hash": "3aa31bb80b46d6cbfd31aec811e0d42d10d00bf289db0d92438c7b7b83e39d1a",
-		"hash": "265a89c154bc4796782fc390ed0984a612426537720ca7679346080a352543e0"
+		"payload_hash": "d2ac224cb39bfd7acb2d3e2a723a1437a497641a45e4df1b7e98347775ccee10",
+		"prev_hash": "f7767b43c953b5de31081b1a9438aade200ae13cb97787796ddd5c4f5dfd0fc6",
+		"session_prev_hash": "f7767b43c953b5de31081b1a9438aade200ae13cb97787796ddd5c4f5dfd0fc6",
+		"hash": "089d1f364f53f00c589ea77b5ff44b8ab3544ef4cfeb425b37d91243326a3ad9"
 	},
 	{
 		"seq": 1205,
 		"order_index": 5,
-		"at": "2026-11-12T10:02:24+02:00",
+		"at": "2026-11-12T08:02:24.000000Z",
 		"actor": "mcp",
 		"type": "tool_returned",
 		"text": {
@@ -138,15 +138,15 @@
 				"question_en": "Sunday is not a delivery day. Is Monday 16 Nov fine?"
 			}
 		},
-		"payload_hash": "09a159b92faa03658d7fc5eb0f6d7014c946e46a99b9cae7daec7ae9698d4395",
-		"prev_hash": "265a89c154bc4796782fc390ed0984a612426537720ca7679346080a352543e0",
-		"session_prev_hash": "265a89c154bc4796782fc390ed0984a612426537720ca7679346080a352543e0",
-		"hash": "ee1b7c537b1c065d23f7f52b67bc103fcf7c1533a11eec839f5b4d8613ad55b1"
+		"payload_hash": "fd5720981b37ea42cbcc4a23fc898b4f01a006b2c3ae447cc6d5f5fc3c6db909",
+		"prev_hash": "089d1f364f53f00c589ea77b5ff44b8ab3544ef4cfeb425b37d91243326a3ad9",
+		"session_prev_hash": "089d1f364f53f00c589ea77b5ff44b8ab3544ef4cfeb425b37d91243326a3ad9",
+		"hash": "ec2f849f4a8ad9d899574ede4caaaf46e6ff263d7d29b73fc300fd9453d3aa9b"
 	},
 	{
 		"seq": 1206,
 		"order_index": 6,
-		"at": "2026-11-12T10:02:27+02:00",
+		"at": "2026-11-12T08:02:27.000000Z",
 		"actor": "agent",
 		"type": "agent_said",
 		"text": {
@@ -162,15 +162,15 @@
 			"lang": "en",
 			"transcript": true
 		},
-		"payload_hash": "431ce0b15828c10cf349f2be44645299c55dc92baab91004c0fa4ef298595387",
-		"prev_hash": "ee1b7c537b1c065d23f7f52b67bc103fcf7c1533a11eec839f5b4d8613ad55b1",
-		"session_prev_hash": "ee1b7c537b1c065d23f7f52b67bc103fcf7c1533a11eec839f5b4d8613ad55b1",
-		"hash": "b9ce3d50f62bdef78c7277ceca304f8aa96d8ed2060d04f1e7dcec85ff240903"
+		"payload_hash": "203da76c8a893d89498824e8b417a1b265f3660da5f1e702d92be476becd2e53",
+		"prev_hash": "ec2f849f4a8ad9d899574ede4caaaf46e6ff263d7d29b73fc300fd9453d3aa9b",
+		"session_prev_hash": "ec2f849f4a8ad9d899574ede4caaaf46e6ff263d7d29b73fc300fd9453d3aa9b",
+		"hash": "d99b79fce21bcd6eb156d119ac75c28c6ed8344ee0ed60e505a021227a159646"
 	},
 	{
 		"seq": 1207,
 		"order_index": 7,
-		"at": "2026-11-12T10:02:33+02:00",
+		"at": "2026-11-12T08:02:33.000000Z",
 		"actor": "buyer",
 		"type": "buyer_said",
 		"text": {
@@ -186,15 +186,15 @@
 			"lang": "en",
 			"transcript": true
 		},
-		"payload_hash": "b90a67041c5981a19d3ebb2af451c8a6d3a97448264eceaa99a778473be05adf",
-		"prev_hash": "b9ce3d50f62bdef78c7277ceca304f8aa96d8ed2060d04f1e7dcec85ff240903",
-		"session_prev_hash": "b9ce3d50f62bdef78c7277ceca304f8aa96d8ed2060d04f1e7dcec85ff240903",
-		"hash": "8e563d60f504484f81b1170744001e96fc9d98f30a8e3237905f9d2ac13bcacb"
+		"payload_hash": "4bcfbb9e549d9b653b95ab0745e947757c3e11cb70e4c5ca10f4e54ee6fce517",
+		"prev_hash": "d99b79fce21bcd6eb156d119ac75c28c6ed8344ee0ed60e505a021227a159646",
+		"session_prev_hash": "d99b79fce21bcd6eb156d119ac75c28c6ed8344ee0ed60e505a021227a159646",
+		"hash": "4dbe147416fdf50d0610f42e6725ecbdcb18fce359ff7e31ac359868d50e864f"
 	},
 	{
 		"seq": 1210,
 		"order_index": 8,
-		"at": "2026-11-12T10:02:34+02:00",
+		"at": "2026-11-12T08:02:34.000000Z",
 		"actor": "mcp",
 		"type": "tool_called",
 		"text": {
@@ -219,15 +219,15 @@
 				}
 			}
 		},
-		"payload_hash": "c42cd7e5b61a5cf91f311cf2264a45916a2e40897b65634191c493e679b87d8a",
-		"prev_hash": "2117c21a812e60a589690bfde649b0e0cf5be7cd1946d4b43b3f3b4ba7d0b2bc",
-		"session_prev_hash": "8e563d60f504484f81b1170744001e96fc9d98f30a8e3237905f9d2ac13bcacb",
-		"hash": "8a0c549182d3dd03e1a9cd664e953e0db1253be3a96ce1f77d92375563453efd"
+		"payload_hash": "e94057c3a2949674a7d6e8352f001bdf1d27134b46a014dee5e88e547af14a47",
+		"prev_hash": "df35cbd055b851c62ec4e36ba1e4a2e7a7bc6158ac08ae41650d8ad88750d616",
+		"session_prev_hash": "4dbe147416fdf50d0610f42e6725ecbdcb18fce359ff7e31ac359868d50e864f",
+		"hash": "0b68592a0669e21908073571a16e3769873cae52221b813035d212674122982d"
 	},
 	{
 		"seq": 1211,
 		"order_index": 9,
-		"at": "2026-11-12T10:02:35+02:00",
+		"at": "2026-11-12T08:02:35.000000Z",
 		"actor": "engine",
 		"type": "products_searched",
 		"text": {
@@ -243,15 +243,15 @@
 			"searched": 17546,
 			"matched": 14
 		},
-		"payload_hash": "84513b6a4fa260754b5cba292671953833ef7f8461c1484008048ac88da80928",
-		"prev_hash": "8a0c549182d3dd03e1a9cd664e953e0db1253be3a96ce1f77d92375563453efd",
-		"session_prev_hash": "8a0c549182d3dd03e1a9cd664e953e0db1253be3a96ce1f77d92375563453efd",
-		"hash": "8f757a11ff51e7aecbf86151356c5bb11c3883f45c5758a42bf25b17eab46583"
+		"payload_hash": "0fdaf295f5fe18b198d6a090de2fa388135d123e956fbba467caa232a1f101f9",
+		"prev_hash": "0b68592a0669e21908073571a16e3769873cae52221b813035d212674122982d",
+		"session_prev_hash": "0b68592a0669e21908073571a16e3769873cae52221b813035d212674122982d",
+		"hash": "579cfdfe169f5bccf04b5992229b8fe0a5382e2cdc2831fd4e7138b22e06336f"
 	},
 	{
 		"seq": 1212,
 		"order_index": 10,
-		"at": "2026-11-12T10:02:35+02:00",
+		"at": "2026-11-12T08:02:35.000000Z",
 		"actor": "engine",
 		"type": "candidates_filtered",
 		"text": {
@@ -271,15 +271,15 @@
 			},
 			"left": 5
 		},
-		"payload_hash": "a3556781ae2d414d527029148a2039b659f25ed3f9f9e23b65d369817d0cab71",
-		"prev_hash": "8f757a11ff51e7aecbf86151356c5bb11c3883f45c5758a42bf25b17eab46583",
-		"session_prev_hash": "8f757a11ff51e7aecbf86151356c5bb11c3883f45c5758a42bf25b17eab46583",
-		"hash": "f41d7e4c5aa7b0270fdbf8d6e5bf7184940d7dc6e335121332c101a45d45d49e"
+		"payload_hash": "616a0ea924a08a88765156dbf6b8c4d28e96e61842ac9d448e869a1ec62a62d7",
+		"prev_hash": "579cfdfe169f5bccf04b5992229b8fe0a5382e2cdc2831fd4e7138b22e06336f",
+		"session_prev_hash": "579cfdfe169f5bccf04b5992229b8fe0a5382e2cdc2831fd4e7138b22e06336f",
+		"hash": "67d64734d7934b1997ca4b506732b24097a758aa6eb2f839275d2458887d1094"
 	},
 	{
 		"seq": 1213,
 		"order_index": 11,
-		"at": "2026-11-12T10:02:35+02:00",
+		"at": "2026-11-12T08:02:35.000000Z",
 		"actor": "engine",
 		"type": "availability_checked",
 		"text": {
@@ -300,15 +300,15 @@
 			],
 			"source": "snapshot"
 		},
-		"payload_hash": "a74ec2a3cb8f1764374f7cba980bb209ef62005ca19e2a465b01a668ca05dc1a",
-		"prev_hash": "f41d7e4c5aa7b0270fdbf8d6e5bf7184940d7dc6e335121332c101a45d45d49e",
-		"session_prev_hash": "f41d7e4c5aa7b0270fdbf8d6e5bf7184940d7dc6e335121332c101a45d45d49e",
-		"hash": "805657457cfa7b5bafebd7d02914e1abbb4b48bfdea19f1d91bc9e188d0042d7"
+		"payload_hash": "89dfb285caab14b660c7b6b97a6084fb37ccd8c5ba2d7a738bafe0150d1e3ab8",
+		"prev_hash": "67d64734d7934b1997ca4b506732b24097a758aa6eb2f839275d2458887d1094",
+		"session_prev_hash": "67d64734d7934b1997ca4b506732b24097a758aa6eb2f839275d2458887d1094",
+		"hash": "948f8c646fd87a3394d7dc89ec7b594965dc3760745474955f34933e50ce9e8f"
 	},
 	{
 		"seq": 1214,
 		"order_index": 12,
-		"at": "2026-11-12T10:02:36+02:00",
+		"at": "2026-11-12T08:02:36.000000Z",
 		"actor": "engine",
 		"type": "line_resolved",
 		"text": {
@@ -328,15 +328,15 @@
 				"cheapest"
 			]
 		},
-		"payload_hash": "e005edf7c84bd9ca4952c4368cd0625ea4babfdd240b396c0285f6ba948c44c9",
-		"prev_hash": "805657457cfa7b5bafebd7d02914e1abbb4b48bfdea19f1d91bc9e188d0042d7",
-		"session_prev_hash": "805657457cfa7b5bafebd7d02914e1abbb4b48bfdea19f1d91bc9e188d0042d7",
-		"hash": "753ffeca304c2d6abdcb379a2165585ad64bd82f437cb01bb0196e59cfac236b"
+		"payload_hash": "06ca6867ef7db89650eee5be98aca9a98f8a4ff9a6df846caa237769a96a0291",
+		"prev_hash": "948f8c646fd87a3394d7dc89ec7b594965dc3760745474955f34933e50ce9e8f",
+		"session_prev_hash": "948f8c646fd87a3394d7dc89ec7b594965dc3760745474955f34933e50ce9e8f",
+		"hash": "0b6e19d6f0b6c70995330d1ff310ce7919b7f1b9908441556806e60593bd8ab7"
 	},
 	{
 		"seq": 1215,
 		"order_index": 13,
-		"at": "2026-11-12T10:02:36+02:00",
+		"at": "2026-11-12T08:02:36.000000Z",
 		"actor": "mcp",
 		"type": "tool_returned",
 		"text": {
@@ -358,15 +358,15 @@
 				"say_en": "I found beef mince 10 %, two 2.5 kg packs, 41.90 euros, arriving Monday."
 			}
 		},
-		"payload_hash": "2ea883dd701c7113e56c9fea682dc91a0169e6589d98faea68343eb61ade9b70",
-		"prev_hash": "753ffeca304c2d6abdcb379a2165585ad64bd82f437cb01bb0196e59cfac236b",
-		"session_prev_hash": "753ffeca304c2d6abdcb379a2165585ad64bd82f437cb01bb0196e59cfac236b",
-		"hash": "516433a0d7292661d5551d36742f7b1b811132be7a8ac9d8ffe377bfc9d04dbe"
+		"payload_hash": "6a03d96ba8e4bd751988df89c9911170ca45c3f715a93580cf548f07e6e468a5",
+		"prev_hash": "0b6e19d6f0b6c70995330d1ff310ce7919b7f1b9908441556806e60593bd8ab7",
+		"session_prev_hash": "0b6e19d6f0b6c70995330d1ff310ce7919b7f1b9908441556806e60593bd8ab7",
+		"hash": "9321d992467ae33cd7fda03866a1fc5cd3e6457b6f58502a92795903f4799f55"
 	},
 	{
 		"seq": 1216,
 		"order_index": 14,
-		"at": "2026-11-12T10:02:38+02:00",
+		"at": "2026-11-12T08:02:38.000000Z",
 		"actor": "agent",
 		"type": "agent_said",
 		"text": {
@@ -382,15 +382,15 @@
 			"lang": "en",
 			"transcript": true
 		},
-		"payload_hash": "43da8ac3ffc49784224f3de34d03d076d1a3c608beaa94e8e7c5e8562741c41a",
-		"prev_hash": "516433a0d7292661d5551d36742f7b1b811132be7a8ac9d8ffe377bfc9d04dbe",
-		"session_prev_hash": "516433a0d7292661d5551d36742f7b1b811132be7a8ac9d8ffe377bfc9d04dbe",
-		"hash": "5736d32599571ee2a520ddaa303b14b1fee36c9d29353d605d53ec2f995f9155"
+		"payload_hash": "0db6849a880ecb6820862210e3a13ddfb83f5a6185454bde262e84997d625b3f",
+		"prev_hash": "9321d992467ae33cd7fda03866a1fc5cd3e6457b6f58502a92795903f4799f55",
+		"session_prev_hash": "9321d992467ae33cd7fda03866a1fc5cd3e6457b6f58502a92795903f4799f55",
+		"hash": "789480d3c5b65b0a1e48fc06af438f4eb25555b658b4296bb3a8e0d79ccff4de"
 	},
 	{
 		"seq": 1219,
 		"order_index": 15,
-		"at": "2026-11-12T10:02:49+02:00",
+		"at": "2026-11-12T08:02:49.000000Z",
 		"actor": "buyer",
 		"type": "buyer_said",
 		"text": {
@@ -406,15 +406,15 @@
 			"lang": "en",
 			"transcript": true
 		},
-		"payload_hash": "1019c01d046fc5cf9f1e4ac4c9ad3d6a2e9b526952b68099ef9225210965da50",
-		"prev_hash": "34d0ec8f4257b08dc1528d2d4c4adb2a6dfe07d87e4dbf56389386a4a571af9a",
-		"session_prev_hash": "5736d32599571ee2a520ddaa303b14b1fee36c9d29353d605d53ec2f995f9155",
-		"hash": "cd75858161eb1e2d3a03ac2d2238d8c358b36d3f9cbfefcce35b32922650e019"
+		"payload_hash": "a7784957e0c67b98f7624f249c7ab44352babfb13f347037c928a63b9ba609b5",
+		"prev_hash": "2235b0c809656d9f939b786f75643ec454b5ae438afc6477da56f10d856c5019",
+		"session_prev_hash": "789480d3c5b65b0a1e48fc06af438f4eb25555b658b4296bb3a8e0d79ccff4de",
+		"hash": "862248d6776c535017b35c3c60342369121cd98081ca869aec067f3d3d24b8f2"
 	},
 	{
 		"seq": 1220,
 		"order_index": 16,
-		"at": "2026-11-12T10:02:51+02:00",
+		"at": "2026-11-12T08:02:51.000000Z",
 		"actor": "mcp",
 		"type": "tool_called",
 		"text": {
@@ -450,15 +450,15 @@
 				]
 			}
 		},
-		"payload_hash": "93da919d721e633578c47dc622888507efc88286415ecf50304f9ccfdb453726",
-		"prev_hash": "cd75858161eb1e2d3a03ac2d2238d8c358b36d3f9cbfefcce35b32922650e019",
-		"session_prev_hash": "cd75858161eb1e2d3a03ac2d2238d8c358b36d3f9cbfefcce35b32922650e019",
-		"hash": "5c76e9bcfcf4fb05955712f19b724da92e3d72be8721243095ab10c333b65221"
+		"payload_hash": "02637dc65d7dd610a00a66b75d3be665ac8039fb8f87f34627ef1f4ae5519650",
+		"prev_hash": "862248d6776c535017b35c3c60342369121cd98081ca869aec067f3d3d24b8f2",
+		"session_prev_hash": "862248d6776c535017b35c3c60342369121cd98081ca869aec067f3d3d24b8f2",
+		"hash": "1439c76a915f78d29bb06735b0fa4ea32632508441750ae58ab6cf5897292ece"
 	},
 	{
 		"seq": 1221,
 		"order_index": 17,
-		"at": "2026-11-12T10:02:52+02:00",
+		"at": "2026-11-12T08:02:52.000000Z",
 		"actor": "engine",
 		"type": "products_searched",
 		"text": {
@@ -480,15 +480,15 @@
 				"l3": 9
 			}
 		},
-		"payload_hash": "77b144ac4579dd4ab82d21c2fe2483a3279bebcf083976566ca78f463ab9e5a3",
-		"prev_hash": "5c76e9bcfcf4fb05955712f19b724da92e3d72be8721243095ab10c333b65221",
-		"session_prev_hash": "5c76e9bcfcf4fb05955712f19b724da92e3d72be8721243095ab10c333b65221",
-		"hash": "be02d11531fb43dd85a951718721ccacdaa9d0b9be725a981637ef1e23a2f294"
+		"payload_hash": "f2c1df30172ecbeb6d3dcf4327d85760df22a532afb5f2f353857fe7eda1d9e0",
+		"prev_hash": "1439c76a915f78d29bb06735b0fa4ea32632508441750ae58ab6cf5897292ece",
+		"session_prev_hash": "1439c76a915f78d29bb06735b0fa4ea32632508441750ae58ab6cf5897292ece",
+		"hash": "b9ea39fc1a4574595007b4fda765a7e3a7e0f13522165f76e3b2c08df1e6ac08"
 	},
 	{
 		"seq": 1222,
 		"order_index": 18,
-		"at": "2026-11-12T10:02:52+02:00",
+		"at": "2026-11-12T08:02:52.000000Z",
 		"actor": "engine",
 		"type": "candidates_filtered",
 		"text": {
@@ -511,15 +511,15 @@
 			},
 			"left": 8
 		},
-		"payload_hash": "c38b555b07a2a12940058af498f759ce5ba46531b79f9932331f34ed0ffb149f",
-		"prev_hash": "be02d11531fb43dd85a951718721ccacdaa9d0b9be725a981637ef1e23a2f294",
-		"session_prev_hash": "be02d11531fb43dd85a951718721ccacdaa9d0b9be725a981637ef1e23a2f294",
-		"hash": "476414baa6f1b93478c40ccac95961161b584fb1799955b8d31a864fd4bb7b77"
+		"payload_hash": "f54b3e299684c0cb39f9ca42a3196122bcd5e4c3a2541c73585749a94d0f6cff",
+		"prev_hash": "b9ea39fc1a4574595007b4fda765a7e3a7e0f13522165f76e3b2c08df1e6ac08",
+		"session_prev_hash": "b9ea39fc1a4574595007b4fda765a7e3a7e0f13522165f76e3b2c08df1e6ac08",
+		"hash": "962eb060a0f7cca61745d3be051cb2d94f34fca5d33428fdb05fd2980be6dd8b"
 	},
 	{
 		"seq": 1223,
 		"order_index": 19,
-		"at": "2026-11-12T10:02:53+02:00",
+		"at": "2026-11-12T08:02:53.000000Z",
 		"actor": "engine",
 		"type": "line_resolved",
 		"text": {
@@ -540,15 +540,15 @@
 				"rounded_up"
 			]
 		},
-		"payload_hash": "33bc2f99e1ded9b247d04de7551981a1d76d9344bf7cfc0fa3a04e4adaa43836",
-		"prev_hash": "476414baa6f1b93478c40ccac95961161b584fb1799955b8d31a864fd4bb7b77",
-		"session_prev_hash": "476414baa6f1b93478c40ccac95961161b584fb1799955b8d31a864fd4bb7b77",
-		"hash": "52bafa1b8a022ff077cab0cc8feaa744fb9882b228fc9a04d3bb1cb32bbbe13d"
+		"payload_hash": "83e6dd2971af0f4b4c33aa34adb6af81e539a4b0140166bd95dd3f885505c30c",
+		"prev_hash": "962eb060a0f7cca61745d3be051cb2d94f34fca5d33428fdb05fd2980be6dd8b",
+		"session_prev_hash": "962eb060a0f7cca61745d3be051cb2d94f34fca5d33428fdb05fd2980be6dd8b",
+		"hash": "fcc1c26e3e67427c81f450ecccf1f28d4abff970f8f2f27d36b48364cb5c9838"
 	},
 	{
 		"seq": 1224,
 		"order_index": 20,
-		"at": "2026-11-12T10:02:53+02:00",
+		"at": "2026-11-12T08:02:53.000000Z",
 		"actor": "engine",
 		"type": "line_resolved",
 		"text": {
@@ -568,15 +568,15 @@
 				"cheapest"
 			]
 		},
-		"payload_hash": "a79e09178acf5cdabcacaabf92387d7704531b6d3dd270a35cb3a0a48cf83675",
-		"prev_hash": "52bafa1b8a022ff077cab0cc8feaa744fb9882b228fc9a04d3bb1cb32bbbe13d",
-		"session_prev_hash": "52bafa1b8a022ff077cab0cc8feaa744fb9882b228fc9a04d3bb1cb32bbbe13d",
-		"hash": "898c55174d2f0df8c92ae7e5c290b3ae7a24c04327436468785299b0a9d823b3"
+		"payload_hash": "2f4ceeb76044cc1c3d1a3a564dec7d4b5288eabcbd07fc8d4ddf55839298db1f",
+		"prev_hash": "fcc1c26e3e67427c81f450ecccf1f28d4abff970f8f2f27d36b48364cb5c9838",
+		"session_prev_hash": "fcc1c26e3e67427c81f450ecccf1f28d4abff970f8f2f27d36b48364cb5c9838",
+		"hash": "f99f68c87bab497ad699f9a73b89f80fa83ddae1b21e426d9870f24292658fae"
 	},
 	{
 		"seq": 1225,
 		"order_index": 21,
-		"at": "2026-11-12T10:02:54+02:00",
+		"at": "2026-11-12T08:02:54.000000Z",
 		"actor": "engine",
 		"type": "quote_built",
 		"text": {
@@ -599,15 +599,15 @@
 			],
 			"quote_hash": "b51c0e6a2f1d9c7e4a3b8f20d6e1c9a75f3e2b8d4c6a1f09e7d3b5c2a8f4e610"
 		},
-		"payload_hash": "fb95270b1b1915613354efa198ae7ec601d48192cc21b4bdcf69a0b51756a144",
-		"prev_hash": "898c55174d2f0df8c92ae7e5c290b3ae7a24c04327436468785299b0a9d823b3",
-		"session_prev_hash": "898c55174d2f0df8c92ae7e5c290b3ae7a24c04327436468785299b0a9d823b3",
-		"hash": "c3d5fd5591d6b231bc8e785c2ffec7bc153a50dd1f6db2bdaaf8433afcc426c2"
+		"payload_hash": "fdd1e846a9980fe2a5c4f27671c30abaa9bf2fa84387d6503d76e7cfa3a7b526",
+		"prev_hash": "f99f68c87bab497ad699f9a73b89f80fa83ddae1b21e426d9870f24292658fae",
+		"session_prev_hash": "f99f68c87bab497ad699f9a73b89f80fa83ddae1b21e426d9870f24292658fae",
+		"hash": "de3a3c6fb614bdb62f41c61af5a818784342ef4f6d398913736e30e55bf780b1"
 	},
 	{
 		"seq": 1226,
 		"order_index": 22,
-		"at": "2026-11-12T10:02:54+02:00",
+		"at": "2026-11-12T08:02:54.000000Z",
 		"actor": "mcp",
 		"type": "tool_returned",
 		"text": {
@@ -631,15 +631,15 @@
 				"say_en": "Oat drink comes in cases of 12, so that is 24 litres. Rapeseed oil, two 5 litre cans."
 			}
 		},
-		"payload_hash": "298b434c6ceb5ea5e99f47c881acd747ce3fd24236eff3b2c7870afb37350583",
-		"prev_hash": "c3d5fd5591d6b231bc8e785c2ffec7bc153a50dd1f6db2bdaaf8433afcc426c2",
-		"session_prev_hash": "c3d5fd5591d6b231bc8e785c2ffec7bc153a50dd1f6db2bdaaf8433afcc426c2",
-		"hash": "5a394ed22d817d5b33c0d4f8d51a46592baf995c6b51ec2eaf7403404bcfd389"
+		"payload_hash": "9dd9a57d89118593bb2d774834c9c555bfba257e47292ce0a4153d6a1e8f9976",
+		"prev_hash": "de3a3c6fb614bdb62f41c61af5a818784342ef4f6d398913736e30e55bf780b1",
+		"session_prev_hash": "de3a3c6fb614bdb62f41c61af5a818784342ef4f6d398913736e30e55bf780b1",
+		"hash": "2d8b7912bcf5800004b8f96e55b4961a0d8c9dfbb3a448a8a5a18f8496a9e56a"
 	},
 	{
 		"seq": 1227,
 		"order_index": 23,
-		"at": "2026-11-12T10:03:02+02:00",
+		"at": "2026-11-12T08:03:02.000000Z",
 		"actor": "agent",
 		"type": "agent_said",
 		"text": {
@@ -655,15 +655,15 @@
 			"lang": "en",
 			"transcript": true
 		},
-		"payload_hash": "7be8d5260ad470891355c4345b621e30c4f8c7fcf1ebfbf45e12266d13b966b5",
-		"prev_hash": "5a394ed22d817d5b33c0d4f8d51a46592baf995c6b51ec2eaf7403404bcfd389",
-		"session_prev_hash": "5a394ed22d817d5b33c0d4f8d51a46592baf995c6b51ec2eaf7403404bcfd389",
-		"hash": "2b7508a24a868523b8c0fae3639553a93785ea48be4a8d71bf4d36e5dd1bcd90"
+		"payload_hash": "143897cfda6677dda56a5d059391eed66ac8b5f898fcea5c5e4791825b2e9468",
+		"prev_hash": "2d8b7912bcf5800004b8f96e55b4961a0d8c9dfbb3a448a8a5a18f8496a9e56a",
+		"session_prev_hash": "2d8b7912bcf5800004b8f96e55b4961a0d8c9dfbb3a448a8a5a18f8496a9e56a",
+		"hash": "2dcb5966b7ed4a9c1a8e46aff1e4b7d4ec0780538d5ff8b532b516ddf4638bbe"
 	},
 	{
 		"seq": 1228,
 		"order_index": 24,
-		"at": "2026-11-12T10:03:29+02:00",
+		"at": "2026-11-12T08:03:29.000000Z",
 		"actor": "buyer",
 		"type": "buyer_said",
 		"text": {
@@ -679,15 +679,15 @@
 			"lang": "en",
 			"transcript": true
 		},
-		"payload_hash": "b22435e1cf1d505d738bdd5e8c2ee23f69b340f00184f82e75e964222ea7e1ea",
-		"prev_hash": "2b7508a24a868523b8c0fae3639553a93785ea48be4a8d71bf4d36e5dd1bcd90",
-		"session_prev_hash": "2b7508a24a868523b8c0fae3639553a93785ea48be4a8d71bf4d36e5dd1bcd90",
-		"hash": "152bb8df64f5271c4eb88495384feb284373f4b62b05786a3e377f63e695cd00"
+		"payload_hash": "f875c52b1e4af812fa35c972d0d1f610830bc6bc7cc26636ee7bccd16d71cb8a",
+		"prev_hash": "2dcb5966b7ed4a9c1a8e46aff1e4b7d4ec0780538d5ff8b532b516ddf4638bbe",
+		"session_prev_hash": "2dcb5966b7ed4a9c1a8e46aff1e4b7d4ec0780538d5ff8b532b516ddf4638bbe",
+		"hash": "a9734dcd88d6b9395e3ec0746e213be678acc2cfef56a0688ea29382363e7015"
 	},
 	{
 		"seq": 1231,
 		"order_index": 25,
-		"at": "2026-11-12T10:03:31+02:00",
+		"at": "2026-11-12T08:03:31.000000Z",
 		"actor": "mcp",
 		"type": "tool_called",
 		"text": {
@@ -709,15 +709,15 @@
 				"quote_id": "q_7f3a"
 			}
 		},
-		"payload_hash": "16574fd33268e9762b71a28d6ee489986bc8819c6de04091bf8988a372005a65",
-		"prev_hash": "056896bcbe9e10201b6c6cfb800a77757e723a0d28a3ad501ca4df4810272a0c",
-		"session_prev_hash": "152bb8df64f5271c4eb88495384feb284373f4b62b05786a3e377f63e695cd00",
-		"hash": "b726abcee51a4faee83e3ba9b8cbd00fa6a3e59489f408bd1263ddd5d9fd51a4"
+		"payload_hash": "336a0a8e8f27f596aeab8571852f247196fc3d7776ee4adbc4e081ade6a4be8e",
+		"prev_hash": "f64805bcc3bd73bc6f18c14d947fb5567421564279e2e9fc49b11a140b521bc9",
+		"session_prev_hash": "a9734dcd88d6b9395e3ec0746e213be678acc2cfef56a0688ea29382363e7015",
+		"hash": "f5ae3419a73acbdbf9f88cdf2c2429eab21ed19322f23ada1f6814c9c13469f9"
 	},
 	{
 		"seq": 1232,
 		"order_index": 26,
-		"at": "2026-11-12T10:03:31+02:00",
+		"at": "2026-11-12T08:03:31.000000Z",
 		"actor": "mcp",
 		"type": "tool_returned",
 		"text": {
@@ -740,15 +740,15 @@
 				}
 			}
 		},
-		"payload_hash": "e537750753582681fd66604f1f5ff985f3f4f51b70e35676316090129a972e0a",
-		"prev_hash": "b726abcee51a4faee83e3ba9b8cbd00fa6a3e59489f408bd1263ddd5d9fd51a4",
-		"session_prev_hash": "b726abcee51a4faee83e3ba9b8cbd00fa6a3e59489f408bd1263ddd5d9fd51a4",
-		"hash": "b07db4bd03767b67a3b990e86a9d066eacfb49dc41785796c0cfdb8c2470c951"
+		"payload_hash": "e41f27e3d7eecf08291ce37a3efc231c0d923b0d44b02bb999a186a8e055ad19",
+		"prev_hash": "f5ae3419a73acbdbf9f88cdf2c2429eab21ed19322f23ada1f6814c9c13469f9",
+		"session_prev_hash": "f5ae3419a73acbdbf9f88cdf2c2429eab21ed19322f23ada1f6814c9c13469f9",
+		"hash": "db4b08989546862bfbd45bf565b415ff147d0b41bd9921936187889b9fe87698"
 	},
 	{
 		"seq": 1233,
 		"order_index": 27,
-		"at": "2026-11-12T10:03:40+02:00",
+		"at": "2026-11-12T08:03:40.000000Z",
 		"actor": "relay",
 		"type": "session_ended",
 		"text": {
@@ -763,15 +763,15 @@
 			"ended_by": "buyer",
 			"duration_s": 86
 		},
-		"payload_hash": "6fcbaf3efa99c72d34732899067f81914093628d24750302238ac46eefcbceb2",
-		"prev_hash": "b07db4bd03767b67a3b990e86a9d066eacfb49dc41785796c0cfdb8c2470c951",
-		"session_prev_hash": "b07db4bd03767b67a3b990e86a9d066eacfb49dc41785796c0cfdb8c2470c951",
-		"hash": "3b8fb677de12846aab309aa0238a43fbbceb5af833708a971ac37345a3ba9d4f"
+		"payload_hash": "69da1ceca5ecd3997a4f266b0a3791b50904f32480a9a1f80bb539a90f46e349",
+		"prev_hash": "db4b08989546862bfbd45bf565b415ff147d0b41bd9921936187889b9fe87698",
+		"session_prev_hash": "db4b08989546862bfbd45bf565b415ff147d0b41bd9921936187889b9fe87698",
+		"hash": "5ffa579bce0ee7a193216073bfdfcd31487737eb7bedbfda96dc260b17c22319"
 	},
 	{
 		"seq": 1234,
 		"order_index": 28,
-		"at": "2026-11-12T10:03:41+02:00",
+		"at": "2026-11-12T08:03:41.000000Z",
 		"actor": "confirmation",
 		"type": "sms_sent",
 		"text": {
@@ -787,15 +787,15 @@
 			"inbox": true,
 			"sms": true
 		},
-		"payload_hash": "603dc1bdb1d680af8502cf9539021fc28c9913c2ed899e06823189166617420a",
-		"prev_hash": "3b8fb677de12846aab309aa0238a43fbbceb5af833708a971ac37345a3ba9d4f",
-		"session_prev_hash": "3b8fb677de12846aab309aa0238a43fbbceb5af833708a971ac37345a3ba9d4f",
-		"hash": "5b2ff47b946bec1debe7269bf210dfedf8e89a818f0dc1b1c851c24549b3cc22"
+		"payload_hash": "c1ea339fca5f63ee283ee4c6da5eeae1cb6707eac36dc024618bc4402d0d246c",
+		"prev_hash": "5ffa579bce0ee7a193216073bfdfcd31487737eb7bedbfda96dc260b17c22319",
+		"session_prev_hash": "5ffa579bce0ee7a193216073bfdfcd31487737eb7bedbfda96dc260b17c22319",
+		"hash": "2d581f5ab7686209fe472b04df0f92d3ca9ae706025753d00a8699701acd96ce"
 	},
 	{
 		"seq": 1235,
 		"order_index": 29,
-		"at": "2026-11-12T10:03:52+02:00",
+		"at": "2026-11-12T08:03:52.000000Z",
 		"actor": "confirmation",
 		"type": "link_opened",
 		"text": {
@@ -810,15 +810,15 @@
 			"quote_id": "q_7f3a",
 			"version": 1
 		},
-		"payload_hash": "cee102f2dc17c1586dd2c158aa79ccc80e8c466dfeb3717cb5f407b1ab7dc2a0",
-		"prev_hash": "5b2ff47b946bec1debe7269bf210dfedf8e89a818f0dc1b1c851c24549b3cc22",
-		"session_prev_hash": "5b2ff47b946bec1debe7269bf210dfedf8e89a818f0dc1b1c851c24549b3cc22",
-		"hash": "422e993842287011cbabe0e35a5cbc6e5e9247a44778d8961abeb0310a7f6c12"
+		"payload_hash": "e4ae46d48f0dc9dbd24d383735fe4488710e85a748eca4863106a11c5d506955",
+		"prev_hash": "2d581f5ab7686209fe472b04df0f92d3ca9ae706025753d00a8699701acd96ce",
+		"session_prev_hash": "2d581f5ab7686209fe472b04df0f92d3ca9ae706025753d00a8699701acd96ce",
+		"hash": "0bc56f47076f08c1add4687547d2703f91d8ca2c9223306e12b9bbd709ad4177"
 	},
 	{
 		"seq": 1236,
 		"order_index": 30,
-		"at": "2026-11-12T10:04:05+02:00",
+		"at": "2026-11-12T08:04:05.000000Z",
 		"actor": "confirmation",
 		"type": "flags_acknowledged",
 		"text": {
@@ -835,27 +835,27 @@
 				{
 					"flag_key": "rounded_up:l2",
 					"choice": "keep_rounded",
-					"at": "2026-11-12T10:04:01+02:00"
+					"at": "2026-11-12T08:04:01.000000Z"
 				},
 				{
 					"flag_key": "stock_unverified:l3",
-					"at": "2026-11-12T10:03:58+02:00"
+					"at": "2026-11-12T08:03:58.000000Z"
 				},
 				{
 					"flag_key": "no_allergen_info:l3",
-					"at": "2026-11-12T10:04:05+02:00"
+					"at": "2026-11-12T08:04:05.000000Z"
 				}
 			]
 		},
-		"payload_hash": "854904c3e757e402b49382b5abeb631c766743924e0cc993535cdef5375f4e18",
-		"prev_hash": "422e993842287011cbabe0e35a5cbc6e5e9247a44778d8961abeb0310a7f6c12",
-		"session_prev_hash": "422e993842287011cbabe0e35a5cbc6e5e9247a44778d8961abeb0310a7f6c12",
-		"hash": "3d978f4b966a025b9a7fa94ecc78800341b95171c73f467ee2d8dc1c35e04421"
+		"payload_hash": "e9efa99fc8a0bfb1935acfade1008e095b7f8229b4dd8123b9dec0e8524f4144",
+		"prev_hash": "0bc56f47076f08c1add4687547d2703f91d8ca2c9223306e12b9bbd709ad4177",
+		"session_prev_hash": "0bc56f47076f08c1add4687547d2703f91d8ca2c9223306e12b9bbd709ad4177",
+		"hash": "489aaeae11bbfd1aa720092eb677b700face39bfbfddd71c2263baa449064cc2"
 	},
 	{
 		"seq": 1237,
 		"order_index": 31,
-		"at": "2026-11-12T10:04:12+02:00",
+		"at": "2026-11-12T08:04:12.000000Z",
 		"actor": "confirmation",
 		"type": "order_confirmed",
 		"text": {
@@ -873,9 +873,9 @@
 			"stock_recheck": "unchanged",
 			"total_cents": 12840
 		},
-		"payload_hash": "e33c1507064fb6096dc4984d0297e133dde6c338d073043a44fb00e0dcb1124f",
-		"prev_hash": "3d978f4b966a025b9a7fa94ecc78800341b95171c73f467ee2d8dc1c35e04421",
-		"session_prev_hash": "3d978f4b966a025b9a7fa94ecc78800341b95171c73f467ee2d8dc1c35e04421",
-		"hash": "cc9cecc95babf0cebc035506d5c48ca6dfd45a28496e26d2f7dd15e0ebc05e77"
+		"payload_hash": "348cc58c6c31b8be5c90ad10dff76aff7b7d9fc8864a7433f5c601ac13a45a08",
+		"prev_hash": "489aaeae11bbfd1aa720092eb677b700face39bfbfddd71c2263baa449064cc2",
+		"session_prev_hash": "489aaeae11bbfd1aa720092eb677b700face39bfbfddd71c2263baa449064cc2",
+		"hash": "982ff92bd059e4f0e071bf7bca79542ec9d2e5eb91e9c0f765b56e3969ab75b8"
 	}
 ]

@@ -10,12 +10,12 @@
  *   live-call-events.json        the call still in progress on screen 30
  *   live-call-transcript.json
  *
- * Rerun after changing `hashInput()` in src/lib/dashboard/hash.ts.
+ * Rerun after changing the hash format in src/lib/dashboard/hash.ts (`docs/audit-chain.md`).
  */
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { computeHash, payloadHash, sha256Hex } from '../src/lib/dashboard/hash.ts';
+import { computeHash, formatAt, payloadHash, sha256Hex } from '../src/lib/dashboard/hash.ts';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '../src/lib/dashboard/fixtures');
 
@@ -38,7 +38,8 @@ interface Session {
 }
 
 const same = (text: string): Localized => ({ en: text, fi: text });
-const at = (time: string) => `2026-11-12T${time}+02:00`;
+/** A Helsinki wall-clock time on the demo day, in the hashed form (`2026-11-12T08:02:14.000000Z`). */
+const at = (time: string) => formatAt(new Date(`2026-11-12T${time}+02:00`));
 
 const PHONE = '+358 40 *** **12';
 const Q = 'q_7f3a';
@@ -540,7 +541,17 @@ let prevHash = await sha256Hex(new TextEncoder().encode('events before the fixtu
 async function filler(): Promise<void> {
 	seq++;
 	const payload_hash = await sha256Hex(new TextEncoder().encode(`other session event ${seq}`));
-	prevHash = await computeHash({ prev_hash: prevHash, payload_hash, seq, at: at('10:00:00'), type: 'other' });
+	prevHash = await computeHash({
+		prev_hash: prevHash,
+		session_prev_hash: null,
+		seq,
+		at: at('10:00:00'),
+		type: 'other',
+		actor: 'system',
+		session_id: null,
+		quote_id: null,
+		payload_hash
+	});
 }
 
 async function build(session: Session): Promise<Built[]> {
@@ -548,9 +559,19 @@ async function build(session: Session): Promise<Built[]> {
 	let sessionPrev: string | null = null;
 	for (const [i, spec] of session.specs.entries()) {
 		seq++;
-		const payload_hash = await payloadHash(spec.payload);
-		const fields = { prev_hash: prevHash, payload_hash, seq, at: spec.at, type: spec.type };
-		const hash = await computeHash(fields);
+		const quote_id = spec.quote_id ?? null;
+		const payload_hash = await payloadHash(spec.payload, spec.text.fi, spec.text.en);
+		const hash = await computeHash({
+			prev_hash: prevHash,
+			session_prev_hash: sessionPrev,
+			seq,
+			at: spec.at,
+			type: spec.type,
+			actor: spec.actor,
+			session_id: session.session_id,
+			quote_id,
+			payload_hash
+		});
 		out.push({
 			seq,
 			order_index: i + 1,
@@ -561,7 +582,7 @@ async function build(session: Session): Promise<Built[]> {
 			session_id: session.session_id,
 			channel: session.channel,
 			identity_masked: session.identity_masked,
-			quote_id: spec.quote_id ?? null,
+			quote_id,
 			payload: spec.payload,
 			payload_hash,
 			prev_hash: prevHash,
@@ -607,7 +628,7 @@ victim.text = {
 	en: 'Searched 17 546 products: 2 oat drinks and 9 rapeseed oils match.',
 	fi: 'Haettiin 17 546 tuotteesta: 2 kaurajuomaa ja 9 rypsiöljyä sopii.'
 };
-victim.payload_hash = await payloadHash(victim.payload);
+victim.payload_hash = await payloadHash(victim.payload, victim.text.fi, victim.text.en);
 
 write('d1042-events.json', d1042Events);
 write('d1042-events-tampered.json', tampered);

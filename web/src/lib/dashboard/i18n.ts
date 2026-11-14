@@ -158,8 +158,10 @@ const STRINGS = {
 		fi: 'Laskettu selaimessasi: tapahtuma #{n} ei täsmää ({reason}).'
 	},
 	reason_hash: { en: 'its hash differs', fi: 'tiiviste eroaa' },
-	reason_global_link: { en: 'it does not link to the event before it', fi: 'se ei linkity edelliseen tapahtumaan' },
-	reason_session_link: {
+	reason_payload_hash: { en: 'its content differs', fi: 'sisältö eroaa' },
+	reason_seq_gap: { en: 'an event before it is missing', fi: 'sitä edeltävä tapahtuma puuttuu' },
+	reason_prev_hash: { en: 'it does not link to the event before it', fi: 'se ei linkity edelliseen tapahtumaan' },
+	reason_session_prev_hash: {
 		en: 'it does not link to the previous event of this order',
 		fi: 'se ei linkity tilauksen edelliseen tapahtumaan'
 	},

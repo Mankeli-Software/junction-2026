@@ -49,9 +49,11 @@
 	}
 
 	const reasonKey = {
-		hash: 'reason_hash',
-		global_link: 'reason_global_link',
-		session_link: 'reason_session_link'
+		seq_gap: 'reason_seq_gap',
+		prev_hash: 'reason_prev_hash',
+		session_prev_hash: 'reason_session_prev_hash',
+		payload_hash: 'reason_payload_hash',
+		hash: 'reason_hash'
 	} as const;
 
 	const signatureText = $derived(

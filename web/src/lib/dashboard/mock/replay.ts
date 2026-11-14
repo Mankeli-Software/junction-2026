@@ -8,7 +8,7 @@
  * chain, so the live call's audit log keeps verifying while it grows.
  */
 import liveCallEvents from '../fixtures/live-call-events.json';
-import { computeHash, payloadHash } from '../hash';
+import { computeHash, formatAt, payloadHash } from '../hash';
 import { matchesFilter } from '../states';
 import type {
 	AuditEvent,
@@ -77,9 +77,20 @@ function updateCard(sessionId: string, patch: Partial<OrderCard>, company?: Comp
 
 async function addStep(actor: string, type: string, text: Localized, payload: Record<string, unknown>): Promise<void> {
 	const seq = lastLive.seq + 1;
-	const at = new Date().toISOString();
-	const payload_hash = await payloadHash(payload);
-	const hash = await computeHash({ prev_hash: lastLive.hash, payload_hash, seq, at, type });
+	const at = formatAt(new Date());
+	const quote_id = 'q_8c21';
+	const payload_hash = await payloadHash(payload, text.fi, text.en);
+	const hash = await computeHash({
+		prev_hash: lastLive.hash,
+		session_prev_hash: lastLive.hash,
+		seq,
+		at,
+		type,
+		actor,
+		session_id: lastLive.session_id,
+		quote_id,
+		payload_hash
+	});
 	const event: AuditEvent = {
 		...lastLive,
 		seq,
@@ -93,7 +104,7 @@ async function addStep(actor: string, type: string, text: Localized, payload: Re
 		prev_hash: lastLive.hash,
 		session_prev_hash: lastLive.hash,
 		hash,
-		quote_id: 'q_8c21'
+		quote_id
 	};
 	lastLive = event;
 	const message: StreamMessage = {

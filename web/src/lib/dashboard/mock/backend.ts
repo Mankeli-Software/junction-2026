@@ -10,7 +10,7 @@ import d1042Transcript from '../fixtures/d1042-transcript.json';
 import liveCallEvents from '../fixtures/live-call-events.json';
 import liveCallTranscript from '../fixtures/live-call-transcript.json';
 import overviewFixture from '../fixtures/overview.json';
-import { computeHash, payloadHash, sha256Hex } from '../hash';
+import { computeHash, formatAt, payloadHash, sha256Hex } from '../hash';
 import { matchesFilter } from '../states';
 import type {
 	AuditEvent,
@@ -167,9 +167,19 @@ async function generateEvents(sessionId: string): Promise<AuditEvent[]> {
 	const events: AuditEvent[] = [];
 	for (const [i, spec] of specs.entries()) {
 		seq++;
-		const at = new Date(end - (specs.length - 1 - i) * 7000).toISOString().replace('.000Z', '+00:00');
-		const payload_hash = await payloadHash(spec.payload);
-		const hash = await computeHash({ prev_hash: prev, payload_hash, seq, at, type: spec.type });
+		const at = formatAt(new Date(end - (specs.length - 1 - i) * 7000));
+		const payload_hash = await payloadHash(spec.payload, spec.fi, spec.en);
+		const hash = await computeHash({
+			prev_hash: prev,
+			session_prev_hash: sessionPrev,
+			seq,
+			at,
+			type: spec.type,
+			actor: spec.actor,
+			session_id: sessionId,
+			quote_id: null,
+			payload_hash
+		});
 		events.push({
 			seq,
 			order_index: i + 1,
@@ -196,7 +206,8 @@ async function generateEvents(sessionId: string): Promise<AuditEvent[]> {
 async function eventsFor(sessionId: string): Promise<AuditEvent[]> {
 	if (sessionId === D1042_SESSION_ID) return d1042Events as AuditEvent[];
 	if (sessionId === TAMPERED_SESSION_ID) {
-		return (d1042Tampered as AuditEvent[]).map((e) => ({ ...e, session_id: TAMPERED_SESSION_ID }));
+		// The events keep D-1042's session id: it is hashed, so this is the same chain, edited.
+		return d1042Tampered as AuditEvent[];
 	}
 	if (sessionId === LIVE_CALL_SESSION_ID) return liveCallEvents as AuditEvent[];
 	let cached = generated.get(sessionId);
