@@ -8,7 +8,7 @@ pnpm dev                                  # http://localhost:5173, with the fixt
 pnpm check                                # svelte-check
 pnpm build                                # node build in build/
 pnpm test                                 # Vitest unit tests
-pnpm serve:mock                           # the build, plus the mock voice relay on /voice/ws
+pnpm serve:mock                           # the build with the fixtures and the mock voice relay on /voice/ws
 pnpm exec playwright install chromium     # once, for the end-to-end tests
 pnpm test:e2e                             # Playwright: builds the app and runs it against the fixtures
 ```
@@ -20,7 +20,7 @@ The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`
 | Variable | Values | Default |
 |---|---|---|
 | `CONFIRMATION_SOURCE` | `fixture`: an in-memory stand-in for the engine. `api`: the FastAPI endpoints in `technical-plan.md` §9.4 | `fixture` in `pnpm dev`, `api` in a build. Compose sets `api`; set `fixture` to opt in |
-| `DEMO_SOURCE` | `fixture`: in-memory demo accounts and inbox, and the mock voice relay. `api`: the FastAPI endpoints in `technical-plan.md` §9.2 and the real relay (§9.3) | `fixture`, until #44, #46 and #52 land |
+| `DEMO_SOURCE` | `fixture`: in-memory demo accounts and inbox, and the mock voice relay. `api`: the FastAPI endpoints in `technical-plan.md` §9.2 and the real relay (§9.3) | `fixture` in `pnpm dev`, `api` in a build. Compose sets `api`; `pnpm serve:mock` sets `fixture` |
 | `API_BASE_URL` | Where FastAPI runs, used with either setting on `api` | `http://localhost:8000`. Compose sets `http://api:8000` |
 
 The server reads them from its process environment, for example `CONFIRMATION_SOURCE=api pnpm dev`. Neither `pnpm dev` nor the Compose `web` service reads the root `.env` yet, so the lines in `.env.example` document the defaults rather than set them.

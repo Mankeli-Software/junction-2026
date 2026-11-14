@@ -5,11 +5,14 @@ import { defineConfig } from 'vitest/config';
 import { attachMockRelay } from './src/lib/server/demo/relay.ts';
 
 /**
- * DEMO_SOURCE=fixture (default): `/voice/ws` is the mock relay, attached to Vite's
- * own server in dev and preview. DEMO_SOURCE=api: `/voice` goes to FastAPI at
- * API_BASE_URL, as Caddy does on the VM (src/lib/server/demo/index.ts).
+ * DEMO_SOURCE=fixture (the default in `pnpm dev`): `/voice/ws` is the mock relay,
+ * attached to Vite's own server. `vite preview` serves a build, which defaults to
+ * the API, so there the relay is attached only when DEMO_SOURCE=fixture is set.
+ * DEMO_SOURCE=api: `/voice` goes to FastAPI at API_BASE_URL, as Caddy does on the
+ * VM (src/lib/server/demo/index.ts).
  */
-const demoSource = process.env.DEMO_SOURCE ?? 'fixture';
+const demoSource = process.env.DEMO_SOURCE || 'fixture';
+const previewFixture = process.env.DEMO_SOURCE === 'fixture';
 const apiBaseUrl = process.env.API_BASE_URL ?? 'http://localhost:8000';
 
 function mockRelay(): Plugin {
@@ -19,7 +22,7 @@ function mockRelay(): Plugin {
 			if (server.httpServer) attachMockRelay(server.httpServer as import('node:http').Server);
 		},
 		configurePreviewServer(server) {
-			attachMockRelay(server.httpServer as import('node:http').Server);
+			if (previewFixture) attachMockRelay(server.httpServer as import('node:http').Server);
 		}
 	};
 }

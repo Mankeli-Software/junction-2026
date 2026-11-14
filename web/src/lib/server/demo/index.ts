@@ -1,9 +1,11 @@
 /**
  * Where the phone page's data comes from, picked with DEMO_SOURCE (like the
  * confirmation page's CONFIRMATION_SOURCE):
- * - `fixture` (default until #44, #46 and #52 land): the in-memory fixture in
- *   ./fixture.ts and the mock relay in ./relay.ts.
- * - `api`: FastAPI at API_BASE_URL (default http://localhost:8000).
+ * - `fixture`: the in-memory fixture in ./fixture.ts and the mock relay in ./relay.ts.
+ *   The default in the dev server only; a production build uses it only when this is
+ *   set (as `pnpm serve:mock` does).
+ * - `api`: FastAPI at API_BASE_URL (default http://localhost:8000). The default in a
+ *   production build. Compose sets DEMO_SOURCE=api and API_BASE_URL=http://api:8000.
  *
  * The browser always calls the same-origin paths of technical-plan.md §9.2 and
  * §9.3. On the VM, Caddy sends `/api/*` and `/voice/*` to FastAPI, so these
@@ -11,12 +13,13 @@
  * routes answer from the fixture or pass the request through to FastAPI, and
  * vite.config.ts proxies `/voice/ws`.
  */
+import { dev } from '$app/env';
 import type { RequestEvent } from '@sveltejs/kit';
 
 export type DemoSource = 'fixture' | 'api';
 
 export function demoSource(): DemoSource {
-	const kind = process.env.DEMO_SOURCE ?? 'fixture';
+	const kind = process.env.DEMO_SOURCE || (dev ? 'fixture' : 'api');
 	if (kind !== 'fixture' && kind !== 'api') {
 		throw new Error(`DEMO_SOURCE must be "fixture" or "api", not "${kind}"`);
 	}
