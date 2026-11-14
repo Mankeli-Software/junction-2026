@@ -29,7 +29,7 @@ Taken from the UI specs in `docs/specs/` (2026-11-14). The specs README says the
 | Demo companies | Each new number gets a generated company with a unique, funny-sounding Oy name. The same number gets the same company |
 | Kitchen profile | The visitor chooses the exclusions on the call page. The seeded order history is still open (section 14) |
 | Conversation in the audit log | Buyer and agent turns and every tool call with its response are audit events. They are shown on the public dashboard (section 9.5) |
-| Webshop | The current Aimo webshop scraped as a static page. It registers the WebMCP tools (P0) and gets the S.I.MO chat panel (stretch), which runs on Gemini like the phone |
+| Webshop | Our own static page in the Aimo webshop's style, with about 12 real products from the product file. No scrape and no Valio or Aimo logos (decided in #56). It registers the WebMCP tools (P0) and gets the S.I.MO chat panel (stretch), which runs on Gemini like the phone |
 | Recipe orders | Only ingredients with a product link (`data/recipe-product-map.json`) are ordered. The rest are listed as "not ordered" |
 | Confirmation page | Follows the language of the call or chat. After an edit, only new or changed flags need a new acknowledgement |
 | Call screen | Phone on speaker with live captions for both sides, not held to the ear. The agent is called S.I.MO and greets the caller by company name |
@@ -128,7 +128,7 @@ REST and MCP share one set of Pydantic models and one service layer. FastAPI tur
 | SMS | Twilio Messages API, `twilio` SDK, delivery status callbacks | SMS service that delivers every message to the simulated phone inbox, and through Twilio to allowlisted numbers when the flag is on. Message text, status webhook | P0 |
 | Confirmation page | SvelteKit server rendering, Svelte's default escaping | Odd things first with acknowledgements, asked-and-added lines, edit and re-quote, confirm, cancel, "order received" | P0 |
 | Voice agent | Gemini Live API (`google-genai` SDK, function calling), browser `getUserMedia` and `AudioWorklet` | Audio relay, MCP-to-Gemini tool bridge, system prompt, call screen, demo account on number entry, SMS after hang-up | P0 |
-| Webshop with WebMCP | The `modelContext` API in the ChatGPT desktop app's browser. The MCP-B polyfill or Chrome's testing flag for ordinary Chrome | The scraped static webshop page, WebMCP tool registration calling `/api/v1`, and the S.I.MO chat panel (stretch) | P0 (chat panel stretch) |
+| Webshop with WebMCP | The `modelContext` API in the ChatGPT desktop app's browser. The MCP-B polyfill or Chrome's testing flag for ordinary Chrome | A static webshop page of our own in the Aimo style (#56), WebMCP tool registration calling `/api/v1`, and the S.I.MO chat panel (stretch) | P0 (chat panel stretch) |
 | Claude connector | Claude custom connectors (remote MCP URL plus OAuth). MCP Python SDK auth routes (metadata, client registration, authorize, token, PKCE). `argon2-cffi` for password hashes | Users table, the SDK's authorization-server provider backed by Postgres, login and sign-up pages | P1 |
 | OpenAI connector | ChatGPT custom MCP connectors | Testing only | P1 |
 | Live dashboard | Server-Sent Events (`sse-starlette`), Postgres `LISTEN/NOTIFY`. The listener needs a direct connection on port 5432, because PgBouncer in transaction mode drops notifications | Status events, plain-language step texts, one public view | P0 |
@@ -295,7 +295,7 @@ sequenceDiagram
 
 ### 7.2 Webshop: WebMCP (P0) and chat panel (stretch)
 
-- The page is the current Aimo webshop, scraped once and served as a static mock (`docs/specs/webshop-chat.md`). Its catalogue, search, cart and login don't work. We build no shop of our own.
+- The page is our own static markup in the Aimo webshop's style (decided in #56, `web/src/routes/shop`): no scrape, invented copy, and no Valio or Aimo logos or wordmarks. It shows category tiles and twelve real products from the product file (name, pack size, category, image when we have one), picked by `scripts/select_shop_products.py` into `web/src/lib/shop/products.json`. No prices or stock on the page: those come only through the tools. It has no cart, search or login of its own. Its language follows the browser (`Accept-Language`), with an EN/FI toggle.
 - Visitors identify with the same phone-number entry as the call (section 9.2), so they get the same demo company and kitchen profile.
 - **WebMCP (P0)**: the page registers the same operations as the MCP tools through `document.modelContext`, falling back to `navigator.modelContext` (the API moved between the two in 2026). Each tool calls `/api/v1` with the session cookie.
 - **S.I.MO chat panel (stretch)**: it runs on Gemini on our server, with the same agent prompt as the phone, as an MCP client like the voice relay (`POST /api/v1/chat`, section 9.6). Cards are rendered from tool results, never from model text.
@@ -502,7 +502,7 @@ Edits use the same service as `update_quote`, and acknowledgements carry over by
 | `GET /api/v1/quotes/{id}` | One quote |
 | `POST /api/v1/chat` | `{conversation_id, message}` → streamed text and cards (menu, recipe, quote). Runs Gemini on our server with the shared agent prompt, as an MCP client like the voice relay, with channel `web_chat` (`docs/specs/webshop-chat.md`) |
 
-The webshop is the scraped static page (section 7.2), so there are no cart, product or search endpoints for it. The WebMCP tools use the REST twins in section 9.1. The confirmation page chat (stretch on top of stretch) reuses `POST /api/v1/chat` with the confirmation's quote, and it can only call `update_quote`.
+The webshop is a static page (section 7.2), so there are no cart, product or search endpoints for it. The WebMCP tools use the REST twins in section 9.1. The confirmation page chat (stretch on top of stretch) reuses `POST /api/v1/chat` with the confirmation's quote, and it can only call `update_quote`.
 
 ### 9.7 Other
 
