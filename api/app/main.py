@@ -11,6 +11,7 @@ from app.db import get_engine
 from app.interfaces.mcp.server import mcp, mcp_app
 from app.interfaces.rest import accounts as rest_accounts
 from app.interfaces.rest import dashboard as rest_dashboard
+from app.interfaces.rest import inbox as rest_inbox
 from app.interfaces.rest import tools as rest_tools
 
 
@@ -42,6 +43,7 @@ app.add_middleware(McpSlashMiddleware)
 app.include_router(rest_tools.router, prefix="/api/v1")
 app.include_router(rest_dashboard.router, prefix="/api/v1")
 app.include_router(rest_accounts.router, prefix="/api/v1")
+app.include_router(rest_inbox.router, prefix="/api/v1")
 rest_tools.add_error_handlers(app)
 app.mount("/mcp", mcp_app())
 
