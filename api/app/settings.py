@@ -109,6 +109,11 @@ class Settings(BaseSettings):
 
     session_secret: str = ""
 
+    # Ed25519 private key that signs quotes, as PKCS#8 PEM (#40); `\n` may stand for line
+    # breaks. Key Vault secret `quote-signing-key`. Unset in dev: a key per process. Prod
+    # refuses to start without it. Generate with `openssl genpkey -algorithm ed25519`.
+    quote_signing_key: str = ""
+
     # The public origin, where the web app is served: confirmation links are
     # `<public_base_url>/c/<token>`, and it is the OAuth issuer, the /mcp resource URL in the
     # protected-resource metadata and where the login and consent pages are (#48).

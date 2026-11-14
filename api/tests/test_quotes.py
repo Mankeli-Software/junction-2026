@@ -106,7 +106,7 @@ async def test_build_quote_stores_the_engine_input_and_output_and_replays(db, ca
     quote = await stored(db, response.quote_id)
     assert quote.company_id == caller.company_id
     assert quote.quote_hash == response.quote_hash
-    assert quote.jws is None
+    assert signing.verify_quote(quote.jws, quote.quote_hash)
     assert quote.expires_at is None  # quote_ttl_seconds is null for the event
     assert "rules" not in quote.engine_input
     assert quote.engine_input["candidates"]["l1"]

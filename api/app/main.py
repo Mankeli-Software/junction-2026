@@ -1,5 +1,5 @@
-"""FastAPI entry point: the REST API under /api/v1, the MCP server at /mcp and its OAuth
-routes (`/.well-known/*`, `/oauth/*`)."""
+"""FastAPI entry point: the REST API under /api/v1, the MCP server at /mcp, its OAuth
+routes (`/.well-known/*`, `/oauth/*`) and the quote signing key (`/.well-known/jwks.json`)."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -15,14 +15,17 @@ from app.interfaces.rest import accounts as rest_accounts
 from app.interfaces.rest import confirmations as rest_confirmations
 from app.interfaces.rest import dashboard as rest_dashboard
 from app.interfaces.rest import inbox as rest_inbox
+from app.interfaces.rest import jwks as rest_jwks
 from app.interfaces.rest import oauth as rest_oauth
 from app.interfaces.rest import tools as rest_tools
 from app.services.dashboard.feed import start_feed
 from app.services.dashboard.stream import get_broadcaster
+from app.services.signing import signing_key
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    signing_key()  # fail at startup, not at the first quote, when the key is missing or bad
     # One LISTEN status_events connection for the public dashboard stream (#49).
     listener, _ = start_feed(get_broadcaster())
     try:
@@ -57,6 +60,7 @@ app.include_router(rest_accounts.router, prefix="/api/v1")
 app.include_router(rest_inbox.router, prefix="/api/v1")
 app.include_router(rest_oauth.router, prefix="/api/v1")
 app.include_router(rest_confirmations.router, prefix="/api/v1")
+app.include_router(rest_jwks.router)
 rest_tools.add_error_handlers(app)
 rest_confirmations.add_error_handlers(app)
 rest_confirmations.redact_access_log()
