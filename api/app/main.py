@@ -52,6 +52,7 @@ app.include_router(rest_oauth.router, prefix="/api/v1")
 app.include_router(rest_confirmations.router, prefix="/api/v1")
 rest_tools.add_error_handlers(app)
 rest_confirmations.add_error_handlers(app)
+rest_confirmations.redact_access_log()
 app.router.routes.extend(auth_routes())
 app.mount("/mcp", mcp_app())
 
