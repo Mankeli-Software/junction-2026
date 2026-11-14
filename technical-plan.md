@@ -353,17 +353,18 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 
 ### 8.5 Audit
 
-- `audit_events(seq, at, type, actor, session_id, quote_id, payload, payload_hash, prev_hash, hash)`, with `payload_hash = SHA-256(canonical payload)` and `hash = SHA-256(prev_hash + payload_hash + seq, at, type)`. Chaining over `payload_hash` (*proposed*) lets the dashboard verify the chain without the payloads, so personal data in a payload can be hidden or redacted without breaking it.
+- `audit_events(seq, at, type, actor, session_id, quote_id, payload, text_fi, text_en, payload_hash, prev_hash, session_prev_hash, hash)` (decided in #41). `payload_hash` is SHA-256 over the RFC 8785 JSON of the payload and both sentences. `hash` is SHA-256 over `prev_hash`, `session_prev_hash`, `seq`, `at`, `type`, `actor`, `session_id`, `quote_id` and `payload_hash`, joined with newlines, with `at` in UTC to the microsecond. The exact bytes and shared test vectors are in `docs/audit-chain.md`. Chaining over `payload_hash` lets the dashboard verify the chain without the payloads, so personal data in a payload can be hidden or redacted without breaking it.
 - Each event also carries `session_prev_hash`, the hash of the previous event in the same session. This lets one order's chain be verified on its own, which `docs/specs/dashboard.md` §3.4 needs, while the global chain still covers everything.
-- The writer takes a transaction-level advisory lock (`pg_advisory_xact_lock`) so the chain stays linear. It is released at commit, so it would also work through transaction pooling, but the app connects directly anyway (section 10.1). The application's database role has only `INSERT` and `SELECT` on the table.
+- The writer (`app/services/audit`) takes a transaction-level advisory lock (`pg_advisory_xact_lock`) so the chain stays linear. It is released at commit, so it would also work through transaction pooling, but the app connects directly anyway (section 10.1). The application's database role has only `INSERT` and `SELECT` on the table, and a trigger refuses `UPDATE`, `DELETE` and `TRUNCATE` for every role, the owner included.
 - Events: request, candidates considered, filters applied, choice and reason codes, quote, SMS sent or failed, confirmation (vision §11). The full engine input is stored so any decision can be replayed.
 - Conversation turns (`buyer_said`, `agent_said`) and tool calls with their full responses (`tool_called`, `tool_returned`) are audit events too (`docs/specs/README.md`). They are public on the dashboard (section 9.5). `docs/specs/dashboard.md` §5 lists the event types the dashboard needs.
-- Events store only masked phone numbers. The full number stays in `users` and is deleted after the event (`docs/specs/call-screen.md` §6).
-- `scripts/verify_audit_chain.py` checks the chain, for the pitch.
+- Events store only masked phone numbers. The full number stays in `users` and is deleted after the event (`docs/specs/call-screen.md` §6). The writer refuses an event with a full phone number, an email, a confirmation link or a token.
+- Each distinct rule set is stored once in `rule_sets` (append-only, like the log) the first time a quote uses it, with a `rule_set_loaded` event that carries its hash. Engine inputs in audit payloads carry `rules_ref` in place of the full rules, and replay loads the rules by that reference.
+- `scripts/verify_audit_chain.py` checks the chain (all of it, one session, or a downloaded file), for the pitch.
 
 ### 8.6 Dashboard
 
-- A `status_events` row is written in the same transaction as each audit event. A trigger calls `pg_notify`. A FastAPI listener on its own direct connection (port 5432, not PgBouncer) pushes the events, redacted (section 9.5), over one public SSE stream. The simulated inbox has its own per-user stream (section 9.2).
+- A `status_events` row (a pointer: id, audit `seq`, session, type, time) is written in the same transaction as each audit event. A trigger calls `pg_notify('status_events', id)`. A FastAPI listener on its own direct connection (port 5432, not PgBouncer) pushes the events, redacted (section 9.5), over one public SSE stream. The simulated inbox has its own per-user stream (section 9.2).
 - `/dashboard`: orders grouped by company. Open one to see the steps in plain words, rejected candidates, flags and confirmation state. Failures too: rejected, link expired, SMS failed, callback requested. Large type, readable from a distance.
 - The relay emits call events (started, tool called, ended), so a call shows up while it is still going on.
 - A periodic job marks expired quotes and emits the event, because expiry does not happen on its own. It only runs when expiry is on, which it isn't during the event.
