@@ -51,16 +51,17 @@ Still open: recipe orders by phone that lose lines or skip ingredients, a few se
 ```mermaid
 flowchart LR
     subgraph Clients
-        Phone["Phone page<br/>(Gemini voice)"]
-        Shop["Webshop page<br/>(WebMCP tools)"]
+        Phone["Phone page<br/>(voice in the browser)"]
+        Shop["Webshop page<br/>(WebMCP tools, chat panel)"]
         Connector["Claude, ChatGPT,<br/>any MCP client"]
         Confirm["Confirmation page"]
-        Dash["Live dashboard"]
+        Dash["Public dashboard"]
     end
 
     subgraph VM["Azure VM, Docker Compose, behind Caddy"]
         subgraph API["FastAPI"]
-            Relay["Voice relay"]
+            Relay["Voice relay /voice/ws"]
+            Chat["Chat agent /api/v1/chat"]
             MCP["MCP server /mcp"]
             REST["REST /api/v1 (OpenAPI)"]
             Svc["Services"]
@@ -70,10 +71,13 @@ flowchart LR
     end
 
     Phone -- "WebSocket audio" --> Relay
-    Relay <--> Gemini["Gemini Live"]
+    Relay <--> GeminiLive["Gemini Live"]
     Relay -- "MCP client" --> MCP
-    Connector -- "MCP" --> MCP
-    Shop --> REST
+    Shop -- "chat (SSE)" --> Chat
+    Chat <--> Gemini["Gemini"]
+    Chat -- "MCP client" --> MCP
+    Shop -- "WebMCP tools" --> REST
+    Connector -- "MCP, OAuth" --> MCP
     Confirm --> Web --> REST
     Dash -- "SSE" --> REST
     MCP --> Svc
@@ -81,12 +85,12 @@ flowchart LR
     Svc --> Engine
     Svc --> PG[("Postgres<br/>pgvector")]
     Svc --> Valio["Valio mock API"]
-    Svc --> SMS["Phone inbox, SMS"]
+    Svc --> SMS["Simulated inbox,<br/>Twilio SMS"]
 ```
 
 - **Engine**: `decide(EngineInput) -> EngineOutput`. No database, HTTP, clock reads or randomness, so every decision can be replayed from the audit log.
 - **Services**: gather the inputs, call the engine, store the quote, write the audit events and send the link.
-- **Interfaces**: MCP tools and REST routes share one set of models, so the two cannot drift apart.
+- **Interfaces**: MCP tools and their REST twins share one set of models, so the two cannot drift apart. The voice relay and the chat agent are MCP clients of our own server, like any outside agent.
 
 Hosting: one Azure VM runs Caddy, FastAPI and SvelteKit with Docker Compose, against Azure Database for PostgreSQL. Secrets come from Azure Key Vault. Laptops run Postgres in Docker instead. Details are in `technical-plan.md` §2 and §10.
 
