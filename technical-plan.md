@@ -27,7 +27,7 @@ Taken from the UI specs in `docs/specs/` (2026-11-14). The specs README says the
 |---|---|
 | Quote expiry | Off during the event (`quote_ttl` unset), for example 30 minutes in production. After confirming, the link stays readable as a receipt until the end of the event |
 | Demo companies | Each new number gets a generated company with a unique, funny-sounding Oy name. The same number gets the same company |
-| Kitchen profile | The visitor chooses the exclusions on the call page. The seeded order history is still open (section 14) |
+| Kitchen profile | The visitor chooses the exclusions on the call page. The seeded order history is decided in #61 (`docs/plans/61-order-history.md`) and built in #32 (`data/demo_histories.yaml`, section 14) |
 | Conversation in the audit log | Buyer and agent turns and every tool call with its response are audit events. They are shown on the public dashboard (section 9.5) |
 | Webshop | Our own static page in the Aimo webshop's style, with about 12 real products from the product file. No scrape and no Valio or Aimo logos (decided in #56). It registers the WebMCP tools (P0) and gets the S.I.MO chat panel (stretch), which runs on Gemini like the phone |
 | Recipe orders | Only ingredients with a product link (`data/recipe-product-map.json`) are ordered. The rest are listed as "not ordered" |
@@ -648,7 +648,7 @@ Tests:
 The first review settled every other open question (section 1). These three get their own issues, created from this spec:
 
 1. **Nut-free set.** Decided in #60: peanut (`AP`) and pine nut (`PN`) count, coconut (`SO`) does not.
-2. **Demo order history.** The seeded order history a new demo company gets, so "my usual" works (vision §13, still open). The kitchen profile is chosen by the visitor (`docs/specs/call-screen.md` §2.2).
+2. **Demo order history.** Decided in #61 (`docs/plans/61-order-history.md`, vision §13) and built in #32: each demo company is one of seven kitchen types, picked from its phone number, with eight weeks of history from `data/demo_histories.yaml` (`api/app/seed/history.py`), so "my usual" works. The kitchen profile is chosen by the visitor (`docs/specs/call-screen.md` §2.2).
 3. **Operator login.** Not needed: the dashboard is fully public (section 9.5, decided 2026-11-14, #62 closed).
 
 Input we are waiting for: the product image file (`code`, `name`, `img`).
