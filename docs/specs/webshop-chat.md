@@ -11,7 +11,7 @@ A simple chat on a mock webshop page, for two things the phone call does not sho
 
 The same chat can also be opened on the confirmation page, so the buyer can ask for changes in words (section 5).
 
-**The webshop itself is not designed by us.** We scrape the current Aimo webshop and use it as a static mock page. This spec only covers the chat we add on top of it. The mock is clearly labelled "Demo", is only used for the event, and has no working login or other forms: the chat is the only working part.
+**The webshop page itself is not part of this spec.** It is our own static page in the Aimo webshop's style (decided in #56): our own markup and copy, no Valio or Aimo logos, and about 12 real products from the product file, with no prices. This spec only covers the chat we add on top of it. The page says that no real order is placed, is only used for the event, and has no cart, search or login of its own: apart from the number entry, the chat and the WebMCP tools are the only working parts.
 
 ## 2. Access
 
@@ -24,14 +24,14 @@ Same as the phone demo, no user accounts:
 
 ## 3. Layout
 
-The scraped webshop page, with our chat added as a panel (a launcher button that opens a side panel, full screen on phone). The rest of the page is static and is not part of this spec.
+The static webshop page (#56), with our chat added as a panel (a launcher button that opens a side panel, full screen on phone). The rest of the page is static and is not part of this spec.
 
 The chat panel has two parts:
 
 - **Chat**: messages from the buyer and the agent, a text field, and a few example prompts to tap ("1,000 L lactose-free milk by Monday", "Plan a milk-free lunch menu for next week, 80 people", "My usual order").
 - **Current order**: the latest quote as "asked versus added" lines, total, delivery date and flag count, as a collapsible section at the top of the panel. It updates every time the agent builds or updates a quote. Empty until the first quote.
 
-The webshop's own catalogue, product pages, cart and search are not wired up. Ordering happens only through the chat.
+The webshop has no catalogue, product pages, cart or search of its own. Ordering happens only through the chat (or an outside agent's WebMCP tools).
 
 ## 4. Message types
 
@@ -84,8 +84,8 @@ The confirmation page reuses the **same chat component** as the webshop, as a co
 
 ## 8. Out of scope
 
-- Designing the webshop page. We use the scraped current one as is.
-- Making the scraped page's catalogue, search, cart or login work.
+- The webshop page itself (#56).
+- A catalogue, search, cart or login on the webshop page.
 - Login or accounts.
 - Anything the agent can do that the phone agent cannot.
 - Saving menus for later. A menu lives in the conversation only.
