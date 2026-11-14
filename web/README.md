@@ -20,6 +20,8 @@ The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`
 | `CONFIRMATION_SOURCE` | `fixture`: an in-memory stand-in for the engine. `api`: the FastAPI endpoints in `technical-plan.md` §9.4 | `fixture`, until #47 lands |
 | `API_BASE_URL` | Where FastAPI runs, used with `CONFIRMATION_SOURCE=api` | `http://localhost:8000` |
 
+The server reads them from its process environment, for example `CONFIRMATION_SOURCE=api pnpm dev`. Neither `pnpm dev` nor the Compose `web` service reads the root `.env` yet, so the lines in `.env.example` document the defaults rather than set them.
+
 ## Routes
 
 | Route | What it is |
