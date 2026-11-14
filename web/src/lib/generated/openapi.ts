@@ -1993,6 +1993,10 @@ export interface components {
          * @description A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:
          *     the quote service turns it into one line per ingredient with a product link and lists
          *     the other ingredients in `not_ordered`.
+         *
+         *     `order_unlinked` (#103) also orders the ingredients without a product, when the buyer
+         *     asked for them: each one with an amount becomes a line found by the ingredient's name,
+         *     and it leaves `not_ordered`. On an ingredient line it keeps that line ordered by name.
          */
         RecipeRef: {
             /** Recipe Id */
@@ -2001,6 +2005,11 @@ export interface components {
             portions: number;
             /** Ingredient Index */
             ingredient_index?: number | null;
+            /**
+             * Order Unlinked
+             * @default false
+             */
+            order_unlinked: boolean;
         };
         /** Rejection */
         Rejection: {
