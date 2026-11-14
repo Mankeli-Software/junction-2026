@@ -104,10 +104,11 @@ class Settings(BaseSettings):
     search_vectors: Literal["live", "cache", "off"] = "live"
 
     # The phone call's voice relay (/voice/ws, #52). The model is on the v1beta API only
-    # (spikes/gemini-live). The voice is Aoede until #67 picks one; the filler clips in
-    # app/interfaces/voice/clips/ are made per voice (`python -m app.interfaces.voice.clips`).
+    # (spikes/gemini-live). The voice is Achird, picked in #67; the filler clips in
+    # app/interfaces/voice/filler_clips/ are made per voice
+    # (`python -m app.interfaces.voice.filler --voice <name>`).
     voice_model: str = "gemini-3.8-live"
-    voice_name: str = "Aoede"
+    voice_name: str = "Achird"
     # Silence after which Gemini's voice activity detection ends the caller's turn. Empty
     # leaves Gemini's default (about 1 s in the spike).
     voice_silence_ms: int | None = 600
