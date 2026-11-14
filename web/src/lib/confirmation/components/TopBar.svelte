@@ -1,3 +1,10 @@
+<script lang="ts" module>
+	/** One home for every visitor: the phone app, which also serves a link opened on another device. */
+	export function homeHref(lang: 'en' | 'fi'): string {
+		return lang === 'fi' ? '/phone?lang=fi' : '/phone';
+	}
+</script>
+
 <script lang="ts">
 	/** Dark top bar with S.I.MO and the language toggle (or the company name on the receipt). */
 	import { pageUrl, type PageUrl } from '../forms.svelte';
@@ -8,7 +15,7 @@
 </script>
 
 <header class="bar">
-	<span class="hd brand">S.I.MO</span>
+	<a class="hd brand" href={homeHref(lang)}>S.I.MO</a>
 	{#if right}
 		<span class="right">{right}</span>
 	{:else}
@@ -40,6 +47,7 @@
 	.brand {
 		font-size: 22px;
 		color: #fff;
+		text-decoration: none;
 	}
 	.right {
 		font-size: 15px;

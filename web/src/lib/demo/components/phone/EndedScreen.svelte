@@ -31,6 +31,13 @@
 		oncontacts: () => void;
 	} = $props();
 
+	// A tap meant for hang-up can still be on its way when this screen appears.
+	let armed = $state(false);
+	$effect(() => {
+		const timer = setTimeout(() => (armed = true), 1000);
+		return () => clearTimeout(timer);
+	});
+
 	const ended = $derived(call.ended);
 	const length = $derived(duration(ended?.duration_s ?? call.elapsed(Date.now())));
 	const expectQuote = $derived(message !== null || ended?.inbox === true);
@@ -85,9 +92,14 @@
 		</p>
 	{/if}
 
-	<div class="grow"></div>
 	<div class="again">
-		<button type="button" class="call" aria-label={t(lang, 'callAgainAria')} onclick={oncallagain}>
+		<button
+			type="button"
+			class="call"
+			aria-label={t(lang, 'callAgainAria')}
+			disabled={!armed}
+			onclick={oncallagain}
+		>
 			<Icon name="phone" size={28} stroke="#fff" />
 		</button>
 		<span aria-hidden="true">{t(lang, 'callAgain')}</span>
@@ -209,11 +221,8 @@
 		color: var(--red);
 		font-weight: 600;
 	}
-	.grow {
-		flex-grow: 1;
-		min-height: 24px;
-	}
 	.again {
+		margin-top: 28px;
 		padding: 0 0 34px;
 		display: flex;
 		flex-direction: column;
@@ -233,7 +242,11 @@
 		justify-content: center;
 		cursor: pointer;
 	}
-	.call:hover {
+	.call:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+	.call:hover:not(:disabled) {
 		background: #1a7733;
 	}
 </style>

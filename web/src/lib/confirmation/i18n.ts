@@ -56,6 +56,7 @@ const strings = {
 	more: { en: 'More', fi: 'Enemmän' },
 	removeLine: { en: 'Remove from order', fi: 'Poista tilauksesta' },
 	close: { en: 'Close', fi: 'Sulje' },
+	returnHome: { en: 'Return home', fi: 'Palaa alkuun' },
 	orderReceived: { en: 'Order received', fi: 'Tilaus vastaanotettu' },
 	orderConfirmedAt: { en: 'Order {number}, confirmed {time}', fi: 'Tilaus {number}, vahvistettu klo {time}' },
 	youCheckedOne: { en: 'You checked 1 flagged item before confirming.', fi: 'Tarkistit 1 merkityn kohdan ennen vahvistusta.' },

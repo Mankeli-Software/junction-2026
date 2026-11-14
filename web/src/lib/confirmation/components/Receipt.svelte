@@ -5,6 +5,7 @@
 	import { t } from '../i18n';
 	import type { ConfirmationView, Lang, Order } from '../types';
 	import Icon from './Icon.svelte';
+	import { homeHref } from './TopBar.svelte';
 
 	let { view, order, lang }: { view: ConfirmationView; order: Order; lang: Lang } = $props();
 
@@ -48,6 +49,8 @@
 	{/if}
 
 	<p class="note"><b>{t(lang, 'demoNoteLead')}</b> {t(lang, 'demoNote')}</p>
+
+	<a class="home" href={homeHref(lang)} data-testid="return-home">{t(lang, 'returnHome')}</a>
 </div>
 
 <style>
@@ -145,6 +148,18 @@
 		align-items: center;
 		font-size: 14px;
 		color: var(--muted-2);
+	}
+	.home {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 48px;
+		border-radius: 8px;
+		background: var(--petrol);
+		color: #fff;
+		font-weight: 700;
+		font-size: 16px;
+		text-decoration: none;
 	}
 	.note {
 		margin: 24px 0 0;
