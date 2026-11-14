@@ -494,10 +494,109 @@ async def test_an_ingredient_without_an_amount_is_not_ordered(db):
 async def test_a_recipe_without_any_linked_ingredient_is_an_error(db):
     # Recipe 44115 links only lactose-free whipping cream; leave the catalogue without it.
     await db.execute(text("DELETE FROM recipe_product_links WHERE recipe_product_id = 1499"))
-    with pytest.raises(InvalidRequestError, match="nothing to order"):
+    with pytest.raises(InvalidRequestError, match="nothing to order") as refused:
         await recipes.expand_lines(
             db, [recipe_line(recipe_ref={"recipe_id": "44115", "portions": 12})]
         )
+    assert "order_unlinked" in str(refused.value)
+
+    # Asked for the rest too: the ingredients with an amount are ordered by name.
+    lines, _ = await recipes.expand_lines(db, [recipe_line(recipe_ref=unlinked("44115", 12))])
+    assert lines and {line.product_id for line in lines} == {None}
+
+
+def unlinked(recipe_id: str = BREAD, portions: int = 60) -> dict:
+    return {"recipe_id": recipe_id, "portions": portions, "order_unlinked": True}
+
+
+@pytest.mark.usefixtures("recipes")
+async def test_order_unlinked_orders_the_ingredients_without_a_product_by_name(db):
+    lines, not_ordered = await recipes.expand_lines(db, [recipe_line(recipe_ref=unlinked())])
+
+    linked = {line.line_id: line.product_id for line in lines if line.product_id}
+    assert linked == {"r1-0": "463373", "r1-3": "463798"}
+    named = [line for line in lines if not line.product_id]
+    assert [(line.text, line.quantity, line.unit) for line in named] == [
+        ("suolaa", Decimal("0.3"), "kg"),
+        ("hiivaa", Decimal("0.6"), "kg"),
+        ("ruisjauhoja", Decimal("5"), "kg"),
+        ("vehnäjauhoja", Decimal("11"), "kg"),
+    ]
+    for line in named:
+        index = line.recipe_ref.ingredient_index
+        assert line.line_id == f"r1-{index}"
+        assert line.recipe_ref.order_unlinked and line.group == "Rukiinen piimäleipä"
+    assert not_ordered == []
+
+
+@pytest.mark.usefixtures("recipes")
+async def test_order_unlinked_leaves_an_ingredient_without_an_amount_not_ordered(db):
+    lines, not_ordered = await recipes.expand_lines(
+        db, [recipe_line(recipe_ref=unlinked(CHAI, 10))]
+    )
+
+    assert "kanelia" not in {line.text for line in lines}
+    assert [n.name for n in not_ordered] == ["kanelia"]
+    assert not_ordered[0].reason.en == "The recipe gives no amount"
+
+
+@pytest.mark.usefixtures("recipes")
+async def test_order_unlinked_also_searches_a_linked_product_missing_from_the_catalogue(db):
+    # Leave the butter's linked product out of the catalogue.
+    await db.execute(text("DELETE FROM recipe_product_links WHERE product_id = '463798'"))
+    lines, not_ordered = await recipes.expand_lines(db, [recipe_line(recipe_ref=unlinked())])
+
+    [butter] = [line for line in lines if line.line_id == "r1-3"]
+    assert butter.product_id is None and butter.text
+    assert not_ordered == []
+
+
+@pytest.mark.usefixtures("recipes")
+async def test_an_ingredient_line_ordered_by_name_stays_as_sent(db):
+    # The buyer changed the amount on the confirmation page.
+    salt = recipe_line(
+        line_id="r1-1",
+        text="suolaa",
+        quantity="0.5",
+        unit="kg",
+        recipe_ref={**unlinked(), "ingredient_index": 1},
+    )
+
+    lines, not_ordered = await recipes.expand_lines(db, [salt])
+
+    assert [(line.line_id, line.text, line.quantity, line.product_id) for line in lines] == [
+        ("r1-1", "suolaa", Decimal("0.5"), None)
+    ]
+    assert "suolaa" not in {n.name for n in not_ordered}
+
+
+@pytest.mark.usefixtures("recipes", "borrowed_offers")
+async def test_the_rest_of_a_recipe_added_later_stays_out_of_not_ordered(db, caller):
+    first = await quotes.build_quote(db, caller, BuildQuoteRequest(lines=[recipe_line()]), now=T0)
+    assert len(first.not_ordered) == 4
+
+    # "Find the rest too": the recipe line again, with the flag.
+    second = await quotes.update_quote(
+        db,
+        caller,
+        UpdateQuoteRequest(quote_id=first.quote_id, lines=[recipe_line(recipe_ref=unlinked())]),
+        now=T0,
+    )
+    assert second.not_ordered == []
+    stored = (await stored_input(db, caller, second.quote_id))["lines"]
+    named = [line for line in stored if line["recipe_ref"].get("order_unlinked")]
+    assert len(named) == 4 and {line["product_id"] for line in named} == {None}
+    # The test catalogue has no flour, salt or yeast, so the engine asks or rejects; each
+    # added line is accounted for, none is silently dropped.
+    accounted = {line.line_id for line in second.lines} | {r.line_id for r in second.rejections}
+    if second.clarification:
+        accounted.add(second.clarification.line_id)
+    assert {"r1-0", "r1-3"} <= accounted
+
+    # An edit sends the stored lines again (as the confirmation page does): still ordered.
+    edited = [LineRequest.model_validate(line) for line in stored]
+    third = await quotes.replace_quote(db, caller, second.quote_id, edited, now=T0)
+    assert third.not_ordered == []
 
 
 @pytest.mark.usefixtures("recipes")
