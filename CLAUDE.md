@@ -1,12 +1,14 @@
 # CLAUDE.md
 
-Junction 2026, Valio Aimo challenge: a voice ordering agent on top of a deterministic decision engine.
+Junction 2026, Valio Aimo challenge: a deterministic ordering engine behind one MCP server, with phone (Gemini voice), WebMCP webshop and chat connector clients on top.
 
 ## Source of truth
 
-- `vision.md` (draft v1, 2026-11-14) is the source of truth. Check it before relying on the GitHub issues. It adopts the no-organisation direction below; its section 13 lists what still needs team agreement.
-- Issue #1 (engine model) assumes mandates, allowed categories, approver roles, caps and confirmation tiers C2/C3. That organisation model is **under review**: the proposed direction is no organisation structure, the caller is assumed eligible, and every purchase is finished with an SMS confirmation (2FA). Not yet agreed by the whole team. Don't build on the mandate model until `vision.md` settles it.
-- `valio-api-analysis.md` holds the findings about the mock API and data.
+- `vision.md` (draft v1, 2026-11-14) is the source of truth for what we build. Its section 13 lists what is decided and what is still open.
+- `technical-plan.md` (draft v1, 2026-11-14) describes how we build it: architecture, build-or-buy choices, hosting, milestones. Its section 13 lists the open technical questions.
+- `valio-api-analysis.md` holds the findings about the mock API and data. Where it disagrees with `vision.md` (for example on `closingTime` or voice-only), `vision.md` wins.
+- **The existing GitHub issues (#1 to #21) are not a source.** They describe a superseded model (mandates, caps, approver roles, confirmation tiers, voice only). Don't build on them or cite them. New issues will be created from `vision.md` and `technical-plan.md`, and those are valid.
+- There is no organisation model: the caller is assumed eligible, and every order is confirmed by a human through the SMS link.
 
 ## Demo UI
 
