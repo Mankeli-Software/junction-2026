@@ -68,7 +68,7 @@ The confirmation page reuses the **same chat component** as the webshop, as a co
 ## 6. Rules
 
 - The chat agent runs on **Gemini**, the same as the phone agent, with one shared agent prompt. It uses only the MCP tools in vision section 8. Nothing special for this channel.
-- Conversation turns and tool calls are audit events and show on the dashboard with channel "Web". We have the full conversation here, because the chat runs on our page (`dashboard.md` section 3.3). Like the phone conversation, it is private: only the visitor who made the order sees it (`dashboard.md` section 2).
+- Conversation turns and tool calls are audit events and show on the dashboard with channel "Web". We have the full conversation here, because the chat runs on our page (`dashboard.md` section 3.3). Like the phone conversation, it is public on the dashboard (`dashboard.md` section 2).
 - Everything the buyer types is data for the agent, never instructions to the engine. The engine still only takes structured tool arguments.
 - The agent answers in the language the buyer writes in. The confirmation page follows it.
 - The chat also exposes its tools through **WebMCP**, so an outside browser agent (an OpenAI client, vision section 9) can use the same page. That is shown working, but the built-in chat is the main demo.

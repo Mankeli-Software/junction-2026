@@ -28,7 +28,7 @@ Taken from the UI specs in `docs/specs/` (2026-11-14). The specs README says the
 | Quote expiry | Off during the event (`quote_ttl` unset), for example 30 minutes in production. After confirming, the link stays readable as a receipt until the end of the event |
 | Demo companies | Each new number gets a generated company with a unique, funny-sounding Oy name. The same number gets the same company |
 | Kitchen profile | The visitor chooses the exclusions on the call page. The seeded order history is still open (section 14) |
-| Conversation in the audit log | Buyer and agent turns and every tool call with its response are audit events. Their content is private (section 9.5) |
+| Conversation in the audit log | Buyer and agent turns and every tool call with its response are audit events. They are shown on the public dashboard (section 9.5) |
 | Webshop | The current Aimo webshop scraped as a static page. It registers the WebMCP tools (P0) and gets the S.I.MO chat panel (stretch), which runs on Gemini like the phone |
 | Recipe orders | Only ingredients with a product link (`data/recipe-product-map.json`) are ordered. The rest are listed as "not ordered" |
 | Confirmation page | Follows the language of the call or chat. After an edit, only new or changed flags need a new acknowledgement |
@@ -40,7 +40,7 @@ Taken from the UI specs in `docs/specs/` (2026-11-14). The specs README says the
 | Call language | The agent follows the caller's language. A setting can force Finnish or English |
 | Connector accounts | Both: self sign-up, and accounts we create and hand out |
 | Demo login | Typing a phone number (real or fake) on the demo page creates a demo user and logs that browser in. That browser session is the login; these users have no password |
-| Dashboard access | General data is public, with no login. Chat logs, phone numbers, emails and raw event data are private: each user sees only their own, operators see everything (vision §11). This extends vision §11, where buyers see only their own company's orders |
+| Dashboard access | **Changed 2026-11-14 (Juho, needs team OK)**: everything on the dashboard is public, with no login: orders, steps, transcripts, tool calls and payloads. Phone numbers and emails are only ever shown masked. The confirmation token, the link and the simulated inbox stay private. No operator role or login. This replaces the earlier split (general data public, chat logs and contact details private) and extends vision §11, where buyers see only their own company's orders (section 9.5) |
 | Confirmation messages | Every message goes to the simulated phone inbox, which is shown on the phone page only. Real SMS through Twilio sits behind a feature flag that is off by default. Even with the flag on, only phone numbers on an allowlist get a real SMS. Production would use SMS only |
 
 Constraints from vision.md that shape the architecture:
@@ -131,7 +131,7 @@ REST and MCP share one set of Pydantic models and one service layer. FastAPI tur
 | Webshop with WebMCP | The `modelContext` API in the ChatGPT desktop app's browser. The MCP-B polyfill or Chrome's testing flag for ordinary Chrome | The scraped static webshop page, WebMCP tool registration calling `/api/v1`, and the S.I.MO chat panel (stretch) | P0 (chat panel stretch) |
 | Claude connector | Claude custom connectors (remote MCP URL plus OAuth). MCP Python SDK auth routes (metadata, client registration, authorize, token, PKCE). `argon2-cffi` for password hashes | Users table, the SDK's authorization-server provider backed by Postgres, login and sign-up pages | P1 |
 | OpenAI connector | ChatGPT custom MCP connectors | Testing only | P1 |
-| Live dashboard | Server-Sent Events (`sse-starlette`), Postgres `LISTEN/NOTIFY`. The listener needs a direct connection on port 5432, because PgBouncer in transaction mode drops notifications | Status events, plain-language step texts, operator and buyer views | P0 |
+| Live dashboard | Server-Sent Events (`sse-starlette`), Postgres `LISTEN/NOTIFY`. The listener needs a direct connection on port 5432, because PgBouncer in transaction mode drops notifications | Status events, plain-language step texts, one public view | P0 |
 | Audit trail | Postgres, SHA-256 | Append-only hash-chained table, database privileges, chain checker | P0 |
 | Database | Deployed: the existing Azure Database for PostgreSQL instance, with `vector`, `pg_trgm` and `unaccent` allowed in `azure.extensions` (done 2026-11-14). Development: the `pgvector/pgvector` image in Docker. SQLAlchemy 2, Alembic | Schema, migrations (the first one runs `CREATE EXTENSION`), loaders, seed data | P0 |
 | Hosting | Azure VM, Docker Compose, Caddy (automatic HTTPS), Azure Key Vault with a managed identity, `azure-identity` and `azure-keyvault-secrets` | Compose file for the app containers, a development override with the database, Caddyfile, deploy script, a settings loader for `.env` or Key Vault | P0 |
@@ -356,20 +356,19 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 - Each event also carries `session_prev_hash`, the hash of the previous event in the same session. This lets one order's chain be verified on its own, which `docs/specs/dashboard.md` §3.4 needs, while the global chain still covers everything.
 - The writer takes a transaction-level advisory lock (`pg_advisory_xact_lock`) so the chain stays linear. It is released at commit, so it would also work through transaction pooling, but the app connects directly anyway (section 10.1). The application's database role has only `INSERT` and `SELECT` on the table.
 - Events: request, candidates considered, filters applied, choice and reason codes, quote, SMS sent or failed, confirmation (vision §11). The full engine input is stored so any decision can be replayed.
-- Conversation turns (`buyer_said`, `agent_said`) and tool calls with their full responses (`tool_called`, `tool_returned`) are audit events too (`docs/specs/README.md`). Their payloads are private (section 9.5). `docs/specs/dashboard.md` §5 lists the event types the dashboard needs.
+- Conversation turns (`buyer_said`, `agent_said`) and tool calls with their full responses (`tool_called`, `tool_returned`) are audit events too (`docs/specs/README.md`). They are public on the dashboard (section 9.5). `docs/specs/dashboard.md` §5 lists the event types the dashboard needs.
 - Events store only masked phone numbers. The full number stays in `users` and is deleted after the event (`docs/specs/call-screen.md` §6).
 - `scripts/verify_audit_chain.py` checks the chain, for the pitch.
 
 ### 8.6 Dashboard
 
-- A `status_events` row is written in the same transaction as each audit event. A trigger calls `pg_notify`. A FastAPI listener on its own direct connection (port 5432, not PgBouncer) pushes the events over two SSE streams: a public one with the public part of each event, and a private one filtered to the logged-in user's own orders (operators get all).
+- A `status_events` row is written in the same transaction as each audit event. A trigger calls `pg_notify`. A FastAPI listener on its own direct connection (port 5432, not PgBouncer) pushes the events, redacted (section 9.5), over one public SSE stream. The simulated inbox has its own per-user stream (section 9.2).
 - `/dashboard`: orders grouped by company. Open one to see the steps in plain words, rejected candidates, flags and confirmation state. Failures too: rejected, link expired, SMS failed, callback requested. Large type, readable from a distance.
 - The relay emits call events (started, tool called, ended), so a call shows up while it is still going on.
 - A periodic job marks expired quotes and emits the event, because expiry does not happen on its own. It only runs when expiry is on, which it isn't during the event.
 - On connect, a stream sends a snapshot of the current sessions, then live events. Session states follow `docs/specs/dashboard.md` §4.
-- Public and private views (decided 2026-11-14): anyone can see general data without logging in, and only the owner sees chat logs and contact details (section 9.5). Each status event carries a public part (step, status, counts, totals, timestamps, generated company name, no phone numbers or personal names) next to the private detail.
-- Private endpoints accept web sessions only, never MCP tokens, so no agent can read the log (vision §8). Public endpoints carry no audit payloads, tool arguments or transcripts.
-- How operators log in is a follow-up issue (section 14).
+- Fully public (changed 2026-11-14, section 9.5): anyone can see everything without logging in, including transcripts and tool calls. Phone numbers and emails only ever appear masked, and the confirmation token and link never appear.
+- There is no operator login (#62 closed as not needed).
 
 ## 9. Endpoints and messages
 
@@ -378,7 +377,7 @@ Checked on 2026-11-14 against the UI design in `docs/design/` (18 screens: start
 Two rules, from vision §6 and §8:
 
 - **The confirmation link goes only to the account that made the order**: to that account's simulated phone inbox, and by Twilio SMS to allowlisted numbers when the flag is on (section 8.2). No agent tool, voice message or public endpoint returns the token or the link. The notification "Tap to check it" on `13-call-ended` fits if it opens the message in the simulated phone. The webshop's "Open confirmation page" (`42-webshop-quote`) doesn't: a browser agent works inside that page and could follow the link (vision §8). So the simulated inbox is shown on the phone page only, never in the shop (decided).
-- **Agents get the seven tools and nothing else.** Confirm, cancel, acknowledgements, edits on the page, the inbox, the private dashboard and the audit log are web-session endpoints. They never accept MCP tokens and are never registered as WebMCP tools.
+- **Agents get the seven tools and nothing else.** Confirm, cancel, acknowledgements, edits on the page and the inbox are web-session endpoints. They never accept MCP tokens and are never registered as WebMCP tools. The dashboard is public and read-only, but it is not a tool either.
 
 ### 9.1 Agent tools and their REST twins
 
@@ -410,12 +409,12 @@ Fields the screens need that section 4.1 doesn't list yet:
 | Method and path | Request → response | Screens |
 |---|---|---|
 | `POST /api/v1/demo/accounts` | `{phone_e164, exclusions[], lang}` → creates a demo user for this browser and sets the session cookie (this is the login). Returns `{company_name, phone_masked, kitchen_profile, usual_items}`. Exclusions must be keys of `allergen_rules.yaml` | `10-call-setup`, `11-call-contact`, webshop |
-| `GET /api/v1/private/inbox` | → `[{id, at, text, link}]` for the logged-in user. New messages also arrive on the private stream as `inbox_message` | Simulated phone (`13-call-ended`) |
+| `GET /api/v1/private/inbox` | → `[{id, at, text, link}]` for the logged-in user. New messages also arrive on the inbox stream (SSE `GET /api/v1/private/inbox/stream`) as `inbox_message`. The inbox is the only private, per-user data left, because its link is the authorisation | Simulated phone (`13-call-ended`) |
 | `POST /api/v1/signup` | `{email, password, phone_e164}` → session cookie | Connector accounts |
-| `POST /api/v1/session`, `DELETE /api/v1/session` | `{email, password}` → session cookie; log out | Connector users on the dashboard |
+| `POST /api/v1/session`, `DELETE /api/v1/session` | `{email, password}` → session cookie; log out | Connector login (#48) |
 | `GET /api/v1/me` | → `{company_name, exclusions, phone_masked}` | Call screen, webshop chat header |
 
-- **Company per number, private data per user**: the same number gets the same generated company and kitchen profile (`docs/specs/call-screen.md` §2.2), so cards group by company on the dashboard. Each browser that types the number is its own user, and private data (transcripts, contact details) belongs to the user who made the session. Typing someone else's number therefore shows that company's public data, never their chats (*proposed*: this reconciles the spec with the private-data decision).
+- **Company per number, inbox per user**: the same number gets the same generated company and kitchen profile (`docs/specs/call-screen.md` §2.2), so cards group by company on the dashboard. Each browser that types the number is its own user, and the simulated inbox belongs to the user who made the session. Typing someone else's number therefore never shows their confirmation links (*proposed*).
 - **Generated company names**: unique, funny-sounding Oy names, generated by us and never typed by the visitor, so they are safe to show publicly. A change to the kitchen profile applies from the next call.
 
 The connector's OAuth routes come from the MCP SDK (section 7.3). Every path into a call goes through the number entry, because that number is the SMS recipient and the session is the login. On a computer the same phone flow runs inside a frame (`14-call-on-computer`), number entry included.
@@ -432,7 +431,7 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 | Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
 | Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone) |
 
-`ended` arrives before the socket closes and covers the no-quote and SMS-failed cases. The link itself never travels on this socket: the simulated phone reads it from the inbox endpoint (section 9.2). Live captions need Gemini Live's input and output transcription turned on. Transcripts become `buyer_said` and `agent_said` audit events (`docs/specs/README.md`), with private payloads (section 9.5). They never enter the engine input (vision §5). Because the chain hashes over `payload_hash` (section 8.5), the text can be deleted after the event without breaking the chain.
+`ended` arrives before the socket closes and covers the no-quote and SMS-failed cases. The link itself never travels on this socket: the simulated phone reads it from the inbox endpoint (section 9.2). Live captions need Gemini Live's input and output transcription turned on. Transcripts become `buyer_said` and `agent_said` audit events (`docs/specs/README.md`), shown on the public dashboard (section 9.5). They never enter the engine input (vision §5). Because the chain hashes over `payload_hash` (section 8.5), the text can be deleted after the event without breaking the chain.
 
 ### 9.4 Confirmation page (web only)
 
@@ -448,38 +447,28 @@ The token is in the path. `GET` never uses it up.
 
 Edits use the same service as `update_quote`, and acknowledgements carry over by `flag_key` (section 8.3). The `state` values follow the page states in `docs/specs/confirmation-page.md` §3. After confirming, the `GET` keeps working read-only as the receipt until the end of the event (§7 of that spec).
 
-### 9.5 Dashboard: public and private
+### 9.5 Dashboard: public, no login
 
-Decided 2026-11-14: general data is public with no login, and private data needs the login from section 9.2.
-
-**Public** (no login, every order):
+**Changed 2026-11-14 (Juho, needs team OK)**: everything on the dashboard is public, with no login. This replaces the earlier split, where transcripts, tool calls, payloads and contact details were private to the user who made the order, and closes the operator-login question (#62). It goes back to the original `docs/specs/dashboard.md` §2. Tracked in #49 and #50.
 
 | Method and path | Response | Screens |
 |---|---|---|
-| `GET /api/v1/public/orders?state=&channel=&since=` | `business_now`, `totals{active, waiting, confirmed, attention, confirmed_cents, by_channel}`, `companies[{name, exclusions, orders[{session_id, order_number, channel, client, state, state_since, title, step_text, line_count, total_cents, flags, next_step}]}]` | Overview |
+| `GET /api/v1/public/orders?state=&channel=&since=` | `business_now`, `totals{active, waiting, confirmed, attention, confirmed_cents, by_channel}`, `companies[{name, exclusions, orders[{session_id, order_number, channel, client, identity_masked, state, state_since, title, step_text, line_count, total_cents, flags, next_step}]}]` | Overview |
 | `GET /api/v1/public/orders/{session_id}` | Header, lines with trace and ranked candidates, flags (text, acknowledged or not), `quote{id, version, hash}`, signature valid | Summary |
-| `GET /api/v1/public/orders/{session_id}/steps` | `[{seq, order_index, at, actor, type, text{fi, en}, payload_hash, prev_hash, session_prev_hash, hash}]` | Full flow (engine steps), Audit log (without JSON) |
+| `GET /api/v1/public/orders/{session_id}/steps` | `[{seq, order_index, at, actor, type, text{fi, en}, payload_hash, prev_hash, session_prev_hash, hash}]` | Full flow (engine steps), Audit log |
+| `GET /api/v1/public/orders/{session_id}/transcript` | The call or chat transcript | Full flow: "Buyer (transcript)", "Agent (transcript)" |
+| `GET /api/v1/public/orders/{session_id}/events` | Full events: tool arguments and results, payloads, Identity row (masked); `?download=1` returns the JSON file | Full flow, Audit log JSON, "Download JSON" |
 | `GET /api/v1/public/audit/verify?session_id=` | `{ok, checked, first_bad_seq, signature_valid}` | "Audit chain intact", "Verify again" |
-| SSE `/api/v1/public/stream` | `order_updated` (public card), step events | Live updates |
+| SSE `/api/v1/public/stream` | Snapshot, then `order_updated` (card), `step` and `transcript` events | Live updates |
 
-**Private** (logged in; a user sees only their own orders, an operator sees all):
-
-| Method and path | Response | Screens |
-|---|---|---|
-| `GET /api/v1/private/orders` | The user's own orders, with contact details | "My orders" |
-| `GET /api/v1/private/orders/{session_id}/transcript` | The call or chat transcript | Full flow: "Buyer (transcript)", "Agent (transcript)" |
-| `GET /api/v1/private/orders/{session_id}/events` | Full events: tool arguments and results, payloads, Identity row; `?download=1` returns the JSON file | Full flow, Audit log JSON, "Download JSON" |
-| SSE `/api/v1/private/stream` | The user's own transcripts, `inbox_message`, and the private detail of their events | Live updates, simulated phone |
-
-- **Public**: totals, channel counts, card status, generated company names, kitchen exclusions, lines, flags, templated steps, hashes and the verify result.
-- **Private**: transcripts, phone numbers, emails, tool arguments and results, raw payloads and the Identity row.
-- Another user's `session_id` in a private endpoint returns 404, so ids reveal nothing.
+- **Never shown**, even though everything else is public: the confirmation token and link, full phone numbers, full emails, session cookies and caller tokens. Events are written with masked numbers (section 8.5), and every response and stream event also goes through one redaction function.
+- **Still private**: only the simulated inbox (section 9.2), because the link in it is the authorisation.
+- **What it costs**: visitors' transcripts are visible to anyone with the URL, including on the big screen, so the call screen notice must say so (`docs/specs/call-screen.md` §2.1). Any agent that fetches the dashboard URL can read the log; vision §8 says agents can't read the audit log, but the dashboard is still not a tool, and nothing on it can act on an order.
 - "Verify again" works without login because the chain hashes over `payload_hash` (section 8.5).
 - Each event has a link within its session as well as its place in the global chain (section 8.5), so one order's chain can be verified on its own. `order_index` is the event's number within the order ("#1 to #31" in the design), shown next to the global `seq`.
 - Session states and event types follow `docs/specs/dashboard.md` §4 and §5.
 - The client name ("Claude", "ChatGPT") comes from the OAuth client registration. A WebMCP call can't tell which agent is calling, so it shows as "browser agent".
 - *Proposed*: an MCP or WebMCP session counts as active for 10 minutes after its last tool call, since it has no hang-up.
-- Operators are users with an operator role. How they log in is a follow-up issue (section 14).
 
 ### 9.6 Webshop chat (stretch)
 
@@ -502,7 +491,7 @@ New columns and event types these endpoints need:
 - `sessions`: `state`, `state_since`, `ended_at`, `ended_by`, `client_name`, `prompt_version`.
 - `orders`: a readable `order_number` (for example D-1042).
 - `confirmations`: `opened_at`, and one acknowledgement row per flag (`flag_key`, `at`).
-- `users`: `role` (`buyer` or `operator`). `companies`: generated name.
+- `companies`: generated name. (No `users.role`: there are no operators, section 9.5.)
 - `sms_messages`: one row per message and delivery path (`twilio` or `inbox`), each with its own status.
 - `quotes`: `version`, `parent_quote_id`.
 - `audit_events`: `actor`, `text_fi`, `text_en`, `payload_hash`, `session_prev_hash` (section 8.5).
@@ -514,7 +503,6 @@ These decisions were made after the specs were written, so the specs need an upd
 
 | Topic | `docs/specs/` says | Decided later (2026-11-14) |
 |---|---|---|
-| Dashboard access | No login, everything public, including the conversation (`dashboard.md` §2, §3.3, §8; `call-screen.md` §2.1 notice) | General data public, conversation and contact details private behind the number-entry login (section 9.5) |
 | SMS | Twilio always sends (`call-screen.md` §2.4, §3; `confirmation-page.md` §2) | Every message goes to the simulated phone inbox. Twilio sits behind a flag that is off by default, for allowlisted numbers only (section 8.2). The per-number SMS limit in `call-screen.md` §6 then only matters for allowlisted numbers |
 | Link in the webshop chat | "Open confirmation page" card in the chat (`webshop-chat.md` §2, §4.4) | The inbox shows on the phone page only, because a browser agent works inside the shop page (vision §8). Webshop visitors read the link on the phone page in the same browser |
 
@@ -635,7 +623,7 @@ The first review settled every other open question (section 1). These three get 
 
 1. **Nut-free set.** Whether pine nut (`PN`), coconut (`SO`) and peanut (`AP`) count as nuts. Vision §10 left this to old issue #6, which is not a source.
 2. **Demo order history.** The seeded order history a new demo company gets, so "my usual" works (vision §13, still open). The kitchen profile is chosen by the visitor (`docs/specs/call-screen.md` §2.2).
-3. **Operator login.** How Aimo operators log in to see every company's private data (vision §11). The public and private split and the buyers' login are decided (sections 9.2 and 9.5).
+3. **Operator login.** Not needed: the dashboard is fully public (section 9.5, decided 2026-11-14, #62 closed).
 
 Input we are waiting for: the product image file (`code`, `name`, `img`).
 

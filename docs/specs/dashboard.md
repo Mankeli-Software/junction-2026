@@ -14,15 +14,14 @@ It answers three questions at a glance:
 
 It is evidence for the judging criteria: end-to-end demo (30%), autonomy and controls (20%), robustness (15%).
 
-## 2. Access: general data public, private data behind the login
+## 2. Access: everything public, no login
 
-- **General data is public, with no login.** Anyone with the URL sees every order: counters, cards, what was ordered and why, flags, engine steps, hashes and the chain check. Companies show only by their generated name. That keeps the demo easy to follow and lets judges open it on their own device.
-- **The conversation and contact details are private.** Buyer and agent text, tool call arguments and responses, raw event payloads, and the phone number or email (masked) are shown only to the user who made the order. They log in with the same number entry as the call screen and the webshop (`call-screen.md` section 2.1), so the browser that made the order sees its own private data. Chat connector users log in with their email and password. Operators see everything; how they log in is still open (`technical-plan.md` section 14).
-- Private data belongs to the browser session that made the order. Typing someone else's number shows that company's public data, never its conversations (`technical-plan.md` section 9.2, proposed).
+- **Everything is public, with no login** (changed 2026-11-14, `technical-plan.md` §9.5). Anyone with the URL sees every order: counters, cards, what was ordered and why, flags, engine steps, the conversation, tool call arguments and responses, event payloads, hashes and the chain check. Companies show by their generated name. That keeps the demo easy to follow and lets judges open it on their own device. This replaces an earlier split where the conversation and contact details were private; there is no operator login (#62 closed).
+- **Never shown:** full phone numbers and emails (only masked), the confirmation token and link, cookies and tokens. The server redacts every response and live event. The simulated inbox is the only private data, and it is not on the dashboard (`technical-plan.md` §9.2).
 - It is read-only. Nothing on the dashboard can confirm, cancel, edit or resend an order. Those actions exist only on the confirmation page (vision section 6).
-- It plays the role of the **Aimo operator view** from vision section 11. The **buyer view** is the confirmation page and the "order received" page, reached through the link. The private view reuses the demo login; we do not build a separate buyer account for the dashboard.
-- Agents never read the dashboard. It is not an MCP tool and the MCP server has no route to its data (vision section 8, issue #14). The private data is served to logged-in web sessions only, never to an MCP token.
-- **Privacy.** Booth visitors type their own real phone number. The dashboard never shows it in full, and shows it only in the private view, masked as `+358 40 *** **12`. What they say on the call is shown as text only to them (section 3.3), never on the public dashboard or the big screen, and they are told so before the call starts. No other personal data exists.
+- It plays the role of the **Aimo operator view** from vision section 11. The **buyer view** is the confirmation page and the "order received" page, reached through the link. We do not build a buyer account for the dashboard.
+- Agents never read the dashboard. It is not an MCP tool and the MCP server has no route to its data (vision section 8, issue #14). Nothing on it can act on an order.
+- **Privacy.** Booth visitors type their own real phone number. The dashboard never shows it in full, only masked as `+358 40 *** **12`. What they say on the call is shown as text on the public dashboard, including the big screen (section 3.3), and they are told so before the call starts. No other personal data exists.
 - **Demo companies.** Each new caller number gets its own generated company with a unique, funny-sounding Oy name (for example "Hassu Hauki Oy" or "Lihapulla ja Pojat Oy"). The same number calling again gets the same company. This makes the grouping by company on the overview meaningful and makes each visitor's order easy to spot on the screen.
 
 Production note for the pitch: in real use this view sits behind Aimo staff login, and buyers see only their own company. That is access control on top of the same read model, not a different dashboard.
@@ -33,8 +32,8 @@ Four levels, each a drill-down from the one above:
 
 1. **Overview:** all orders, live.
 2. **Order summary:** what was ordered and why. The main screen, and the one that has to look good.
-3. **Full flow:** everything that happened in the session, including the conversation and tool calls. An extra view for the details. The conversation and tool call details are private (section 2).
-4. **Audit log:** the raw, hash-chained events. Event payloads are private (section 2).
+3. **Full flow:** everything that happened in the session, including the conversation and tool calls. An extra view for the details. Public, like everything else (section 2).
+4. **Audit log:** the raw, hash-chained events. Public, with identities masked (section 2).
 
 Everything is audited, and the audit log is grouped by order. There is no global log across all orders; the per-order view is enough for the demo. The presenter navigates between the levels by hand; there is no separate stage or auto-follow mode. Each level has its own URL and updates live while open.
 
@@ -58,7 +57,7 @@ The counters add up everything since the server started. There is no reset.
 
 One card per order session (one conversation that ends in at most one quote being confirmed). Each card shows:
 
-- Company name and channel badge (Phone, Web, Chat). The masked phone number or email shows only in the private view (section 2).
+- Company name and channel badge (Phone, Web, Chat). The masked phone number or email.
 - Status (see section 4) with time in that status ("Waiting for confirmation, 2 min"; the time to expiry is shown only when expiry is on, and it is off during the event).
 - What was asked, in one line (from the first request, for example "1,000 L lactose-free milk by Monday").
 - Line count, gross total, delivery date.
@@ -124,7 +123,7 @@ Example:
 
 Filter toggle above the timeline: **Everything** (default), **Conversation only** (buyer and agent), **Agent and engine only** (tool calls and engine steps). Seeing the buyer's own words next to the tool call arguments is what makes a mishearing visible ("fifteen" heard as "fifty").
 
-For the user who made the order, each tool call entry expands to the full arguments and the full response the agent received, so you can see exactly what the agent was told and what it then said. Quote versions are shown where they happen (v1 built, v1 voided by an edit, v2 built). Every entry links to its audit event (3.4).
+Each tool call entry expands to the full arguments and the full response the agent received, so you can see exactly what the agent was told and what it then said. Quote versions are shown where they happen (v1 built, v1 voided by an edit, v2 built). Every entry links to its audit event (3.4).
 
 The header shows which agent version and prompt version ran the session, with a link to view that prompt. The prompt itself is not in the timeline.
 
@@ -136,8 +135,6 @@ What we can capture depends on the channel:
 | Mock webshop with WebMCP | Yes, if the chat runs on our page | Yes |
 | Chat connector (Claude, OpenAI) | **No.** The conversation stays in the buyer's own client; our MCP server only sees tool calls | Yes |
 
-Without the login, the timeline keeps the engine and confirmation entries and shows the other entries without their content: when the buyer or the agent spoke, and which tool was called with the decision that came back, but not the words, the arguments or the response. The "Conversation only" filter needs the login.
-
 For connector sessions the timeline says so in plain words ("Conversation happens in the buyer's own Claude client and is not visible to us. Tool calls shown below.") instead of looking empty.
 
 Rules for conversation text:
@@ -145,18 +142,18 @@ Rules for conversation text:
 - It is data, not instructions. It is escaped when shown and is never used in an engine decision (vision section 8). The engine still only receives the structured tool call arguments.
 - Voice transcripts are speech-to-text output and can be wrong. They are labelled as transcripts.
 - It is part of the audit log (one event per turn), so it is hash-chained with everything else.
-- It is private (section 2). Only the user who made the order sees it, logged in; the public dashboard and the big screen never show it. The call screen tells visitors this before the call starts.
+- It is public (section 2), on the big screen too. The call screen tells visitors this before the call starts.
 
 ### 3.4 Audit log
 
 The lowest level: the raw, hash-chained audit events behind one order session. Opened from the order summary's trust strip or from any entry in the full flow.
 
-- **Event list.** Every event of the session in order: sequence number, timestamp, event type, the plain-language sentence, and a short form of its hash. Nothing is summarised or hidden at this level; conversation turns, tool calls, rejected candidates, voided quotes and failed SMS attempts are all there. Without the login, conversation turns and tool calls are listed without their content.
+- **Event list.** Every event of the session in order: sequence number, timestamp, event type, the plain-language sentence, and a short form of its hash. Nothing is summarised or hidden at this level; conversation turns, tool calls, rejected candidates, voided quotes and failed SMS attempts are all there.
 - **Event detail.** For the user who made the order (section 2), clicking an event shows its full record: all fields and the structured payload as formatted JSON (the one place raw JSON is shown), its `prev_hash` and `hash`.
 - **Chain check.** A "Verify chain" result at the top: the dashboard recomputes each hash from the event content and the previous hash and shows "Chain intact" or the first event where it breaks. This is how we show tamper evidence live, not only claim it. This needs the backend to chain events per session (or to give each event a per-session link as well as its place in a global chain); with one global chain only, one order's events cannot be checked on their own.
 - **Quote check.** For quote events, the quote hash and the result of checking its signature against the published key.
 - **Back links.** Each event links back to the entry it explains in the full flow or the order summary.
-- **Download.** The session's events as a JSON file, so a judge can check the chain themselves. Private, like the payloads; the chain check itself works without the login, because each hash covers a hash of the payload, not the payload.
+- **Download.** The session's events as a JSON file, so a judge can check the chain themselves. Public, with identities masked. Each hash covers a hash of the payload, not the payload, so the text could be deleted after the event without breaking the chain.
 
 The audit log stays read-only and append-only. The dashboard reads it through the read model and never writes to it. Masked identities stay masked here too.
 
@@ -196,17 +193,17 @@ The dashboard reads its own **read model**, fed from the audit events. It never 
 | `session_id` | Groups events into one card |
 | `company_id`, `company_name` | Grouping on the overview |
 | `channel` | Phone, web, chat badge |
-| `identity_masked` | Masked phone or email, masked server-side. Private |
+| `identity_masked` | Masked phone or email, masked server-side |
 | `ts` | Timeline |
 | `type` | Event kind, see below |
 | `text_fi`, `text_en` | The ready plain-language sentence, from the same templates as the agent text |
-| `payload` | Structured detail for the order summary, full flow and audit log. Private |
+| `payload` | Structured detail for the order summary, full flow and audit log |
 | `seq`, `prev_hash`, `hash` | Audit chain status |
 
-- Conversation events, written by our agent runtime (phone, webshop chat) and the MCP server: `buyer_said`, `agent_said` (text, language, whether it is a transcript), `tool_called` (tool name, full arguments), `tool_returned` (full response). These are written for every channel where we have them (see the table in section 3.3). Their content is private (section 2).
+- Conversation events, written by our agent runtime (phone, webshop chat) and the MCP server: `buyer_said`, `agent_said` (text, language, whether it is a transcript), `tool_called` (tool name, full arguments), `tool_returned` (full response). These are written for every channel where we have them (see the table in section 3.3).
 - Event types (first list, to align with the engine): `session_started`, `customer_identified`, `request_received`, `products_searched`, `candidates_filtered`, `availability_checked`, `line_resolved`, `clarification_asked`, `quote_built`, `quote_voided`, `inbox_delivered`, `sms_sent`, `sms_failed`, `link_opened`, `flags_acknowledged`, `quote_edited`, `order_confirmed`, `order_cancelled`, `quote_expired`, `callback_requested`, `session_ended`.
 - The masking happens before the event reaches the read model. The dashboard never receives the full number.
-- Each event has a public part (type, status, counts, totals, timestamps, the plain-language sentence, hashes, the generated company name) and a private part (conversation text, tool arguments and responses, payload, identity). The public view and its live updates get only the public part (section 2).
+- The server redacts every event before it reaches the dashboard: no token, link or full phone number or email (section 2).
 
 ## 6. Readability rules
 
@@ -232,7 +229,7 @@ Taken from vision section 5 and section 10. Each should be visible end to end on
 
 ## 8. Out of scope
 
-- A login of its own. The private view reuses the number-entry login from the call screen and the webshop (section 2).
+- Any login (section 2).
 - A stage or auto-follow mode. The presenter opens the right call by hand.
 - Any action on orders from the dashboard.
 - Analytics beyond the counters (charts, history over days).
@@ -254,4 +251,4 @@ None at the moment.
 - No counter reset; counters run for the whole event.
 - The order summary shows only what was ordered and why. Conversation, tool calls and engine steps are in a separate full flow view.
 - Everything is audited, grouped by order. No global audit log view.
-- General data is public with no login. The conversation and contact details are private: only the user who made the order sees them, through the number-entry login. Operators see everything.
+- ~~General data is public with no login; the conversation and contact details are private; operators see everything.~~ Replaced later the same day: everything is public with no login, identities masked, no operators (section 2).
