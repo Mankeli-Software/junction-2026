@@ -171,7 +171,7 @@ def test_the_session_greets_first_with_the_tools_vocabulary_and_voice(call):
     assert tools.tokens == [fx.TOKEN]
     assert live.model == "gemini-3.8-live"
     config = live.config
-    assert config.input_audio_transcription.custom_vocabulary == ["S.I.MO", "Valio", "vispikerma"]
+    assert config.input_audio_transcription.custom_vocabulary == ["Valio", "vispikerma"]
     assert config.output_audio_transcription is not None
     voice = config.speech_config.voice_config.prebuilt_voice_config.voice_name
     assert voice == get_settings().voice_name == "Achird"
@@ -183,6 +183,12 @@ def test_the_session_greets_first_with_the_tools_vocabulary_and_voice(call):
     assert quote["properties"]["lines"]["items"]["properties"]["unit"]["enum"] == ["l", "kg"]
     silence = config.realtime_input_config.automatic_activity_detection.silence_duration_ms
     assert silence == get_settings().voice_silence_ms
+
+
+def test_the_vocabulary_leaves_out_the_agents_own_name():
+    # #85: with "S.I.MO" in the list, the recogniser wrote it in place of a caller's
+    # first Finnish words after an English opening.
+    assert not any("simo" in term.lower().replace(".", "") for term in voice_calls.BASE_VOCABULARY)
 
 
 # --- Audio, captions and agent_state ---------------------------------------------------

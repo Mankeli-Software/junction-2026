@@ -242,8 +242,10 @@ def _duration(seconds: int) -> str:
 # --- Custom vocabulary (#51: always send it) --------------------------------------------
 
 # Always in the list: our own names and words the spike found the recogniser mishears.
+# Not "S.I.MO": callers rarely say it, and the recogniser wrote it in place of speech it
+# was unsure of, such as the first Finnish words after an English opening (#85). What
+# the recogniser hears is also what the model acts on (#51), so the call lost its thread.
 BASE_VOCABULARY = (
-    "S.I.MO",
     "Valio",
     "Valio Aimo",
     "laktoositon",

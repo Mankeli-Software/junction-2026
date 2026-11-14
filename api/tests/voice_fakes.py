@@ -256,7 +256,7 @@ class FakeService:
         )
 
     async def custom_vocabulary(self, db):
-        return ["S.I.MO", "Valio", "vispikerma"]
+        return ["Valio", "vispikerma"]
 
     async def record_said(self, db, session_id, who, text, **extra):
         self.said.append((who, text, extra))
