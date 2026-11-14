@@ -76,7 +76,7 @@ For example http://localhost:5173/c/fx-ready-mine. The fixture keeps its state i
 
 `/shop` (#56) is a static page: twelve real Valio products (`src/lib/shop/products.json`, picked from the static product file by `scripts/select_shop_products.py` in the repository root), no prices, cart or search. Visitors type their number in the same number entry as the phone, which makes the same demo account and `simo_session` cookie, so `/phone` in the same tab opens on Contacts with that account. Product pictures are hotlinked with `referrerpolicy="no-referrer"` and a placeholder; the product image file is not in the repository yet, so every product shows the placeholder for now.
 
-The page registers the agent tools with the browser's agent through `document.modelContext`, falling back to `navigator.modelContext` (`src/lib/shop/webmcp.ts`). They are exactly the tools `/mcp` lists, with the same names, descriptions and input schemas, and each calls its REST twin under `/api/v1` with the session cookie. Confirm, cancel, the inbox and page edits are never tools. After `request_confirmation` the page says the link is in the demo phone and links to `/phone`, never to the link itself.
+The page first loads the MCP-B runtime (`@mcp-b/global`), then registers the agent tools through `document.modelContext`, falling back to `navigator.modelContext` (`src/lib/shop/webmcp.ts`). The runtime wraps the browser's own model context when there is one and installs a polyfill when there isn't, and it serves the tools to the MCP-B extension in the same tab (only to the page's own origin, never to a parent frame). A browser with only `navigator.modelContext` keeps it, without MCP-B. They are exactly the tools `/mcp` lists, with the same names, descriptions and input schemas, and each calls its REST twin under `/api/v1` with the session cookie. Confirm, cancel, the inbox and page edits are never tools. After `request_confirmation` the page says the link is in the demo phone and links to `/phone`, never to the link itself.
 
 Generated files in `src/lib/generated/`, never edited by hand:
 
@@ -88,7 +88,15 @@ Generated files in `src/lib/generated/`, never edited by hand:
 
 After changing a tool, a tool description or an API schema, run both commands and commit the three files.
 
-To try the tools locally, run FastAPI (see `api/`) and the web app against it: `DEMO_SOURCE=api pnpm dev`, then open http://localhost:5173/shop. With the default `DEMO_SOURCE=fixture` the page and the number entry work, but the tools answer 503. The page needs a browser with WebMCP: the ChatGPT desktop app's built-in browser, or ordinary Chrome with the MCP-B extension (its `@mcp-b/global` polyfill) or Chrome's WebMCP testing flag in `chrome://flags`. The tools card on the page says whether it found one. The Playwright tests use a shim instead (`tests/support/webmcp-shim.ts`).
+To try the tools locally, run FastAPI (see `api/`) and the web app against it: `DEMO_SOURCE=api pnpm dev`, then open http://localhost:5173/shop. With the default `DEMO_SOURCE=fixture` the page and the number entry work, but the tools answer 503. The page needs an agent that can call WebMCP tools (#93):
+
+| Setup | Status |
+|---|---|
+| **Chrome with the MCP-B extension** | The demo setup. Install the MCP-B extension from the Chrome Web Store, open `/shop`, type a number, then ask the agent to order, either the extension's own chat or an MCP client connected to it (such as Claude Desktop). Still to run through on the demo laptop. |
+| Chrome with `chrome://flags/#enable-webmcp-testing` and Gemini in Chrome | Being checked. Needs Google AI Pro, and Gemini's WebMCP support was announced but not confirmed as shipped. |
+| ChatGPT desktop app's built-in browser | Needs Plus or higher (GPT-6 Sol). On Free and Go (GPT-6 Luna) it fails with `does not support command "webmcp_list_tools"`. |
+
+The tools card on the page shows "ready" whenever it could register the tools, which with the polyfill is almost every recent browser, so it doesn't prove that an agent is listening. The Playwright tests use a shim instead (`tests/support/webmcp-shim.ts`), plus one test against the polyfill itself.
 
 ## Screenshots
 
