@@ -7,7 +7,7 @@ S.I.MO is a deterministic ordering engine behind one MCP server. Any buyer agent
 Three clients sit on top of the same tools, to show that no client is special:
 
 - **Phone**: a call with S.I.MO in the browser, with live captions. The audio goes through our relay to Gemini Live. No real phone call is placed. This is the main stage demo.
-- **Webshop**: our own page in the Aimo webshop's style, with the whole catalogue. It registers the tools through WebMCP, so a browser agent can order there (in the demo, Chrome with the MCP-B extension). It also has a S.I.MO chat panel, which can read a recipe photo.
+- **Webshop**: our own page in the Aimo webshop's style, with every category of the catalogue. It registers the tools through WebMCP, so a browser agent can order there (in the demo, Chrome with the MCP-B extension). It also has a S.I.MO chat panel, which can read a recipe photo.
 - **Chat connector**: Claude, ChatGPT or any MCP client connects to the MCP server directly, after an OAuth login.
 
 No agent tool can confirm an order. The only place to confirm is the page behind the link, which also has an "Ask for changes" chat. Every step goes into a hash-chained audit log and shows up live on the dashboard.
@@ -39,7 +39,7 @@ Built on `main` so far:
 - The confirmation page `/c/[token]`, with its "Ask for changes" chat.
 - The voice relay on Gemini Live, the S.I.MO system prompt, the start page, the call screen and the simulated phone.
 - The public dashboard, its API and its live stream.
-- The webshop with the whole catalogue, the WebMCP tools and the S.I.MO chat panel (Gemini, with A2UI cards).
+- The webshop with every catalogue category (up to 20 products each), the WebMCP tools and the S.I.MO chat panel (Gemini, with A2UI cards).
 - OAuth for the Claude and OpenAI connectors.
 - The FastAPI app, Alembic migrations, Docker Compose, Caddy, Key Vault settings, CI, Application Insights tracing and the deployment on the VM.
 - The Gemini Live spike: Finnish recognition, latency, function calls, a real voice and language switches (`spikes/gemini-live/`).
