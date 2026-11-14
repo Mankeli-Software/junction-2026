@@ -24,7 +24,14 @@ function langParam(url: URL): Lang | null {
 }
 
 export const load: PageServerLoad = async ({ params, url }) => {
-	const view = await confirmationSource().get(params.token);
+	let view;
+	try {
+		view = await confirmationSource().get(params.token);
+	} catch (e) {
+		// The API failed or can't be reached: the generic error page, not an unexpected 500.
+		if (e instanceof ConfirmationError) error(e.status >= 500 ? e.status : 503, 'unavailable');
+		throw e;
+	}
 	if (!view) error(404, 'invalid');
 	return {
 		view,

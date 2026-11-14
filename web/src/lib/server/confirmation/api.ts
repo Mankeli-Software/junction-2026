@@ -1,7 +1,8 @@
 /**
  * The confirmation endpoints of the FastAPI app (technical-plan.md §9.4).
  * Error bodies are assumed to be `{ detail?: { text?: Text, line_id?: string } }`;
- * align this with #47 when the endpoints exist.
+ * align this with #47 when the endpoints exist. When FastAPI can't be reached,
+ * every call throws a ConfirmationError with status 503.
  */
 import type { EditOp, Text } from '#lib/confirmation/types.js';
 import { ConfirmationError, type ConfirmationSource } from './source';
@@ -11,11 +12,20 @@ interface ErrorBody {
 }
 
 export function apiSource(baseUrl: string, fetchImpl: typeof fetch = fetch): ConfirmationSource {
+	async function request(input: string, init?: RequestInit): Promise<Response> {
+		try {
+			return await fetchImpl(input, init);
+		} catch (e) {
+			console.error('Confirmation API unreachable', e);
+			throw new ConfirmationError(503);
+		}
+	}
+
 	const url = (token: string, action = '') =>
 		`${baseUrl.replace(/\/$/, '')}/api/v1/confirmations/${encodeURIComponent(token)}${action}`;
 
 	async function post(token: string, action: string, body: unknown): Promise<void> {
-		const response = await fetchImpl(url(token, action), {
+		const response = await request(url(token, action), {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify(body)
@@ -25,7 +35,7 @@ export function apiSource(baseUrl: string, fetchImpl: typeof fetch = fetch): Con
 
 	return {
 		async get(token) {
-			const response = await fetchImpl(url(token));
+			const response = await request(url(token));
 			if (response.status === 404) return null;
 			if (!response.ok) throw await toError(response);
 			return response.json();
