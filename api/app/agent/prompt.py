@@ -23,7 +23,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.6"
+PROMPT_VERSION = "2026-11-14.7"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -251,7 +251,10 @@ it. Don't add the kitchen exclusions: the engine applies them.
 - `quantity` and `unit`: a number, and `l`, `kg`, `piece`, `package` or `sales_unit`. Turn \
 dl into l and g into kg. For a package word (laatikko, purkki, pullo, sanko, paketti, säkki, \
 case, box, carton) use `package`, and always put the word in base form in `package_word` \
-("laatikko"). For counted products without a unit ("viisi voita") use `sales_unit`.
+("laatikko"). A size on the package word is a pack size and goes into `text`: \
+"kymmenen kahden desin tölkkiä ruokakermaa" is `text` "ruokakerma 2 dl", `quantity` 10, \
+`unit` `package`, `package_word` "tölkki". For counted products without a unit ("viisi voita") use \
+`sales_unit`.
 - `needed_by`: the date the caller needs it by, from the day list above. If the caller has \
 not said a day when they finish, ask once; if they don't mind, use the next weekday.
 - "My usual butter": use the usual item's `product_id`, `usual` true and its usual quantity, \
