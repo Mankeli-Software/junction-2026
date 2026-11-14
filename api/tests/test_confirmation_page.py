@@ -6,7 +6,6 @@ are known: "maito" 20 l is Valio Arki semi skimmed milk 1 l (stock unverified, s
 flag to tick) and "arla" 5 l is Arla fat free milk 1 l (verified).
 """
 
-import random
 import re
 import uuid
 
@@ -19,6 +18,7 @@ from app.adapters import valio
 from app.main import app
 from app.models import AuditEvent, Confirmation, Order, OrderLine, OrderSession, Quote
 from app.services import confirmation_page
+from tests.phones import new_number
 
 pytestmark = pytest.mark.usefixtures("app_db", "no_caller")
 
@@ -53,7 +53,7 @@ class Page:
 def ordered(lang: str = "en") -> tuple[TestClient, dict, str]:
     """A signed-in browser, its quote sent for confirmation, and the token from its inbox."""
     browser = TestClient(app)
-    phone = f"+35840{random.randrange(10**6, 10**7)}"
+    phone = new_number()
     response = browser.post(
         "/api/v1/demo/accounts", json={"phone_e164": phone, "exclusions": [], "lang": lang}
     )

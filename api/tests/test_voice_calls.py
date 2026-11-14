@@ -4,7 +4,6 @@ faked and the tools on the real `/mcp`. Needs DATABASE_URL."""
 
 import asyncio
 import json
-import random
 import time
 import uuid
 from typing import Any
@@ -23,6 +22,7 @@ from app.models import AuditEvent, OrderSession
 from app.schemas import BuildQuoteRequest, RequestConfirmationRequest
 from app.services import accounts, quotes, tokens, voice_calls
 from tests import voice_fakes as fx
+from tests.phones import new_number
 
 pytestmark = pytest.mark.usefixtures("app_db", "no_caller")
 
@@ -34,7 +34,7 @@ def browser(lang: str = "fi") -> TestClient:
     response = client.post(
         "/api/v1/demo/accounts",
         json={
-            "phone_e164": f"+35840{random.randrange(10**6, 10**7)}",
+            "phone_e164": new_number(),
             "exclusions": [],
             "lang": lang,
         },

@@ -1,7 +1,6 @@
 """Demo accounts, web sessions and caller resolution over HTTP (#44). Needs DATABASE_URL."""
 
 import json
-import random
 import uuid
 from datetime import timedelta
 from typing import Annotated
@@ -20,15 +19,11 @@ from app.services.accounts import SessionUser, resolve_session
 from app.services.caller import Caller
 from app.services.tokens import issue_caller_token
 from app.settings import get_settings
+from tests.phones import new_number
 
 pytestmark = pytest.mark.usefixtures("app_db")
 
 LINE = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
-
-
-def new_number() -> str:
-    """A random Finnish mobile number, so numbers in one test never collide."""
-    return f"+35840{random.randrange(10**6, 10**7)}"
 
 
 def browser() -> TestClient:
@@ -137,7 +132,9 @@ def test_response_shape_and_masked_number():
     }
     assert uuid.UUID(body["user_id"]) and uuid.UUID(body["company_id"])
     assert body["new_company"] is True and body["new_user"] is True
-    assert body["exclusions"] == []
+    # Nothing chosen: the kitchen type's defaults, Vegan only for vegan catering (#81).
+    vegan = body["kitchen_type"] == KitchenType.vegan_catering
+    assert body["exclusions"] == (["vegan"] if vegan else [])
     assert body["company_name"].endswith(" Oy")
     assert body["phone_masked"].startswith("+358 40 *** **")
     # A new number gets a kitchen type and its seeded history (#32).

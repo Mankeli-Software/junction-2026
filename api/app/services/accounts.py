@@ -104,6 +104,7 @@ async def create_demo_account(
 
     1. Normalise the number (raises InvalidPhoneNumber).
     2. Find or create the company for it, and write `exclusions` to its kitchen profile.
+       A new company with no exclusions chosen gets its kitchen type's defaults.
     3. Reuse this browser's user if its current session is for the same number; otherwise
        create a new user.
     4. Create a web session, replacing the browser's previous one.
@@ -115,6 +116,11 @@ async def create_demo_account(
     chosen = _clean_exclusions(exclusions)
 
     company, new_company = await _find_or_create_company(db, phone_e164, names, test_run)
+    if new_company and not chosen:
+        # The visitor chose nothing before the type was known: start from the type's
+        # defaults (#81; only the vegan catering type has one, Vegan).
+        kind = history.kitchen_type_for(phone_e164)
+        chosen = _clean_exclusions(history.kitchen_types()[kind].default_exclusions)
     previous = await db.scalar(
         select(KitchenProfile.exclusions).where(KitchenProfile.company_id == company.id)
     )

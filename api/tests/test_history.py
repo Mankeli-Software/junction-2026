@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy import select
 
 from app.models import OrderHistoryLine
-from app.schemas import KitchenType, LineRequest
+from app.schemas import Exclusion, KitchenType, LineRequest
 from app.schemas.tools import BuildQuoteRequest
 from app.seed import history
 from app.services import accounts, customers, quotes
@@ -21,6 +21,7 @@ from app.settings import get_settings
 
 NOW = get_rule_set().policy.business_time
 STAGE = "+358401110000"
+VEGAN = "+358400000003"  # hashes to the vegan catering type
 MILK = "464201"  # Valio kevytmaito 1 l laktoositon, in the school kitchen's history
 OAT_DRINK = "460825"  # Oatly Kaurajuoma, the test catalogue's only plant-based drink
 
@@ -80,6 +81,34 @@ async def test_a_new_account_gets_its_type_and_usual_items(db, stage_number):
 
     assert account.kitchen_type == KitchenType.school_kitchen
     assert MILK in {item.product_id for item in account.usual_items}
+
+
+def test_only_vegan_catering_has_default_exclusions():
+    defaults = {
+        k: s.default_exclusions for k, s in history.kitchen_types().items() if s.default_exclusions
+    }
+    assert defaults == {KitchenType.vegan_catering: (Exclusion.vegan,)}
+
+
+async def test_a_new_vegan_catering_company_starts_vegan(db):
+    assert history.kitchen_type_for(VEGAN) == KitchenType.vegan_catering
+    account = await accounts.create_demo_account(db, VEGAN, [], "fi")
+
+    assert account.new_company and account.exclusions == [Exclusion.vegan]
+    assert (await accounts.me(db, account.user_id)).exclusions == [Exclusion.vegan]
+
+
+async def test_a_vegan_catering_visitor_who_chose_keeps_the_choice(db):
+    account = await accounts.create_demo_account(db, VEGAN, ["nut_free"], "fi")
+
+    assert account.exclusions == [Exclusion.nut_free]
+
+
+async def test_a_returning_vegan_catering_number_can_drop_vegan(db):
+    await accounts.create_demo_account(db, VEGAN, [], "fi")
+    account = await accounts.create_demo_account(db, VEGAN, [], "fi")
+
+    assert not account.new_company and account.exclusions == []
 
 
 async def test_a_milk_free_kitchen_gets_the_oat_drink_instead_of_milk(db, stage_number):

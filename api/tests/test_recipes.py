@@ -5,7 +5,6 @@ and the committed vectors into the test database (the `recipes` fixture).
 """
 
 import copy
-import random
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -35,6 +34,7 @@ from app.services.caller import Caller
 from app.services.errors import InvalidRequestError, NotFoundError
 from app.settings import get_settings
 from tests.conftest import load_recipes
+from tests.phones import new_number
 
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
 # Rukiinen piimäleipä, 6 portions: piimä and butter are linked to products in the test
@@ -318,9 +318,7 @@ async def test_get_recipe_unknown_is_not_found(db):
 async def caller(db: AsyncSession) -> Caller:
     """A kitchen without exclusions: the dev caller's is lactose-free, and the bread's
     piimä is not."""
-    account = await accounts.create_demo_account(
-        db, f"+35840{random.randrange(10**6, 10**7)}", [], "fi"
-    )
+    account = await accounts.create_demo_account(db, new_number(), [], "fi")
     return Caller(
         user_id=account.user_id,
         company_id=account.company_id,

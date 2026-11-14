@@ -3,7 +3,6 @@ their phone step. Needs DATABASE_URL."""
 
 import csv
 import importlib.util
-import random
 import uuid
 from pathlib import Path
 
@@ -16,15 +15,12 @@ from app.interfaces.deps import SESSION_COOKIE
 from app.main import app
 from app.models import User
 from app.services.accounts import create_unclaimed_account
+from tests.phones import new_number
 
 pytestmark = pytest.mark.usefixtures("app_db", "no_caller")
 
 PASSWORD = "correct horse battery"
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "create_handout_accounts.py"
-
-
-def new_number() -> str:
-    return f"+35840{random.randrange(10**6, 10**7)}"
 
 
 def new_email() -> str:

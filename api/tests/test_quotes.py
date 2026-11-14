@@ -5,7 +5,6 @@ through the REST twins with `app_db`.
 """
 
 import json
-import random
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -39,6 +38,7 @@ from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
 from app.services.errors import InvalidLinesError, NotFoundError, StateError
 from tests.conftest import IMAGE_SAMPLE, write_audit
+from tests.phones import new_number
 
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
 IMAGES = json.loads(IMAGE_SAMPLE.read_text(encoding="utf-8"))
@@ -69,9 +69,7 @@ async def caller(db: AsyncSession) -> Caller:
 
 
 async def other_caller(db: AsyncSession, exclusions: list[Exclusion] = ()) -> Caller:
-    account = await accounts.create_demo_account(
-        db, f"+35840{random.randrange(10**6, 10**7)}", exclusions, "en"
-    )
+    account = await accounts.create_demo_account(db, new_number(), exclusions, "en")
     return Caller(
         user_id=account.user_id,
         company_id=account.company_id,

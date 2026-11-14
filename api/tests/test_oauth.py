@@ -7,7 +7,6 @@ the browser (log in through the login form's POST, then Allow on the consent ste
 import base64
 import hashlib
 import json
-import random
 import secrets
 import uuid
 from typing import Annotated
@@ -23,6 +22,7 @@ from app.main import app
 from app.services.accounts import create_unclaimed_account
 from app.services.caller import Caller
 from app.settings import get_settings
+from tests.phones import new_number
 
 pytestmark = pytest.mark.usefixtures("app_db", "no_caller")
 
@@ -30,10 +30,6 @@ CLAUDE_CALLBACK = "https://claude.ai/api/mcp/auth_callback"
 PASSWORD = "correct horse battery"
 # PUBLIC_BASE_URL, which the metadata routes read once when the app is built.
 ORIGIN = get_settings().public_base_url
-
-
-def new_number() -> str:
-    return f"+35840{random.randrange(10**6, 10**7)}"
 
 
 def pkce() -> tuple[str, str]:

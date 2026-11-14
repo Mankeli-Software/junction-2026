@@ -4,7 +4,6 @@ Needs DATABASE_URL.
 """
 
 import json
-import random
 
 import pytest
 from fastapi.testclient import TestClient
@@ -15,14 +14,11 @@ from app.main import app
 from app.services import confirmations, voice_calls
 from app.services.accounts import resolve_session
 from app.services.tokens import issue_caller_token
+from tests.phones import new_number
 
 pytestmark = pytest.mark.usefixtures("app_db")
 
 LINE = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
-
-
-def new_number() -> str:
-    return f"+35840{random.randrange(10**6, 10**7)}"
 
 
 def browser(phone: str, lang: str = "en") -> TestClient:

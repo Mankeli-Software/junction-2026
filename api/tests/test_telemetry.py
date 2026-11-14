@@ -20,6 +20,7 @@ from app.interfaces.tool_calls import _outcome, run_tool
 from app.main import app
 from app.services.errors import ServiceError
 from tests.conftest import write_audit
+from tests.phones import new_number
 
 SPANS = InMemorySpanExporter()
 
@@ -223,13 +224,12 @@ async def test_every_audit_event_is_mirrored_as_a_log_line(db, caplog):
 def test_a_confirmation_flow_exports_no_token_and_no_full_phone_number(caplog):
     # Part G of #84: run the whole flow with spans going to the in-memory exporter and every
     # log line captured, then search them all for the secrets.
-    import random
 
     from app.observability import quiet_http_clients
 
     quiet_http_clients()  # as setup_observability() does on the VM
     caplog.set_level(logging.DEBUG)
-    phone = f"+35840{random.randrange(10**6, 10**7)}"
+    phone = new_number()
     client = TestClient(app)
     created = client.post(
         "/api/v1/demo/accounts", json={"phone_e164": phone, "exclusions": [], "lang": "en"}

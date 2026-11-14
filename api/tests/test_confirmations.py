@@ -6,7 +6,6 @@ Needs DATABASE_URL. Each test runs in a transaction that is rolled back.
 import asyncio
 import json
 import logging
-import random
 import re
 import uuid
 
@@ -24,14 +23,11 @@ from app.services.dashboard.stream import Broadcaster, StreamEvent
 from app.services.errors import StateError
 from app.services.tokens import hash_token
 from app.settings import get_settings
+from tests.phones import new_number
 
 LINE = LineRequest(line_id="l1", text="maito", quantity=20, unit="l", needed_by="2026-11-16")
 
 LINK = re.compile(r"/c/([A-Za-z0-9_-]{43})$")
-
-
-def new_number() -> str:
-    return f"+35840{random.randrange(10**6, 10**7)}"
 
 
 async def sign_in(
