@@ -307,6 +307,7 @@ async def _new_quote(
         kitchen=KitchenProfile(exclusions=exclusions),
         history=HistorySummary(usual_items=usual_items, recent_lines=[]),
         candidates=candidates,
+        substitutes={line: [i for i in ids if i in kept] for line, ids in substitutes.items()},
         products=products,
         offers=offers,
         rules=rules,
