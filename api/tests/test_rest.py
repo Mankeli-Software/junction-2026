@@ -75,9 +75,17 @@ class TestWithCaller:
         )
 
         assert response.status_code == 200, response.text
-        ids = [hit["product_id"] for hit in response.json()["results"]]
-        assert ids == sorted(ids)
-        assert "464306" in ids
+        hits = {hit["product_id"]: hit for hit in response.json()["results"]}
+        assert list(hits)[0] == "464119"  # the search's order: best match first
+        # Price and availability from the recorded snapshots (VALIO_SOURCE=snapshot).
+        milk = hits["464306"]
+        assert milk["unit_price_gross"] is not None
+        assert (milk["price_per_base_unit"], milk["base_unit"]) == (milk["unit_price_gross"], "l")
+        assert milk["stock_status"] in ("verified", "unverified")
+        assert milk["sales_unit_label"]["fi"]
+        # No recorded offer: listed, but unavailable and without a price.
+        assert hits["464768"]["stock_status"] == "unavailable"
+        assert hits["464768"]["unit_price_gross"] is None
 
     def test_customer_context(self):
         context = client.get("/api/v1/customer-context").json()

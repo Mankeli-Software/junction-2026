@@ -24,6 +24,7 @@ from app.schemas import (
     BuildQuoteRequest,
     Decision,
     EngineInput,
+    Exclusion,
     GetOrderStatusRequest,
     LineRequest,
     QuoteStatus,
@@ -63,16 +64,16 @@ async def caller(db: AsyncSession) -> Caller:
     return DEV_CALLER
 
 
-async def other_caller(db: AsyncSession) -> Caller:
+async def other_caller(db: AsyncSession, exclusions: list[Exclusion] = ()) -> Caller:
     account = await accounts.create_demo_account(
-        db, f"+35840{random.randrange(10**6, 10**7)}", [], "en"
+        db, f"+35840{random.randrange(10**6, 10**7)}", exclusions, "en"
     )
     return Caller(
         user_id=account.user_id,
         company_id=account.company_id,
         company_name=account.company_name,
         phone_masked=account.phone_masked,
-        exclusions=[],
+        exclusions=list(exclusions),
         lang="en",
         channel="web",
     )
@@ -317,12 +318,12 @@ def test_the_cap_keeps_each_lines_best_candidates_first():
 
 
 async def test_over_100_candidates_are_capped(db, caller, monkeypatch):
-    template = (await catalog.get_products(["464306"]))[0]
+    template = (await catalog.get_products(db, ["464306"]))[0]
 
-    async def search(q, claims, category, limit=20):
+    async def search(db, q, claims, category, limit=20):
         return [template.model_copy(update={"product_id": f"{q}{i:03}"}) for i in range(60)]
 
-    async def get_products(ids):
+    async def get_products(db, ids):
         return [template.model_copy(update={"product_id": i, "substitutions": []}) for i in ids]
 
     monkeypatch.setattr(catalog, "search_candidates", search)
@@ -347,32 +348,40 @@ async def test_a_failed_offer_reaches_the_engine(db, caller, monkeypatch):
         return [valio._failed(i) for i in ids]
 
     monkeypatch.setattr(valio, "get_offers", get_offers)
+    # Only lactose-free hits, so every candidate the kitchen allows lacks an offer: the
+    # engine asks back (a low-lactose hit would be rejected for the allergen first).
+    request = build({"claims": ["lactose_free"]})
 
-    response = await quotes.build_quote(db, caller, build(), now=T0)
+    response = await quotes.build_quote(db, caller, request, now=T0)
 
     quote = await stored(db, response.quote_id)
     assert quote.engine_input["offers"] and not any(o["ok"] for o in quote.engine_input["offers"])
     assert response.decision == Decision.needs_clarification
 
 
-async def test_a_named_product_brings_its_curated_substitutes(db, caller, monkeypatch):
-    real = catalog.get_products
-
-    async def get_products(ids):
-        records = await real(ids)
-        return [
-            r.model_copy(update={"substitutions": ["464119"]}) if r.product_id == "464306" else r
-            for r in records
-        ]
-
-    monkeypatch.setattr(catalog, "get_products", get_products)
-
+async def test_a_named_product_brings_its_curated_substitutes(db, caller):
     response = await quotes.build_quote(
         db, caller, build({"product_id": "464306", "text": None}), now=T0
     )
 
     quote = await stored(db, response.quote_id)
-    assert quote.engine_input["candidates"]["l1"] == ["464306", "464119"]
+    # 464201 is 464306's curated substitute in the product file.
+    assert quote.engine_input["candidates"]["l1"] == ["464306", "464201"]
+
+
+# --- Real search (#30) --------------------------------------------------------------------
+
+
+async def test_a_lactose_free_kitchen_gets_a_lactose_free_milk(db, caller):
+    response = await quotes.build_quote(db, caller, build(), now=T0)
+
+    assert response.decision == Decision.ready
+    quote = await stored(db, response.quote_id)
+    chosen = next(
+        p for p in quote.engine_input["products"] if p["product_id"] == response.lines[0].product_id
+    )
+    assert "lactose_free" in chosen["claims"]
+    assert "maito" in chosen["name"]["fi"].lower()
 
 
 # --- The tool-call wrapper (REST twins) -------------------------------------------------

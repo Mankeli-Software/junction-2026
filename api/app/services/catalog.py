@@ -1,14 +1,30 @@
-"""Product search on the fixture catalogue. The real search (#30) and offers (#31) replace it.
+"""The catalogue for the services: product search (#30) and product records from the
+catalogue tables (#29), plus the `search_products` tool with price and availability (#31).
 
-`search_candidates()` and `get_products()` are the interface the quote service (#45) calls;
-#30 (Miska) replaces their bodies and keeps the signatures.
+`search_candidates()` and `get_products()` are what the quote service (#45) calls. Search is
+neutral about the kitchen (docs/plans/30-product-search.md §7.1): the engine applies the
+allergen and diet exclusions.
 """
 
+from collections import defaultdict
+from collections.abc import Sequence
+from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
-from functools import cache
 
-from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.adapters import valio
+from app.engine.text import unit_name
+from app.engine.units import base_measure
+from app.models import (
+    Product,
+    ProductAllergen,
+    ProductClaim,
+    ProductSubstitution,
+    ProductUnit,
+    ProductUnitConversion,
+)
 from app.schemas import (
     Claim,
     Localized,
@@ -19,104 +35,187 @@ from app.schemas import (
     SearchProductsResponse,
     StockStatus,
 )
+from app.schemas.engine import ProductAllergen as AllergenEntry
+from app.schemas.engine import UnitConversion
+from app.search import CLAIM_IDS
+from app.search import search_products as search
 from app.services.caller import Caller
-from app.services.fixtures import load
+from app.services.policy import get_rule_set
+
+# Catalogue claim ids (product_claims.claim_id) as the contract's claims.
+_CLAIMS = {claim_id: claim for claim, claim_id in CLAIM_IDS.items()}
+_THOUSAND = Decimal(1000)
+# The unit codes the engine converts asked litres and kilos to.
+_MEASURES = {"L", "KG"}
 
 
-class _FixtureProduct(BaseModel):
-    record: ProductRecord
-    offer: Offer
-    stock_status: StockStatus
+async def search_candidates(
+    db: AsyncSession,
+    q: str | None,
+    claims: Sequence[Claim],
+    category: str | None,
+    limit: int = 20,
+) -> list[ProductRecord]:
+    """Product records for one line, in the search's order (score, then product id).
+
+    No words with a claim or category gives that filtered set by product id; no words and
+    no filter gives nothing.
+    """
+    hits = await search(db, q or "", claims=claims, category=category, limit=limit)
+    return await get_products(db, [hit.product_id for hit in hits])
 
 
-@cache
-def _products() -> tuple[_FixtureProduct, ...]:
-    data = load("products.json")
-    products = (_FixtureProduct.model_validate(p) for p in data["products"])
-    return tuple(sorted(products, key=lambda p: p.record.product_id))
+async def get_products(db: AsyncSession, ids: Sequence[str]) -> list[ProductRecord]:
+    """The records for these ids, in the order given. Unknown ids are left out."""
+    wanted = list(dict.fromkeys(ids))
+    if not wanted:
+        return []
+    products = {p.id: p for p in await db.scalars(select(Product).where(Product.id.in_(wanted)))}
+    found = sorted(products)
+
+    async def rows(model, *order):
+        query = select(model).where(model.product_id.in_(found)).order_by(*order)
+        grouped = defaultdict(list)
+        for row in await db.scalars(query):
+            grouped[row.product_id].append(row)
+        return grouped
+
+    units = await rows(ProductUnit, ProductUnit.size_in_base_units, ProductUnit.unit_id)
+    conversions = await rows(ProductUnitConversion, ProductUnitConversion.packaging_type)
+    allergens = await rows(ProductAllergen, ProductAllergen.code, ProductAllergen.containment)
+    claims = await rows(ProductClaim, ProductClaim.claim_id, ProductClaim.qualifier)
+    substitutions = await rows(
+        ProductSubstitution, ProductSubstitution.position, ProductSubstitution.substitute_product_id
+    )
+    return [
+        _record(
+            products[i],
+            units[i],
+            conversions[i],
+            allergens[i],
+            claims[i],
+            substitutions[i],
+        )
+        for i in wanted
+        if i in products
+    ]
 
 
-@cache
-def _unit_labels() -> dict[str, Localized]:
-    data = load("products.json")
-    return {
-        code: Localized.model_validate(label) for code, label in data["sales_unit_labels"].items()
+def _record(
+    product: Product,
+    units: list[ProductUnit],
+    conversions: list[ProductUnitConversion],
+    allergens: list[ProductAllergen],
+    claims: list[ProductClaim],
+    substitutions: list[ProductSubstitution],
+) -> ProductRecord:
+    return ProductRecord(
+        product_id=product.id,
+        name=Localized(fi=product.name_fi, en=product.name_en or product.name_fi),
+        category=product.category_id,
+        sales_unit=product.sales_unit,
+        base_unit=product.base_unit,
+        units=[u.unit_id for u in units],
+        unit_conversions=_conversions(product, units, conversions),
+        allergens=[AllergenEntry(code=a.code, containment=a.containment) for a in allergens],
+        allergen_listing=product.has_classifications,
+        claims=sorted({_CLAIMS[c.claim_id] for c in claims if c.claim_id in _CLAIMS}),
+        origin=product.country_of_origin.upper() if product.country_of_origin else None,
+        image_url=None,  # product images come with #33
+        substitutions=[s.substitute_product_id for s in substitutions],
+    )
+
+
+def _conversions(
+    product: Product, units: list[ProductUnit], conversions: list[ProductUnitConversion]
+) -> list[UnitConversion]:
+    """The packaging levels in base units (KI = 20 ST), then each level's net content in
+    litres or kilos (ST = 1 L). Synkka gives the net content in one unit only, so a milk
+    converts to litres and not to kilos. The net weight counts only for a level with no
+    net content at all.
+
+    A packaging level named after a measure (`KG` or `L` in `units[]`, for example
+    "KG = 1 ST" on a 1 l milk) is not a conversion: only the net content says how much
+    one level holds."""
+    out = [
+        UnitConversion(from_unit=u.unit_id, to_unit=product.base_unit, factor=u.size_in_base_units)
+        for u in units
+        if u.unit_id != product.base_unit
+        and u.unit_id not in _MEASURES
+        and u.size_in_base_units > 0
+    ]
+    for c in conversions:
+        if c.unit_id is None:
+            continue
+        if c.volume_ml:
+            to_unit, amount = "L", c.volume_ml
+        elif c.content_weight_g or (c.net_weight_g and not c.content_pieces):
+            to_unit, amount = "KG", c.content_weight_g or c.net_weight_g
+        else:
+            continue
+        out.append(UnitConversion(from_unit=c.unit_id, to_unit=to_unit, factor=amount / _THOUSAND))
+    return out
+
+
+# --- The search_products tool -----------------------------------------------------------
+
+
+async def search_products(
+    db: AsyncSession, caller: Caller, request: SearchProductsRequest
+) -> SearchProductsResponse:
+    """Search results with today's price and availability for the shortlist (#31).
+
+    Neutral about the kitchen, like the search: the engine applies the exclusions when a
+    product is put on a quote. Without `needed_by`, availability is asked for the business
+    day (the frozen demo clock).
+    """
+    records = await search_candidates(
+        db, request.q, request.claims, request.category, limit=request.limit
+    )
+    rules = get_rule_set()
+    needed_by = request.needed_by or rules.policy.business_time.date()
+    offers = {
+        o.product_id: o for o in await valio.get_offers([r.product_id for r in records], needed_by)
     }
-
-
-def offers() -> list[Offer]:
-    """The recorded fixture offers, for the interim `app.adapters.valio`."""
-    return [p.offer for p in _products()]
-
-
-def _price_per_base_unit(product: _FixtureProduct) -> Decimal | None:
-    price = product.offer.unit_price_gross
-    record = product.record
-    factor = next(
-        (
-            c.factor
-            for c in record.unit_conversions
-            if c.from_unit == record.sales_unit and c.to_unit == record.base_unit
-        ),
-        None,
+    return SearchProductsResponse(
+        results=[_hit(r, offers.get(r.product_id), rules) for r in records]
     )
-    if price is None or not factor:
-        return None
-    return (price / factor).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
-def _hit(product: _FixtureProduct) -> ProductHit:
-    record, offer = product.record, product.offer
-    label = _unit_labels().get(
-        record.sales_unit, Localized(fi=record.sales_unit, en=record.sales_unit)
+def _hit(record: ProductRecord, offer: Offer | None, rules) -> ProductHit:
+    sales_unit = (offer.sales_unit if offer else None) or record.sales_unit
+    price = offer.unit_price_gross if offer and offer.ok else None
+    measure = base_measure(record, sales_unit)
+    per_base = (
+        (price / measure[0]).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if price is not None and measure
+        else None
     )
+    stock, available = _stock(offer, rules.policy.unverified_stock_threshold)
     return ProductHit(
         product_id=record.product_id,
         name=record.name,
         category=record.category,
-        sales_unit=record.sales_unit,
-        sales_unit_label=label,
+        sales_unit=sales_unit,
+        sales_unit_label=unit_name(rules, sales_unit),
         image_url=record.image_url,
-        unit_price_gross=offer.unit_price_gross,
-        price_per_base_unit=_price_per_base_unit(product),
-        base_unit=record.base_unit,
-        stock_status=product.stock_status,
-        available_date=offer.schedule[0].available_date if offer.schedule else None,
+        unit_price_gross=price,
+        price_per_base_unit=per_base,
+        base_unit=measure[1] if measure else None,
+        stock_status=stock,
+        available_date=available,
         origin=record.origin,
     )
 
 
-def _matching(q: str, claims: list[Claim], category: str | None) -> list[_FixtureProduct]:
-    """Case-insensitive substring match on the names, then the claim and category filters."""
-    q = q.casefold()
-    hits = [
-        p
-        for p in _products()
-        if q in p.record.name.fi.casefold() or q in p.record.name.en.casefold()
-    ]
-    hits = [p for p in hits if set(claims) <= set(p.record.claims)]
-    if category is not None:
-        hits = [p for p in hits if p.record.category == category]
-    return hits
-
-
-def search_products(caller: Caller, request: SearchProductsRequest) -> SearchProductsResponse:
-    hits = _matching(request.q, request.claims, request.category)
-    return SearchProductsResponse(results=[_hit(p) for p in hits[: request.limit]])
-
-
-async def search_candidates(
-    q: str | None, claims: list[Claim], category: str | None, limit: int = 20
-) -> list[ProductRecord]:
-    """Product records for one line, best first. Interim: the fixture search, by product id.
-
-    Neutral about the kitchen: never applies allergen or diet exclusions (the engine does).
-    No words means every product that matches the claims and category.
-    """
-    return [p.record for p in _matching(q or "", claims, category)][:limit]
-
-
-async def get_products(ids: list[str]) -> list[ProductRecord]:
-    """The records for these ids, in the order given. Unknown ids are left out."""
-    by_id = {p.record.product_id: p.record for p in _products()}
-    return [by_id[i] for i in ids if i in by_id]
+def _stock(offer: Offer | None, unverified_at: Decimal) -> tuple[StockStatus, date | None]:
+    """Unavailable when the offer failed, is blocked or has nothing in stock; unverified for
+    the "unknown stock" placeholder amounts. The date is the earliest one with stock."""
+    if offer is None or not offer.ok or offer.sales_block:
+        return StockStatus.unavailable, None
+    in_stock = sorted((s for s in offer.schedule if s.amount > 0), key=lambda s: s.available_date)
+    if not in_stock:
+        return StockStatus.unavailable, None
+    if max(s.amount for s in in_stock) >= unverified_at:
+        return StockStatus.unverified, in_stock[0].available_date
+    return StockStatus.verified, in_stock[0].available_date

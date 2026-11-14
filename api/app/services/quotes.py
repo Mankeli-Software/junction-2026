@@ -252,7 +252,7 @@ async def _new_quote(
     )
 
     usual_items = customers.usual_items(caller)
-    ranked = await _ranked_candidates(lines, usual_items)
+    ranked = await _ranked_candidates(db, lines, usual_items)
     kept = cap_candidates(ranked, MAX_CANDIDATES)
     candidates = {line_id: [i for i in ids if i in kept] for line_id, ids in ranked.items()}
     await record(
@@ -274,7 +274,7 @@ async def _new_quote(
         Localized(fi=f"Haettiin {len(kept)} tuotetta", en=f"Searched {len(kept)} products"),
     )
 
-    products = await catalog.get_products(sorted(kept))
+    products = await catalog.get_products(db, sorted(kept))
     offers = await _offers(lines, candidates, products)
     failed = sum(not offer.ok for offer in offers)
     await record(
@@ -424,7 +424,7 @@ def cap_candidates(ranked: dict[str, list[str]], limit: int) -> set[str]:
 
 
 async def _ranked_candidates(
-    lines: list[LineRequest], usual_items: list[UsualItem]
+    db: AsyncSession, lines: list[LineRequest], usual_items: list[UsualItem]
 ) -> dict[str, list[str]]:
     """Candidate ids per line, best first, without duplicates."""
     ranked: dict[str, list[str]] = {}
@@ -444,12 +444,12 @@ async def _ranked_candidates(
             with_substitutes = ids
         else:
             hits = await catalog.search_candidates(
-                line.text, line.claims, line.category, limit=SEARCH_LIMIT
+                db, line.text, line.claims, line.category, limit=SEARCH_LIMIT
             )
             ids = [hit.product_id for hit in hits]
             with_substitutes = ids[:SUBSTITUTES_OF_TOP]
         substitutes = [
-            sub for record in await catalog.get_products(with_substitutes)
+            sub for record in await catalog.get_products(db, with_substitutes)
             for sub in record.substitutions
         ]  # fmt: skip
         ranked[line.line_id] = _unique([*ids, *substitutes])
