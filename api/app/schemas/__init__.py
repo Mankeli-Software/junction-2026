@@ -1,6 +1,17 @@
 """The shared contract (#26). Change a model only in its own commit, with a team heads-up."""
 
-from .accounts import DemoAccountRequest, DemoAccountResponse, Me
+from .accounts import (
+    ConnectDecision,
+    ConnectRedirect,
+    ConnectRequestView,
+    DemoAccountRequest,
+    DemoAccountResponse,
+    LoginRequest,
+    LoginResponse,
+    Me,
+    PhoneRequest,
+    SignupRequest,
+)
 from .audit import AuditEventType
 from .common import (
     Claim,
@@ -147,6 +158,13 @@ __all__ = [
     "DemoAccountRequest",
     "DemoAccountResponse",
     "Me",
+    "SignupRequest",
+    "LoginRequest",
+    "LoginResponse",
+    "PhoneRequest",
+    "ConnectRequestView",
+    "ConnectDecision",
+    "ConnectRedirect",
     "TextKey",
     "REMOVAL_CODES",
     "REJECTING_CODES",

@@ -43,3 +43,66 @@ class Me(StrictModel):
     phone_masked: str
     exclusions: list[Exclusion]
     lang: Lang
+
+
+# --- Connector accounts and the OAuth consent step (#48, `technical-plan.md` §7.3) ---
+
+
+class SignupRequest(StrictModel):
+    """`POST /api/v1/signup`: open sign-up for the connectors. Nothing is verified.
+
+    The email is lower-cased; the password needs at least 10 characters; `phone_e164` is
+    read like the demo account's.
+    """
+
+    email: str
+    password: str
+    phone_e164: str
+
+
+class LoginRequest(StrictModel):
+    """`POST /api/v1/session`: email and password log the browser in."""
+
+    email: str
+    password: str
+
+
+class LoginResponse(StrictModel):
+    """The session travels in the `simo_session` cookie.
+
+    `phone_required` is true for a hand-out account that has no number yet: the login
+    page then asks for it (`POST /api/v1/me/phone`) before going on.
+    """
+
+    phone_required: bool
+
+
+class PhoneRequest(StrictModel):
+    """`POST /api/v1/me/phone`: the number of a hand-out account, set once."""
+
+    phone_e164: str
+
+
+class ConnectRequestView(StrictModel):
+    """`GET /api/v1/oauth/requests/{id}`: what the consent page shows.
+
+    "Allow <client_name> to order for <company_name>?" `redirect_host` is where the browser
+    goes next (the MCP spec asks the consent screen to show it).
+    """
+
+    client_name: str
+    company_name: str
+    phone_masked: str
+    redirect_host: str
+
+
+class ConnectDecision(StrictModel):
+    """`POST /api/v1/oauth/requests/{id}`: Allow (true) or Cancel (false)."""
+
+    allow: bool
+
+
+class ConnectRedirect(StrictModel):
+    """Where the browser goes next: the client's redirect URI with a code or an error."""
+
+    redirect_to: str
