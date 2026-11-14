@@ -1,3 +1,5 @@
+"""Shared fixtures. Database tests run only when DATABASE_URL is exported (CLAUDE.md)."""
+
 import asyncio
 import os
 import subprocess
@@ -7,7 +9,7 @@ from pathlib import Path
 import pytest
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
 from app.settings import get_settings, psycopg_url
 
@@ -38,6 +40,24 @@ async def db_engine() -> AsyncIterator[AsyncEngine]:
     engine = create_async_engine(test_url)
     yield engine
     await engine.dispose()
+
+
+@pytest.fixture
+async def db(db_engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
+    """A session inside a transaction that is rolled back after the test.
+
+    Commits in the code under test become savepoints, so nothing is left behind.
+    """
+    async with db_engine.connect() as connection:
+        transaction = await connection.begin()
+        session = AsyncSession(
+            bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
+        )
+        try:
+            yield session
+        finally:
+            await session.close()
+            await transaction.rollback()
 
 
 def _set_fake_caller(monkeypatch: pytest.MonkeyPatch, on: bool):
