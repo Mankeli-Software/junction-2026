@@ -39,6 +39,7 @@ from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
 from app.services.policy import get_rule_set
+from tests.conftest import write_audit
 
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
@@ -83,6 +84,7 @@ async def other_caller(db: AsyncSession, exclusions: list[Exclusion] = ()) -> Ca
 
 
 async def event_types(db: AsyncSession, session_id) -> list[str]:
+    await write_audit(db)
     rows = await db.scalars(
         select(AuditEvent.type).where(AuditEvent.session_id == session_id).order_by(AuditEvent.seq)
     )
@@ -353,6 +355,7 @@ async def test_over_100_candidates_are_capped(db, caller, monkeypatch):
     assert candidates["b"] == [f"b{i:03}" for i in range(50)]
     ids = [p["product_id"] for p in quote.engine_input["products"]]
     assert ids == sorted(ids) and len(ids) == 100
+    await write_audit(db)
     searched = await db.scalar(select(AuditEvent).where(AuditEvent.type == "products_searched"))
     assert searched.payload["capped"] is True
     assert searched.payload["candidate_count"] == 100
@@ -428,6 +431,7 @@ async def test_a_named_product_brings_its_curated_substitutes(db, caller):
 
 
 async def searched_lines(db: AsyncSession, quote: Quote) -> dict[str, dict]:
+    await write_audit(db)
     event = await db.scalar(
         select(AuditEvent).where(
             AuditEvent.type == "products_searched", AuditEvent.quote_id == quote.id

@@ -19,6 +19,7 @@ from app import telemetry
 from app.interfaces.tool_calls import _outcome, run_tool
 from app.main import app
 from app.services.errors import ServiceError
+from tests.conftest import write_audit
 
 SPANS = InMemorySpanExporter()
 
@@ -129,13 +130,14 @@ async def test_every_audit_event_is_mirrored_as_a_log_line(db, caplog):
     from app.services import audit
 
     caplog.set_level(logging.INFO, logger="simo.events")
-    event = await audit.record(
+    await audit.record(
         db,
         type="agent_said",
         actor="agent",
         payload={"text": "Tilaan maitoa.", "transcript": True},
         text=Localized(fi="Tilaan maitoa.", en="Tilaan maitoa."),
     )
+    (event,) = await write_audit(db)  # at commit in the app (#86)
 
     (line,) = [r for r in caplog.records if r.getMessage() == "audit agent_said"]
     assert line.__dict__["simo.seq"] == str(event.seq)

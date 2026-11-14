@@ -30,6 +30,7 @@ from app.loaders.product_file import read_allergen_codes, read_categories
 os.environ["SEARCH_VECTORS"] = "off"
 
 from app.main import app as fastapi_app
+from app.services.audit import RecordedEvent, write_pending
 from app.settings import get_settings, psycopg_url
 
 API_DIR = Path(__file__).resolve().parents[1]
@@ -69,6 +70,12 @@ async def empty_audit_tables(conn: AsyncConnection) -> None:
     await conn.execute(text(f"TRUNCATE {', '.join(AUDIT_TABLES)}"))
     for table in AUDIT_TABLES:
         await conn.execute(text(f"ALTER TABLE {table} ENABLE TRIGGER USER"))
+
+
+async def write_audit(db: AsyncSession) -> list[RecordedEvent]:
+    """Write the session's recorded audit events now. The app writes them at commit (#86);
+    tests that read them back inside the `db` fixture's transaction call this first."""
+    return await db.run_sync(write_pending)
 
 
 @pytest.fixture(scope="session")

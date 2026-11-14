@@ -32,7 +32,7 @@ from app.services.audit import (
 )
 from app.services.audit.chain import GENESIS_HASH, ChainFields, format_at, payload_hash
 from app.services.dashboard.listener import libpq_url
-from tests.conftest import API_DIR, empty_audit_tables
+from tests.conftest import API_DIR, empty_audit_tables, write_audit
 from tests.engine_fixtures import engine_input
 
 SESSION_A = uuid.UUID("5b0c7a3e-2f41-4d8e-9a6b-1c2d3e4f5a6b")
@@ -64,6 +64,7 @@ async def _session_events(db: AsyncSession) -> None:
             quote_id=quote,
             at=T0 + timedelta(seconds=i, microseconds=7),
         )
+    await write_audit(db)
 
 
 async def _tamper(db: AsyncSession, sql: str, **params) -> None:
@@ -241,13 +242,14 @@ async def test_personal_data_is_refused(db: AsyncSession, payload: dict, sentenc
 
 
 async def test_masked_identities_are_accepted(db: AsyncSession):
-    event = await record(
+    await record(
         db,
         type="customer_identified",
         actor="relay",
         payload={"identity_masked": "+358 40 *** **12", "email": "j***@example.com"},
         session_id=str(SESSION_A),
     )
+    (event,) = await write_audit(db)
     assert event.seq == 1 and event.session_id == SESSION_A
 
 
@@ -262,6 +264,7 @@ async def test_rule_set_is_stored_once_with_its_event(db: AsyncSession):
     rules = engine_input().rules
     assert await ensure_rule_set(db, rules) is True
     assert await ensure_rule_set(db, rules) is False
+    await write_audit(db)
     rows = (await db.execute(text("SELECT type, payload FROM audit_events"))).mappings().all()
     assert [r["type"] for r in rows] == ["rule_set_loaded"]
     assert rows[0]["payload"]["ref"] == rules.ref
@@ -280,6 +283,7 @@ async def test_engine_input_replays_from_the_audit_payload(db: AsyncSession):
         session_id=SESSION_A,
         quote_id=QUOTE,
     )
+    await write_audit(db)
     stored = (
         await db.execute(text("SELECT payload FROM audit_events WHERE type = 'quote_built'"))
     ).scalar_one()
@@ -305,12 +309,16 @@ async def test_status_event_sends_notify(db_engine: AsyncEngine):
         await listen.execute("LISTEN status_events")
         try:
             async with AsyncSession(db_engine) as db, db.begin():
-                event = await record(
+                await record(
                     db, type="session_started", actor="relay", payload={}, session_id=SESSION_A
                 )
+            async with db_engine.connect() as conn:
+                status_event_id = (
+                    await conn.execute(text("SELECT id FROM status_events"))
+                ).scalar_one()
             notify = await asyncio.wait_for(anext(listen.notifies()), timeout=5)
             assert notify.channel == "status_events"
-            assert notify.payload == str(event.status_event_id)
+            assert notify.payload == str(status_event_id)
         finally:
             async with db_engine.begin() as conn:
                 await empty_audit_tables(conn)
@@ -367,6 +375,7 @@ async def test_migration_chains_the_interim_rows(db_engine: AsyncEngine):
             assert [s for (s,) in seqs] == [1, 2, 3, 4]
             # New events continue the chain.
             await record(db, type="session_ended", actor="relay", payload={}, session_id=SESSION_A)
+            await write_audit(db)
             assert (await check_chain(db)).checked == 5
             await db.rollback()
 
@@ -377,3 +386,45 @@ async def test_migration_chains_the_interim_rows(db_engine: AsyncEngine):
         async with admin.connect() as conn:
             await conn.execute(text(f'DROP DATABASE IF EXISTS "{url.database}" WITH (FORCE)'))
         await admin.dispose()
+
+
+async def test_events_are_written_only_at_commit(db: AsyncSession):
+    await record(db, type="session_started", actor="relay", payload={}, session_id=SESSION_A)
+    count = (await db.execute(text("SELECT count(*) FROM audit_events"))).scalar_one()
+    assert count == 0
+    await db.commit()  # the `db` fixture turns this into a savepoint release
+    count = (await db.execute(text("SELECT count(*) FROM audit_events"))).scalar_one()
+    assert count == 1
+
+
+async def test_events_in_a_rolled_back_savepoint_are_dropped(db: AsyncSession):
+    await record(db, type="session_started", actor="relay", payload={}, session_id=SESSION_A)
+    with pytest.raises(RuntimeError):
+        async with db.begin_nested():
+            await record(db, type="buyer_said", actor="buyer", payload={}, session_id=SESSION_A)
+            async with db.begin_nested():
+                await record(db, type="agent_said", actor="agent", payload={})
+            raise RuntimeError
+    async with db.begin_nested():
+        await record(db, type="quote_built", actor="engine", payload={}, session_id=SESSION_A)
+
+    events = await write_audit(db)
+    assert [e.type for e in events] == ["session_started", "quote_built"]
+    assert [e.seq for e in events] == [1, 2]
+    assert events[1].session_prev_hash == events[0].hash
+    assert (await check_chain(db)).ok
+
+
+async def test_a_rolled_back_transaction_leaves_nothing_behind(db_engine: AsyncEngine):
+    try:
+        async with AsyncSession(db_engine) as db:
+            await record(db, type="session_started", actor="relay", payload={})
+            await db.rollback()
+            await record(db, type="session_ended", actor="relay", payload={})
+            await db.commit()
+        async with db_engine.connect() as conn:
+            types = (await conn.execute(text("SELECT type FROM audit_events"))).scalars().all()
+        assert types == ["session_ended"]
+    finally:
+        async with db_engine.begin() as conn:
+            await empty_audit_tables(conn)

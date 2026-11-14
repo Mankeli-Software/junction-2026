@@ -9,7 +9,7 @@ from .rule_sets import (
     load_rule_set_by_ref,
 )
 from .verify import check_chain, verify_chain
-from .writer import PersonalDataError, RecordedEvent, record
+from .writer import PersonalDataError, RecordedEvent, record, write_pending
 
 __all__ = [
     "GENESIS_HASH",
@@ -24,4 +24,5 @@ __all__ = [
     "load_rule_set_by_ref",
     "record",
     "verify_chain",
+    "write_pending",
 ]
