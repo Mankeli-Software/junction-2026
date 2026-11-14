@@ -26,23 +26,25 @@ No real order is ever placed.
 
 Built on `main` so far:
 
-- The shared contract: Pydantic models for the eight agent tools and the engine (`api/app/schemas/`).
-- The engine pipeline: resolve, allergen and diet filter, availability and dates, units and rounding, ranking, substitution, price, sanity checks and the decision (`api/app/engine/`).
+- The shared contract: Pydantic models for the ten agent tools and the engine (`api/app/schemas/`).
+- The engine pipeline: resolve, allergen and diet filter (with one-off exclusions for a single order), availability and dates, units and rounding, ranking, substitution, price, sanity checks and the decision (`api/app/engine/`).
 - The rules as data (`policy/`) and their loader.
-- The catalogue tables, the loader for Valio's product file, and product search with full-text, trigram and name vectors.
+- The catalogue tables, the loader for Valio's product file, product images, and product search with full-text, trigram and name vectors.
+- All of Valio's recipes, searchable with full-text, trigram and vector search, scaled to the portions asked. Ingredients linked to a catalogue product are ordered; the rest are listed as not ordered.
+- Recipe photos: the AI reads a photo into a recipe draft, the buyer checks and confirms it, and only then is it quoted (`propose_recipe`, `confirm_recipe`). Not on the phone.
 - The Valio API adapter with its rate limit, cache and snapshot mode.
-- Demo companies, accounts and their seeded order history.
+- Demo companies of seven kitchen types, accounts and their seeded order history.
 - The MCP server and the REST API, the quote service, quote hashes and JWS signatures, and the hash-chained audit log.
-- The confirmation request with the simulated phone inbox, the confirmation endpoints and the order record.
-- The confirmation page `/c/[token]`. Screenshots are in `docs/screenshots/confirmation-page/`.
+- The confirmation request with the simulated phone inbox and real SMS through Twilio for allowlisted numbers, the confirmation endpoints and the order record.
+- The confirmation page `/c/[token]`, with its "Ask for changes" chat.
 - The voice relay on Gemini Live, the S.I.MO system prompt, the start page, the call screen and the simulated phone.
 - The public dashboard, its API and its live stream.
-- The webshop page with the WebMCP tools.
+- The webshop with the whole catalogue, the WebMCP tools and the S.I.MO chat panel (Gemini, with A2UI cards).
 - OAuth for the Claude and OpenAI connectors.
-- The FastAPI app, Alembic migrations, Docker Compose, Caddy, Key Vault settings, CI and the deployment on the VM.
-- The Gemini Live spike: Finnish recognition, latency, function calls and a real voice (`spikes/gemini-live/`).
+- The FastAPI app, Alembic migrations, Docker Compose, Caddy, Key Vault settings, CI, Application Insights tracing and the deployment on the VM.
+- The Gemini Live spike: Finnish recognition, latency, function calls, a real voice and language switches (`spikes/gemini-live/`).
 
-Still open, and tracked in the issues: real SMS through Twilio, recipes beyond the two fixture recipes, product images, the webshop chat panel (stretch), the ChatGPT desktop browser check of the webshop, and the stage rehearsal.
+Still open: recipe orders by phone that lose lines or skip ingredients, a few search and quantity bugs, the webshop chat's check against a live Gemini model, testing on real phones, and the stage rehearsal. The [open issues](https://github.com/Mankeli-Software/junction-2026/issues) have the details.
 
 ## Architecture
 
