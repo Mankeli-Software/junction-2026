@@ -1,0 +1,12 @@
+# Build context is the repository root; send only what the API image needs.
+*
+!api
+!data
+!policy
+api/.venv
+api/.pytest_cache
+api/.ruff_cache
+api/tests
+**/__pycache__
+data/valio-products.json
+data/*.part
