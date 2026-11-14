@@ -1,0 +1,16 @@
+[project]
+name = "gemini-live-spike"
+version = "0.1.0"
+description = "Spike for issue #51: Finnish orders, latency and function calls on Gemini Live"
+requires-python = ">=3.12"
+dependencies = [
+    "google-genai>=3.3.0",
+    "numpy>=2.0",
+]
+
+[project.optional-dependencies]
+# Only the mic script needs this; it pulls in PortAudio bindings.
+mic = ["sounddevice>=0.5"]
+
+[tool.uv]
+package = false

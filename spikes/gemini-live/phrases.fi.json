@@ -1,0 +1,80 @@
+{
+  "about": "Finnish B2B kitchen orders for the Gemini Live spike (#51). 'text' is exactly what is spoken (TTS input and the reading script for the mic test). 'written' lists other acceptable ways to write the same words (digits, units); WER is the best match over text and written. 'terms' are the product names, numbers and units that must come through: each entry is a list of accepted spellings, matched as substrings of the normalised transcript. Product names come from data/recipe-product-map.json.",
+  "phrases": [
+    {
+      "id": "p01",
+      "text": "Hei, tilaisin kaksi laatikkoa Valio Eila laktoositonta kevytmaitojuomaa, toimitus torstaiksi.",
+      "written": ["Hei, tilaisin 2 laatikkoa Valio Eila laktoositonta kevytmaitojuomaa, toimitus torstaiksi."],
+      "terms": [["kaksi", "2"], ["laatikko"], ["eila"], ["laktoositon"], ["kevytmaitojuom"], ["torstai"]]
+    },
+    {
+      "id": "p02",
+      "text": "Laita kymmenen litran novobox Valio ruokakermaa, viisitoista prosenttia, laktoositon.",
+      "written": ["Laita 10 litran novobox Valio ruokakermaa, 15 prosenttia, laktoositon.", "Laita 10 l novobox Valio ruokakermaa, 15 %, laktoositon."],
+      "terms": [["kymmenen", "10"], ["litra", "10 l"], ["novobox", "novo box"], ["ruokakerma"], ["viisitoista", "15"], ["laktoositon"]]
+    },
+    {
+      "id": "p03",
+      "text": "Kolme pakettia Oltermanni-juustoviipaleita, se yhdeksänsadan gramman pakkaus.",
+      "written": ["3 pakettia Oltermanni-juustoviipaleita, se 900 gramman pakkaus.", "3 pakettia Oltermanni-juustoviipaleita, se 900 g pakkaus."],
+      "terms": [["kolme", "3"], ["paketti"], ["oltermanni"], ["juustoviipale", "juusto viipale"], ["yhdeksänsadan", "900"], ["gramma", "900 g"]]
+    },
+    {
+      "id": "p04",
+      "text": "Lisää tilaukseen viisi kahden kilon purkkia laktoositonta kermaviiliä.",
+      "written": ["Lisää tilaukseen 5 kahden kilon purkkia laktoositonta kermaviiliä.", "Lisää tilaukseen 5 2 kilon purkkia laktoositonta kermaviiliä.", "Lisää tilaukseen 5 2 kg purkkia laktoositonta kermaviiliä."],
+      "terms": [["viisi", "5"], ["kahden", "2 kilon", "2 kg"], ["kilo", "kg"], ["purkki"], ["laktoositon"], ["kermaviili"]]
+    },
+    {
+      "id": "p05",
+      "text": "Kuusi litraa Eila rasvatonta maitojuomaa ja neljä litraa vapaan lehmän kevytmaitoa.",
+      "written": ["6 litraa Eila rasvatonta maitojuomaa ja 4 litraa vapaan lehmän kevytmaitoa.", "6 l Eila rasvatonta maitojuomaa ja 4 l vapaan lehmän kevytmaitoa."],
+      "terms": [["kuusi", "6"], ["eila"], ["rasvaton"], ["maitojuom"], ["neljä", "4"], ["vapaan lehmän"], ["kevytmaito"]]
+    },
+    {
+      "id": "p06",
+      "text": "Kaksikymmentä pakettia Valio Eila voita, niitä viidensadan gramman paketteja.",
+      "written": ["20 pakettia Valio Eila voita, niitä 500 gramman paketteja.", "20 pakettia Valio Eila voita, niitä 500 g paketteja."],
+      "terms": [["kaksikymmentä", "20"], ["eila"], ["voita"], ["viidensadan", "500"], ["gramma", "500 g"]]
+    },
+    {
+      "id": "p07",
+      "text": "Tarvitaan kolme sankoa Koskenlaskija-sulatejuustoa, se kahden ja puolen kilon maustamaton.",
+      "written": ["Tarvitaan 3 sankoa Koskenlaskija-sulatejuustoa, se 2,5 kilon maustamaton.", "Tarvitaan 3 sankoa Koskenlaskija-sulatejuustoa, se 2,5 kg maustamaton.", "Tarvitaan 3 sankoa Koskenlaskija-sulatejuustoa, se 2.5 kg maustamaton."],
+      "terms": [["kolme", "3"], ["sanko"], ["koskenlaskija"], ["sulatejuusto"], ["kahden ja puolen", "2,5", "2.5"], ["maustamaton"]]
+    },
+    {
+      "id": "p08",
+      "text": "Kaksitoista vispikermaa niitä kahden desin purkkeja, ja kaksi Viola-tuorejuustoa puolentoista kilon rasiassa.",
+      "written": ["12 vispikermaa niitä 2 desin purkkeja, ja 2 Viola-tuorejuustoa 1,5 kilon rasiassa.", "12 vispikermaa niitä 2 dl purkkeja, ja 2 Viola-tuorejuustoa 1,5 kg rasiassa."],
+      "terms": [["kaksitoista", "12"], ["vispikerma"], ["desi", "dl"], ["viola"], ["tuorejuusto"], ["puolentoista", "1,5", "1.5"]]
+    },
+    {
+      "id": "p09",
+      "text": "Toimitus ensi maanantaiaamuksi, ja laita mukaan neljä laatikkoa Oddlygood Barista kaurajuomaa.",
+      "written": ["Toimitus ensi maanantaiaamuksi, ja laita mukaan 4 laatikkoa Oddlygood Barista kaurajuomaa."],
+      "terms": [["maanantai"], ["neljä", "4"], ["laatikko"], ["oddlygood", "oddly good"], ["barista"], ["kaurajuom"]]
+    },
+    {
+      "id": "p10",
+      "text": "Sama kuin viime viikolla, mutta Polar-juustokuutiota kaksi ja puoli kiloa ja laktoositonta luonnonjogurttia viisi kiloa.",
+      "written": ["Sama kuin viime viikolla, mutta Polar-juustokuutiota 2,5 kiloa ja laktoositonta luonnonjogurttia 5 kiloa.", "Sama kuin viime viikolla, mutta Polar-juustokuutiota 2,5 kg ja laktoositonta luonnonjogurttia 5 kg."],
+      "terms": [["viime viikolla"], ["polar"], ["juustokuutio"], ["kaksi ja puoli", "2,5", "2.5"], ["laktoositon"], ["luonnonjogurtti"], ["viisi", "5"]]
+    }
+  ],
+  "extra": [
+    {
+      "id": "en01",
+      "lang": "en",
+      "text": "Hi, I'd like two cases of Valio Eila lactose-free light milk drink, delivered on Thursday.",
+      "written": ["Hi, I'd like 2 cases of Valio Eila lactose-free light milk drink, delivered on Thursday."],
+      "terms": [["two", "2"], ["eila"], ["lactose"], ["milk"], ["thursday"]]
+    }
+  ],
+  "custom_vocabulary": [
+    "Valio", "Eila", "Oltermanni", "Koskenlaskija", "Viola", "Polar", "Oddlygood", "Barista", "novobox",
+    "kevytmaitojuoma", "rasvaton maitojuoma", "laktoositon", "ruokakerma", "kermaviili", "vispikerma",
+    "sulatejuusto", "tuorejuusto", "juustokuutio", "juustoviipale", "luonnonjogurtti", "kaurajuoma",
+    "vapaan lehmän kevytmaito"
+  ]
+}
