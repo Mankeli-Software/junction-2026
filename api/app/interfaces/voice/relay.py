@@ -214,6 +214,8 @@ class Call:
         running = [task for name, task in self.pending.values() if name == REQUEST_CONFIRMATION]
         if running:
             await asyncio.wait(running, timeout=PENDING_TOOLS_S)
+        # Let the log task finish its write, so no transcript line is cut off.
+        await self._log_flushed()
         await self._cancel_tasks()
 
     def _spawn(self, coroutine: Any) -> asyncio.Task[Any]:
