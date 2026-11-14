@@ -15,8 +15,8 @@
  *
  * Test numbers (national part):
  * - ends in 0429: the number has reached the demo limit (429);
- * - ends in 7001: the SMS goes out (`sms_status: sent`);
- * - ends in 7002: the SMS fails (`sms_status: failed`).
+ * - ends in 7001: the SMS goes out (`delivery_status: sent`);
+ * - ends in 7002: the SMS fails (`delivery_status: failed`).
  */
 import { randomBytes, randomUUID } from 'node:crypto';
 import { maskPhone } from '../../demo/phone.ts';
@@ -27,7 +27,7 @@ import type {
 	InboxMessage,
 	Lang,
 	Me,
-	SmsStatus,
+	DeliveryStatus,
 	UsualItem
 } from '../../demo/types.ts';
 
@@ -151,7 +151,7 @@ export function subscribe(sessionId: string, listener: Listener): () => void {
  * held message goes to the user's inbox (and by SMS for allowlisted numbers).
  * The link opens the confirmation page's fixture (`fx-ready-<id>`, 128,40 €).
  */
-export function deliverConfirmation(sessionId: string): { quoteId: string; totalCents: number; smsStatus: SmsStatus } {
+export function deliverConfirmation(sessionId: string): { quoteId: string; totalCents: number; deliveryStatus: DeliveryStatus } {
 	const s = store();
 	const user = s.users.get(sessionId);
 	if (!user) throw new Error('No such demo user');
@@ -170,8 +170,8 @@ export function deliverConfirmation(sessionId: string): { quoteId: string; total
 	user.inbox.push(message);
 	for (const listener of s.listeners.get(sessionId) ?? []) listener(message);
 
-	const smsStatus: SmsStatus = user.phone.endsWith('7001') ? 'sent' : user.phone.endsWith('7002') ? 'failed' : 'off';
-	return { quoteId: `q-${id}`, totalCents, smsStatus };
+	const deliveryStatus: DeliveryStatus = user.phone.endsWith('7001') ? 'sent' : user.phone.endsWith('7002') ? 'failed' : 'off';
+	return { quoteId: `q-${id}`, totalCents, deliveryStatus };
 }
 
 function companyFor(sessionId: string | null | undefined): Company | null {

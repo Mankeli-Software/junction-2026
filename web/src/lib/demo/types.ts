@@ -98,7 +98,7 @@ export interface InboxMessage {
 // --- /voice/ws (technical-plan.md §9.3) ---
 
 export type EndedBy = 'visitor' | 'agent' | 'time_limit' | 'dropped';
-export type SmsStatus = 'sent' | 'failed' | 'off' | 'none';
+export type DeliveryStatus = 'sent' | 'failed' | 'off' | 'none';
 
 export interface EndedMessage {
 	type: 'ended';
@@ -106,7 +106,7 @@ export interface EndedMessage {
 	ended_by: EndedBy;
 	quote_id: string | null;
 	total_cents: number | null;
-	sms_status: SmsStatus;
+	delivery_status: DeliveryStatus;
 	inbox: boolean;
 }
 

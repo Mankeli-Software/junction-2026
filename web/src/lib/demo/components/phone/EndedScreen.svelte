@@ -75,11 +75,11 @@
 		<p class="no-order" data-testid="no-order">{t(lang, 'noOrder')}</p>
 	{/if}
 
-	{#if ended?.sms_status === 'sent'}
+	{#if ended?.delivery_status === 'sent'}
 		<p class="line" data-testid="sms-line">
 			<Icon name="chat" size={18} stroke="var(--muted)" weight={2} />{t(lang, 'smsSent', { number: phoneMasked })}
 		</p>
-	{:else if ended?.sms_status === 'failed'}
+	{:else if ended?.delivery_status === 'failed'}
 		<p class="line warn" data-testid="sms-line">
 			<Icon name="alert" size={18} stroke="var(--red)" weight={2} />{t(lang, 'smsFailed')}
 		</p>

@@ -269,7 +269,7 @@ function runCall(ws: WebSocket, sessionId: string | null, sendStates: boolean): 
 			ended_by: by,
 			quote_id: delivery?.quoteId ?? null,
 			total_cents: delivery?.totalCents ?? null,
-			sms_status: delivery?.smsStatus ?? 'none',
+			delivery_status: delivery?.deliveryStatus ?? 'none',
 			inbox: delivery !== null
 		});
 		if (ws.readyState === ws.OPEN) ws.close(1000, 'Call ended');
