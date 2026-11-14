@@ -140,3 +140,10 @@ def test_spelling_splits_a_joined_pair():
     vocabulary = Vocabulary.from_names(["Valio rasvaton maito 1 l laktoositon"])
     query = parse_query("laktoositonmaito", vocabulary=vocabulary)
     assert [t.word for t in query.terms] == ["laktoositon", "maito"]
+
+
+def test_spelling_prefers_an_inflected_known_word_to_a_split():
+    vocabulary = Vocabulary.from_names(["Fazer Kaurahiutale 10 kg", "Urtekram kaura", "hiutaleet"])
+    query = parse_query("kaurahiutaleet", vocabulary=vocabulary)
+    assert [t.word for t in query.terms] == ["kaurahiutaleet"]
+    assert "kaurahiutale" in query.terms[0].alternatives

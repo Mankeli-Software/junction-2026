@@ -108,6 +108,8 @@ def parse_query(
                 terms.append(_term(token))
             elif corrections := vocabulary.corrections(folded):
                 terms.append(_term(token, corrections))
+            elif stem := vocabulary.stem(folded):
+                terms.append(_term(token, (stem,)))
             elif parts := vocabulary.split(folded):
                 terms.extend(_term(p) for p in parts if p not in ignore)
             else:

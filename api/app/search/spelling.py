@@ -3,7 +3,8 @@
 A query word that is not a word in any product name gets the known words one edit away
 (a dropped, added or changed letter, or two neighbouring letters swapped): "miato" ->
 "maito", "kemaa" -> "kermaa". A joined pair is split when both halves are known words:
-"laktoositonmaito" -> "laktoositon maito". Known words are never changed.
+"laktoositonmaito" -> "laktoositon maito". An inflected form of a known word is tried
+before splitting: "kaurahiutaleet" -> "kaurahiutale". Known words are never changed.
 
 Lookup uses a deletion index (every word with one letter removed), so a correction costs
 a few dictionary lookups, not a scan of the vocabulary.
@@ -19,6 +20,8 @@ from app.search.text import fold
 _WORD = re.compile(r"[^\W\d_]{3,}")  # any letters, so crème and jalapeño stay whole
 MAX_CORRECTIONS = 3
 MIN_SPLIT_PART = 3
+MAX_ENDING = 3
+MIN_STEM = 5
 
 
 def _deletes(word: str) -> set[str]:
@@ -73,6 +76,16 @@ class Vocabulary:
             (w for w in candidates if _one_edit(folded, w)), key=lambda w: (-self.counts[w], w)
         )
         return tuple(self.spelled[w] for w in found[:MAX_CORRECTIONS])
+
+    def stem(self, folded: str) -> str | None:
+        """A known word the word inflects: Finnish endings are short suffixes ("-t" plural,
+        "-a"/"-ä" partitive, "-ta"/"-tä"), so "kaurahiutaleet" -> "kaurahiutale". Checked
+        before splitting, which would cut it into "kaura" + "hiutaleet"."""
+        for cut in range(1, MAX_ENDING + 1):
+            base = folded[:-cut]
+            if len(base) >= MIN_STEM and base in self:
+                return self.spelled[base]
+        return None
 
     def split(self, folded: str) -> tuple[str, str] | None:
         """Two known words that make up the word, preferring the most common pair."""
