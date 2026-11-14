@@ -99,6 +99,17 @@ def parse_price(entry: dict[str, Any] | None) -> tuple[Decimal, date] | None:
     return _decimal(catalog["valueWithTax"]), _day(valid_to) if valid_to else date.max
 
 
+def parse_comparison(entry: dict[str, Any] | None) -> tuple[Decimal | None, str | None]:
+    """Gross comparison price and its unit (`L`, `KG`), or Nones when the API has none."""
+    if not entry or entry.get("error"):
+        return None, None
+    value = (entry.get("comparisonPrice") or {}).get("valueWithTax")
+    unit = entry.get("comparisonUnit")
+    if value is None or not unit:
+        return None, None
+    return _decimal(value), str(unit).upper()
+
+
 def parse_availability(
     entry: dict[str, Any],
 ) -> tuple[list[ScheduleLine], str | None, bool, datetime | None]:
@@ -137,6 +148,7 @@ def build_offer(
 ) -> Offer:
     """One offer from the two raw entries. `ok` is false when either is missing or has no price."""
     parsed = parse_price(price[0]) if price else None
+    comparison_price, comparison_unit = parse_comparison(price[0] if price else None)
     schedule, unit, blocked, closing = (
         parse_availability(availability[0]) if availability else ([], None, False, None)
     )
@@ -146,6 +158,8 @@ def build_offer(
         ok=parsed is not None and availability is not None,
         unit_price_gross=parsed[0] if parsed else None,
         price_valid_to=parsed[1] if parsed else None,
+        comparison_price_gross=comparison_price,
+        comparison_unit=comparison_unit,
         sales_unit=unit,
         schedule=schedule,
         sales_block=blocked,

@@ -17,6 +17,7 @@ from app.adapters.valio import (
     ValioClient,
     is_unverified,
     parse_availability,
+    parse_comparison,
     parse_price,
 )
 from app.models.valio import ApiCache
@@ -110,6 +111,24 @@ def test_price_is_the_gross_value_as_an_exact_decimal():
 @pytest.mark.parametrize("entry", [None, EMPTY_PRICE, {"catalogPrice": None, "error": False}])
 def test_no_price_is_none(entry):
     assert parse_price(entry) is None
+
+
+def test_comparison_price_is_the_gross_value_with_its_unit():
+    entry = {
+        "catalogPrice": {"valueWithTax": 5.84},
+        "comparisonPrice": {"valueWithTax": 2.92},
+        "comparisonUnit": "l",
+        "error": False,
+    }
+    assert parse_comparison(entry) == (Decimal("2.92"), "L")
+
+
+@pytest.mark.parametrize(
+    "entry",
+    [None, EMPTY_PRICE, {"comparisonPrice": {"valueWithTax": 1}, "error": False}],
+)
+def test_no_comparison_price_is_none(entry):
+    assert parse_comparison(entry) == (None, None)
 
 
 def test_availability_is_parsed_and_the_sentinel_is_left_for_the_engine():
