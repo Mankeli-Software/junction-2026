@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Call: set up the demo phone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1E4F68}a:hover{color:#123A4E}
+.hd{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-0.2px;margin:0}
+.tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;background:#FFE14D;color:#10303F;padding:2px 7px;border-radius:3px;letter-spacing:0.5px}
+.card{background:#fff;border:1px solid #DCE3E8;border-radius:10px}
+.chip{height:38px;padding:0 13px;border-radius:19px;border:1px solid #B9C6CE;background:#fff;color:#10303F;font:inherit;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer}
+.chip-on{background:#1E4F68;border-color:#1E4F68;color:#fff}
+.btn-main{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border:0;border-radius:8px;background:#C6E02A;color:#10303F;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:21px;letter-spacing:0.6px;text-transform:uppercase;width:100%;cursor:pointer;text-decoration:none}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F6F8; font-family: 'Figtree', system-ui, sans-serif; color: #10303F; display: flex; flex-direction: column; overflow: hidden">
+  <div style="background: #1E4F68; color: #fff; height: 52px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <span class="hd" style="font-size: 22px; color: #fff">Order Agent</span>
+      
+    </div>
+    <div style="display: flex; gap: 4px; font-size: 14px; font-weight: 600">
+      <button style="background: #fff; color: #1E4F68; border: 0; border-radius: 4px; padding: 4px 8px; font: inherit">EN</button>
+      <button style="background: transparent; color: #fff; border: 0; border-radius: 4px; padding: 4px 8px; font: inherit">FI</button>
+    </div>
+  </div>
+  <div style="background: #EEE9F5; padding: 24px 20px 20px 20px; display: flex; gap: 14px; align-items: center">
+    <div style="width: 58px; height: 92px; flex-shrink: 0; border-radius: 12px; border: 3px solid #1E4F68; background: #fff; display: flex; align-items: center; justify-content: center">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 class="hd" style="font-size: 34px; line-height: 1; color: #1E4F68">Your demo phone</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.35; color: #2C4655">This page becomes a phone. Give S.I.MO a ring and order what your kitchen needs.</p>
+    </div>
+  </div>
+  <div style="padding: 18px 20px 24px 20px; display: flex; flex-direction: column; gap: 14px; flex-grow: 1">
+    <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <label for="phone" style="font-weight: 700; font-size: 15px">Your real phone number</label>
+      <div style="display: flex; gap: 8px">
+        <button aria-label="Country code" style="height: 50px; padding: 0 12px; border: 1px solid #B9C6CE; border-radius: 6px; background: #fff; font: inherit; font-size: 17px; font-weight: 600; color: #10303F; display: flex; align-items: center; gap: 6px">+358
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <input id="phone" value="40 123 4512" style="flex-grow: 1; min-width: 0; height: 50px; box-sizing: border-box; padding: 0 14px; border: 2px solid #1E4F68; border-radius: 6px; font: inherit; font-size: 19px; color: #10303F">
+      </div>
+      <span style="font-size: 14px; color: #4A5F6B">The order link comes here by SMS.</span>
+    </div>
+    <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+      <span style="font-weight: 700; font-size: 15px">Your kitchen avoids</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button class="chip">Nothing</button>
+        <button class="chip chip-on" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Milk</button>
+        <button class="chip">Lactose</button>
+        <button class="chip">Gluten</button>
+        <button class="chip chip-on" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Nuts</button>
+        <button class="chip">Egg</button>
+        <button class="chip">Fish</button>
+        <button class="chip">Meat</button>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.4; color: #2C4655">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2" aria-hidden="true" style="flex-shrink: 0"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+      <span>What you say is shown on our demo dashboard, with your number hidden. No real order is placed.</span>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <a href="Call-2-Account.dc.html" class="btn-main">Open demo phone</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

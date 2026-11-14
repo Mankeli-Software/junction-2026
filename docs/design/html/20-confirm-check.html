@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirm: check and confirm</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1E4F68}a:hover{color:#123A4E}
+.hd{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-0.2px;margin:0}
+.tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;background:#FFE14D;color:#10303F;padding:2px 7px;border-radius:3px;letter-spacing:0.5px}
+.card{background:#fff;border:1px solid #DCE3E8;border-radius:10px}
+.flag{background:#fff;border:1px solid #DCE3E8;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ico{width:32px;height:32px;flex-shrink:0;border-radius:16px;display:flex;align-items:center;justify-content:center}
+.ok{height:40px;padding:0 16px;border-radius:20px;border:2px solid #1E4F68;background:#fff;color:#1E4F68;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.opt{flex:1;min-width:0;border:1px solid #B9C6CE;border-radius:8px;background:#fff;padding:10px;text-align:left;font:inherit;font-size:14px;color:#10303F;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.asked{font-size:13px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#4A5F6B}
+.thumb{width:56px;height:56px;flex-shrink:0;border-radius:8px;background:#F3F6F8;display:flex;align-items:center;justify-content:center}
+.price{font-weight:800;font-size:18px}
+.mark{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;background:#FFE14D;color:#10303F;padding:1px 6px;border-radius:3px;letter-spacing:0.4px}
+</style>
+</head>
+<body>
+<div style="width: 390px; min-height: 1480px; box-sizing: border-box; background: #F3F6F8; font-family: 'Figtree', system-ui, sans-serif; color: #10303F; display: flex; flex-direction: column">
+  <div style="background: #1E4F68; color: #fff; height: 52px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <span class="hd" style="font-size: 22px; color: #fff">Order Agent</span>
+      
+    </div>
+    <div style="display: flex; gap: 4px; font-size: 14px; font-weight: 600">
+      <button style="background: #fff; color: #1E4F68; border: 0; border-radius: 4px; padding: 4px 8px; font: inherit">EN</button>
+      <button style="background: transparent; color: #fff; border: 0; border-radius: 4px; padding: 4px 8px; font: inherit">FI</button>
+    </div>
+  </div>
+  <div style="background: #EEE9F5; padding: 20px 20px 18px 20px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <h1 class="hd" style="font-size: 38px; line-height: 1; color: #1E4F68">Your order</h1>
+      <span style="font-size: 15px; color: #4A5F6B">Hassu Hauki Oy, call at 10:02</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+      <div style="background: #fff; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; color: #4A5F6B">Delivery</span>
+        <span style="font-weight: 700; font-size: 17px">Mon 16 Nov</span>
+      </div>
+      <div style="background: #fff; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 13px; color: #4A5F6B">Total incl. VAT</span>
+        <span style="font-weight: 800; font-size: 17px">128,40 €</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 6px; flex-wrap: wrap">
+      <span style="font-size: 13px; font-weight: 600; background: #fff; border-radius: 12px; padding: 4px 10px; color: #1E4F68">Milk-free</span>
+      <span style="font-size: 13px; font-weight: 600; background: #fff; border-radius: 12px; padding: 4px 10px; color: #1E4F68">Nut-free</span>
+    </div>
+  </div>
+
+  <div style="padding: 20px 16px 0 16px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <h2 class="hd" style="font-size: 26px">Check these first</h2>
+      <span style="font-size: 14px; font-weight: 700; color: #1E4F68">1 of 3 done</span>
+    </div>
+
+    <div class="flag" style="background: #F5F9EA; border-color: #C9DE7C">
+      <div style="display: flex; gap: 10px; align-items: center">
+        <div class="ico" style="background: #C6E02A">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1">
+          <span style="font-weight: 700; font-size: 16px">Stock not confirmed</span>
+          <span style="font-size: 14px; color: #4A5F6B">Rapeseed oil 5 l, checked</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flag" style="border-color: #E3C200; border-width: 2px">
+      <div style="display: flex; gap: 10px; align-items: flex-start">
+        <div class="ico" style="background: #FFF3B0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="2.2" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1">
+          <span style="font-weight: 700; font-size: 16px">Rounded up 20 l → 24 l</span>
+          <span style="font-size: 14px; color: #4A5F6B">Oat drink comes in cases of 12.</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button class="opt" style="border: 2px solid #1E4F68"><b>Keep 24 l</b><span style="color: #4A5F6B">2 cases, 51,60 €</span></button>
+        <button class="opt"><b>Exactly 20 l</b><span style="color: #4A5F6B">Other oat drink, 46,00 €</span></button>
+      </div>
+    </div>
+
+    <div class="flag">
+      <div style="display: flex; gap: 10px; align-items: flex-start">
+        <div class="ico" style="background: #FFF3B0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1">
+          <span style="font-weight: 700; font-size: 16px">No allergen info listed</span>
+          <span style="font-size: 14px; color: #4A5F6B">Rapeseed oil 5 l. Check the pack if unsure.</span>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end">
+        <button class="ok">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 24px 16px 0 16px; display: flex; flex-direction: column; gap: 10px">
+    <h2 class="hd" style="font-size: 26px">You asked, we added</h2>
+
+    <div class="card" style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+      <span class="asked">You asked: 5 kg ground beef by Monday</span>
+      <div style="display: flex; gap: 12px; align-items: center">
+        <div class="thumb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7D919C" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M7 7V5h10v2"/></svg></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+          <a href="21-confirm-line.html" style="font-weight: 700; font-size: 16px; text-decoration: none">Beef mince 10 % 2,5 kg</a>
+          <span style="font-size: 14px; color: #4A5F6B">2 pcs = 5 kg</span>
+        </div>
+        <span class="price">41,90 €</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #EEF2F4; padding-top: 10px">
+        <span style="font-size: 14px; color: #2C4655">Cheapest mince that arrives Monday</span>
+        <span style="display: flex; gap: 6px"><a href="21-confirm-line.html" aria-label="Why this product" style="height: 36px; padding: 0 12px; border-radius: 18px; background: #E9EFF3; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Why</a><a href="21-confirm-line.html" aria-label="Change this line" style="width: 36px; height: 36px; border-radius: 18px; background: #E9EFF3; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></a></span>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+      <span class="asked">You asked: my usual oat drink, 20 l</span>
+      <div style="display: flex; gap: 12px; align-items: center">
+        <div class="thumb"><svg width="22" height="28" viewBox="0 0 20 28" fill="none" stroke="#7D919C" stroke-width="1.8" aria-hidden="true"><path d="M4 8l3-5h6l3 5v18H4z"/></svg></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+          <span style="font-weight: 700; font-size: 16px; color: #1E4F68">Oat drink 1 l</span>
+          <span style="font-size: 14px; color: #4A5F6B">2 cases = 24 l <span class="mark">ROUNDED</span></span>
+        </div>
+        <span class="price">51,60 €</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #EEF2F4; padding-top: 10px">
+        <span style="font-size: 14px; color: #2C4655">The one you usually order</span>
+        <span style="display: flex; gap: 6px"><a href="21-confirm-line.html" aria-label="Why this product" style="height: 36px; padding: 0 12px; border-radius: 18px; background: #E9EFF3; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Why</a><a href="21-confirm-line.html" aria-label="Change this line" style="width: 36px; height: 36px; border-radius: 18px; background: #E9EFF3; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></a></span>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+      <span class="asked">You asked: 10 l rapeseed oil</span>
+      <div style="display: flex; gap: 12px; align-items: center">
+        <div class="thumb"><svg width="22" height="28" viewBox="0 0 20 28" fill="none" stroke="#7D919C" stroke-width="1.8" aria-hidden="true"><path d="M7 3h6v4l3 3v16H4V10l3-3z"/></svg></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+          <span style="font-weight: 700; font-size: 16px; color: #1E4F68">Rapeseed oil 5 l</span>
+          <span style="font-size: 14px; color: #4A5F6B">2 pcs = 10 l <span class="mark">2 FLAGS</span></span>
+        </div>
+        <span class="price">34,90 €</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #EEF2F4; padding-top: 10px">
+        <span style="font-size: 14px; color: #2C4655">Cheapest nut-free oil, Monday</span>
+        <span style="display: flex; gap: 6px"><a href="21-confirm-line.html" aria-label="Why this product" style="height: 36px; padding: 0 12px; border-radius: 18px; background: #E9EFF3; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Why</a><a href="21-confirm-line.html" aria-label="Change this line" style="width: 36px; height: 36px; border-radius: 18px; background: #E9EFF3; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></a></span>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1"></div>
+  <div style="margin-top: 24px; background: #fff; border-top: 1px solid #DCE3E8; padding: 14px 16px 22px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -6px 18px rgba(16,48,63,0.08)">
+    <div style="display: flex; justify-content: space-between; font-size: 14px; color: #4A5F6B">
+      <span>2 checks left before you can confirm</span>
+      <span>incl. VAT</span>
+    </div>
+    <a href="22-confirm-received.html" aria-disabled="true" style="display: flex; align-items: center; justify-content: center; height: 56px; border-radius: 8px; background: #E4EDB6; color: #6C7A2A; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 21px; letter-spacing: 0.6px; text-transform: uppercase; text-decoration: none">Confirm 128,40 €</a>
+    <button style="background: transparent; border: 0; font: inherit; font-size: 15px; font-weight: 600; color: #1E4F68; text-decoration: underline; padding: 6px">Cancel order</button>
+  </div>
+</div>
+</body>
+</html>

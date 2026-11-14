@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Webshop chat: quote and link on mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1E4F68}a:hover{color:#123A4E}
+.hd{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-0.2px;margin:0}
+.me{align-self:flex-end;max-width:270px;background:#1E4F68;color:#fff;border-radius:14px 4px 14px 14px;padding:10px 13px;font-size:15px;line-height:1.4}
+.bot{align-self:flex-start;max-width:290px;background:#F3F6F8;border-radius:4px 14px 14px 14px;padding:10px 13px;font-size:15px;line-height:1.4}
+.grp{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #EEF2F4;font-size:15px;background:none;border-left:0;border-right:0;border-top:0;font-family:inherit;color:inherit;text-align:left;width:100%;cursor:pointer}
+</style>
+</head>
+<body>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #fff; font-family: 'Figtree', system-ui, sans-serif; color: #10303F; display: flex; flex-direction: column; overflow: hidden">
+  <div style="height: 60px; background: #1E4F68; color: #fff; padding: 0 14px; display: flex; align-items: center; gap: 12px; flex-shrink: 0">
+    <div style="width: 36px; height: 36px; border-radius: 18px; background: #2A6582; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px">S</div>
+    <div style="display: flex; flex-direction: column; flex-grow: 1"><b style="font-size: 16px">S.I.MO</b><span style="font-size: 13px; color: #CFE0E8">Avoids milk</span></div>
+    <button aria-label="Close chat" style="width: 40px; height: 40px; border-radius: 20px; border: 0; background: #2A6582; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <button style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: 0; border-bottom: 1px solid #DCE3E8; background: #EEE9F5; font: inherit; color: inherit; text-align: left; flex-shrink: 0">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.2" aria-hidden="true"><path d="M3 4h2l2.5 11h11L21 7H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/></svg>
+    <b style="font-size: 15px; flex-grow: 1">Current order</b><b style="font-size: 15px">612,30 €</b>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+
+  <div style="flex-grow: 1; padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; justify-content: flex-end">
+    <div class="me">Build the order.</div>
+    <div style="align-self: stretch; border: 1px solid #DCE3E8; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><h3 class="hd" style="font-size: 22px; color: #1E4F68">Quote for your week</h3><b style="font-size: 18px">612,30 €</b></div>
+      <span style="font-size: 13px; color: #4A5F6B; padding-bottom: 4px">Delivery Mon 16 Nov, incl. VAT</span>
+      <button class="grp"><b style="flex-grow: 1">Mon, chicken curry</b><span style="color: #4A5F6B">3 lines</span><b>118,40 €</b></button>
+      <button class="grp"><b style="flex-grow: 1">Tue, meatballs</b><span style="color: #4A5F6B">3 lines</span><b>131,20 €</b></button>
+      <button class="grp"><b style="flex-grow: 1">Wed, salmon soup</b><span style="color: #4A5F6B">2 lines</span><b>164,90 €</b></button>
+      <button class="grp"><b style="flex-grow: 1">Thu, pea soup</b><span style="color: #4A5F6B">3 lines</span><b>79,60 €</b></button>
+      <button class="grp"><b style="flex-grow: 1">Fri, lasagne</b><span style="color: #4A5F6B">3 lines</span><b>118,20 €</b></button>
+      <div style="display: flex; gap: 8px; align-items: center; padding: 8px 0 2px 0; font-size: 14px; color: #4A5F6B">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A5F6B" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+        <span style="flex-grow: 1">Not ordered: salt, flour, spices</span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; font-size: 14px; color: #6B5400; font-weight: 600">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B5400" stroke-width="2" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg>
+        2 things to check before you confirm
+      </div>
+      <button style="margin-top: 8px; height: 48px; border: 0; border-radius: 8px; background: #1E4F68; color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>
+        Send to my phone
+      </button>
+    </div>
+    <div class="bot">Sent. Confirm it when you are ready.</div>
+    <a href="20-confirm-check.html" style="align-self: stretch; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #10303F; background: #F5F9EA; border: 1px solid #C9DE7C; border-radius: 12px; padding: 12px 14px">
+      <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 20px; background: #C6E02A; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10303F" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></div>
+      <div style="display: flex; flex-direction: column; flex-grow: 1"><b style="font-size: 16px">Open confirmation page</b><span style="font-size: 13px; color: #4A5F6B">Also sent by SMS to +358 44 *** **03</span></div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E4F68" stroke-width="2.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </a>
+  </div>
+
+  <div style="padding: 10px 14px 18px 14px; border-top: 1px solid #DCE3E8; display: flex; gap: 8px; flex-shrink: 0">
+    <label for="m3" style="position: absolute; left: -9999px">Message S.I.MO</label>
+    <input id="m3" placeholder="Write to S.I.MO" style="flex-grow: 1; min-width: 0; height: 46px; box-sizing: border-box; border: 1px solid #B9C6CE; border-radius: 23px; padding: 0 16px; font: inherit; font-size: 15px">
+    <button aria-label="Send" style="width: 46px; height: 46px; border-radius: 23px; border: 0; background: #1E4F68; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true"><path d="M4 12l16-8-6 16-2-6z"/></svg></button>
+  </div>
+</div>
+</body>
+</html>
