@@ -92,7 +92,7 @@ async def load_summary(db: AsyncSession, session_id: str) -> OrderSummary:
     ]
     return OrderSummary(
         session_id=str(row.id),
-        order_number=None,  # #47 creates orders
+        order_number=row.order_number,
         company=company_of(row),
         channel=row.channel,
         client=client_label(row.stored_channel, row.client_name),

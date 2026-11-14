@@ -117,6 +117,7 @@ class SessionRow:
     exclusions: list[Exclusion]
     identity_masked: str | None
     quote: dict[str, Any] | None = None  # the session's current quote, see _QUOTES
+    order_number: str | None = None  # the confirmed order's "D-1042", see _ORDERS
     request_lines: list[dict[str, Any]] | None = None  # the latest request_received lines
     step_text: Localized | None = None
 
@@ -153,6 +154,17 @@ _QUOTES = text(
     """
 ).bindparams(bindparam("session_ids", type_=ARRAY(UUID(as_uuid=True))))
 
+# The session's order (#47), made when the buyer confirmed one of its quotes, any version.
+# One per confirmation; should a session have more, the newest one.
+_ORDERS = text(
+    """
+    SELECT DISTINCT ON (o.session_id) o.session_id, o.order_number
+    FROM orders o
+    WHERE o.session_id = ANY(:session_ids)
+    ORDER BY o.session_id, o.confirmed_at DESC, o.seq DESC
+    """
+).bindparams(bindparam("session_ids", type_=ARRAY(UUID(as_uuid=True))))
+
 _LATEST_EVENTS = text(
     """
     SELECT DISTINCT ON (e.session_id) e.session_id, e.text_fi, e.text_en
@@ -178,7 +190,7 @@ async def load_sessions(
     session_ids: Sequence[uuid.UUID] | None = None,
     now: datetime | None = None,
 ) -> list[SessionRow]:
-    """The sessions in scope (since `EVENT_START`), with their current quotes."""
+    """The sessions in scope (since `EVENT_START`), with their current quotes and orders."""
     now = now or datetime.now(UTC)
     result = await db.execute(
         _SESSIONS,
@@ -198,6 +210,8 @@ async def _attach_quotes(db: AsyncSession, rows: list[SessionRow], now: datetime
     result = await db.execute(_QUOTES, {"session_ids": list(by_id)})
     for quote in result.mappings():
         by_id[quote["session_id"]].quote = dict(quote)
+    for order in (await db.execute(_ORDERS, {"session_ids": list(by_id)})).mappings():
+        by_id[order["session_id"]].order_number = order["order_number"]
     for row in rows:
         _apply_idle_rule(row, now)
 
@@ -307,7 +321,7 @@ def card_of(row: SessionRow) -> OrderCard:
     request_lines = row.request_lines or (quote["request_lines"] if quote else None) or []
     return OrderCard(
         session_id=str(row.id),
-        order_number=None,  # #47 creates orders
+        order_number=row.order_number,
         channel=row.channel,
         client=client_label(row.stored_channel, row.client_name),
         identity_masked=row.identity_masked,
