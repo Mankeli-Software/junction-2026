@@ -135,14 +135,26 @@ class BuildQuoteRequest(StrictModel):
         return self
 
 
-class UpdateQuoteRequest(StrictModel):
-    """The full new line list. Keep `line_id`s for unchanged lines.
+class UpdateQuoteBody(StrictModel):
+    """The changes to a quote (#101): `lines` are new lines and changed ones, matched by
+    `line_id`; a line of the quote that is not sent stays as it was. `remove_line_ids`
+    takes lines out.
 
-    Answering a clarification is sending the line again with the chosen `product_id`.
+    Answering a clarification is sending that line again with the chosen `product_id`.
     """
 
+    lines: list[LineRequest] = Field(default=[], max_length=MAX_LINES)
+    remove_line_ids: list[str] = Field(default=[], max_length=MAX_LINES)
+
+    @model_validator(mode="after")
+    def _lines_or_removals(self) -> "UpdateQuoteBody":
+        if not self.lines and not self.remove_line_ids:
+            raise ValueError("give at least one line to add or change, or a line id to remove")
+        return self
+
+
+class UpdateQuoteRequest(UpdateQuoteBody):
     quote_id: str
-    lines: list[LineRequest] = Field(min_length=1, max_length=MAX_LINES)
 
 
 class QuoteResponse(EngineOutput):

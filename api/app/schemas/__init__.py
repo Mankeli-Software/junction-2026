@@ -154,6 +154,7 @@ from .tools import (
     SearchProductsResponse,
     SearchRecipesRequest,
     SearchRecipesResponse,
+    UpdateQuoteBody,
     UpdateQuoteRequest,
 )
 
@@ -294,6 +295,7 @@ __all__ = [
     "Trace",
     "TraceRemoval",
     "UnitConversion",
+    "UpdateQuoteBody",
     "UpdateQuoteRequest",
     "UsualItem",
 ]

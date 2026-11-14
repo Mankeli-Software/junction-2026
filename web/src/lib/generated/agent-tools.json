@@ -905,23 +905,31 @@
 			},
 			"additionalProperties": false,
 			"properties": {
-				"quote_id": {
-					"title": "Quote Id",
-					"type": "string"
-				},
 				"lines": {
+					"default": [],
 					"items": {
 						"$ref": "#/$defs/LineRequest"
 					},
 					"maxItems": 50,
-					"minItems": 1,
 					"title": "Lines",
 					"type": "array"
+				},
+				"remove_line_ids": {
+					"default": [],
+					"items": {
+						"type": "string"
+					},
+					"maxItems": 50,
+					"title": "Remove Line Ids",
+					"type": "array"
+				},
+				"quote_id": {
+					"title": "Quote Id",
+					"type": "string"
 				}
 			},
 			"required": [
-				"quote_id",
-				"lines"
+				"quote_id"
 			],
 			"title": "update_quoteArguments",
 			"type": "object"
