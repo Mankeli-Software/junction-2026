@@ -3,8 +3,9 @@
 Usage:
     VALIO_API_KEY=... python3 scripts/recheck_availability_dates.py path/to/valio_aimo_junction26_product_data.json
 
-Samples 600 products (seed 7, same as the 2026-11-13 baseline in valio-api-analysis.md section 12),
-queries several requested dates, and prints how availableDate and closingTime are distributed.
+Samples a small shortlist of 60 products (seed 7) and queries a few requested dates, then prints how
+availableDate and closingTime are distributed. Compare proportions, not counts, with the 2026-11-13
+baseline in valio-api-analysis.md section 12 (that baseline used 600 products, before the small-batch rule).
 """
 import collections as C
 import json
@@ -15,7 +16,7 @@ import urllib.request
 
 BASE = "https://junction26.valioaimo.fi/api/"
 KEY = os.environ["VALIO_API_KEY"]
-DATES = ["2026-11-13", "2026-11-14", "2026-11-15", "2026-11-16", "2026-11-17", "2026-11-20", "2026-11-30", "2027-03-01"]
+DATES = ["2026-11-14", "2026-11-16", "2026-11-20"]
 
 
 def availability(date, ids):
@@ -31,7 +32,7 @@ def availability(date, ids):
 
 products = json.load(open(sys.argv[1]))
 random.seed(7)
-ids = [p["id"] for p in random.sample(products, 600)]
+ids = [p["id"] for p in random.sample(products, 60)]
 
 for date in DATES:
     res = availability(date, ids)

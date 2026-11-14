@@ -79,7 +79,7 @@ Coverage notes:
 - **Origin:** `countryOfOrigin` (lowercase ISO alpha-2) missing for only 9 products.
 - **Names:** fi, sv and en in `synkkaData.names`. Marketing text, ingredients (3,746 products) and nutrition (12,251) are partial.
 - **Temperature class:** `temperatureCondition` integer (8 = ambient is the most common, no legend). Closest thing we have to "fresh". **No shelf life data anywhere.**
-- **Allergens:** `classifications` group `allergen` lists codes with `CONTAINS` or `MAY_CONTAIN`. Group `nonAllergen` lists `FREE_FROM`. Codes are Synkka codes with no legend (AM, AW, UW, AE, AN, AY...). About 11 products have no classifications at all. Fail closed: treat missing data and `MAY_CONTAIN` as unsafe for strict exclusions. We must build the code-to-allergen mapping (for example nuts).
+- **Allergens:** `classifications` group `allergen` lists codes with `CONTAINS` or `MAY_CONTAIN`. Group `nonAllergen` lists `FREE_FROM`. Codes follow the GS1 `AllergenTypeCode` vocabulary (https://ref.gs1.org/voc/AllergenTypeCode). All 45 codes in the data exist in it; the full mapping is in `data/gs1_allergen_codes.csv`. The containment value is `CONTAINS`, `MAY_CONTAIN`, `FREE_FROM` or `UNDECLARED` (about 20 products per code; the last is not in the GS1 containment vocabulary and must be treated as unsafe). About 11 products have no classifications at all. Fail closed: treat missing data and `MAY_CONTAIN` as unsafe for strict exclusions. We must build the code-to-allergen mapping (for example nuts).
 - **Diet and claims:** group `nutritionalClaim` has `LACTOSE FREE_FROM` (4,178 products), `GLUTEN FREE_FROM`, `VEGAN`, `VEGETARIAN` and so on. "Lactose-free" must be matched on the claim, not just the name (name search alone matched many non-milk products, such as pastries and chocolate).
 - **Labels:** group `packagingMarkedLabel` includes Blue Swan, Finnish heart, EU organic, Swan, Rainforest Alliance, MSC, Fair Trade and others. These are the "certificates and sustainability labels" in the optional criteria.
 - **VAT:** `vatCode` is dirty (`STANDARD`, `MEDIUM`, `MEDIUM MEDIUM`, empty, `NOT_APPLICABLE`) and missing for about 3,000 products. Use `tax.taxRate` from the price API instead.
@@ -103,7 +103,7 @@ Coverage notes:
 | Cutoff and delivery days per product | One static `closingTime`, no delivery calendar, no date dependence | Do not build T14, T15, T19 on this field until clarified; our own delivery calendar in policy config |
 | Shelf life | Not provided | Drop stage 4 shelf life check and T20, or mock |
 | `pack_size`, `sell_unit`, `unit_volume_l` | `units[]`, `unitConversions`, names | Build a normalising adapter with `UNIT_UNKNOWN` fail-closed |
-| `allergens` list and `allergen_data_complete` | Coded CONTAINS / MAY_CONTAIN / FREE_FROM, no legend | Build mapping; completeness = group present |
+| `allergens` list and `allergen_data_complete` | GS1 `AllergenTypeCode` codes with CONTAINS / MAY_CONTAIN / FREE_FROM / UNDECLARED | Use `data/gs1_allergen_codes.csv`; completeness = group present |
 | `carbon_g_per_unit` | Group average per kg | Derive from weight, soft only |
 | Season table | None | Our own table, soft only |
 | Quotes and order placement | None | Entirely ours |
@@ -112,7 +112,7 @@ Coverage notes:
 ## 8. Answers to the issue's open questions
 
 - Customer-specific prices and order history per customer: no. Mocked by us.
-- Allergen and diet fields: yes, coded and fairly complete (17,535 of 17,546), no legend.
+- Allergen and diet fields: yes, coded with the GS1 AllergenTypeCode vocabulary and fairly complete (17,535 of 17,546). Mapping in `data/gs1_allergen_codes.csv`.
 - Origin, carbon, season: origin yes, carbon group average only, season no.
 - Stock, shelf life, cutoff, delivery days: stock partial, shelf life none, cutoff one static field, delivery days none.
 - Quotes and expiry: not supported, ours.
@@ -124,7 +124,7 @@ Coverage notes:
 1. **`closingTime` vs `availableDate`.** The spec says `closingTime` is the latest time to order to receive goods on `availableDate`. In the mock, `availableDate` is always 2026-11-16 whatever date we request, and for all Terminal products (and some Stock products) `closingTime` was already in the past when we queried (Thu 11-12 and Fri 11-13 13:00 vs server time Fri 22:27). Should we treat those as no longer orderable for 11-16 (and then which date is the next valid one, since the API will not tell us), or is the mock's `closingTime` just an unreliable snapshot? Is `availableDate` computed from the server clock (it should then move over the weekend) or is it fixed for the whole event?
 2. What does an empty `scheduleLines` mean for a product, and how common is it in the real system?
 3. Is `Terminal` stock ever confirmable, or should agents always treat it as unverified?
-4. Legend for the Synkka allergen codes, category codes, `temperatureCondition` and unit codes (or confirmation that we should infer them).
+4. Legend for category codes, `temperatureCondition` and unit codes (or confirmation that we should infer them). Allergen codes are solved: they follow GS1 AllergenTypeCode, see `data/gs1_allergen_codes.csv`.
 
 ## 10. Suggested demo data to prepare
 
@@ -184,21 +184,18 @@ Category `10400` is milk drinks (it also contains sour milk and coffee drinks). 
 
 This one query already covers unbounded stock, partial stock (Arla 51 ST vs 1,000 L), Terminal (unverified) and unorderable cases. Cheapest unbounded option is 464306 at 1.01 per litre. The "lactose-free" decision should use the `LACTOSE FREE_FROM` claim, and note `LACTOSE LOW` exists too (321 products) and should not count as lactose-free.
 
-### Inferred legends (not provided, verify with the mentors)
-Allergen codes, inferred by correlating `CONTAINS` codes with ingredient text and product names (they look like GS1 allergen codes):
+### Allergen codes: GS1 AllergenTypeCode
+The allergen codes are the GS1 `AllergenTypeCode` values (https://ref.gs1.org/voc/AllergenTypeCode, official labels from the GS1 Web Vocabulary). All 45 codes that occur in the product data exist there. The full table is `data/gs1_allergen_codes.csv`, with the GS1 label and URI, our mapping to the 14 allergens of EU regulation 1169/2011, and how often each code appears as `CONTAINS`, `MAY_CONTAIN`, `FREE_FROM` and `UNDECLARED`.
 
-| Code | Likely meaning | Code | Likely meaning |
-|---|---|---|---|
-| AM | milk | AW | cereals containing gluten |
-| ML | lactose (probable) | UW | wheat |
-| AE | egg | NR / GB / GO | rye / barley / oats |
-| AF | fish | AY | soy |
-| AC / UM | crustaceans / molluscs | AS | sesame |
-| AP | peanut | BM | mustard |
-| AN | tree nuts (general) | BC | celery |
-| SA / SH / SC / SW | almond / hazelnut / cashew / walnut | AU | sulphites (probable) |
+Things the official list changes or confirms (an earlier inference of mine had `NC` wrong):
 
-**Nut exclusion must union several codes.** Of 58 products with "almond" in the name, 44 carry `SA` and only 26 carry `AN`. A nut-free rule that checks only `AN` would miss nuts. Use `AN`, `SA`, `SH`, `SC`, `SW` and probably `AP`, plus unknown codes (`ST`, `NC`) until clarified, and treat `MAY_CONTAIN` as unsafe.
+- `AW` is cereals containing gluten (wheat, barley, rye, oats and hybrids), `UW` is wheat only, `NR` rye, `GB` barley, `GO` oats, `GS` spelt, `GK` kamut. A gluten-free rule should look at all of them.
+- `AM` is milk and its derivatives, and `ML` is **lactose** (confirmed). Lactose-free needs `ML` and the `LACTOSE` claim, not `AM` alone.
+- `AN` is the general tree-nut code and the specific nuts have their own codes: `SA` almond, `SH` hazelnut, `SW` walnut, `SC` cashew, `SP` pecan, `SM` macadamia, `SR` Brazil nut, `ST` pistachio. Also `PN` pine nuts and `SO` coconut (not EU tree nuts) and `AP` peanut. Of 58 products with "almond" in the name only 26 carry `AN` while 44 carry `SA`, so a nut-free rule must use the whole set.
+- `NC` is **cocoa**, not a nut. `NM` corn, `NE` peas, `NW` carrots, `NK` coriander, `BF` beef, `CM` chicken, `PO` pork, `NP` pod fruits, `BP` linalool (a fragrance allergen).
+- `UN` is generic shellfish. Treat as crustaceans and molluscs.
+- `X99` means "contains none of the obligatory allergens". **It is not an allergen.** It appears 121 times as `CONTAINS`, which must not trigger a block.
+- `UNDECLARED` is not in GS1's three containment levels but occurs in the data (14 to 24 products per code). Unknown means unsafe under our fail-closed rule.
 
 `temperatureCondition` (inferred from `minTemperature` / `maxTemperature` and labels): 8 = ambient (about 18-22 °C), 7 = frozen (-18 to -25 °C), 1-4 = chilled (1: 0-3, 2: 2-4, 3: 2-6, 4: 5-8 °C), 5, 6 and 9 are rare special classes. This is the only way to approximate "fresh". Category codes have no clean legend (top categories mix many unrelated brands), so mandate categories need our own mapping from keywords or specific codes.
 
@@ -212,7 +209,7 @@ Allergen codes, inferred by correlating `CONTAINS` codes with ingredient text an
 ### Extra questions for the mentors
 7. Do deposits get added to the invoice on top of the API price?
 8. Which unit does the price apply to when the product file and availability disagree on `salesUnit`? (Our test says availability, please confirm.)
-9. Meaning of the allergen codes (especially `AN`, `ML`, `ST`, `NC`, `UW`) and of `temperatureCondition`.
+9. Meaning of `temperatureCondition` (allergen codes are now mapped to GS1, see above), and what `UNDECLARED` means in the data.
 
 ## 12. Delivery date handling: status, decision and recheck plan
 
@@ -241,7 +238,7 @@ Allergen codes, inferred by correlating `CONTAINS` codes with ingredient text an
 Identical for every requested date. `availableDate` is absent when `availableAmount` is 0 (11 of the Stock products). Repeated calls returned identical data.
 
 ### Recheck plan (Sat 2026-11-14 and again Mon 2026-11-16 morning)
-Run `scripts/recheck_availability_dates.py` (needs `VALIO_API_KEY` and the product JSON path, see the file header). Compare against the baseline above.
+Run `scripts/recheck_availability_dates.py` (needs `VALIO_API_KEY` and the product JSON path, see the file header). It queries only 60 products and 3 dates, per the small-batch rule in `CLAUDE.md`. Compare proportions against the baseline above (the baseline used 600 products), not raw counts.
 
 | If we see | It means |
 |---|---|
