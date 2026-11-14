@@ -344,7 +344,8 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 - Edits (quantity, remove a line, pick an alternative) run the engine again and produce a new quote on the same page. The old quote becomes void and the confirmation points to the new one. Confirm must send the hash of the quote on screen, so a stale tab cannot confirm an old version. Acknowledgements carry over to the new quote by `flag_key`. Only new flags, or flags whose text changed, need a new acknowledgement.
 - The page uses the language of the call or chat, with a toggle. The page states are listed in `docs/specs/confirmation-page.md` §3.
 - Confirm re-checks availability. If it got worse, the quote is void and a new one is shown. Otherwise the order is created and the page shows "order received".
-- Product text is escaped (Svelte's default, never `{@html}`). `Referrer-Policy: no-referrer` keeps the token out of Referer headers, including towards the hotlinked image host.
+- Product text is escaped (Svelte's default, never `{@html}`).
+- `/c/*` responses carry `Referrer-Policy: same-origin`, `Cache-Control: no-store` and `X-Robots-Tag: noindex` (`web/src/hooks.server.ts`). `same-origin` keeps the token out of Referer headers towards every other site, including the hotlinked image host. Not `no-referrer`: with it, browsers send `Origin: null` on a plain form post, and SvelteKit's CSRF check then refuses every action when JavaScript is off.
 
 ### 8.4 Order record
 
@@ -435,17 +436,29 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 
 ### 9.4 Confirmation page (web only)
 
-The token is in the path. `GET` never uses it up.
+The token is in the path. `GET` never uses it up. The confirmation page (#55) is built against these endpoints with an in-memory fixture (`CONFIRMATION_SOURCE=fixture`) until #47 implements them. Its types are in `web/src/lib/confirmation/types.ts` and its client in `web/src/lib/server/confirmation/api.ts`; keep those and #47 in step. Shapes the backend hasn't decided yet are marked *proposed (#47)*.
 
 | Method and path | Request → response | Screens |
 |---|---|---|
-| `GET /api/v1/confirmations/{token}` | → `{state, lang, expires_at, company, exclusions, quote{id, version, hash, total_cents, delivery}, requests[{asked, group, lines[], not_ordered[]}], flags[], order?}` | `20-confirm-check` to `22-confirm-received` |
-| `POST …/{token}/acknowledgements` | `{quote_hash, flag_key}` → updated view | "Got it" |
-| `POST …/{token}/edits` | `{quote_hash, op: set_quantity \| remove \| choose_alternative, line_id, quantity?, alternative_id?}` → new view; 409 if the hash is stale | Stepper, remove, alternatives |
-| `POST …/{token}/confirm` | `{quote_hash}` → `{order_number, confirmed_at}`; 409 with a new view if availability got worse; 422 if a flag isn't acknowledged; 410 if expired (production only) | Confirm |
-| `POST …/{token}/cancel` | `{quote_hash}` → `{state: cancelled}` | Cancel |
+| `GET /api/v1/confirmations/{token}` | → the confirmation view below; 404 for an unknown token | `20-confirm-check` to `22-confirm-received` |
+| `POST …/{token}/acknowledgements` | `{quote_hash, flag_key, option_id?}`. `option_id` is the buyer's pick for a `choose` flag. An option that changes the order makes a new quote, with the flag acknowledged on it (*proposed (#47)*) | "Got it", "Keep 24 l / Exactly 20 l" |
+| `POST …/{token}/edits` | `{quote_hash, op: set_quantity \| remove \| choose_alternative, line_id, quantity?, alternative_id?}` → a new quote; 409 if the hash is stale; 422 if the edit is not possible | Stepper, remove, alternatives |
+| `POST …/{token}/confirm` | `{quote_hash}` → `{order_number, confirmed_at}`; 409 if availability got worse (the quote is replaced and the view shows the new one); 422 if a flag isn't acknowledged; 410 if expired (production only) | Confirm |
+| `POST …/{token}/cancel` | `{quote_hash}` | Cancel |
 
-Edits use the same service as `update_quote`, and acknowledgements carry over by `flag_key` (section 8.3). The `state` values follow the page states in `docs/specs/confirmation-page.md` §3. After confirming, the `GET` keeps working read-only as the receipt until the end of the event (§7 of that spec).
+The confirmation view (*proposed (#47)*) wraps the contract models in `api/app/schemas/` (`QuoteLine`, `Flag`, `NotOrdered`, `GroupSubtotal`, `DeliverySummary`) with the page state and the buyer's acknowledgements:
+
+- `state`: `ready`, `requote_needed`, `confirmed`, `cancelled`, `expired` or `invalid`, the page states in `docs/specs/confirmation-page.md` §3.
+- `lang`, `expires_at` (null while expiry is off), `company{name}`, `session{channel, started_at}`, `exclusions[{key, label}]`.
+- `quote{quote_id, version, quote_hash, total_cents, delivery}`, with `delivery` a `DeliverySummary`.
+- `lines[]` (`QuoteLine`, each with its `group` and `asked`), `groups[]` (`GroupSubtotal`) and `not_ordered[]` (`NotOrdered`).
+- `flags[]`: each contract `Flag` plus `requires_ack` (the code's `ack` setting in `policy/messages.yaml`; `choose` flags always need one), `acknowledged_at`, `current_option_id` (for `choose`: the option the current quote already reflects) and `is_new` (new, or its text changed, since the buyer last saw the quote).
+- `change`: what changed compared with the previous quote after an edit or a requote (`reason`, `previous_total_cents`, `line_ids`, `text`), or null.
+- `order`: once confirmed, `{order_number, confirmed_at, acknowledged[{flag_key, code, at}]}`, or null.
+
+The page uses post, redirect, get: after every successful `POST` it loads the view again with `GET`, so it doesn't need the `POST` response bodies. A refused action returns its status with `{detail: {text, line_id?}}`, where `text` is in Finnish and English (*proposed (#47)*), and the page shows that text.
+
+Edits use the same service as `update_quote`, and acknowledgements carry over by `flag_key` (section 8.3). After confirming, the `GET` keeps working read-only as the receipt until the end of the event (§7 of that spec).
 
 ### 9.5 Dashboard: public, no login
 
@@ -613,7 +626,7 @@ Tests:
 | Twilio down or slow during the demo | No real SMS | The simulated phone inbox is the main path and always gets the message (section 8.2) |
 | A visitor types a made-up number that belongs to someone | A stranger gets our SMS | Real SMS only to allowlisted numbers, behind a flag that is off by default (section 8.2) |
 | Valio API rate limit or downtime during the pitch | Quotes fail on stage | Run the stage demo on the snapshot |
-| Hotlinked images blocked or slow | Broken images | Placeholder, `no-referrer` |
+| Hotlinked images blocked or slow | Broken images | Placeholder. `referrerpolicy="no-referrer"` on the `<img>` tags (section 5.5) |
 | Venue Wi-Fi degrades WebSocket audio | Call breaks up | Test on the venue network. Phone hotspot as backup |
 | SMS apps open the link to build a preview | Token used up before the buyer sees it | Opening never uses the token up (8.2) |
 | One VM | App outage | One-command redeploy. The data lives on the managed server |
