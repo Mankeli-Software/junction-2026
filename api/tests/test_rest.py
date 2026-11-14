@@ -43,27 +43,6 @@ class TestWithCaller:
         assert status["status"] == "void"
         assert status["replaced_by_quote_id"] == new["quote_id"]
 
-    def test_request_confirmation_sets_pending(self):
-        quote = build()
-
-        response = client.post(f"/api/v1/quotes/{quote['quote_id']}/confirmation-request")
-
-        assert response.status_code == 200, response.text
-        assert response.json() == {
-            "sent_to_masked": "+358 40 *** **12",
-            "sms_status": "off",
-            "inbox": True,
-        }
-        status = client.get(f"/api/v1/quotes/{quote['quote_id']}/status").json()
-        assert status["status"] == "pending_confirmation"
-
-    def test_request_confirmation_twice_is_a_conflict(self):
-        quote = build()
-        url = f"/api/v1/quotes/{quote['quote_id']}/confirmation-request"
-        client.post(url)
-
-        assert client.post(url).status_code == 409
-
     def test_request_confirmation_on_a_quote_that_is_not_ready_is_a_conflict(self):
         # Milk can't be converted to kilos, so the engine rejects the line.
         response = client.post("/api/v1/quotes", json={"lines": [{**LINE, "unit": "kg"}]})

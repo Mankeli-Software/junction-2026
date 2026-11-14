@@ -6,7 +6,8 @@ the two surfaces can't drift. Tools only get the caller, call one service functi
 errors. Nothing else is registered: no confirm, cancel, audit or inbox tool (vision §8).
 """
 
-from collections.abc import Callable
+import inspect
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -61,7 +62,7 @@ async def _caller(ctx: Context) -> Caller:
 def _tool(
     name: str,
     description: str,
-    service: Callable[..., BaseModel],
+    service: Callable[..., BaseModel | Awaitable[BaseModel]],
     request_model: type[StrictModel] | None,
     response_model: type[BaseModel],
 ) -> Tool:
@@ -76,8 +77,12 @@ def _tool(
         caller = await _caller(ctx)
         try:
             if request_model is None:
-                return service(caller)
-            return service(caller, request_model(**arguments))
+                result = service(caller)
+            else:
+                result = service(caller, request_model(**arguments))
+            if inspect.isawaitable(result):
+                result = await result
+            return result
         except ServiceError as error:
             raise ToolError(str(error)) from error
 

@@ -20,7 +20,15 @@ from app.settings import get_settings, psycopg_url
 API_DIR = Path(__file__).resolve().parents[1]
 
 # What the HTTP-level account tests write, emptied after each of them.
-ACCOUNT_TABLES = ("access_tokens", "web_sessions", "users", "kitchen_profiles", "companies")
+ACCOUNT_TABLES = (
+    "sms_messages",
+    "confirmations",
+    "access_tokens",
+    "web_sessions",
+    "users",
+    "kitchen_profiles",
+    "companies",
+)
 
 
 @pytest.fixture(scope="session")
