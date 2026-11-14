@@ -558,13 +558,15 @@ api/                     FastAPI app
       voice/             Gemini Live relay
       auth/              OAuth provider, web sessions
     schemas/             Pydantic models shared by REST and MCP
+    models/              SQLAlchemy tables (proposed in #29)
+    loaders/             catalogue loader; runs inside the api container on the VM (#29)
   migrations/            Alembic
   tests/
 web/                     SvelteKit
   src/routes/            phone, shop, c/[token], dashboard, orders, login, signup
 policy/                  rule files and message templates (versioned)
 data/                    existing data files, snapshots/
-scripts/                 loaders, embeddings, snapshot recorder, audit-chain checker
+scripts/                 embeddings, snapshot recorder, audit-chain checker
 deploy/                  docker-compose.yml, docker-compose.dev.yml, Caddyfile
 .env.example             development settings, copied to .env (never committed)
 ```

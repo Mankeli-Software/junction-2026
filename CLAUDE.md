@@ -72,7 +72,10 @@ uv run uvicorn app.main:app --reload      # dev server on :8000, needs the db co
 uv run alembic upgrade head               # migrate; new migration: uv run alembic revision -m "..."
 uv run ruff check . && uv run ruff format --check .
 uv run pytest                             # database tests run only when DATABASE_URL is exported
+uv run python -m app.loaders.catalogue --download   # product file into Postgres (VALIO_API_KEY)
 ```
+
+The catalogue loader downloads the product file once to `data/valio-products.json` (git-ignored) and can be re-run. Database tests get their own `<name>_test` database, so they never touch development data. In Compose: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml exec api python -m app.loaders.catalogue --download`.
 
 Web (`web/`, SvelteKit, `pnpm`):
 
