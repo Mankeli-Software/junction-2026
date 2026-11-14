@@ -237,6 +237,7 @@ class FakeService:
         self.log: list[str] = []  # said and local tool events, in writing order
         self.ended: list[dict[str, Any]] = []
         self.end_called = threading.Event()
+        self.sms_status = "off"  # what `sms_delivery` reports for a released link
 
     async def start_call(self, db, user_id, *, prompt_version, now=None):
         self.started += 1
@@ -276,6 +277,9 @@ class FakeService:
             quote_id="q-1" if released else None,
             total_cents=4190 if released else None,
         )
+
+    async def sms_delivery(self, end):
+        return self.sms_status
 
 
 class FakeDb:

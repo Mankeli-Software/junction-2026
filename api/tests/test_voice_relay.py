@@ -33,7 +33,14 @@ def call(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(relay, "call_limits", lambda: relay.Limits(max_call_s=60))
     monkeypatch.setattr(relay, "get_sessionmaker", lambda: fx.FakeDb)
     monkeypatch.setattr(routes, "get_sessionmaker", lambda: fx.FakeDb)
-    for name in ("start_call", "custom_vocabulary", "record_said", "record_local_tool", "end_call"):
+    for name in (
+        "start_call",
+        "custom_vocabulary",
+        "record_said",
+        "record_local_tool",
+        "end_call",
+        "sms_delivery",
+    ):
         monkeypatch.setattr(voice_calls, name, getattr(service, name))
 
     async def resolve_session(db, raw, now=None):
@@ -538,6 +545,23 @@ def test_hang_up_releases_the_link_and_never_sends_it(call):
     assert service.ended[0]["ended_by"] == "visitor"
     assert all(fx.LINK_LIKE not in text and fx.TOKEN not in text for text in sock.raw_texts)
     assert live.closed.is_set() and tools.closed.is_set()
+
+
+@pytest.mark.parametrize("status", ["sent", "failed"])
+def test_the_ended_message_reports_the_real_sms(call, status):
+    # #46: with Twilio on for an allowlisted number, the SMS goes at the end of the call.
+    live, _, service = call
+    service.sms_status = status
+    with connect() as ws:
+        sock = Socket(ws)
+        greet(live, sock)
+        live.push(fx.heard("Kyllä."))
+        live.push(fx.tool_call("request_confirmation", {"quote_id": "q-1"}))
+        live.wait_for(lambda: len(live.tool_responses) == 1)
+        ended = sock.hang_up()
+
+    assert ended["delivery_status"] == status and ended["inbox"] is True
+    assert all(fx.LINK_LIKE not in text and fx.TOKEN not in text for text in sock.raw_texts)
 
 
 def test_a_call_without_a_yes_ends_with_nothing_sent(call):

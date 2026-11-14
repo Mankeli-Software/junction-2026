@@ -317,6 +317,14 @@ class Call:
             await self._close(CLOSE_UNAVAILABLE, "The call could not start")
             return
         released = bool(end and end.released_quote_ids)
+        delivery = "none"
+        if end is not None and released:
+            # The SMS goes out after end_call's commit; this waits a few seconds for Twilio.
+            try:
+                delivery = await voice_calls.sms_delivery(end)
+            except Exception:
+                log.exception("Reading the SMS status of call %s failed", self.start.call_id)
+                delivery = "off"
         await self._send_json(
             {
                 "type": "ended",
@@ -324,8 +332,8 @@ class Call:
                 "ended_by": ended_by,
                 "quote_id": end.quote_id if end else None,
                 "total_cents": end.total_cents if end else None,
-                # Twilio is off for now (#46), so a delivered link is `off`.
-                "delivery_status": "off" if released else "none",
+                # sent, failed or off (no real SMS for it), or none without a link (#46).
+                "delivery_status": delivery,
                 "inbox": released,
                 # The call screen keeps waiting for the link instead of saying no order.
                 "link_pending": self.link_pending and not released,
