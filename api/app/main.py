@@ -1,5 +1,6 @@
 """FastAPI entry point: the REST API under /api/v1, the MCP server at /mcp, its OAuth
-routes (`/.well-known/*`, `/oauth/*`) and the quote signing key (`/.well-known/jwks.json`)."""
+routes (`/.well-known/*`, `/oauth/*`), the quote signing key (`/.well-known/jwks.json`)
+and the phone call's voice socket at /voice/ws."""
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -18,6 +19,7 @@ from app.interfaces.rest import inbox as rest_inbox
 from app.interfaces.rest import jwks as rest_jwks
 from app.interfaces.rest import oauth as rest_oauth
 from app.interfaces.rest import tools as rest_tools
+from app.interfaces.voice import routes as voice_routes
 from app.services.dashboard.feed import start_feed
 from app.services.dashboard.stream import get_broadcaster
 from app.services.signing import signing_key
@@ -61,6 +63,7 @@ app.include_router(rest_inbox.router, prefix="/api/v1")
 app.include_router(rest_oauth.router, prefix="/api/v1")
 app.include_router(rest_confirmations.router, prefix="/api/v1")
 app.include_router(rest_jwks.router)
+app.include_router(voice_routes.router)
 rest_dashboard.event_stream_openapi(app, "/api/v1/public/stream")
 rest_tools.add_error_handlers(app)
 rest_confirmations.add_error_handlers(app)
