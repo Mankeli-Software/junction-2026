@@ -1,0 +1,194 @@
+/* Dashboard styles, ported from docs/design/html/30 to 33. */
+
+:root {
+	--d-petrol: #1e4f68;
+	--d-petrol-dark: #123a4e;
+	--d-ink: #10303f;
+	--d-ink-2: #2c4655;
+	--d-muted: #4a5f6b;
+	--d-faint: #7d919c;
+	--d-line: #dce3e8;
+	--d-line-soft: #eef2f4;
+	--d-page: #f3f6f8;
+	--d-band: #eee9f5;
+	--d-card: #fff;
+	--d-on-petrol-muted: #cfe0e8;
+	--d-lime: #c6e02a;
+	--d-yellow: #ffe14d;
+
+	--d-active-bg: #e3edf2;
+	--d-active-fg: #1e4f68;
+	--d-waiting-bg: #fff3b0;
+	--d-waiting-fg: #6b5400;
+	--d-waiting-num: #7a5f00;
+	--d-confirmed-bg: #e6f2c2;
+	--d-confirmed-fg: #3f5a00;
+	--d-attention-bg: #fbe3e0;
+	--d-attention-fg: #9e2b21;
+	--d-attention-border: #e7a49c;
+	--d-ended-bg: #eef2f4;
+	--d-ended-fg: #4a5f6b;
+
+	--d-chat-bg: #f4f0f9;
+	--d-chat-fg: #6e559a;
+	--d-tool: #8e77b5;
+	--d-tool-border: #dcd2ea;
+	--d-chip: #e9eff3;
+	--d-seg: #e3eaef;
+	--d-chosen: #eef6d6;
+	--d-ok-border: #c9de7c;
+
+	--d-font-head: 'Barlow Condensed', sans-serif;
+	--d-font-body: 'Figtree', system-ui, sans-serif;
+	--d-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+	--d-max: 1360px;
+}
+
+.dash {
+	min-height: 100vh;
+	background: var(--d-page);
+	color: var(--d-ink);
+	font-family: var(--d-font-body);
+}
+
+.dash a {
+	color: var(--d-petrol);
+}
+.dash a:hover {
+	color: var(--d-petrol-dark);
+}
+
+.dash .hd {
+	font-family: var(--d-font-head);
+	font-weight: 700;
+	letter-spacing: -0.2px;
+	margin: 0;
+}
+
+.dash .wrap {
+	max-width: var(--d-max);
+	margin: 0 auto;
+	padding-left: 32px;
+	padding-right: 32px;
+	box-sizing: border-box;
+}
+
+.dash .band {
+	background: var(--d-band);
+}
+
+.dash .card {
+	background: var(--d-card);
+	border: 1px solid var(--d-line);
+	border-radius: 10px;
+}
+
+.dash .mono {
+	font-family: var(--d-font-mono);
+	font-size: 13px;
+}
+
+.dash button {
+	font-family: inherit;
+}
+
+/* Status pills and channel badges: colour and word, never colour alone. */
+.dash .tone-active {
+	background: var(--d-active-bg);
+	color: var(--d-active-fg);
+}
+.dash .tone-waiting {
+	background: var(--d-waiting-bg);
+	color: var(--d-waiting-fg);
+}
+.dash .tone-confirmed {
+	background: var(--d-confirmed-bg);
+	color: var(--d-confirmed-fg);
+}
+.dash .tone-attention {
+	background: var(--d-attention-bg);
+	color: var(--d-attention-fg);
+}
+.dash .tone-ended {
+	background: var(--d-ended-bg);
+	color: var(--d-ended-fg);
+}
+
+.dash .ch-phone {
+	background: var(--d-active-bg);
+	color: var(--d-petrol);
+}
+.dash .ch-web_chat {
+	background: var(--d-chat-bg);
+	color: var(--d-chat-fg);
+}
+.dash .ch-webmcp {
+	background: var(--d-waiting-bg);
+	color: var(--d-waiting-fg);
+}
+.dash .ch-mcp {
+	background: var(--d-confirmed-bg);
+	color: var(--d-confirmed-fg);
+}
+
+/* Breadcrumb and tabs on the order pages. */
+.dash .crumbs {
+	font-size: 14px;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+.dash .crumbs a {
+	font-weight: 700;
+	text-decoration: none;
+}
+.dash .crumbs .sep {
+	color: var(--d-faint);
+}
+.dash .crumbs .here {
+	font-weight: 700;
+}
+
+.dash .tabs {
+	display: flex;
+	gap: 28px;
+}
+.dash .tab {
+	padding: 12px 4px;
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--d-muted);
+	text-decoration: none;
+	border-bottom: 3px solid transparent;
+}
+.dash .tab[aria-current='page'] {
+	color: var(--d-ink);
+	border-bottom-color: var(--d-petrol);
+}
+
+@keyframes d-flash {
+	0% {
+		box-shadow: 0 0 0 4px var(--d-lime);
+	}
+	100% {
+		box-shadow: 0 0 0 0 transparent;
+	}
+}
+
+.dash .flash {
+	animation: d-flash 2.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dash .flash {
+		animation: none;
+	}
+}
+
+@media (max-width: 640px) {
+	.dash .wrap {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+}
