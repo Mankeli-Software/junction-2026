@@ -184,7 +184,8 @@ async def test_an_unfinished_quote_gets_the_decision_as_status(db, caller):
 
 
 async def test_a_rejected_quote_sets_the_session_state(db, caller):
-    response = await quotes.build_quote(db, caller, build({"unit": "kg"}), now=T0)
+    # A product id that doesn't exist is a hard stop.
+    response = await quotes.build_quote(db, caller, build({"product_id": "000000"}), now=T0)
 
     assert response.status == QuoteStatus.rejected
     quote = await stored(db, response.quote_id)

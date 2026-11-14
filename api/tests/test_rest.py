@@ -45,8 +45,9 @@ class TestWithCaller:
         assert status["replaced_by_quote_id"] == new["quote_id"]
 
     def test_request_confirmation_on_a_quote_that_is_not_ready_is_a_conflict(self):
-        # Milk can't be converted to kilos, so the engine rejects the line.
-        response = client.post("/api/v1/quotes", json={"lines": [{**LINE, "unit": "kg"}]})
+        # A product id that doesn't exist is a hard stop, so the engine rejects the line.
+        line = {**LINE, "product_id": "000000"}
+        response = client.post("/api/v1/quotes", json={"lines": [line]})
         quote = response.json()
         assert quote["decision"] == "rejected"
 
