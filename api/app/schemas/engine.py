@@ -42,7 +42,7 @@ class RecipeRef(StrictModel):
 
 
 class LineRequest(StrictModel):
-    """One structured line from the agent. The engine never sees raw speech (vision §5)."""
+    """One structured line from the agent. The engine never sees raw speech."""
 
     line_id: str = Field(min_length=1, max_length=40)
     product_id: str | None = None  # when the agent already knows the product

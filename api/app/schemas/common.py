@@ -27,9 +27,9 @@ JsonDecimal = Annotated[Decimal, PlainSerializer(float, return_type=float, when_
 
 
 class Claim(StrEnum):
-    """Product claims, from the product file's `nutritionalClaim` group.
+    """Product claims, as the product data states them.
 
-    lactose_free is `LACTOSE FREE_FROM` only; `LACTOSE LOW` does not count.
+    `lactose_free` means a lactose-free product only; a low-lactose product does not count.
     """
 
     lactose_free = "lactose_free"
@@ -39,7 +39,7 @@ class Claim(StrEnum):
 
 
 class Exclusion(StrEnum):
-    """Kitchen exclusions: the keys of `policy/allergen_rules.yaml`."""
+    """Kitchen exclusions: the allergens and diets the kitchen rules out."""
 
     milk_free = "milk_free"
     lactose_free = "lactose_free"
@@ -78,7 +78,7 @@ class OfferSource(StrEnum):
 
 
 class QuoteStatus(StrEnum):
-    """Quote lifecycle (technical-plan.md §8.1).
+    """Quote lifecycle.
 
     A quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's
     decision. Only a `ready` quote can be sent for confirmation; the other two are

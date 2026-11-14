@@ -1,4 +1,4 @@
-"""Request and response models for the seven agent tools (vision §8, technical-plan.md §9.1).
+"""Request and response models for the eight agent tools (vision §8, technical-plan.md §9.1).
 
 No tool response ever carries the confirmation token or link (technical-plan.md §9).
 """
@@ -130,7 +130,7 @@ class UpdateQuoteRequest(StrictModel):
 
 
 class QuoteResponse(EngineOutput):
-    """Every `EngineOutput` field plus the service fields."""
+    """The engine's decision plus the quote id, version, status, expiry and hash."""
 
     quote_id: str
     version: int
@@ -144,14 +144,14 @@ class QuoteResponse(EngineOutput):
 
 
 class RequestConfirmationRequest(StrictModel):
-    """No recipient argument: the SMS goes to the account's own number (vision §6)."""
+    """No recipient argument: the confirmation link goes to the account's own phone."""
 
     quote_id: str
 
 
 class ConfirmationRequestResponse(StrictModel):
     sent_to_masked: str
-    sms_status: Literal["held", "sent", "failed", "off"]  # held on the phone until hang-up
+    delivery_status: Literal["held", "sent", "failed", "off"]  # held on the phone until hang-up
     inbox: bool
 
 

@@ -25,7 +25,7 @@ class TraceRemoval(StrictModel):
 class Trace(StrictModel):
     """Candidates found, removed per reason and left.
 
-    Each candidate is counted once, at the first step it fails, in §4.2 order.
+    Each candidate is counted once, at the first check it fails, in the order the checks run.
     """
 
     found: int
@@ -72,7 +72,7 @@ class FlagOption(StrictModel):
 
 
 class Flag(StrictModel):
-    """A notice on the quote. `acknowledged_at` belongs to the confirmation view (#47)."""
+    """A notice on the quote. The buyer acknowledges it on the confirmation page."""
 
     flag_key: str  # stable across re-quotes
     code: str
