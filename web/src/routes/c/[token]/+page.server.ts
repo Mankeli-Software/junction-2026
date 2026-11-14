@@ -69,12 +69,15 @@ async function run(url: URL, action: () => Promise<void>, drop: string[] = []) {
 	redirect(303, back(url, drop));
 }
 
+/** The largest quantity a buyer can set on one line. */
+const MAX_QUANTITY = 10_000;
+
 function parseEdit(form: FormData): EditOp {
 	const op = field(form, 'op');
 	const lineId = field(form, 'line_id');
 	if (op === 'set_quantity') {
 		const quantity = Number(field(form, 'quantity'));
-		if (!Number.isInteger(quantity)) error(400, 'Bad quantity');
+		if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) error(400, 'Bad quantity');
 		return { op, line_id: lineId, quantity };
 	}
 	if (op === 'remove') return { op, line_id: lineId };

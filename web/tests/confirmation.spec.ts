@@ -66,6 +66,17 @@ test('changes the amount in the line sheet', async ({ page }) => {
 	await expect(page.getByTestId('line').filter({ hasText: 'Beef mince' })).toContainText('3 pcs = 7,5 kg');
 });
 
+test('refuses an amount that is not a whole number from 1 to 10 000', async ({ request, baseURL }) => {
+	const url = `/c/${token('ready')}?/edit`;
+	for (const quantity of ['0', '-1', '1.5', '10001', 'abc']) {
+		const response = await request.post(url, {
+			headers: { origin: baseURL! },
+			form: { op: 'set_quantity', line_id: 'any', quote_hash: 'any', quantity }
+		});
+		expect(response.status(), `quantity ${quantity}`).toBe(400);
+	}
+});
+
 test('shows the updated order when stock changed before confirming', async ({ page }) => {
 	await page.goto(`/c/${token('requote')}`);
 	await flag(page, /No allergen info/).getByRole('button', { name: 'Got it' }).click();
