@@ -25,12 +25,14 @@ from app.schemas import (
     Decision,
     DraftIngredient,
     EngineInput,
+    EngineOutput,
     Exclusion,
     GetRecipeRequest,
     LineRequest,
     Localized,
     ProposeRecipeRequest,
     RecipeDraft,
+    RecipeDraftRef,
     RequestedUnit,
     UpdateQuoteRequest,
 )
@@ -369,6 +371,40 @@ async def test_a_dish_photo_starts_from_our_matching_recipe(db, caller):
 
 
 @pytest.mark.usefixtures("recipes")
+async def test_a_group_from_a_matched_dish_photo_shows_the_recipes_image(db, caller):
+    dish = await recipe_drafts.propose(
+        db,
+        caller,
+        porridge(
+            dish="Lohikeitto",
+            source="dish_photo",
+            servings_on_source=None,
+            ingredients=[ingredient(0, "lohta", 400, "g")],
+        ),
+        now=T0,
+    )
+    hit = dish.matched_recipe
+    assert hit is not None and hit.image_url
+    # A ready quote from a notebook draft has no image on its group.
+    notebook = await confirmed_draft(db, caller)
+    response = await quotes.build_quote(
+        db, caller, BuildQuoteRequest(recipe_draft_id=notebook.draft_id, needed_by=DAY), now=T0
+    )
+    assert response.decision == Decision.ready and response.groups[0].image_url is None
+
+    # The same group from the dish photo (lactose-free kitchen: its own quote would not be
+    # ready here) gets the matched recipe's image, in one lookup.
+    stored = await db.get_one(Quote, uuid.UUID(response.quote_id))
+    output = EngineOutput.model_validate(stored.engine_output)
+    ref = RecipeDraftRef(draft_id=dish.draft_id, confirmed_hash="x", group=output.groups[0].group)
+    labelled = await quotes.with_group_images(db, output, [], [ref])
+    assert labelled.groups[0].image_url == hit.image_url
+
+    # The stored quote is read back with its group's image.
+    assert (await quotes.get_quote(db, caller, response.quote_id)).groups[0].image_url is None
+
+
+@pytest.mark.usefixtures("recipes")
 async def test_a_dish_photo_without_a_match_is_the_ai_guess(db, caller):
     request = porridge(dish="Zzyzx", source="dish_photo")
     proposed = await recipe_drafts.propose(db, caller, request, now=T0)
@@ -439,6 +475,7 @@ async def test_a_confirmed_draft_is_quoted_scaled_labelled_and_replays(db, calle
     assert line.asked.quantity == Decimal("20")  # 2 l for 4, for 40
     (group,) = response.groups
     assert (group.source, group.recipe_draft_id) == ("photo", confirmed.draft_id)
+    assert group.image_url is None  # a notebook photo has no recipe of ours
     assert [(n.name, n.reason.en) for n in response.not_ordered] == [
         ("vettä", "Not ordered: you unticked it")
     ]

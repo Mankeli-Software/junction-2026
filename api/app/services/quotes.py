@@ -28,8 +28,9 @@ from app.adapters import valio
 from app.engine.filters import may_block
 from app.engine.units import without_size
 from app.models import KitchenProfile as KitchenProfileRow
-from app.models import Order, OrderSession, Quote
+from app.models import Order, OrderSession, Quote, RecipeDraftRow
 from app.models import QuoteLine as QuoteLineRow
+from app.models import Recipe as RecipeRow
 from app.schemas import (
     BuildQuoteRequest,
     ConfirmationRequestResponse,
@@ -438,6 +439,7 @@ async def _new_quote(
             speak=output.speak.en,
         )
     telemetry.engine_duration.record(engine_timer.ms, telemetry.metric_attrs())
+    output = await with_group_images(db, output, lines, engine_input.recipe_drafts)
     telemetry.quote_decisions.add(1, telemetry.metric_attrs(decision=output.decision.value))
 
     ready = output.decision == Decision.ready
@@ -570,6 +572,52 @@ def with_recipe_drafts(output: EngineOutput, drafts: Iterable[RecipeDraftRef]) -
             update={"source": "photo", "recipe_draft_id": by_group[group.group].draft_id}
         )
         if group.group in by_group
+        else group
+        for group in output.groups
+    ]
+    return output.model_copy(update={"groups": groups})
+
+
+async def with_group_images(
+    db: AsyncSession,
+    output: EngineOutput,
+    lines: Iterable[LineRequest],
+    drafts: Iterable[RecipeDraftRef],
+) -> EngineOutput:
+    """The engine's output with each recipe group's image (#57): the recipe's for lines from
+    one of our recipes (`recipe_ref`), the matched recipe's for a dish-photo draft that
+    started from one. Other groups keep null. The URL is the recipe table's own, passed
+    through as it is. Set here, after the engine, like `with_recipe_drafts()`; the stored
+    output carries it, so every later read of the quote has it. One query for all groups."""
+    recipe_of: dict[str, int] = {}
+    for line in lines:
+        ref = line.recipe_ref
+        if ref is not None and line.group and ref.recipe_id.isdigit():
+            recipe_of.setdefault(line.group, int(ref.recipe_id))
+    by_draft = {uuid.UUID(d.draft_id): d.group for d in drafts}
+    if by_draft:
+        rows = await db.execute(
+            select(RecipeDraftRow.id, RecipeDraftRow.matched_recipe_id).where(
+                RecipeDraftRow.id.in_(by_draft),
+                RecipeDraftRow.source == "dish_photo",
+                RecipeDraftRow.matched_recipe_id.is_not(None),
+            )
+        )
+        for draft_id, matched in rows:
+            if matched and matched.isdigit():
+                recipe_of[by_draft[draft_id]] = int(matched)
+    wanted = {g.group for g in output.groups} & set(recipe_of)
+    if not wanted:
+        return output
+    rows = await db.execute(
+        select(RecipeRow.id, RecipeRow.image_url).where(
+            RecipeRow.id.in_({recipe_of[g] for g in wanted})
+        )
+    )
+    images = {recipe_id: image_url for recipe_id, image_url in rows}
+    groups = [
+        group.model_copy(update={"image_url": images.get(recipe_of[group.group])})
+        if group.group in wanted
         else group
         for group in output.groups
     ]

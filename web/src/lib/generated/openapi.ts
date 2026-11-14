@@ -1444,6 +1444,8 @@ export interface components {
             source?: "photo" | null;
             /** Recipe Draft Id */
             recipe_draft_id?: string | null;
+            /** Image Url */
+            image_url?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

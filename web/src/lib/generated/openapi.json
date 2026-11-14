@@ -3780,6 +3780,17 @@
 							}
 						],
 						"title": "Recipe Draft Id"
+					},
+					"image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image Url"
 					}
 				},
 				"additionalProperties": false,

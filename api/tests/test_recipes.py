@@ -9,13 +9,14 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import engine
 from app.adapters import valio
 from app.interfaces.deps import DEV_CALLER
 from app.loaders import recipes as loader
+from app.models import Recipe as RecipeRow
 from app.recipes import data as files
 from app.recipes import search as recipe_search
 from app.recipes.scaling import Pack, choose_pack, scale
@@ -379,11 +380,25 @@ async def test_a_recipe_quote_orders_the_linked_ingredients_and_lists_the_rest(d
     ]
     assert response.not_ordered[0].reason.en == "Not linked to a product, get it elsewhere"
 
-    # The stored input replays to the same output, not_ordered included.
+    # The group shows the recipe's own image (#57), set by the quote service after the
+    # engine, and kept in the stored output.
+    assert group.image_url and group.image_url.startswith("https://")
+    stored_image = await db.scalar(select(RecipeRow.image_url).where(RecipeRow.id == int(BREAD)))
+    assert group.image_url == stored_image
+
+    # The stored input replays to the same output, not_ordered included; the group image
+    # is the service's, so the replay adds it the same way.
     quote = await quotes._load(db, caller, response.quote_id)
+    assert quote.engine_output["groups"][0]["image_url"] == stored_image
     rules = await load_rule_set_by_ref(db, quote.rules_ref)
-    replayed = engine.decide(EngineInput.model_validate({**quote.engine_input, "rules": rules}))
+    replayed_input = EngineInput.model_validate({**quote.engine_input, "rules": rules})
+    replayed = await quotes.with_group_images(
+        db, engine.decide(replayed_input), replayed_input.lines, replayed_input.recipe_drafts
+    )
     assert replayed.model_dump(mode="json") == quote.engine_output
+    assert (await quotes.get_quote(db, caller, response.quote_id)).groups[0].image_url == (
+        stored_image
+    )
 
     # An edit sends the ingredient lines again (as the confirmation page does): the
     # not-ordered ingredients are still listed.
@@ -450,3 +465,20 @@ async def test_a_bad_ingredient_index_is_an_error(db):
             db,
             [recipe_line(recipe_ref={"recipe_id": BREAD, "portions": 6, "ingredient_index": 99})],
         )
+
+
+@pytest.mark.usefixtures("recipes", "borrowed_offers")
+async def test_a_plain_group_has_no_image(db, caller):
+    line = LineRequest.model_validate(
+        {
+            "line_id": "m1",
+            "text": "maito",
+            "quantity": 20,
+            "unit": "l",
+            "needed_by": "2026-11-16",
+            "group": "Juhlat",
+        }
+    )
+    response = await quotes.build_quote(db, caller, BuildQuoteRequest(lines=[line]), now=T0)
+    [group] = response.groups
+    assert group.group == "Juhlat" and group.image_url is None
