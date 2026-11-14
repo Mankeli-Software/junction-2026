@@ -120,7 +120,7 @@ REST and MCP share one set of Pydantic models and one service layer. FastAPI tur
 | MCP server | MCP Python SDK (`FastMCP`), Streamable HTTP, mounted into FastAPI at `/mcp`. MCP Inspector for manual testing | The eight tools of vision §8 (it lists `search_recipes` and `get_recipe` in one row) as thin wrappers over services. Tool descriptions written for a voice agent | P0 |
 | Ordering engine | Python `decimal`, `zoneinfo` | All of it: resolve, allergen and diet filter, units, availability and dates, ranking, substitution, price, sanity checks, decision, explanation text | P0 (sanity checks, tuned ranking and exact-fit are P1) |
 | Rules and texts | YAML and CSV loaders | Versioned rule files, reason-code templates in Finnish and English, a name table for unit codes (`KI`, `ST`, `PAK`, ...) | P0 |
-| Product search | Postgres full-text search (`finnish` and `english` configs), `pg_trgm` for typos, `unaccent` | Loader for the product file, search SQL, a short synonym list, deterministic ranking | P0 |
+| Product search | Postgres full-text search (`finnish` and `english` configs), `pg_trgm` for typos, `unaccent`, pgvector with Gemini embeddings for product names | Loader for the product file, search SQL, a short synonym list, name vectors, deterministic ranking | P0 |
 | Recipe search | pgvector (HNSW index), Gemini embeddings, Postgres full-text search | Embedding script, hybrid query, scaling to portions | P1 |
 | Valio API client | `httpx` (async) | Rate limiter, 429 back-off, 5-minute cache, snapshot record and replay, sales-unit cross-check | P0 |
 | Quote hash and signature | `rfc8785` (canonical JSON), `joserfc` (JWS with EdDSA), `cryptography` | Quote model, hash, JWKS endpoint | P0 |
@@ -209,7 +209,7 @@ Every loader can be re-run: it reloads in one transaction and prints counts and 
 
 ### 5.2 Tables
 
-- **Catalogue**: `products` (id, names fi/sv/en, category, sales unit from the file, base unit, GTINs, temperature class, vendor, origin, variable unit, raw JSON), `product_units`, `product_unit_conversions`, `product_allergens` (code, containment), `product_claims`, `product_labels`, `product_substitutions`, `categories`, `product_images`, plus search columns (`tsvector` in Finnish and English, trigram index).
+- **Catalogue**: `products` (id, names fi/sv/en, category, sales unit from the file, base unit, GTINs, temperature class, vendor, origin, variable unit, raw JSON), `product_units`, `product_unit_conversions`, `product_allergens` (code, containment), `product_claims`, `product_labels`, `product_substitutions`, `categories`, `product_images`, plus search columns (`tsvector` in Finnish and English, trigram index) and the name vectors (`product_embeddings`, `query_embeddings`, section 5.3).
 - **Recipes**: `recipes`, `recipe_ingredients`, `recipe_tags`, `recipe_embeddings` (`vector(768)`), `recipe_product_links`.
 - **Customers**: `companies`, `users` (name, phone in E.164, email, password hash, company), `kitchen_profiles`, `order_history_lines`.
 - **Ordering**: `sessions` (channel, user, call id), `quotes` (hash, JWS, status, expiry, engine input and output as JSON), `quote_lines`, `confirmations` (token hash, quote, recipient, expiry, used at), `orders`, `order_lines`, `callback_requests`, `sms_messages` (Twilio id, delivery status).
@@ -219,13 +219,13 @@ Every loader can be re-run: it reloads in one transaction and prints counts and 
 
 ### 5.3 Product search
 
-Deterministic, no model at request time:
+Deterministic: the same query text on the same data always gives the same ids in the same order (`api/app/search/`, `docs/plans/30-product-search.md`):
 
 1. Hard filters first: requested claims from `product_claims` (lactose-free is the `LACTOSE FREE_FROM` claim, never the name; analysis §11), category if given.
 2. Text match on product names in Finnish and English, the category names in both languages and a short synonym list (`milk` → `maito`), using `websearch_to_tsquery` in the `finnish` and `english` configs. The Finnish Snowball stemmer handles common inflections. Trigram similarity catches typos and transcription errors.
 3. Order by score, then product id. The top 20 for each line become the shortlist for price and availability (decided 2026-11-14, `SEARCH_LIMIT` in `api/app/services/quotes.py`), with at most 100 product ids per quote.
 
-If tests show that this misses too often, a vector index on product names is the next step (vision §7 allows more indexes). It would only add candidates, so the engine's choice stays deterministic.
+A vector index on product names is built too (#30, migration `0012`; vision §7 allows more indexes). Each product's Finnish and English name and its category are embedded once with `gemini-embedding-001` at 768 dimensions into `product_embeddings`, with an HNSW index. The 50 nearest products add candidates, and their cosine similarity adds to the score. Query vectors are cached per query text in `query_embeddings`, so the same text always gives the same vector. `SEARCH_VECTORS` picks `live` (embed a query that isn't cached yet, and search by text only if that fails), `cache` (never calls the API, for the stage) or `off` (text only). Vectors only add candidates and score, so the engine's choice stays deterministic.
 
 ### 5.4 Recipes (P1, Juho owns the data and the linking, vision §7)
 
