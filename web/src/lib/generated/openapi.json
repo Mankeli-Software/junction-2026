@@ -473,7 +473,7 @@
 					"tools"
 				],
 				"summary": "Update Quote",
-				"description": "The body is the full new line list, as in `build_quote`. Returns a new quote.",
+				"description": "The body holds the lines to add or change and the line ids to remove; the quote's\nother lines stay. Returns a new quote with the complete line list.",
 				"operationId": "update_quote_api_v1_quotes__quote_id__update_post",
 				"parameters": [
 					{
@@ -491,7 +491,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/BuildQuoteRequest"
+								"$ref": "#/components/schemas/UpdateQuoteBody"
 							}
 						}
 					}
@@ -6165,6 +6165,32 @@
 					"lang"
 				],
 				"title": "TranscriptLine"
+			},
+			"UpdateQuoteBody": {
+				"properties": {
+					"lines": {
+						"items": {
+							"$ref": "#/components/schemas/LineRequest"
+						},
+						"type": "array",
+						"maxItems": 50,
+						"title": "Lines",
+						"default": []
+					},
+					"remove_line_ids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"maxItems": 50,
+						"title": "Remove Line Ids",
+						"default": []
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"title": "UpdateQuoteBody",
+				"description": "The changes to a quote (#101): `lines` are new lines and changed ones, matched by\n`line_id`; a line of the quote that is not sent stays as it was. `remove_line_ids`\ntakes lines out.\n\nAnswering a clarification is sending that line again with the chosen `product_id`."
 			},
 			"UsualItem": {
 				"properties": {

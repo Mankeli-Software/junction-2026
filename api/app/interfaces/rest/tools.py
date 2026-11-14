@@ -33,6 +33,7 @@ from app.schemas import (
     SearchProductsResponse,
     SearchRecipesRequest,
     SearchRecipesResponse,
+    UpdateQuoteBody,
     UpdateQuoteRequest,
 )
 from app.services import catalog, customers, quotes, recipe_drafts, recipes
@@ -114,9 +115,10 @@ async def get_quote(
 
 
 @router.post("/quotes/{quote_id}/update", response_model=QuoteResponse)
-async def update_quote(caller: CurrentCaller, quote_id: str, body: BuildQuoteRequest) -> BaseModel:
-    """The body is the full new line list, as in `build_quote`. Returns a new quote."""
-    request = _build(UpdateQuoteRequest, quote_id=quote_id, lines=body.lines)
+async def update_quote(caller: CurrentCaller, quote_id: str, body: UpdateQuoteBody) -> BaseModel:
+    """The body holds the lines to add or change and the line ids to remove; the quote's
+    other lines stay. Returns a new quote with the complete line list."""
+    request = _build(UpdateQuoteRequest, quote_id=quote_id, **body.model_dump())
     return await run_tool("update_quote", caller, quotes.update_quote, request)
 
 

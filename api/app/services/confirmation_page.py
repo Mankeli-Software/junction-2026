@@ -9,7 +9,7 @@ never stored, logged or written into an event.
   `link_opened`. After Confirm or Cancel it stays readable as the receipt.
 - Every action sends the hash of the quote on screen, so a stale tab can't act on an old
   version (409).
-- Edits, and a `choose` option that changes the order, go through `quotes.update_quote()`:
+- Edits, and a `choose` option that changes the order, go through `quotes.replace_quote()`:
   a new quote with the next version, the old one void, and the confirmation repointed to
   the new one. An edit the engine can't fulfil is refused (422) and changes nothing.
 - Acknowledgements carry over to a new quote by flag key while the flag's text stays the
@@ -81,7 +81,6 @@ from app.schemas import (
     SessionState,
     SetQuantityEdit,
     StockStatus,
-    UpdateQuoteRequest,
     ViewFlag,
 )
 from app.services import accounts, audit, customers, quotes, sessions
@@ -558,14 +557,13 @@ async def _replace(
     refuse_line: str | None,
     now: datetime,
 ) -> Quote:
-    """A new quote through `update_quote` (the old one is voided there), repointed on the
+    """A new quote through `replace_quote` (the old one is voided there), repointed on the
     confirmation. For an edit (`refuse_line` set), a result that isn't ready is refused
     and nothing changes."""
     caller = await _caller(db, confirmation, quote)
-    request = UpdateQuoteRequest(quote_id=str(quote.id), lines=requested)
     try:
         async with db.begin_nested():
-            response = await quotes.update_quote(db, caller, request, now=now, refuse_invalid=False)
+            response = await quotes.replace_quote(db, caller, str(quote.id), requested, now=now)
             if refuse_line is not None and response.decision != Decision.ready:
                 raise _NotReady(response)
     except _NotReady as not_ready:

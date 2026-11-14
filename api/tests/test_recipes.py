@@ -27,7 +27,6 @@ from app.schemas import (
     GetRecipeRequest,
     LineRequest,
     SearchRecipesRequest,
-    UpdateQuoteRequest,
 )
 from app.services import accounts, quotes, recipes
 from app.services.audit import load_rule_set_by_ref
@@ -448,9 +447,7 @@ async def test_a_recipe_quote_orders_the_linked_ingredients_and_lists_the_rest(d
         for line in quote.engine_input["lines"]
         if line["line_id"] == "r1-0"
     ]
-    updated = await quotes.update_quote(
-        db, caller, UpdateQuoteRequest(quote_id=response.quote_id, lines=edited), now=T0
-    )
+    updated = await quotes.replace_quote(db, caller, response.quote_id, edited, now=T0)
     assert [line.line_id for line in updated.lines] == ["r1-0"]
     assert updated.not_ordered == response.not_ordered
 

@@ -11,6 +11,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 from mcp.shared.memory import create_connected_server_and_client_session
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
@@ -36,7 +37,12 @@ from app.schemas import (
 from app.services import accounts, catalog, dev_caller, quotes, sessions, signing
 from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
-from app.services.errors import InvalidLinesError, NotFoundError, StateError
+from app.services.errors import (
+    InvalidLinesError,
+    InvalidRequestError,
+    NotFoundError,
+    StateError,
+)
 from tests.conftest import IMAGE_SAMPLE, write_audit
 from tests.phones import new_number
 
@@ -327,6 +333,105 @@ async def test_update_quote_with_an_input_error_keeps_the_old_quote_current(db, 
         db, caller, GetOrderStatusRequest(quote_id=first.quote_id)
     )
     assert status.replaced_by_quote_id is None
+
+
+ARLA = {"line_id": "l2", "text": "arla", "quantity": 5}
+
+
+async def update(db, caller, quote_id: str, *changed: dict, remove: tuple[str, ...] = ()):
+    request = UpdateQuoteRequest(
+        quote_id=quote_id, lines=lines(*changed) if changed else [], remove_line_ids=list(remove)
+    )
+    return await quotes.update_quote(db, caller, request, now=T0)
+
+
+def quoted(response) -> list[tuple[str, str, int]]:
+    return [(line.line_id, line.product_id, line.quantity_sales_units) for line in response.lines]
+
+
+async def test_update_quote_changes_only_the_lines_sent(db, caller):
+    first = await quotes.build_quote(db, caller, build({}, ARLA), now=T0)
+    assert quoted(first) == [("l1", "464306", 20), ("l2", "462775", 5)]
+
+    # One line changed: the other one is not sent and stays.
+    second = await update(db, caller, first.quote_id, {**ARLA, "quantity": 7})
+    assert quoted(second) == [("l1", "464306", 20), ("l2", "462775", 7)]
+    assert (second.version, second.parent_quote_id) == (2, first.quote_id)
+
+    # A new line is added after the others.
+    third = await update(db, caller, second.quote_id, {"line_id": "l3", "quantity": 2})
+    assert quoted(third) == [("l1", "464306", 20), ("l2", "462775", 7), ("l3", "464306", 2)]
+
+    # A line is removed only by naming it.
+    fourth = await update(db, caller, third.quote_id, remove=("l1",))
+    assert quoted(fourth) == [("l2", "462775", 7), ("l3", "464306", 2)]
+    assert fourth.decision == Decision.ready and fourth.version == 4
+    stored_lines = (await stored(db, fourth.quote_id)).engine_input["lines"]
+    assert [line["line_id"] for line in stored_lines] == ["l2", "l3"]
+
+
+async def test_a_rejected_new_line_leaves_the_other_lines_in_the_quote(db, caller):
+    first = await quotes.build_quote(db, caller, build({}, ARLA), now=T0)
+
+    second = await update(
+        db, caller, first.quote_id, {"line_id": "l3", "text": None, "product_id": "000000"}
+    )
+
+    assert quoted(second) == quoted(first)
+    assert [(r.line_id, r.reason_code) for r in second.rejections] == [("l3", "PRODUCT_NOT_FOUND")]
+
+
+async def test_a_rejected_change_keeps_the_lines_previous_version(db, caller):
+    first = await quotes.build_quote(db, caller, build({}, ARLA), now=T0)
+
+    second = await update(
+        db,
+        caller,
+        first.quote_id,
+        {**ARLA, "text": None, "product_id": "000000"},
+        {"line_id": "l3", "quantity": 2},
+    )
+
+    # The change to l2 was rejected: l2 is as it was, and the new line still came in.
+    assert quoted(second) == [("l1", "464306", 20), ("l2", "462775", 5), ("l3", "464306", 2)]
+    assert [(r.line_id, r.reason_code) for r in second.rejections] == [("l2", "PRODUCT_NOT_FOUND")]
+    assert second.decision == Decision.ready and second.version == 2
+    # One new quote, and it replays: the refused try left nothing behind.
+    rows = (await db.scalars(select(Quote).order_by(Quote.version))).all()
+    assert [(row.version, row.status) for row in rows] == [(1, "void"), (2, "ready")]
+    assert rows[1].engine_output["rejections"] == []
+    assert [line["line_id"] for line in rows[1].engine_input["lines"]] == ["l1", "l2", "l3"]
+    events = await event_types(db, rows[0].session_id)
+    assert events.count("quote_voided") == 1 and events.count("quote_built") == 2
+
+
+async def test_update_quote_refuses_removals_that_make_no_sense(db, caller):
+    first = await quotes.build_quote(db, caller, build({}, ARLA), now=T0)
+
+    with pytest.raises(InvalidRequestError, match=r"not in the quote: \['l9'\]"):
+        await update(db, caller, first.quote_id, remove=("l9",))
+    with pytest.raises(InvalidRequestError, match="both sent and removed"):
+        await update(db, caller, first.quote_id, {"quantity": 30}, remove=("l1",))
+    with pytest.raises(InvalidRequestError, match="remove every line"):
+        await update(db, caller, first.quote_id, remove=("l1", "l2"))
+
+    assert (await stored(db, first.quote_id)).status == QuoteStatus.ready
+    assert len((await db.scalars(select(Quote))).all()) == 1
+
+
+def test_an_update_needs_a_line_or_a_removal():
+    with pytest.raises(ValidationError, match="at least one line"):
+        UpdateQuoteRequest(quote_id="q")
+    assert UpdateQuoteRequest(quote_id="q", remove_line_ids=["l1"]).lines == []
+
+
+async def test_replace_quote_takes_the_full_list_as_the_confirmation_page_sends_it(db, caller):
+    first = await quotes.build_quote(db, caller, build({}, ARLA), now=T0)
+
+    second = await quotes.replace_quote(db, caller, first.quote_id, lines(ARLA), now=T0)
+
+    assert quoted(second) == [("l2", "462775", 5)]
+    assert (await stored(db, first.quote_id)).status == QuoteStatus.void
 
 
 async def test_replaced_by_follows_the_newest_descendant(db, caller):

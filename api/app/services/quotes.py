@@ -50,6 +50,7 @@ from app.schemas import (
     QuoteResponse,
     QuoteStatus,
     RecipeDraftRef,
+    Rejection,
     RequestConfirmationRequest,
     RuleSet,
     SessionState,
@@ -68,7 +69,12 @@ from app.services import (
     signing,
 )
 from app.services.caller import Caller
-from app.services.errors import InvalidLinesError, NotFoundError, StateError
+from app.services.errors import (
+    InvalidLinesError,
+    InvalidRequestError,
+    NotFoundError,
+    StateError,
+)
 from app.services.policy import get_rule_set
 
 log = logging.getLogger(__name__)
@@ -134,40 +140,117 @@ async def build_quote(
 
 
 async def update_quote(
-    db: AsyncSession,
-    caller: Caller,
-    request: UpdateQuoteRequest,
-    *,
-    now: datetime | None = None,
-    refuse_invalid: bool = True,
+    db: AsyncSession, caller: Caller, request: UpdateQuoteRequest, *, now: datetime | None = None
 ) -> QuoteResponse:
-    """A new quote with the next version, in the old quote's session. The old one is `void`.
+    """Changes a quote (#101): the lines sent replace the lines with the same `line_id` or
+    are added, `remove_line_ids` takes lines out, and every other line stays as it was.
+    Returns a new quote with the next version and the complete line list; the old one is
+    `void`.
 
-    Lines with input errors refuse the whole update and the old quote stays current
-    (#106). The confirmation page turns that off: it builds the lines itself and shows a
-    rejected line in its own words.
+    A failing line never costs the buyer the lines already in the quote:
+
+    - an input error on a sent line refuses the whole update and the old quote stays
+      current (#106);
+    - a changed line that the engine rejects (unavailable, an allergen conflict) keeps its
+      previous version, and the rejection is in the response;
+    - a new line that the engine rejects is in `rejections`, next to the other lines.
     """
     now = now or datetime.now(UTC)
     old = await _load(db, caller, request.quote_id, for_update=True)
-    if refuse_invalid:
-        refuse_invalid_lines(request.lines, current=old)
-    if QuoteStatus(old.status) not in EDITABLE:
-        current = await _newest_descendant(db, old)
+    await _editable(db, old)
+    refuse_invalid_lines(request.lines, current=old)
+
+    stored = [LineRequest.model_validate(line) for line in old.engine_input["lines"]]
+    known = [line.line_id for line in stored]
+    removed = set(request.remove_line_ids)
+    if unknown := sorted(removed - set(known)):
+        raise InvalidRequestError(
+            f"remove_line_ids names lines that are not in the quote: {unknown}. Its lines "
+            f"are {known}. The current quote {old.id} is unchanged."
+        )
+    # A whole recipe sent again replaces its ingredient lines, which is how they are stored.
+    sent, _ = await recipes.expand_lines(db, list(request.lines))
+    changes = {line.line_id: line for line in sent}
+    if both := sorted(removed & set(changes)):
+        raise InvalidRequestError(
+            f"lines {both} are both sent and removed. The current quote {old.id} is unchanged."
+        )
+    previous = {line.line_id: line for line in stored if line.line_id in changes}
+    merged = [changes.pop(line.line_id, line) for line in stored if line.line_id not in removed]
+    merged += changes.values()
+    if not merged:
+        raise InvalidRequestError(
+            "that would remove every line, and a quote needs at least one. "
+            f"The current quote {old.id} is unchanged."
+        )
+
+    refused: list[Rejection] = []
+    try:
+        async with db.begin_nested():
+            response = await _replace(db, caller, old, merged, now)
+            refused = [r for r in response.rejections if r.line_id in previous]
+            if refused:
+                raise _ChangeRefused
+    except _ChangeRefused:
+        # Quote again with those lines as they were; the savepoint took the first try back.
+        await db.refresh(old)
+        kept = {r.line_id for r in refused}
+        merged = [previous[line.line_id] if line.line_id in kept else line for line in merged]
+        response = await _replace(db, caller, old, merged, now)
+        again = {r.line_id for r in response.rejections}
+        response = response.model_copy(
+            update={
+                "rejections": [
+                    *response.rejections,
+                    *(r for r in refused if r.line_id not in again),
+                ]
+            }
+        )
+    return response
+
+
+async def replace_quote(
+    db: AsyncSession,
+    caller: Caller,
+    quote_id: str,
+    lines: list[LineRequest],
+    *,
+    now: datetime | None = None,
+) -> QuoteResponse:
+    """A new version of the quote from the full line list: a line that is left out is gone.
+    For the confirmation page, which builds the whole list from what the buyer sees."""
+    now = now or datetime.now(UTC)
+    old = await _load(db, caller, quote_id, for_update=True)
+    await _editable(db, old)
+    return await _replace(db, caller, old, lines, now)
+
+
+class _ChangeRefused(Exception):
+    """The engine rejected a change to a line that was in the quote."""
+
+
+async def _editable(db: AsyncSession, quote: Quote) -> None:
+    if QuoteStatus(quote.status) not in EDITABLE:
+        current = await _newest_descendant(db, quote)
         raise StateError(
-            f"the quote is {old.status} and can no longer be changed; "
+            f"the quote is {quote.status} and can no longer be changed; "
             f"the current quote is {current.id}"
         )
+
+
+async def _replace(
+    db: AsyncSession, caller: Caller, old: Quote, lines: list[LineRequest], now: datetime
+) -> QuoteResponse:
+    """The next version of `old`, in its session, from these lines. `old` becomes `void`."""
     session = await sessions.quote_session(db, old, now=now)
     # The new lines still carry a recipe draft's group: the group keeps its photo label.
-    groups = {line.group for line in request.lines}
+    groups = {line.group for line in lines}
     drafts = [
         draft
         for draft in map(RecipeDraftRef.model_validate, old.engine_input.get("recipe_drafts", []))
         if draft.group in groups
     ]
-    new, response = await _new_quote(
-        db, caller, session, request.lines, now=now, parent=old, drafts=drafts
-    )
+    new, response = await _new_quote(db, caller, session, lines, now=now, parent=old, drafts=drafts)
 
     old.status = QuoteStatus.void
     await db.flush()

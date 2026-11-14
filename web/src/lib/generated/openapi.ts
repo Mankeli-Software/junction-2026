@@ -177,7 +177,8 @@ export interface paths {
         put?: never;
         /**
          * Update Quote
-         * @description The body is the full new line list, as in `build_quote`. Returns a new quote.
+         * @description The body holds the lines to add or change and the line ids to remove; the quote's
+         *     other lines stay. Returns a new quote with the complete line list.
          */
         post: operations["update_quote_api_v1_quotes__quote_id__update_post"];
         delete?: never;
@@ -2250,6 +2251,26 @@ export interface components {
              */
             lang: "fi" | "en";
         };
+        /**
+         * UpdateQuoteBody
+         * @description The changes to a quote (#101): `lines` are new lines and changed ones, matched by
+         *     `line_id`; a line of the quote that is not sent stays as it was. `remove_line_ids`
+         *     takes lines out.
+         *
+         *     Answering a clarification is sending that line again with the chosen `product_id`.
+         */
+        UpdateQuoteBody: {
+            /**
+             * Lines
+             * @default []
+             */
+            lines: components["schemas"]["LineRequest"][];
+            /**
+             * Remove Line Ids
+             * @default []
+             */
+            remove_line_ids: string[];
+        };
         /** UsualItem */
         UsualItem: {
             /** Product Id */
@@ -2612,7 +2633,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["BuildQuoteRequest"];
+                "application/json": components["schemas"]["UpdateQuoteBody"];
             };
         };
         responses: {
