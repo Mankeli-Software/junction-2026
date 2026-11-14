@@ -1,6 +1,6 @@
 # Technical implementation plan
 
-Status: draft v2, 2026-11-14, after the first PR review. Built on `vision.md` (source of truth), `valio-api-analysis.md`, the files in `data/` and the team answers recorded in section 1. **The existing GitHub issues (#1 to #21) are not a source for this plan.** New issues will be created from this spec and should reference it. Where the plan suggests something vision.md does not settle, it is marked *proposed*. Section 13 lists what moves to follow-up issues.
+Status: draft v3, 2026-11-14, after two review rounds and a check against the UI design. Built on `vision.md` (source of truth), `valio-api-analysis.md`, the files in `data/` and the team answers recorded in section 1. **The existing GitHub issues (#1 to #21) are not a source for this plan.** New issues will be created from this spec and should reference it. Where the plan suggests something vision.md does not settle, it is marked *proposed*. Section 14 lists what moves to follow-up issues.
 
 ## 1. Decisions this plan builds on
 
@@ -10,8 +10,8 @@ Taken on 2026-11-14, in addition to vision.md:
 |---|---|
 | Backend | Python, FastAPI |
 | Frontend | SvelteKit |
-| Cloud | Azure (we have credits). The app containers (Caddy, FastAPI, SvelteKit) run on one VM with Docker Compose. Not Container Apps or Web Apps, because their 240-second request limit may cut voice calls and the dashboard stream (section 9) |
-| Database | The deployed app on the VM uses the existing Azure Database for PostgreSQL instance (`junction_demo`). `vector`, `pg_trgm` and `unaccent` are allowed on the server. Development uses Postgres with pgvector in Docker on each laptop. We revisit this once we know how many developers change database data or schema at the same time (section 9.1) |
+| Cloud | Azure (we have credits). The app containers (Caddy, FastAPI, SvelteKit) run on one VM with Docker Compose. Not Container Apps or Web Apps, because their 240-second request limit may cut voice calls and the dashboard stream (section 10) |
+| Database | The deployed app on the VM uses the existing Azure Database for PostgreSQL instance (`junction_demo`). `vector`, `pg_trgm` and `unaccent` are allowed on the server. Development uses Postgres with pgvector in Docker on each laptop. We revisit this once we know how many developers change database data or schema at the same time (section 10.1) |
 | Voice path | Our server relays audio between the browser and Gemini Live. The server is an ordinary MCP client |
 | SMS | Twilio |
 | Product images | The image file's `code` is the product file's `id`. Images are hotlinked from their `img` URL |
@@ -90,7 +90,7 @@ Three layers inside FastAPI:
 2. **Services**: gather the inputs (products and history from Postgres, price and availability from the Valio adapter, the kitchen profile, the clock), call the engine, store the quote, write audit and status events, send SMS.
 3. **Engine**: `decide(EngineInput) -> EngineOutput`. No database, no HTTP, no clock reads, no randomness. Everything it uses is in its input.
 
-Because the engine is pure and the full `EngineInput` is stored in the audit event, any decision can be replayed. That makes the determinism principle a test (section 10), not a promise.
+Because the engine is pure and the full `EngineInput` is stored in the audit event, any decision can be replayed. That makes the determinism principle a test (section 11), not a promise.
 
 REST and MCP share one set of Pydantic models and one service layer. FastAPI turns the models into the OpenAPI document. The MCP tools use the same models for their input schemas, so the two surfaces cannot drift apart.
 
@@ -164,7 +164,7 @@ Then for the whole order: one notice that lists every product without allergen i
 ### 4.3 Rules as data (`policy/`)
 
 - `policy.yaml`: version, confirmation `always`, quote lifetime 30 minutes, cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (10% more expensive), call language (`auto`, `fi` or `en`, default `auto`).
-- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Whether pine nut, coconut and peanut belong to nut-free is decided in a follow-up issue (section 13). It is a one-line change in this file.
+- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Whether pine nut, coconut and peanut belong to nut-free is decided in a follow-up issue (section 14). It is a one-line change in this file.
 - `messages.yaml`: one Finnish and one English template per reason code and flag. Uses `data/allergen_containment_levels.csv` and the partitive allergen names for Finnish sentences.
 - `unit_codes.csv`: display names for unit codes in Finnish and English.
 
@@ -262,7 +262,7 @@ sequenceDiagram
 ```
 
 - **Browser**: `getUserMedia`, an `AudioWorklet` that downsamples to 16 kHz 16-bit mono, binary WebSocket frames. Playback through a second worklet. When Gemini reports an interruption, the playback buffer is flushed so the caller can talk over the agent.
-- **Relay**: `google-genai` `client.aio.live.connect`, one asyncio task per direction. Sessions are held in memory, which is why the API runs as one process (section 9).
+- **Relay**: `google-genai` `client.aio.live.connect`, one asyncio task per direction. Sessions are held in memory, which is why the API runs as one process (section 10).
 - **After hang-up** (decided 2026-11-14): when the call ends, the relay calls `request_confirmation` for the call's latest ready quote. If there is no ready quote, no SMS goes out and the dashboard shows that the call ended without one. The agent never has to remember to send the link.
 - **Tool bridge**: at call start the relay lists the MCP tools and turns their JSON Schemas into Gemini function declarations. It authenticates to MCP as the identified caller with a short-lived token from our own auth server, so MCP treats the phone like any other client (vision §2: no client is special).
 - **Model and platform**: a 3.x Live model through the Gemini API (AI Studio key), not Vertex AI. Finnish is listed only for the 3.x audio models, and the Vertex "Configure language and voice" page does not list it. `gemini-3.8-live` is the candidate. Google's docs list synchronous and asynchronous function calling for it, and asynchronous calls let the agent keep talking while `build_quote` runs. Pick after the spike in M0.
@@ -320,8 +320,8 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 
 ### 8.5 Audit
 
-- `audit_events(seq, at, type, session_id, quote_id, payload, prev_hash, hash)`, with `hash = SHA-256(prev_hash + canonical payload)`.
-- The writer takes a transaction-level advisory lock (`pg_advisory_xact_lock`) so the chain stays linear. It is released at commit, so it would also work through transaction pooling, but the app connects directly anyway (section 9.1). The application's database role has only `INSERT` and `SELECT` on the table.
+- `audit_events(seq, at, type, actor, session_id, quote_id, payload, payload_hash, prev_hash, hash)`, with `payload_hash = SHA-256(canonical payload)` and `hash = SHA-256(prev_hash + payload_hash + seq, at, type)`. Chaining over `payload_hash` (*proposed*) lets the dashboard verify the chain without the payloads, so personal data in a payload can be hidden or redacted without breaking it.
+- The writer takes a transaction-level advisory lock (`pg_advisory_xact_lock`) so the chain stays linear. It is released at commit, so it would also work through transaction pooling, but the app connects directly anyway (section 10.1). The application's database role has only `INSERT` and `SELECT` on the table.
 - Events: request, candidates considered, filters applied, choice and reason codes, quote, SMS sent or failed, confirmation (vision §11). The full engine input is stored so any decision can be replayed.
 - `scripts/verify_audit_chain.py` checks the chain, for the pitch.
 
@@ -332,9 +332,122 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 - The relay emits call events (started, tool called, ended), so a call shows up while it is still going on.
 - A periodic job marks expired quotes and emits the event, because expiry does not happen on its own.
 - The stream and audit endpoints accept web sessions only, never MCP tokens, so no agent can read the log (vision §8).
-- Login and a public view are a follow-up issue (section 13). The team wants a dashboard anyone can see without logging in, with its scope decided later. So that it stays cheap to add, each status event carries a public-safe part (step, status, counts, totals, timestamps, no phone numbers or personal names) next to the full detail.
+- Login and a public view are a follow-up issue (section 14). The team wants a dashboard anyone can see without logging in, with its scope decided later. So that it stays cheap to add, each status event carries a public-safe part (step, status, counts, totals, timestamps, no phone numbers or personal names) next to the full detail.
 
-## 9. Hosting on Azure
+## 9. Endpoints and messages
+
+Checked against the UI design (18 screens: landing, call, confirmation, dashboard, shop) on 2026-11-14. Everything under `/api/v1` is in the OpenAPI document. Paths and fields are *proposed* until the first implementation, but every screen in the design maps to a row here.
+
+Two rules, from vision §6 and §8:
+
+- **The confirmation link travels only by SMS.** No endpoint, WebSocket message or tool result returns the token or the link. The design's "Tap to check it" (call end) and "Open confirmation page" (shop) have no endpoint behind them. They need a design decision: the plan's answer is "Check your phone" plus the SMS status.
+- **Agents get the seven tools and nothing else.** Confirm, cancel, acknowledgements, edits on the page, the dashboard and the audit log are web-session endpoints only. They never accept MCP tokens and are never registered as WebMCP tools.
+
+### 9.1 Agent tools and their REST twins
+
+The seven tools of vision §8, unchanged. Each has a REST twin with the same Pydantic models, which the WebMCP tools in the shop call with the session cookie.
+
+| MCP tool | REST twin |
+|---|---|
+| `search_products` | `GET /api/v1/products?q=&claims=&category=&needed_by=` |
+| `get_customer_context` | `GET /api/v1/customer-context` |
+| `search_recipes` | `GET /api/v1/recipes?q=&diet=&occasion=` |
+| `get_recipe` | `GET /api/v1/recipes/{id}?portions=` |
+| `build_quote` | `POST /api/v1/quotes` |
+| `update_quote` | `POST /api/v1/quotes/{id}/update` (returns a new quote) |
+| `request_confirmation` | `POST /api/v1/quotes/{id}/confirmation-request`, returns `{sent_to_masked, sms_status}` |
+| `get_order_status` | `GET /api/v1/quotes/{id}/status` |
+
+Fields the screens need that section 4.1 doesn't list yet:
+
+- **Customer context**: `company_name`, exclusions with Finnish and English labels, `phone_masked`, usual items with product id, quantity and unit ("my usual order" asks for all of them at once).
+- **Line**: name in Finnish and English, `image_url` (section 5.5), `reason_text` in Finnish and English, price per kg or litre, stock status (verified or unverified), origin, `alternatives[]` (id, label, quantity, line total).
+- **Request group**: `LineRequest` gets an optional `group` label that is echoed back, and the quote gives a subtotal per group (Shop-3: "Mon, chicken curry, 3 lines, 118,40 €").
+- **Trace**: candidates found, removed per reason, left, and the ranking rule ("14 found, −4 arrive after Monday, −3 out of stock, −2 contain milk, 5 safe"). Each candidate is counted once, at the first step it fails, in the order of section 4.2.
+- **Flag**: stable `flag_key`, `line_ids`, `kind` (`acknowledge` or `choose`), `options[]` with line totals for `choose` (Confirm-1: "Keep 24 l / Exactly 20 l"), `acknowledged_at`.
+- **Quote**: `version`, `parent_quote_id`, `expires_at`, a delivery summary for the whole order, and `not_ordered[]` for recipe ingredients the buyer said they already have. Nothing is left out unless the buyer said so (vision §6).
+- **Recipe**: `image_url` (in the data). The data has no English names, no English diet labels and no cooking time, so the design's "45 min" has no source.
+
+### 9.2 Accounts and web sessions
+
+| Method and path | Request → response | Screens |
+|---|---|---|
+| `POST /api/v1/demo/accounts` | `{phone_e164, exclusions[], lang}` → sets the session cookie, returns `{company_name, phone_masked, kitchen_profile, usual_items}`. The same number again updates the profile. Exclusions must be keys of `allergen_rules.yaml` | Main, Call-2 |
+| `POST /api/v1/signup` | `{email, password, phone_e164}` → session cookie | Connector accounts, shop |
+| `POST /api/v1/session`, `DELETE /api/v1/session` | `{email, password}` → session cookie; log out | Shop, dashboard |
+| `GET /api/v1/me` | → `{company_name, exclusions, phone_masked}` | Shop header, call screen |
+
+The connector's OAuth routes come from the MCP SDK (section 7.3). Every path into a call must go through the number entry, because that number is the SMS recipient. The design's desktop path (Landing → Call-0 → Call-3) skips it.
+
+### 9.3 Voice WebSocket (`/voice/ws`)
+
+Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
+
+| Direction | Message | Fields |
+|---|---|---|
+| Browser → server | `hangup` | none |
+| Server → browser | `ready` | none (Gemini session open) |
+| Server → browser | `interrupted` | none (flush playback, section 7.1) |
+| Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
+| Server → browser | `ended` | `duration_s`, `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed` or `none`) |
+
+`ended` arrives before the socket closes and covers the no-quote and SMS-failed cases. Live captions need Gemini Live's input and output transcription turned on. Transcripts go to the dashboard as status events and to a separate `call_transcripts` table. They stay out of the engine input (vision §5) and out of the audit chain, which can never be erased (*proposed*).
+
+### 9.4 Confirmation page (web only)
+
+The token is in the path. `GET` never uses it up.
+
+| Method and path | Request → response | Screens |
+|---|---|---|
+| `GET /api/v1/confirmations/{token}` | → `{state, expires_at, company, exclusions, quote{id, version, hash, total_cents, delivery}, requests[{asked, group, lines[]}], flags[], order?}` | Confirm 1 to 3 |
+| `POST …/{token}/acknowledgements` | `{quote_hash, flag_key}` → updated view | "Got it" |
+| `POST …/{token}/edits` | `{quote_hash, op: set_quantity \| remove \| choose_alternative, line_id, quantity?, alternative_id?}` → new view; 409 if the hash is stale | Stepper, remove, alternatives |
+| `POST …/{token}/confirm` | `{quote_hash}` → `{order_number, confirmed_at}`; 409 with a new view if availability got worse; 422 if a flag isn't acknowledged; 410 if expired | Confirm |
+| `POST …/{token}/cancel` | `{quote_hash}` → `{state: cancelled}` | Cancel |
+
+Edits use the same service as `update_quote`. The page also needs states the design doesn't show yet: expired, cancelled, void after the availability recheck, an edit that ends in a clarification or a rejection, and already confirmed. Confirm-3 says the receipt can be reopened "until the end of the event", but the token expires with the quote (section 8.2). This needs a decision: either a read-only receipt after confirming, or no reopening.
+
+### 9.5 Dashboard (web session)
+
+| Method and path | Response | Screens |
+|---|---|---|
+| `GET /api/v1/dashboard/orders?state=&channel=&since=` | `business_now`, `totals{active, waiting, confirmed, attention, confirmed_cents, by_channel}`, `companies[{name, exclusions, contact_masked, orders[{session_id, order_number, channel, client, state, state_since, title, step_text, line_count, total_cents, flags, next_step}]}]` | Overview |
+| `GET /api/v1/dashboard/orders/{session_id}` | Header, lines with trace and ranked candidates, flags with `acknowledged_at`, `quote{id, version, hash, jws}` | Summary |
+| `GET /api/v1/dashboard/orders/{session_id}/events` | `[{seq, order_index, at, actor, type, text{fi, en}, tool, args, result, payload_hash, prev_hash, hash}]`; `?download=1` returns the JSON file | Full flow, Audit log |
+| `GET /api/v1/audit/verify?session_id=` | `{ok, checked, first_bad_seq, signature_valid}` | "Audit chain intact", "Verify again" |
+| SSE `/api/v1/stream` | `order_updated` (one overview card), call events, `transcript` | Live updates |
+
+- The chain is global (section 8.5). The design numbers events per order ("#1 to #31"), so the response carries `order_index` for display next to the global `seq`.
+- The client name ("Claude", "ChatGPT") comes from the OAuth client registration. A WebMCP call can't tell which agent is calling, so it shows as "browser agent".
+- *Proposed*: an MCP or WebMCP session counts as active for 10 minutes after its last tool call, since it has no hang-up.
+- For a public view (section 14): phone numbers, emails, transcripts, tool arguments and raw JSON stay hidden. Totals, channel counts, card status, lines, flags, the templated steps and the verify result are safe.
+
+### 9.6 Shop
+
+| Method and path | Purpose |
+|---|---|
+| `GET /api/v1/quotes/current` | The session's latest quote ("Current order") |
+| `GET /api/v1/quotes/{id}` | One quote |
+| `POST /api/v1/chat` | `{conversation_id, message}` → streamed text and cards (menu, recipe, quote). Only if the in-page agent is built: it is the stretch A2UI item (vision §13), and it would run a server-side model as an MCP client like the voice relay, with channel `web_chat` |
+
+There is no cart endpoint. The page keeps the order list in the browser and sends it as one `build_quote` (*proposed*). The design shows a static copy of the webshop with a chat panel instead of the P0 shop in section 7.2 (search, product cards, WebMCP). Which one is P0 needs a decision.
+
+### 9.7 Other
+
+- `POST /api/v1/twilio/status`: Twilio delivery callback (signature checked). Emits `sms_delivered` or `sms_failed`.
+- `GET /.well-known/jwks.json` (section 8.1), the OAuth metadata and routes (section 7.3), `/mcp`.
+- FastAPI docs at `/api/v1/docs` and `/api/v1/openapi.json`, so Caddy routes them to FastAPI. The landing page links to them ("Tool list and OpenAPI docs").
+
+New columns and event types these endpoints need:
+
+- `sessions`: `state`, `state_since`, `ended_at`, `ended_by`, `client_name`, `prompt_version`.
+- `orders`: a readable `order_number` (for example D-1042).
+- `confirmations`: `opened_at`, and one acknowledgement row per flag (`flag_key`, `at`).
+- `quotes`: `version`, `parent_quote_id`.
+- `audit_events`: `actor`, `text_fi`, `text_en`, `payload_hash` (section 8.5).
+- Event types: `tool_returned` (with the response sent to the agent), `link_opened`, `flag_acknowledged`, `stock_rechecked`, `sms_delivered`, `sms_failed`.
+
+## 10. Hosting on Azure
 
 The database is the existing Azure Database for PostgreSQL instance. The app runs on **one Linux VM with Docker Compose** (`caddy`, `api`, `web`).
 
@@ -344,7 +457,7 @@ Why a VM and not Container Apps or Web Apps (asked in review, decided 2026-11-14
 - Caddy serves the web app and the API on one domain, which keeps cookies and the OAuth metadata simple, and it gets HTTPS certificates by itself;
 - one FastAPI process holds the voice sessions in memory, so there is nothing sticky to configure.
 
-### 9.1 Database
+### 10.1 Database
 
 - **Extensions**: `vector`, `pg_trgm` and `unaccent` are allowed in the `azure.extensions` server parameter (done 2026-11-14). Each database still needs `CREATE EXTENSION`, which the first migration runs.
 - **Connections**: all app connections go straight to port 5432, not through PgBouncer. PgBouncer in transaction mode drops `LISTEN/NOTIFY` notifications (the dashboard) and keeps no session-level state. One API process needs only a few connections.
@@ -354,7 +467,7 @@ Why a VM and not Container Apps or Web Apps (asked in review, decided 2026-11-14
 - **Firewall**: one rule for the VM's IP (or its VNet). Laptops don't connect to the server, so they need no rules.
 - **Backup before the pitch**: a `pg_dump` of `junction_demo`, or the server's point-in-time restore. A VM disk snapshot no longer holds the data.
 
-### 9.2 VM setup
+### 10.2 VM setup
 
 1. VM in the same region as the database server, Ubuntu LTS. The database runs elsewhere, so 2 vCPU and 8 GB is enough (for example D2s v5). Open ports 80 and 443 only.
 2. Allow the VM's IP (or VNet) in the database server's firewall.
@@ -368,7 +481,7 @@ Laptops run the same Compose file plus a development override (`deploy/docker-co
 
 Production path: the database part is already in place. Azure Container Apps and Key Vault are still pitch-only.
 
-## 10. Repository layout, tooling and tests
+## 11. Repository layout, tooling and tests
 
 ```
 api/                     FastAPI app
@@ -402,7 +515,7 @@ Tests:
 - Replay test: run the engine again on stored inputs and compare quote hashes.
 - MCP contract test with the SDK's client, a WebMCP smoke test in the browser, and one Playwright run of the confirmation page.
 
-## 11. Milestones and workstreams
+## 12. Milestones and workstreams
 
 **Contract first.** Before anything else, write the Pydantic models for the seven tools and a stub engine that returns a fixed milk quote. Every stream then builds against the same contract.
 
@@ -424,7 +537,7 @@ Tests:
 | Voice | Relay, prompt, call screen | The M0 spike |
 | Web | Confirmation page, dashboard, webshop with WebMCP | Confirmation page against the stub |
 
-## 12. Risks
+## 13. Risks
 
 | Risk | Effect | Mitigation |
 |---|---|---|
@@ -438,7 +551,7 @@ Tests:
 | One VM | App outage | One-command redeploy. The data lives on the managed server |
 | Laptop Postgres (Docker) and the Azure server differ | Works on a laptop, fails on the VM | Same major version and extensions locally. Deploy to the VM from M0 on, so differences show up early |
 
-## 13. Follow-up issues
+## 14. Follow-up issues
 
 The first review settled every other open question (section 1). These three get their own issues, created from this spec:
 
@@ -451,7 +564,7 @@ Inputs we are waiting for:
 - The 11-column `data/valio_category_names.csv` from the category brief.
 - The product image file (`code`, `name`, `img`).
 
-## 14. External references (checked 2026-11-14)
+## 15. External references (checked 2026-11-14)
 
 - Gemini Live API tool use and model support: https://aistudio.google.com/docs/live-api/tools
 - Gemini Live languages, Finnish listed for 3.x audio models: https://firebase.google.com/docs/ai-logic/live-api/limits-and-specs and https://ai.google.dev/gemini-api/docs/live-api/capabilities (the second was seen only in summary)
