@@ -774,22 +774,24 @@ async def _find(db: AsyncSession, token: str, *, lock: bool = False) -> Confirma
     return confirmation
 
 
-async def _current_quote(
-    db: AsyncSession, confirmation: Confirmation, *, lock: bool = False
-) -> Quote:
-    query = select(Quote).where(Quote.id == uuid.UUID(confirmation.quote_id))
-    if lock:
-        query = query.with_for_update()
-    return (await db.scalars(query)).one()
+async def _current_quote(db: AsyncSession, confirmation: Confirmation) -> Quote:
+    return await db.get_one(Quote, uuid.UUID(confirmation.quote_id))
 
 
 async def _open(db: AsyncSession, token: str) -> tuple[Confirmation, Quote]:
     """The confirmation and its quote, locked for an action, so double taps run one at a
-    time. NotFoundError (404) for an unknown token."""
+    time. NotFoundError (404) for an unknown token.
+
+    Lock order (#87): confirmation, then the quote's session, then the quote; the audit
+    lock comes last, at commit. The agent's tools lock the session before the quote too
+    (`run_tool`), and never lock a confirmation, so the two can't wait on each other."""
     confirmation = await _find(db, token, lock=True)
     if confirmation is None:
         raise NotFoundError("unknown confirmation link")
-    return confirmation, await _current_quote(db, confirmation, lock=True)
+    quote = await _current_quote(db, confirmation)  # unlocked: only for its session
+    await db.get_one(OrderSession, quote.session_id, with_for_update=True)
+    await db.refresh(quote, with_for_update=True)
+    return confirmation, quote
 
 
 async def _require_open(

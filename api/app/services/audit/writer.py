@@ -8,8 +8,8 @@ of them in one step, under the advisory lock that keeps the chain linear (#86). 
 - an event recorded inside a savepoint that rolls back is dropped with it, and a rollback
   of the whole transaction drops them all;
 - the lock is held for milliseconds, never across a Valio or Gemini call, and is always the
-  last lock a transaction takes. Lock order everywhere: business rows (session, quote,
-  confirmation) first, the audit lock last, at commit. Code must not take the lock itself.
+  last lock a transaction takes. Lock order everywhere (#87): confirmation, session, quote,
+  then the audit lock, at commit. Code must not take the audit lock itself.
 
 `seq` and the hashes are known only once the events are written. Tests and scripts that
 need them call `await db.run_sync(write_pending)`, which takes the lock there and then.
