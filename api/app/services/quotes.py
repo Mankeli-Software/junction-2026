@@ -40,6 +40,7 @@ from app.schemas import (
     Offer,
     OrderStatusResponse,
     ProductRecord,
+    QuoteLine,
     QuoteResponse,
     QuoteStatus,
     RequestConfirmationRequest,
@@ -322,7 +323,13 @@ async def _new_quote(
     quote_hash = jws = None
     if ready:
         payload = quote_payload(
-            quote_id, version, caller.company_id, output, issued_at=now, expires_at=expires_at
+            quote_id,
+            version,
+            caller.company_id,
+            output,
+            engine_input.offers,
+            issued_at=now,
+            expires_at=expires_at,
         )
         quote_hash, jws = signing.quote_hash(payload), signing.sign_quote(payload)
 
@@ -384,13 +391,16 @@ def quote_payload(
     version: int,
     company_id: uuid.UUID,
     output: EngineOutput,
+    offers: Iterable[Offer],
     *,
     issued_at: datetime,
     expires_at: datetime | None,
 ) -> dict[str, Any]:
     """What the quote hash and signature cover (technical-plan.md §8.1): the customer, the
-    lines, totals, delivery dates, issue time, expiry and rule set. Decimals are strings and
-    times are UTC ISO 8601, so the canonical JSON is exact."""
+    lines with their labelled claims, totals, delivery dates, issue time, expiry and rule
+    set. Decimals are strings and times are UTC ISO 8601, so the canonical JSON is exact.
+    `offers` are the engine input's, where each line's price came from."""
+    offer_by_product = {offer.product_id: offer for offer in offers}
     return {
         "quote_id": str(quote_id),
         "version": version,
@@ -404,6 +414,7 @@ def quote_payload(
                 "unit_price_gross": str(line.unit_price_gross),
                 "line_total_cents": line.line_total_cents,
                 "delivery_date": line.delivery_date.isoformat(),
+                "claims": line_claims(line, offer_by_product.get(line.product_id)),
             }
             for line in output.lines
         ],
@@ -412,6 +423,20 @@ def quote_payload(
         "issued_at": _utc(issued_at),
         "expires_at": _utc(expires_at) if expires_at else None,
         "rules_ref": output.rules_ref,
+    }
+
+
+def line_claims(line: QuoteLine, offer: Offer | None) -> dict[str, Any]:
+    """Where each fact on a line comes from (vision §12): stock verified or not, the price
+    from the Valio API (live or the recorded snapshot) and the origin from product data."""
+    return {
+        "stock": line.stock_status.value,
+        "price": {
+            "source": "valio_api",
+            "fetched": offer.source.value if offer else None,
+            "fetched_at": _utc(offer.fetched_at) if offer else None,
+        },
+        "origin": {"value": line.origin, "source": "product_data"},
     }
 
 

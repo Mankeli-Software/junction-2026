@@ -127,10 +127,21 @@ async def test_build_quote_stores_the_engine_input_and_output_and_replays(db, ca
         quote.version,
         quote.company_id,
         replayed,
+        replayed_input.offers,
         issued_at=replayed_input.issued_at,
         expires_at=quote.expires_at,
     )
     assert signing.quote_hash(payload) == quote.quote_hash
+    [offer] = [o for o in replayed_input.offers if o.product_id == "464306"]
+    assert payload["lines"][0]["claims"] == {
+        "stock": response.lines[0].stock_status.value,
+        "price": {
+            "source": "valio_api",
+            "fetched": offer.source.value,
+            "fetched_at": payload["lines"][0]["claims"]["price"]["fetched_at"],
+        },
+        "origin": {"value": response.lines[0].origin, "source": "product_data"},
+    }
 
 
 async def test_build_quote_writes_the_events_in_order(db, caller):
@@ -586,6 +597,7 @@ async def test_build_quote_over_mcp_stores_a_quote_that_replays(app_db: AsyncEng
         quote.version,
         quote.company_id,
         replayed,
+        replayed_input.offers,
         issued_at=replayed_input.issued_at,
         expires_at=quote.expires_at,
     )
