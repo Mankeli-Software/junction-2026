@@ -660,6 +660,46 @@
 			}
 		},
 		"/api/v1/session": {
+			"post": {
+				"tags": [
+					"accounts"
+				],
+				"summary": "Log In",
+				"description": "Log in with email and password. 401 for a wrong email or password alike; 429 after\n10 failed tries for the email within 10 minutes.\n\n`phone_required` tells the login page to ask a hand-out account for its number.",
+				"operationId": "log_in_api_v1_session_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LoginResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			},
 			"delete": {
 				"tags": [
 					"accounts"
@@ -670,6 +710,90 @@
 				"responses": {
 					"204": {
 						"description": "Successful Response"
+					}
+				}
+			}
+		},
+		"/api/v1/signup": {
+			"post": {
+				"tags": [
+					"accounts"
+				],
+				"summary": "Signup",
+				"description": "Open sign-up for the connectors: email, password (10 characters or more) and number.\n\nLogs the browser in. The number's company is found or created as for a demo account.",
+				"operationId": "signup_api_v1_signup_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SignupRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Me"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/me/phone": {
+			"post": {
+				"tags": [
+					"accounts"
+				],
+				"summary": "Set Phone",
+				"description": "Set the number of a hand-out account on its first login. Only while it has none: 409\nafter that.",
+				"operationId": "set_phone_api_v1_me_phone_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PhoneRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Me"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -711,6 +835,100 @@
 				"responses": {
 					"200": {
 						"description": "Successful Response"
+					}
+				}
+			}
+		},
+		"/api/v1/oauth/requests/{request_id}": {
+			"get": {
+				"tags": [
+					"oauth"
+				],
+				"summary": "Get Request",
+				"description": "What the consent page shows. 404 when the request is unknown or expired.",
+				"operationId": "get_request_api_v1_oauth_requests__request_id__get",
+				"parameters": [
+					{
+						"name": "request_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Request Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConnectRequestView"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"oauth"
+				],
+				"summary": "Decide",
+				"description": "Allow issues a code for this user; Cancel sends `access_denied`. Either way the\nbrowser goes to `redirect_to`, back to the client.",
+				"operationId": "decide_api_v1_oauth_requests__request_id__post",
+				"parameters": [
+					{
+						"name": "request_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Request Id"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ConnectDecision"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConnectRedirect"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -914,6 +1132,66 @@
 					"inbox"
 				],
 				"title": "ConfirmationRequestResponse"
+			},
+			"ConnectDecision": {
+				"properties": {
+					"allow": {
+						"type": "boolean",
+						"title": "Allow"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"allow"
+				],
+				"title": "ConnectDecision",
+				"description": "`POST /api/v1/oauth/requests/{id}`: Allow (true) or Cancel (false)."
+			},
+			"ConnectRedirect": {
+				"properties": {
+					"redirect_to": {
+						"type": "string",
+						"title": "Redirect To"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"redirect_to"
+				],
+				"title": "ConnectRedirect",
+				"description": "Where the browser goes next: the client's redirect URI with a code or an error."
+			},
+			"ConnectRequestView": {
+				"properties": {
+					"client_name": {
+						"type": "string",
+						"title": "Client Name"
+					},
+					"company_name": {
+						"type": "string",
+						"title": "Company Name"
+					},
+					"phone_masked": {
+						"type": "string",
+						"title": "Phone Masked"
+					},
+					"redirect_host": {
+						"type": "string",
+						"title": "Redirect Host"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"client_name",
+					"company_name",
+					"phone_masked",
+					"redirect_host"
+				],
+				"title": "ConnectRequestView",
+				"description": "`GET /api/v1/oauth/requests/{id}`: what the consent page shows.\n\n\"Allow <client_name> to order for <company_name>?\" `redirect_host` is where the browser\ngoes next (the MCP spec asks the consent screen to show it)."
 			},
 			"CustomerContext": {
 				"properties": {
@@ -1393,6 +1671,41 @@
 				"title": "Localized",
 				"description": "The same text in Finnish and English."
 			},
+			"LoginRequest": {
+				"properties": {
+					"email": {
+						"type": "string",
+						"title": "Email"
+					},
+					"password": {
+						"type": "string",
+						"title": "Password"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"email",
+					"password"
+				],
+				"title": "LoginRequest",
+				"description": "`POST /api/v1/session`: email and password log the browser in."
+			},
+			"LoginResponse": {
+				"properties": {
+					"phone_required": {
+						"type": "boolean",
+						"title": "Phone Required"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"phone_required"
+				],
+				"title": "LoginResponse",
+				"description": "The session travels in the `simo_session` cookie.\n\n`phone_required` is true for a hand-out account that has no number yet: the login\npage then asks for it (`POST /api/v1/me/phone`) before going on."
+			},
 			"Me": {
 				"properties": {
 					"user_id": {
@@ -1526,6 +1839,21 @@
 					"replaced_by_quote_id"
 				],
 				"title": "OrderStatusResponse"
+			},
+			"PhoneRequest": {
+				"properties": {
+					"phone_e164": {
+						"type": "string",
+						"title": "Phone E164"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"phone_e164"
+				],
+				"title": "PhoneRequest",
+				"description": "`POST /api/v1/me/phone`: the number of a hand-out account, set once."
 			},
 			"ProductHit": {
 				"properties": {
@@ -2181,6 +2509,31 @@
 					"results"
 				],
 				"title": "SearchRecipesResponse"
+			},
+			"SignupRequest": {
+				"properties": {
+					"email": {
+						"type": "string",
+						"title": "Email"
+					},
+					"password": {
+						"type": "string",
+						"title": "Password"
+					},
+					"phone_e164": {
+						"type": "string",
+						"title": "Phone E164"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"email",
+					"password",
+					"phone_e164"
+				],
+				"title": "SignupRequest",
+				"description": "`POST /api/v1/signup`: open sign-up for the connectors. Nothing is verified.\n\nThe email is lower-cased; the password needs at least 10 characters; `phone_e164` is\nread like the demo account's."
 			},
 			"StateGroup": {
 				"type": "string",

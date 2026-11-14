@@ -257,12 +257,62 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
+        /**
+         * Log In
+         * @description Log in with email and password. 401 for a wrong email or password alike; 429 after
+         *     10 failed tries for the email within 10 minutes.
+         *
+         *     `phone_required` tells the login page to ask a hand-out account for its number.
+         */
+        post: operations["log_in_api_v1_session_post"];
         /**
          * Delete Session
          * @description Log out: revoke this browser's session and clear the cookie. Safe to repeat.
          */
         delete: operations["delete_session_api_v1_session_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signup
+         * @description Open sign-up for the connectors: email, password (10 characters or more) and number.
+         *
+         *     Logs the browser in. The number's company is found or created as for a demo account.
+         */
+        post: operations["signup_api_v1_signup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set Phone
+         * @description Set the number of a hand-out account on its first login. Only while it has none: 409
+         *     after that.
+         */
+        post: operations["set_phone_api_v1_me_phone_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -303,6 +353,31 @@ export interface paths {
         get: operations["inbox_stream_api_v1_private_inbox_stream_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/oauth/requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Request
+         * @description What the consent page shows. 404 when the request is unknown or expired.
+         */
+        get: operations["get_request_api_v1_oauth_requests__request_id__get"];
+        put?: never;
+        /**
+         * Decide
+         * @description Allow issues a code for this user; Cancel sends `access_denied`. Either way the
+         *     browser goes to `redirect_to`, back to the client.
+         */
+        post: operations["decide_api_v1_oauth_requests__request_id__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -399,6 +474,39 @@ export interface components {
             sms_status: "held" | "sent" | "failed" | "off";
             /** Inbox */
             inbox: boolean;
+        };
+        /**
+         * ConnectDecision
+         * @description `POST /api/v1/oauth/requests/{id}`: Allow (true) or Cancel (false).
+         */
+        ConnectDecision: {
+            /** Allow */
+            allow: boolean;
+        };
+        /**
+         * ConnectRedirect
+         * @description Where the browser goes next: the client's redirect URI with a code or an error.
+         */
+        ConnectRedirect: {
+            /** Redirect To */
+            redirect_to: string;
+        };
+        /**
+         * ConnectRequestView
+         * @description `GET /api/v1/oauth/requests/{id}`: what the consent page shows.
+         *
+         *     "Allow <client_name> to order for <company_name>?" `redirect_host` is where the browser
+         *     goes next (the MCP spec asks the consent screen to show it).
+         */
+        ConnectRequestView: {
+            /** Client Name */
+            client_name: string;
+            /** Company Name */
+            company_name: string;
+            /** Phone Masked */
+            phone_masked: string;
+            /** Redirect Host */
+            redirect_host: string;
         };
         /** CustomerContext */
         CustomerContext: {
@@ -601,6 +709,27 @@ export interface components {
             en: string;
         };
         /**
+         * LoginRequest
+         * @description `POST /api/v1/session`: email and password log the browser in.
+         */
+        LoginRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+        };
+        /**
+         * LoginResponse
+         * @description The session travels in the `simo_session` cookie.
+         *
+         *     `phone_required` is true for a hand-out account that has no number yet: the login
+         *     page then asks for it (`POST /api/v1/me/phone`) before going on.
+         */
+        LoginResponse: {
+            /** Phone Required */
+            phone_required: boolean;
+        };
+        /**
          * Me
          * @description `GET /api/v1/me`: the signed-in user's company and kitchen profile.
          */
@@ -649,6 +778,14 @@ export interface components {
             order_number: string | null;
             /** Replaced By Quote Id */
             replaced_by_quote_id: string | null;
+        };
+        /**
+         * PhoneRequest
+         * @description `POST /api/v1/me/phone`: the number of a hand-out account, set once.
+         */
+        PhoneRequest: {
+            /** Phone E164 */
+            phone_e164: string;
         };
         /** ProductHit */
         ProductHit: {
@@ -833,6 +970,21 @@ export interface components {
         SearchRecipesResponse: {
             /** Results */
             results: components["schemas"]["RecipeHit"][];
+        };
+        /**
+         * SignupRequest
+         * @description `POST /api/v1/signup`: open sign-up for the connectors. Nothing is verified.
+         *
+         *     The email is lower-cased; the password needs at least 10 characters; `phone_e164` is
+         *     read like the demo account's.
+         */
+        SignupRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+            /** Phone E164 */
+            phone_e164: string;
         };
         /**
          * StateGroup
@@ -1289,6 +1441,39 @@ export interface operations {
             };
         };
     };
+    log_in_api_v1_session_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_session_api_v1_session_delete: {
         parameters: {
             query?: never;
@@ -1304,6 +1489,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    signup_api_v1_signup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_phone_api_v1_me_phone_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
@@ -1342,6 +1593,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    get_request_api_v1_oauth_requests__request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectRequestView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_api_v1_oauth_requests__request_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectRedirect"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
