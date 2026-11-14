@@ -95,6 +95,14 @@ Flow: ask for a weekly menu → swap a day → build order → send to phone →
 
 <img src="screens/40-webshop-desktop.png" width="480" alt="Webshop chat desktop"> <img src="screens/41-webshop-menu.png" width="180" alt="Weekly menu"> <img src="screens/42-webshop-quote.png" width="180" alt="Quote">
 
+## Decided after the export, not yet in the screens
+
+These decisions came after the screens were drawn (`technical-plan.md` §9.8, 2026-11-14). The specs in [`docs/specs`](../specs/README.md) already follow them. The screens are not re-exported, so where a screen and this list disagree, this list and the specs win.
+
+- **Dashboard access: public data and private data.** General data on the dashboard is public. The conversation (buyer and agent turns, tool call arguments and responses, event payloads) and contact details (masked number or email) are private, shown only after the same number-entry login as the call. Affects `30-dashboard-overview` (masked numbers and email on public cards), `32-dashboard-full-flow` (transcripts shown without a login) and `33-dashboard-audit-log` (masked number and payload shown without a login). The "Open, read-only" line under Live dashboard below means the public part only.
+- **The link goes to the simulated phone inbox.** Every confirmation message lands in the demo phone's inbox. Twilio sends a real SMS only when the feature flag is on and the number is on the allowlist, and the "also sent by SMS" line shows only when one went out. Affects `00-start-computer` ("the link we text you"), `10-call-setup` ("The order link comes here by SMS" and the notice that what you say is shown on the dashboard), `13-call-ended` (the SMS line is shown every time) and `14-call-on-computer` ("still goes to the number you typed"). The confirmation page is opened from the inbox message, not from an SMS.
+- **No confirmation link in the webshop chat.** The inbox shows on the phone page only, never in the shop, because a browser agent works inside the shop page. Webshop visitors read the link on the phone page in the same browser. Affects `42-webshop-quote`: drop the "Open confirmation page" button and the "link to the confirmation page" in the table below.
+
 ## Decided in the design review, not yet in the specs
 
 - The agent is called **S.I.MO** everywhere, with a warm voice, not labelled on screen as an AI agent. It tells callers it is an AI helper in its greeting.
