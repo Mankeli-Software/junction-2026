@@ -30,12 +30,8 @@ const vectors = JSON.parse(
 	readFileSync(new URL('../../../../docs/audit-chain-vectors.json', import.meta.url), 'utf-8')
 ) as { genesis_hash: string; events: Vector[] };
 
-/** A vector as a step with its payload, so `verifyChain` checks `payload_hash` too. */
-const asStep = (v: Vector, order_index: number): CheckedStep => ({
-	...v,
-	order_index,
-	text: v.text_fi === null && v.text_en === null ? null : { fi: v.text_fi ?? '', en: v.text_en ?? '' }
-});
+/** A vector as a step with its payload and raw sentences, so `verifyChain` checks `payload_hash` too. */
+const asStep = (v: Vector, order_index: number): CheckedStep => ({ ...v, order_index });
 
 describe('verifyChain', () => {
 	it('passes the D-1042 fixture', async () => {
@@ -128,10 +124,25 @@ describe('shared test vectors (docs/audit-chain-vectors.json)', () => {
 	it('finds a changed sentence through payload_hash', async () => {
 		const steps = vectors.events.map((v, i) => asStep(v, i + 1));
 		const last = steps[steps.length - 1];
-		steps[steps.length - 1] = { ...last, text: { fi: 'muutettu', en: 'changed' } };
+		steps[steps.length - 1] = { ...last, text_en: 'changed' };
 		const result = await verifyChain(steps, 'global');
 		expect(result.reason).toBe('payload_hash');
 		expect(result.first_bad_seq).toBe(last.seq);
+	});
+
+	it('keeps a null sentence null, as /events sends it', async () => {
+		const index = vectors.events.findIndex((v) => v.text_fi === null);
+		expect(index).toBeGreaterThanOrEqual(0);
+		const steps = vectors.events.map((v, i) => asStep(v, i + 1));
+		expect((await verifyChain(steps, 'global')).ok).toBe(true);
+		// Step.text's "" for a null sentence is not what was hashed.
+		steps[index] = { ...steps[index], text_fi: '', text_en: '' };
+		expect((await verifyChain(steps, 'global')).reason).toBe('payload_hash');
+	});
+
+	it('checks a deleted payload (null) on its chain fields alone', async () => {
+		const steps = vectors.events.map((v, i) => ({ ...asStep(v, i + 1), payload: null }));
+		expect((await verifyChain(steps, 'global')).ok).toBe(true);
 	});
 
 	it('finds a missing event in the global chain', async () => {

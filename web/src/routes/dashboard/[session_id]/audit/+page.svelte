@@ -13,6 +13,7 @@
 	import { channelName } from '#lib/dashboard/states.ts';
 	import type { Step } from '#lib/dashboard/types.ts';
 	import { useUi } from '#lib/dashboard/ui.svelte.ts';
+	import { withRecords } from '#lib/dashboard/verify.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -29,7 +30,8 @@
 		onReset: () => (liveSteps = [])
 	});
 	const steps = $derived(combineSteps(data.steps, liveSteps));
-	const chain = chainCheck(() => steps);
+	// The full events add their payloads and raw sentences, so payload_hash is checked too.
+	const chain = chainCheck(() => withRecords(steps, data.events));
 	const eventsBySeq = $derived(new Map(data.events.map((e) => [e.seq, e])));
 
 	const selectedIndex = $derived(Number(page.url.searchParams.get('event')) || steps[0]?.order_index || 0);

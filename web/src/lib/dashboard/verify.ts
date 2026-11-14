@@ -6,7 +6,7 @@
  * `/audit/verify` result is not used for this.
  */
 import { GENESIS_HASH, computeHash, payloadHash, type ChainFields } from './hash';
-import type { Localized } from './types';
+import type { AuditEvent, Step } from './types';
 
 /** The same names as `ChainCheck.reason` in the Python. */
 export type BreakReason = 'seq_gap' | 'prev_hash' | 'session_prev_hash' | 'payload_hash' | 'hash';
@@ -29,9 +29,27 @@ export type VerifyScope = 'session' | 'global';
 export interface CheckedStep extends ChainFields {
 	order_index: number;
 	hash: string;
-	/** When the payload is there (`/events`), `payload_hash` is checked against it and `text`. */
+	/**
+	 * From `/events`: when the payload and both raw sentences are there, `payload_hash` is
+	 * checked against them. Not `Step.text`, which turns a null sentence into "".
+	 */
 	payload?: unknown;
-	text?: Localized | null;
+	text_fi?: string | null;
+	text_en?: string | null;
+}
+
+/**
+ * The steps with each one's payload and raw sentences from `/events`, where that event was
+ * loaded, so `verifyChain` checks `payload_hash` too. Steps without one (new over the stream,
+ * or `/events` not loaded) are checked on their chain fields alone.
+ */
+export function withRecords(steps: readonly Step[], events: readonly AuditEvent[]): CheckedStep[] {
+	const bySeq = new Map(events.map((e) => [e.seq, e]));
+	return steps.map((step) => {
+		const event = bySeq.get(step.seq);
+		if (!event) return step;
+		return { ...step, payload: event.payload, text_fi: event.text_fi, text_en: event.text_en };
+	});
 }
 
 /**
@@ -41,7 +59,8 @@ export interface CheckedStep extends ChainFields {
  *    scope this applies only where two steps are next to each other in `seq`.
  * 3. `session_prev_hash` is the `hash` of the same session's previous step (null for its first,
  *    and for events with no session).
- * 4. When the payload is there, `payload_hash` matches it.
+ * 4. When the payload and sentences are there, `payload_hash` matches them. A deleted
+ *    payload (null) is skipped, as `docs/audit-chain.md` allows.
  * 5. `hash` matches the nine fields.
  */
 export async function verifyChain(
@@ -90,11 +109,17 @@ async function problem(
 	const expectedSessionPrev = step.session_id === null ? null : (sessionLast.get(step.session_id) ?? null);
 	if (step.session_prev_hash !== expectedSessionPrev) return 'session_prev_hash';
 
-	if (step.payload !== undefined && step.payload !== null) {
-		const recomputed = await payloadHash(step.payload, step.text?.fi ?? null, step.text?.en ?? null);
+	if (hasRecord(step)) {
+		const recomputed = await payloadHash(step.payload, step.text_fi ?? null, step.text_en ?? null);
 		if (recomputed !== step.payload_hash) return 'payload_hash';
 	}
 
 	if ((await computeHash(step)) !== step.hash) return 'hash';
 	return null;
+}
+
+function hasRecord(step: CheckedStep): boolean {
+	return (
+		step.payload !== undefined && step.payload !== null && step.text_fi !== undefined && step.text_en !== undefined
+	);
 }

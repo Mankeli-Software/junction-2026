@@ -1,6 +1,5 @@
 /** Runs the in-browser chain check for a page, again whenever the steps change. */
-import type { Step } from './types';
-import { verifyChain, type VerifyResult } from './verify';
+import { verifyChain, type CheckedStep, type VerifyResult } from './verify';
 
 export interface ChainCheck {
 	readonly result: VerifyResult | null;
@@ -8,12 +7,15 @@ export interface ChainCheck {
 	again(): void;
 }
 
-/** Call during component init. The check runs only in the browser (effects don't run on the server). */
-export function chainCheck(getSteps: () => readonly Step[]): ChainCheck {
+/**
+ * Call during component init. The check runs only in the browser (effects don't run on the
+ * server). Pass the steps alone (`/steps`), or `withRecords()` to check `payload_hash` too.
+ */
+export function chainCheck(getSteps: () => readonly CheckedStep[]): ChainCheck {
 	const state = $state({ result: null as VerifyResult | null, checking: false });
 	let run = 0;
 
-	async function check(steps: readonly Step[]): Promise<void> {
+	async function check(steps: readonly CheckedStep[]): Promise<void> {
 		const mine = ++run;
 		state.checking = true;
 		const result = await verifyChain(steps);
