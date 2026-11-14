@@ -237,10 +237,15 @@ class OrderSummary(StrictModel):
 
 
 class Step(StrictModel):
-    """One audit event without its payload, enough to verify the chain (§8.5)."""
+    """One audit event without its payload, enough to verify the chain (§8.5).
+
+    The hash covers `session_id` and `quote_id` too (docs/audit-chain.md), so they are here.
+    """
 
     seq: int  # place in the global chain
     order_index: int  # number within the order, from 1
+    session_id: str
+    quote_id: str | None
     # Kept as the exact string that was hashed, so the browser can recompute the hash.
     at: str
     actor: str  # buyer, agent, mcp, engine, relay, confirmation, ...
@@ -262,10 +267,8 @@ class TranscriptLine(StrictModel):
 class AuditEvent(Step):
     """A full redacted event, as `/events` returns it. The payload shape depends on `type`."""
 
-    session_id: str
     channel: Channel
     identity_masked: str | None
-    quote_id: str | None
     payload: dict[str, Any]
 
 
