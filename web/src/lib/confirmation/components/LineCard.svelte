@@ -31,7 +31,7 @@
 	<div class="row">
 		<div class="thumb">
 			{#if line.image_url}
-				<img src={line.image_url} alt="" width="56" height="56" />
+				<img src={line.image_url} alt="" width="56" height="56" loading="lazy" referrerpolicy="no-referrer" />
 			{:else}
 				<Icon name="box" size={26} stroke="var(--faint)" weight={1.8} />
 			{/if}
