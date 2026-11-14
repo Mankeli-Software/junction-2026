@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import engine
 from app.adapters import valio
 from app.models import KitchenProfile as KitchenProfileRow
-from app.models import OrderSession, Quote
+from app.models import Order, OrderSession, Quote
 from app.models import QuoteLine as QuoteLineRow
 from app.schemas import (
     BuildQuoteRequest,
@@ -189,7 +189,7 @@ async def get_order_status(
     return OrderStatusResponse(
         quote_id=str(quote.id),
         status=QuoteStatus(quote.status),
-        order_number=None,  # #47 creates the order
+        order_number=await db.scalar(select(Order.order_number).where(Order.quote_id == quote.id)),
         replaced_by_quote_id=replaced_by,
     )
 
