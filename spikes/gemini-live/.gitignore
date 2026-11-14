@@ -1,0 +1,12 @@
+# Secrets
+.env
+*.env
+
+# Python
+.venv/
+__pycache__/
+
+# Generated audio and run output. Recordings of a real voice must never be committed.
+audio/
+recordings/
+out/
