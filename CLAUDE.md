@@ -46,9 +46,9 @@ Stay inside your own area so agents don't wander into other people's folders. #6
 | Person | Areas | Folders and scope |
 |---|---|---|
 | Aku | `area:engine` | `api/app/engine/`, `policy/`, audit and signing |
-| Miska | `area:data`, `area:infra` | loaders, search, Valio adapter, seed, `deploy/`, CI, recipes |
+| Miska | `area:data`, `area:infra` | loaders, search, Valio adapter, seed, `deploy/`, CI |
 | Juho, then Jesse after Saturday night | `area:platform`, `area:dashboard` | FastAPI, MCP, services, auth, dashboard |
-| Jesse | `area:voice`, `area:web` | voice relay, prompt, call screen, confirmation page and its backend, webshop |
+| Jesse | `area:voice`, `area:web` | voice relay, prompt, call screen, confirmation page and its backend, webshop, recipes (#34, #80) |
 
 - **Changes outside your area** stay small, and the owner is named in the commit body and told directly.
 - **`api/app/schemas/` is the shared contract (#26)** and everyone builds on it. Change a model there only in its own commit, with a heads-up to the whole team before pushing. Never slip a schema change into another commit.
