@@ -233,6 +233,8 @@ interface FxState {
 	order: ConfirmationView['order'];
 }
 
+/** At most this many tokens are kept; the oldest is dropped first, so memory stays bounded. */
+const MAX_TOKENS = 500;
 const store = new Map<string, FxState>();
 let nextOrderNumber = 1042;
 
@@ -384,6 +386,7 @@ function load(token: string): FxState | null {
 	if (!scenario) return null;
 	const s = create(token, scenario);
 	store.set(token, s);
+	if (store.size > MAX_TOKENS) store.delete(store.keys().next().value!);
 	return s;
 }
 
