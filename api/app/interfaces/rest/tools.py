@@ -10,7 +10,9 @@ from fastapi import APIRouter, Depends, FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db import get_session
 from app.interfaces.deps import current_caller
 from app.interfaces.tool_calls import run_tool
 from app.schemas import (
@@ -74,6 +76,22 @@ async def get_recipe(caller: CurrentCaller, recipe_id: str, portions: int) -> Ba
 @router.post("/quotes", response_model=QuoteResponse)
 async def build_quote(caller: CurrentCaller, request: BuildQuoteRequest) -> BaseModel:
     return await run_tool("build_quote", caller, quotes.build_quote, request)
+
+
+@router.get("/quotes/current", response_model=QuoteResponse)
+async def current_quote(
+    caller: CurrentCaller, db: Annotated[AsyncSession, Depends(get_session)]
+) -> QuoteResponse:
+    """The caller's newest quote, for the webshop chat panel (§9.6). Not an agent tool."""
+    return await quotes.current_quote(db, caller)
+
+
+@router.get("/quotes/{quote_id}", response_model=QuoteResponse)
+async def get_quote(
+    caller: CurrentCaller, db: Annotated[AsyncSession, Depends(get_session)], quote_id: str
+) -> QuoteResponse:
+    """One of the caller's company's quotes, for the webshop chat panel (§9.6)."""
+    return await quotes.get_quote(db, caller, quote_id)
 
 
 @router.post("/quotes/{quote_id}/update", response_model=QuoteResponse)

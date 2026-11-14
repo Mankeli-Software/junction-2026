@@ -194,6 +194,40 @@ async def get_order_status(
     )
 
 
+# --- Chat panel helpers (technical-plan.md §9.6, not agent tools) ------------------------
+
+
+async def get_quote(db: AsyncSession, caller: Caller, quote_id: str) -> QuoteResponse:
+    return _response(await _load(db, caller, quote_id))
+
+
+async def current_quote(db: AsyncSession, caller: Caller) -> QuoteResponse:
+    """The newest quote in the caller's sessions, on any channel: the webshop page signs in
+    with the cookie while its chat agent uses a token."""
+    quote = await db.scalar(
+        select(Quote)
+        .join(OrderSession, OrderSession.id == Quote.session_id)
+        .where(OrderSession.user_id == caller.user_id, Quote.company_id == caller.company_id)
+        .order_by(Quote.created_at.desc(), Quote.version.desc())
+        .limit(1)
+    )
+    if quote is None:
+        raise NotFoundError("no quote yet")
+    return _response(quote)
+
+
+def _response(quote: Quote) -> QuoteResponse:
+    return QuoteResponse(
+        **dict(EngineOutput.model_validate(quote.engine_output)),
+        quote_id=str(quote.id),
+        version=quote.version,
+        parent_quote_id=str(quote.parent_quote_id) if quote.parent_quote_id else None,
+        status=QuoteStatus(quote.status),
+        expires_at=quote.expires_at,
+        quote_hash=quote.quote_hash,
+    )
+
+
 # --- Building one quote -----------------------------------------------------------------
 
 
