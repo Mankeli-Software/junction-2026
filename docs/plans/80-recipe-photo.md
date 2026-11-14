@@ -28,6 +28,8 @@ Status: agreed 2026-11-14 (Juho), all decisions in §1. The two new agent tools 
 | 13 | WebMCP | The two tools are exposed to browser agents like every other tool; no special case in the shop |
 | 14 | Upload limits | Image formats only (JPEG, PNG, WebP, HEIC/HEIF). Size limit set by `RECIPE_PHOTO_MAX_MB`, default 100. No rate limit |
 | 15 | After confirming | A confirmed draft is frozen. To change it, "Edit as new draft" copies it into a new draft to confirm. Quote-level edits still work on the confirmation page |
+| 16 | Save to My Aimo | A **"Save to My Aimo" mock button** on the confirmed recipe card and on the confirmation page next to "From your recipe photo". Pressing it shows "Saved to My Aimo" and stores nothing (there is no real My Aimo account). It works for connector users too, through the confirmation page |
+| 17 | Matched recipe ingredients | A draft ingredient may carry a `product_id`. When a dish photo starts from our recipe, its product-linked ingredients keep their exact product, and the unlinked ones are searched like any photo ingredient. (Recipes from our data ordered directly stay one `recipe_ref` line with only linked ingredients, as decided in `docs/specs/webshop-chat.md` §4.3; a photo draft is the buyer's own confirmed recipe, so all its ticked rows are ordered) |
 
 ## 2. Flows
 
@@ -96,6 +98,7 @@ class DraftIngredient(StrictModel):
     confidence: Literal["high", "low"] = "high"  # low is highlighted on the card
     note: str | None = Field(default=None, max_length=200)  # "hard to read", "guessed"
     order: bool = True                           # the card's "order this" tick; water starts False
+    product_id: str | None = None                # set for an ingredient linked in our recipe data
 
 class ProposeRecipeRequest(StrictModel):          # the propose_recipe tool
     dish: str = Field(max_length=120)
@@ -166,7 +169,7 @@ All of them take the request's `AsyncSession`, flush only, and leave the commit 
   - a confirmed draft is frozen: `copy_as_new(db, caller, draft_id)` makes a new draft from it for "Edit as new draft".
 - **`get(db, caller, draft_id)`** and **`discard(...)`** for the card's "Start over".
 - **`to_lines(draft) -> (list[LineRequest], list[NotOrdered])`**: one line per ticked ingredient; unticked ones become `NotOrdered` ("not ordered: you unticked it").
-  - **Lines:** `line_id = "p{index}"`, `group = dish`, `text = ingredient text`.
+  - **Lines:** `line_id = "p{index}"`, `group = dish`, `text = ingredient text`, and `product_id` when the ingredient carries one (decision 17).
   - **Scaling:** amounts are scaled by `portions / servings_on_source` when that's known (Decimal, rounded only where the engine rounds).
   - **Unit mapping:** `l`, `dl`, `cl`, `ml`, `rkl` (15 ml), `tl` (5 ml) → litres; `kg`, `g` → kg; `kpl`, `pcs` → piece. Anything else (`ripaus`, "a handful") keeps `unit=package` with `package_word`, and the engine asks back instead of guessing (vision §6). Litres for a product sold by the kg go through the engine's density table (§5.1).
   - **Small amounts:** pantry items are the buyer's call through the tick (decision 9). A ticked "1 tl salt" is rounded up to one sales unit and flagged by the engine as usual.
@@ -217,13 +220,13 @@ The engine's units step uses it only for a line asked in litres whose product ha
   - the ingredient rows (text, amount, unit; editable, removable, and an "add row" button);
   - an "order this" tick per row (water unticked at first);
   - low-confidence rows highlighted; for a dish photo, the "This is a guess from the picture" banner, our matched recipe first, and a "Use what the AI saw instead" switch;
-  - Confirm and Start over. After confirming, "Edit as new draft".
+  - Confirm and Start over. After confirming, "Edit as new draft" and the **"Save to My Aimo" mock button** (decision 16: shows "Saved to My Aimo", stores nothing).
 - **After Confirm:** the card goes read-only, and the chat sends a structured message to the agent ("The buyer confirmed recipe draft {id}"), which calls `build_quote(recipe_draft_id)`.
 - **Rendering:** cards come from API responses, never from model text (`webshop-chat.md`). Everything goes through Svelte's escaping, as all product and buyer text does.
 
 ### 6.3 Confirmation page (#47's page)
 
-The request group for a photo draft gets a header: "From your recipe photo: Karjalanpiirakat, 40 portions". A dish photo adds "(a guess from the picture)". Each line shows the ingredient as read next to the product added, which the page already does as asked versus added.
+The request group for a photo draft gets a header: "From your recipe photo: Karjalanpiirakat, 40 portions". A dish photo adds "(a guess from the picture)". Next to it, the "Save to My Aimo" mock button (decision 16), so connector users get it too. Each line shows the ingredient as read next to the product added, which the page already does as asked versus added.
 
 ### 6.4 Dashboard
 
@@ -259,7 +262,7 @@ Two photos we make ourselves, with no personal data, in `web/static/demo/` (also
 1. A handwritten notebook page: "Karjalanpiirakat, 40 kpl", with real Finnish units (dl, rkl, tl).
 2. A plated dish that matches a recipe in our data (picked once #34 has loaded the full recipes).
 
-The stage script for #59: photo → card (fix one low-confidence row on stage) → confirm → quote → confirmation page → dashboard flow.
+The stage script for #59: photo → card (fix one low-confidence row on stage) → confirm → "Save to My Aimo" → quote → confirmation page → dashboard flow. The webshop chat (#57) is where this demo shines, so #57 is built with photo upload and the recipe card in mind (noted on #57).
 
 ## 10. Work breakdown
 
@@ -271,7 +274,7 @@ The stage script for #59: photo → card (fix one low-confidence row on stage) �
 | 3 | Photo reading service and `/recipe-drafts/read` (§5 reading, §7) | Juho | 0, 1 | 2 to 3 h |
 | 4 | Tool descriptions and the prompt paragraph (Jesse's files, named) | Juho | 2 | 1 h |
 | 5 | Chat panel upload and `RecipeDraftCard`. Needs the chat itself (#57, not built): either Jesse's #57 lands first, or we build the minimal chat it needs, agreed with Jesse | Juho | #57's chat, 3 | half a day, plus the chat if we build it |
-| 6 | Confirmation page header (Jesse's #47 page, named), dashboard steps and labels | Juho | 1 | 2 h |
+| 6 | Confirmation page header and the "Save to My Aimo" mock button (Jesse's #47 page, named), dashboard steps and labels | Juho | 1 | 2 h |
 | 6b | Density table in the engine's policy and the units step (§5.1, Aku's area, named) | Juho | 1 (lines in litres) | 2 h |
 | 7 | Demo photos and the stage script; the rehearsal itself stays in #59 (Miska) | Juho | 3, 5 | 1 h |
 
