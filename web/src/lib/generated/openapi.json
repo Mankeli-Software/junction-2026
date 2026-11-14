@@ -4216,10 +4216,19 @@
 					},
 					"portions": {
 						"type": "integer",
+						"maximum": 1000.0,
+						"minimum": 1.0,
 						"title": "Portions"
 					},
 					"ingredient_index": {
-						"type": "integer",
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Ingredient Index"
 					}
 				},
@@ -4227,10 +4236,10 @@
 				"type": "object",
 				"required": [
 					"recipe_id",
-					"portions",
-					"ingredient_index"
+					"portions"
 				],
-				"title": "RecipeRef"
+				"title": "RecipeRef",
+				"description": "A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:\nthe quote service turns it into one line per ingredient with a product link and lists\nthe other ingredients in `not_ordered`."
 			},
 			"Rejection": {
 				"properties": {
