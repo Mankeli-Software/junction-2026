@@ -42,7 +42,11 @@ class Conversation:
     history: list[Any] = field(default_factory=list)  # genkit Messages, no system message
     token: str | None = None
     token_expires_at: datetime | None = None
-    latest_quote_id: str | None = None
+    latest_quote_id: str | None = None  # the latest quote while it is open (standing.py)
+    # The latest quote once it is confirmed, cancelled or expired, until a new quote comes:
+    # each turn tells the model it is closed. `turn_note` is that turn's note.
+    closed_quote_id: str | None = None
+    turn_note: str = ""
     menus: dict[str, Menu] = field(default_factory=dict)
     # One message at a time. A flag, not an asyncio.Lock: requests may run in different
     # event loops (tests), and the check and the set have no await between them.

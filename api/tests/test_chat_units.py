@@ -132,6 +132,24 @@ def test_text_only_cards_drop_the_domain_cards_and_add_none():
     assert not any(card in text for card in surfaces.CARD_ID)
 
 
+def test_no_quote_card_for_a_closed_quote():
+    cards = surfaces.TurnCards(closed_quotes={"q-old"})
+    cards.expect("QuoteCard", "q-old", slot="quote")
+    assert (
+        cards.filter(surface("s1", {"id": "root", "component": "QuoteCard", "quoteId": "q-old"}))
+        == []
+    )
+    assert cards.missing() == []
+    assert (
+        len(
+            cards.filter(
+                surface("s2", {"id": "root", "component": "QuoteCard", "quoteId": "q-new"})
+            )
+        )
+        == 2
+    )
+
+
 def test_a_second_card_for_the_same_id_is_dropped_with_its_surface():
     cards = surfaces.TurnCards()
     first = cards.filter(surface("s1", {"id": "root", "component": "QuoteCard", "quoteId": "q"}))

@@ -76,3 +76,8 @@ class ChatSentLatest(BaseModel):
     sent_to_masked: str | None
     delivery_status: Literal["held", "sent", "failed", "off"]
     inbox: bool
+    # Where the link stands now: waiting for the buyer, confirmed (then with the order
+    # number), cancelled, expired, or replaced (the agent made a newer quote, which needs
+    # a new link).
+    status: Literal["waiting", "confirmed", "cancelled", "expired", "replaced"] = "waiting"
+    order_number: str | None = None

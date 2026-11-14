@@ -142,10 +142,12 @@ def _clean_component(component: Any) -> dict[str, Any] | None:
 class TurnCards:
     """The cards of one turn: what the model drew, and what the tools call for."""
 
-    def __init__(self, *, domain: bool = True) -> None:
+    def __init__(self, *, domain: bool = True, closed_quotes: set[str] | None = None) -> None:
         # False: text only (the confirmation page's chat): domain cards are dropped and
         # never added, only Column, Row, Text, Notice and Button stay.
         self.domain = domain
+        # Quotes that are confirmed, cancelled or expired: no QuoteCard for them.
+        self.closed_quotes = closed_quotes or set()
         self.drawn: set[tuple[str, str]] = set()
         self.expected: dict[str, tuple[str, str]] = {}  # slot -> (component, id)
 
@@ -176,7 +178,7 @@ class TurnCards:
                     continue
                 key = _card_key(component)
                 if key is not None:
-                    if not self.domain or key in self.drawn:
+                    if not self.domain or key in self.drawn or self._closed(key):
                         dropped.add(component["id"])
                         continue
                     self.drawn.add(key)
@@ -196,13 +198,16 @@ class TurnCards:
             out = [e for e in out if _surface_id(e) not in emptied]
         return out
 
+    def _closed(self, key: tuple[str, str]) -> bool:
+        return key[0] == "QuoteCard" and key[1] in self.closed_quotes
+
     def missing(self) -> list[dict[str, Any]]:
         """Server surfaces for the expected cards the model didn't draw."""
         out: list[dict[str, Any]] = []
         if not self.domain:
             return out
         for component, card_id in self.expected.values():
-            if (component, card_id) in self.drawn:
+            if (component, card_id) in self.drawn or self._closed((component, card_id)):
                 continue
             self.drawn.add((component, card_id))
             out.extend(card_surface(component, card_id))

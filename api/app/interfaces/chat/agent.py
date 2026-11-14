@@ -248,6 +248,7 @@ class Turn:
         if name in QUOTE_TOOLS and output.get("quote_id"):
             quote_id = str(output["quote_id"])
             self.conversation.latest_quote_id = quote_id
+            self.conversation.closed_quote_id = None
             self.cards.expect("QuoteCard", quote_id, slot="quote")
         elif name == PROPOSE_RECIPE and output.get("draft_id"):
             self.cards.expect("RecipeDraftCard", str(output["draft_id"]))
@@ -339,7 +340,10 @@ async def run_turn(
         conversation=conversation,
         session_id=session_id,
         mode=mode,
-        cards=surfaces.TurnCards(domain=mode.cards),
+        cards=surfaces.TurnCards(
+            domain=mode.cards,
+            closed_quotes={conversation.closed_quote_id} if conversation.closed_quote_id else set(),
+        ),
     )
     if expect_draft:
         turn.cards.expect("RecipeDraftCard", expect_draft)
@@ -351,6 +355,7 @@ async def run_turn(
         result = get_ai().generate_stream(
             model=chat_model(settings.chat_model),
             system=conversation.system_prompt
+            + conversation.turn_note
             + ("" if mode.cards else "\n\n" + surfaces.text_only_instructions()),
             messages=[*conversation.history, message],
             tools=chat_tools(turn, await tools.list_tools()),

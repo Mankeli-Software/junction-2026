@@ -586,6 +586,17 @@ async def _replace(
     return new
 
 
+async def link_state(
+    db: AsyncSession, confirmation: Confirmation, *, now: datetime | None = None
+) -> tuple[PageState, str | None]:
+    """Where a link stands, as its page shows it, and the order number once confirmed. For
+    the chat's "sent to your phone" notice (#57)."""
+    now = now or datetime.now(UTC)
+    quote = await _current_quote(db, confirmation)
+    order = await _order(db, confirmation)
+    return _state(confirmation, quote, order, now), order.order_number if order else None
+
+
 # --- The page's "Ask for changes" chat (#57, webshop-chat.md §5) ----------------------------
 
 

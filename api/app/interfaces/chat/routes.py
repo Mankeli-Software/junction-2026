@@ -24,7 +24,7 @@ from sse_starlette import EventSourceResponse, ServerSentEvent
 
 from app.agent import build_system_prompt
 from app.db import get_sessionmaker
-from app.interfaces.chat import agent, menus
+from app.interfaces.chat import agent, menus, standing
 from app.interfaces.chat.conversations import Conversation, store
 from app.interfaces.chat.schemas import ChatMenu, ChatRequest, ChatSentLatest
 from app.interfaces.deps import web_session_user
@@ -63,6 +63,16 @@ STREAM_RESPONSES: dict[int | str, dict[str, Any]] = {
     },
     409: {"description": "Busy: still answering the previous message"},
     503: {"description": "Chat not configured (no CHAT_MODEL)"},
+}
+
+# The confirmation page's state, in the SentNotice card's words.
+LINK_STATUS: dict[str, Any] = {
+    "ready": "waiting",
+    "requote_needed": "waiting",
+    "confirmed": "confirmed",
+    "cancelled": "cancelled",
+    "expired": "expired",
+    "invalid": "replaced",
 }
 
 BUSY = {"code": "busy", "message": "S.I.MO is still answering the previous message."}
@@ -225,6 +235,14 @@ async def chat(user: WebUser, body: ChatRequest) -> EventSourceResponse:
             if body.attachment_draft_id:
                 draft = await recipe_drafts.get(db, caller, body.attachment_draft_id)
                 draft_id = draft.draft_id
+            # The latest quote as it stands now: the buyer may have confirmed, cancelled or
+            # changed it on the confirmation page since the last message.
+            now = await standing.standing(
+                db, conversation.latest_quote_id or conversation.closed_quote_id
+            )
+            conversation.latest_quote_id = now.open_quote_id
+            conversation.closed_quote_id = now.closed_quote_id
+            conversation.turn_note = now.note
             token = await _ensure_token(db, conversation)
             session = await sessions.current_session(db, caller)
             session_id = session.id
@@ -267,6 +285,7 @@ async def sent_latest(user: WebUser) -> ChatSentLatest:
                 select(SmsMessage).where(SmsMessage.confirmation_id == confirmation.id)
             )
         )
+        state, order_number = await confirmation_page.link_state(db, confirmation)
     by_path = {m.path: m for m in messages}
     twilio, inbox = by_path.get("twilio"), by_path.get("inbox")
     if twilio is not None and twilio.status in ("sent", "failed"):
@@ -279,6 +298,8 @@ async def sent_latest(user: WebUser) -> ChatSentLatest:
         sent_to_masked=mask_phone(confirmation.recipient_e164),
         delivery_status=delivery,  # type: ignore[arg-type]
         inbox=inbox is not None,
+        status=LINK_STATUS.get(state, "waiting"),
+        order_number=order_number,
     )
 
 

@@ -18,6 +18,7 @@ from app.models import AuditEvent, OrderSession, Quote
 from app.settings import get_settings
 from tests import chat_fakes as fx
 from tests.phones import new_number
+from tests.test_confirmation_page import Page
 from tests.test_recipe_drafts import PROPOSAL
 
 LINE = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
@@ -156,6 +157,7 @@ async def test_send_to_my_phone_gives_the_notice_and_never_the_link(chat, live_c
     assert "/c/" in message["link"]
     sent = live_client.get("/api/v1/chat/sent/latest").json()
     assert sent["delivery_status"] == "off" and sent["inbox"] is True
+    assert (sent["status"], sent["order_number"]) == ("waiting", None)
     assert "*" in sent["sent_to_masked"]
     async with AsyncSession(app_db) as db:
         said = list(await db.scalars(select(AuditEvent).where(AuditEvent.type == "agent_said")))
@@ -413,3 +415,96 @@ async def test_an_action_is_logged_in_plain_words(chat, live_client, app_db):
         [said] = (await db.scalars(select(AuditEvent).where(AuditEvent.type == "buyer_said"))).all()
     assert said.payload["text"] == "I confirmed the recipe for 80 portions."
     assert "d-1" not in said.payload["text"]
+
+
+# --- After the order is confirmed or cancelled on the phone ------------------------------
+
+
+def system_text(model: fx.FakeModel, index: int = 0) -> str:
+    return "".join(p.text or "" for p in model.requests[index].messages[0].content)
+
+
+def chat_quote_and_send(chat, client: TestClient) -> tuple[str, str, str]:
+    """A quote built in the chat and sent to the phone from it. Returns the conversation
+    id, the quote id and the link's token."""
+    chat.reset(fx.call("build_quote", {"lines": [LINE]}), fx.text("Here it is."))
+    first = send(client, message="20 l maitoa")
+    conversation_id, quote_id = first[0][1]["conversation_id"], first[-1][1]["quote_id"]
+    chat.reset(fx.call("request_confirmation", {"quote_id": quote_id}), fx.text("Sent."))
+    sent = send(
+        client,
+        conversation_id=conversation_id,
+        action={"name": "send_for_confirmation", "context": {"quoteId": quote_id}},
+    )
+    assert sent[-1] == ("done", {"quote_id": quote_id})  # waiting on the phone: still open
+    [message] = client.get("/api/v1/private/inbox").json()
+    return conversation_id, quote_id, message["link"].rsplit("/c/", 1)[1]
+
+
+def confirm_on_the_phone(token: str) -> str:
+    page = Page(token)
+    view = page.view()
+    quote_hash = view["quote"]["quote_hash"]
+    for flag in view["flags"]:
+        if flag["requires_ack"]:
+            assert page.ack(quote_hash, flag["flag_key"]).status_code == 204
+    response = page.post("confirm", {"quote_hash": quote_hash})
+    assert response.status_code == 200, response.text
+    return response.json()["order_number"]
+
+
+async def test_after_the_order_is_confirmed_the_chat_starts_a_new_quote(chat, live_client):
+    conversation_id, old, token = chat_quote_and_send(chat, live_client)
+    number = confirm_on_the_phone(token)
+
+    sent = live_client.get("/api/v1/chat/sent/latest").json()
+    assert (sent["status"], sent["order_number"]) == ("confirmed", number)
+
+    # The buyer writes again. The model is told the order is closed; one that still tries
+    # to change it gets /mcp's refusal, and no card for the closed quote appears.
+    chat.reset(
+        fx.call("update_quote", {"quote_id": old, "lines": [{**LINE, "quantity": 30}]}),
+        fx.text(
+            "That order is already confirmed."
+            + fx.fence({"id": "root", "component": "QuoteCard", "quoteId": old})
+        ),
+    )
+    pairs = send(live_client, conversation_id=conversation_id, message="Make it 30 l")
+    system = system_text(chat)
+    assert "# The previous order" in system and f"order number {number}" in system
+    assert "start a new quote with `build_quote`" in system
+    [refused] = chat.tool_results(1)
+    assert "can no longer be changed" in refused["error"]
+    assert fx.cards(pairs) == []
+    assert pairs[-1] == ("done", {"quote_id": None})
+
+    # Still closed on the next message, until a new quote comes.
+    chat.reset(fx.call("build_quote", {"lines": [{**LINE, "quantity": 30}]}), fx.text("New one."))
+    pairs = send(live_client, conversation_id=conversation_id, message="A new order, 30 l")
+    assert "# The previous order" in system_text(chat)
+    new = pairs[-1][1]["quote_id"]
+    assert new and new != old
+    assert [c["quoteId"] for c in fx.cards(pairs)] == [new]
+
+    # The new quote is the latest: no more note about the old one.
+    chat.reset(fx.text("Anything else?"))
+    pairs = send(live_client, conversation_id=conversation_id, message="thanks")
+    assert "# The previous order" not in system_text(chat)
+    assert pairs[-1] == ("done", {"quote_id": new})
+
+
+async def test_a_cancelled_order_is_closed_too_and_gets_no_notice_again(chat, live_client):
+    conversation_id, old, token = chat_quote_and_send(chat, live_client)
+    page = Page(token)
+    assert (
+        page.post("cancel", {"quote_hash": page.view()["quote"]["quote_hash"]}).status_code == 204
+    )
+    assert live_client.get("/api/v1/chat/sent/latest").json()["status"] == "cancelled"
+
+    # A model that still sends it again gets the refusal, and no SentNotice is added.
+    chat.reset(fx.call("request_confirmation", {"quote_id": old}), fx.text("Hmm."))
+    pairs = send(live_client, conversation_id=conversation_id, message="send it again")
+    assert "cancelled by the buyer" in system_text(chat)
+    assert "error" in chat.tool_results(1)[0]
+    assert fx.cards(pairs) == []
+    assert pairs[-1] == ("done", {"quote_id": None})
