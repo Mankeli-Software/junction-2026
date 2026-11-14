@@ -140,7 +140,8 @@ async def stream(
 ) -> EventSourceResponse:
     """Server-sent events: `snapshot` (as `GET /orders`, with the same filters), then
     `order_updated` (filtered), `step` and `transcript`, each with `id` = the
-    `status_events` id. A reconnect with `Last-Event-ID` gets the missed events first."""
+    `status_events` id. One id can carry several events, so a reconnect with
+    `Last-Event-ID` first gets that id's whole group again, then the later events."""
     accept = OrderFilter(state, channel)
 
     async def snapshot() -> dict:

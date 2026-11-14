@@ -5,6 +5,12 @@ browser connected to `/api/v1/public/stream` reads `subscribe()`, which starts w
 `snapshot` and then sends live events. A reconnect with `Last-Event-ID` gets the events it
 missed from a small in-memory buffer instead, when the buffer still has them.
 
+One `status_events` id can carry several events (a `step`, a `transcript` and an
+`order_updated`), so an id alone doesn't say whether a client got its whole group. A resume
+therefore starts *at* `Last-Event-ID`: it resends every event of that id's group, then the
+later ones. A client that dropped in the middle of a group loses nothing, and the events it
+gets twice merge idempotently on the page.
+
 The simulated phone inbox (#46) reuses the class with one instance per user and no
 redaction, because its link is the point; see `app/services/confirmations.py`.
 """
@@ -75,7 +81,8 @@ class Broadcaster:
         self._subscribers: set[_Subscriber] = set()
         self._history: deque[StreamEvent] = deque(maxlen=history_size)
         # Events with an id at or below this one may be missing from the history: they were
-        # evicted, or they came before the first one this process saw.
+        # evicted (perhaps only part of that id's group), or they came before the first one
+        # this process saw.
         self._floor: int | None = None
 
     @property
@@ -113,12 +120,13 @@ class Broadcaster:
         subscriber.queue.put_nowait(_DROPPED)
 
     def missed_since(self, last_event_id: int) -> list[StreamEvent] | None:
-        """The buffered events after `last_event_id`, or None if some may be missing."""
-        if self._floor is None or last_event_id < self._floor:
+        """The buffered events from `last_event_id` on, the whole group of that id first,
+        or None if some may be missing."""
+        if self._floor is None or last_event_id <= self._floor:
             return None
         if last_event_id > self._history[-1].id:
             return None  # an id from before a restart, or from another database
-        return [e for e in self._history if e.id > last_event_id]
+        return [e for e in self._history if e.id >= last_event_id]
 
     async def subscribe(
         self,
@@ -128,18 +136,20 @@ class Broadcaster:
         ping_interval: float = PING_INTERVAL_SECONDS,
         accept: AcceptFn | None = None,
     ) -> AsyncIterator[ServerSentEvent]:
-        """The events for one browser: a snapshot or the missed events, then live ones.
+        """The events for one browser: a snapshot or the missed events (from the whole
+        group of `last_event_id` on), then live ones.
 
         `accept` filters the live and missed events (never the snapshot).
 
         A comment ping goes out after `ping_interval` seconds without an event, so Caddy
         and browsers keep the connection open. Ends when the subscriber is dropped.
         """
-        # Subscribe before reading anything, so nothing published meanwhile is lost.
+        # Subscribe before reading anything, so nothing published meanwhile is lost. The
+        # history is read in the same step (no await in between), so the queue holds only
+        # what comes after `missed`, including the rest of a group still being published.
         subscriber = _Subscriber(queue=asyncio.Queue(maxsize=self._queue_size))
         self._subscribers.add(subscriber)
         try:
-            sent_up_to: int | None = None
             missed = None if last_event_id is None else self.missed_since(last_event_id)
             if missed is None:
                 snapshot_id = self.last_id
@@ -149,7 +159,6 @@ class Broadcaster:
                 for event in missed:
                     if accept is None or accept(event):
                         yield event.to_sse()
-                sent_up_to = missed[-1].id if missed else last_event_id
 
             while True:
                 try:
@@ -159,8 +168,6 @@ class Broadcaster:
                     continue
                 if item is _DROPPED:
                     return
-                if sent_up_to is not None and item.id is not None and item.id <= sent_up_to:
-                    continue  # already sent from the history
                 if accept is None or accept(item):
                     yield item.to_sse()
         finally:

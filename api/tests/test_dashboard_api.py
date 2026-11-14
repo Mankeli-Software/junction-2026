@@ -514,11 +514,11 @@ async def test_last_event_id_resume_gets_missed_events_then_live_ones(app_db):
     published = list(hub._history)
     assert published and all(e.id is not None for e in published)
     first_id = published[0].id
-    expected = [e for e in published if e.id > first_id]
+    expected = [e for e in published if e.id >= first_id]
 
     events = hub.subscribe(_empty_snapshot, last_event_id=first_id)
     missed = [await anext(events) for _ in expected]
-    assert missed and all(int(e.id) > first_id for e in missed)
+    assert [(e.event, int(e.id)) for e in missed] == [(e.event, e.id) for e in expected]
     assert missed[-1].event == "order_updated"
 
     # Then live: another event in the same session.

@@ -833,7 +833,7 @@
 					"dashboard"
 				],
 				"summary": "Stream",
-				"description": "Server-sent events: `snapshot` (as `GET /orders`, with the same filters), then\n`order_updated` (filtered), `step` and `transcript`, each with `id` = the\n`status_events` id. A reconnect with `Last-Event-ID` gets the missed events first.",
+				"description": "Server-sent events: `snapshot` (as `GET /orders`, with the same filters), then\n`order_updated` (filtered), `step` and `transcript`, each with `id` = the\n`status_events` id. One id can carry several events, so a reconnect with\n`Last-Event-ID` first gets that id's whole group again, then the later events.",
 				"operationId": "stream_api_v1_public_stream_get",
 				"parameters": [
 					{

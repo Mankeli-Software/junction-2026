@@ -306,7 +306,8 @@ export interface paths {
          * Stream
          * @description Server-sent events: `snapshot` (as `GET /orders`, with the same filters), then
          *     `order_updated` (filtered), `step` and `transcript`, each with `id` = the
-         *     `status_events` id. A reconnect with `Last-Event-ID` gets the missed events first.
+         *     `status_events` id. One id can carry several events, so a reconnect with
+         *     `Last-Event-ID` first gets that id's whole group again, then the later events.
          */
         get: operations["stream_api_v1_public_stream_get"];
         put?: never;

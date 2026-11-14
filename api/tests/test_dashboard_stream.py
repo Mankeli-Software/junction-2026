@@ -91,7 +91,7 @@ async def test_reconnect_with_last_event_id_gets_the_missed_events_then_live_one
         raise AssertionError("a resumable reconnect must not need a snapshot")
 
     stream = hub.subscribe(no_snapshot, last_event_id=2)
-    assert [parsed(e)[1] for e in await take(stream, 3)] == [3, 4, 5]
+    assert [parsed(e)[1] for e in await take(stream, 4)] == [2, 3, 4, 5]
     hub.publish(step(6))
     assert [parsed(e)[1] for e in await take(stream, 1)] == [6]
     await stream.aclose()
@@ -101,6 +101,7 @@ async def test_reconnect_that_is_up_to_date_waits_for_live_events():
     hub = Broadcaster()
     hub.publish(step(1))
     stream = hub.subscribe(snapshot, last_event_id=1, ping_interval=60)
+    assert [parsed(e)[1] for e in await take(stream, 1)] == [1]  # its group again
     pending = asyncio.ensure_future(anext(stream))
     await asyncio.sleep(0.01)
     assert not pending.done()
@@ -109,10 +110,12 @@ async def test_reconnect_that_is_up_to_date_waits_for_live_events():
     await stream.aclose()
 
 
-@pytest.mark.parametrize("last_event_id", [0, 2, 99])
+@pytest.mark.parametrize("last_event_id", [0, 2, 5, 99])
 async def test_reconnect_gets_a_snapshot_when_the_history_may_have_a_gap(last_event_id):
     hub = Broadcaster(history_size=3)
-    for seq in range(3, 9):  # this process started at seq 3; 6, 7 and 8 are kept
+    # This process started at seq 3; 6, 7 and 8 are kept. 5 was evicted, and with it
+    # perhaps only part of its group, so resuming at 5 needs a snapshot too.
+    for seq in range(3, 9):
         hub.publish(step(seq))
     stream = hub.subscribe(snapshot, last_event_id=last_event_id)
     [first] = await take(stream, 1)
@@ -125,7 +128,7 @@ async def test_reconnect_just_inside_the_history_resumes():
     hub = Broadcaster(history_size=3)
     for seq in range(3, 9):
         hub.publish(step(seq))  # kept: 6, 7, 8; evicted up to 5
-    stream = hub.subscribe(snapshot, last_event_id=5)
+    stream = hub.subscribe(snapshot, last_event_id=6)
     assert [parsed(e)[1] for e in await take(stream, 3)] == [6, 7, 8]
     await stream.aclose()
 
@@ -193,5 +196,54 @@ async def test_publish_without_subscribers_only_fills_the_history():
     hub.publish(step(2))
     hub.publish(step(3))
     assert hub.last_id == 3
-    assert [e.id for e in hub.missed_since(1)] == [2, 3]
+    assert [e.id for e in hub.missed_since(2)] == [2, 3]
+    assert hub.missed_since(1) is None  # evicted
     assert hub.missed_since(0) is None
+
+
+def group(status_id: int) -> list[StreamEvent]:
+    """The events the feed publishes for one `status_events` row, all with its id."""
+    data = {"session_id": "s_1"}
+    return [
+        StreamEvent("step", {**data, "step": {"seq": status_id}}, status_id),
+        StreamEvent("transcript", {**data, "line": {"text": "hei"}}, status_id),
+        StreamEvent("order_updated", {"order": {"session_id": "s_1"}}, status_id),
+    ]
+
+
+async def test_resume_from_the_middle_of_a_group_resends_the_whole_group():
+    hub = Broadcaster()
+    for event in group(1) + group(2):
+        hub.publish(event)
+
+    # The client got group 1 and only the `step` of group 2, then dropped. It resumes
+    # from the id it saw last, as EventSource would.
+    stream = hub.subscribe(snapshot, last_event_id=2)
+    got = [(e.event, int(e.id)) for e in await take(stream, 3)]
+    assert got == [("step", 2), ("transcript", 2), ("order_updated", 2)]
+    await stream.aclose()
+
+
+async def test_resume_while_a_group_is_still_being_published_gets_the_rest_live():
+    hub = Broadcaster()
+    events = group(1) + group(2)
+    for event in events[:4]:  # group 1 and the first event of group 2 so far
+        hub.publish(event)
+
+    stream = hub.subscribe(snapshot, last_event_id=2, ping_interval=60)
+    assert [(e.event, int(e.id)) for e in await take(stream, 1)] == [("step", 2)]
+    for event in events[4:]:
+        hub.publish(event)
+    got = [(e.event, int(e.id)) for e in await take(stream, 2)]
+    assert got == [("transcript", 2), ("order_updated", 2)]
+    await stream.aclose()
+
+
+async def test_resume_from_a_complete_group_sends_it_again_then_the_later_ones():
+    """What the dashboard's `sse.ts` does: resume from the id before the latest."""
+    hub = Broadcaster()
+    for event in group(1) + group(2):
+        hub.publish(event)
+    stream = hub.subscribe(snapshot, last_event_id=1)
+    assert [int(e.id) for e in await take(stream, 6)] == [1, 1, 1, 2, 2, 2]
+    await stream.aclose()

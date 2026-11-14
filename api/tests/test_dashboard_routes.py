@@ -119,7 +119,7 @@ async def test_stream_sends_an_empty_snapshot_then_live_events(hub):
 async def test_stream_resumes_from_last_event_id(hub):
     for seq in (1, 2, 3):
         hub.publish(StreamEvent("step", {"seq": seq}, seq))
-    async with Stream("/api/v1/public/stream", headers={"Last-Event-ID": "1"}) as s:
+    async with Stream("/api/v1/public/stream", headers={"Last-Event-ID": "2"}) as s:
         assert [(await s.next_event())["id"] for _ in range(2)] == ["2", "3"]
 
 
