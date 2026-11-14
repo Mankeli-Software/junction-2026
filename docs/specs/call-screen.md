@@ -60,7 +60,7 @@ The screen looks like a phone call:
 - Who is being called: **S.I.MO**, and "On speaker".
 - Call state: Connecting, then a running call timer.
 - Buttons: Mute, Speaker, Captions (show or hide the captions), and a red hang-up button.
-- A simple activity indicator: listening, S.I.MO speaking, S.I.MO working ("Checking products..."). Readable at a glance if the visitor looks at the screen on speaker.
+- A simple activity indicator: listening, S.I.MO thinking ("S.I.MO is thinking..."), S.I.MO working ("Checking products..."), S.I.MO speaking. Readable at a glance if the visitor looks at the screen on speaker. It follows the relay's `agent_state` message (`technical-plan.md` §9.3).
 - **Live captions for both sides**, headed "Live captions, automatic". The phone is not held to the ear; it is on speaker and the visitor watches the screen. Captions are labelled "You" and "S.I.MO". They come from the same voice transcripts as the dashboard and are marked as automatic captions, since speech-to-text can be wrong. Seeing "fifty" where you said "fifteen" lets the visitor correct the agent at once.
 - **Captions arrive per utterance**, not word by word. In the Gemini Live spike (#51, `spikes/gemini-live/README.md`) no interim transcripts arrived: the visitor's caption appears in one piece about a second after they stop talking. The screen must not promise word-by-word captions.
 - Audio plays through the loudspeaker, with the browser's echo cancellation on so the agent does not hear itself. Headphones work too, which helps at a noisy booth.

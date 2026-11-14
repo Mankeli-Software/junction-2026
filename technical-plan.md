@@ -429,8 +429,18 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 | Browser → server | `hangup` | none |
 | Server → browser | `ready` | none (Gemini session open) |
 | Server → browser | `interrupted` | none (flush playback, section 7.1) |
+| Server → browser | `agent_state` | `state` (`listening`, `thinking`, `working` or `speaking`), `tool` (the tool name while `working`, otherwise null). *Proposed (#54)*; see below |
 | Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
 | Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone) |
+
+`agent_state` (*proposed, #54*) drives the call screen's activity indicator (`docs/specs/call-screen.md` §2.3). The relay sends it only when the state changes:
+
+- `listening`: S.I.MO waits for the caller. Sent at call start after `ready`, after each agent turn (Gemini `generation_complete`), and after `interrupted`.
+- `thinking`: the caller's utterance has ended (the final input transcript, or the end of the user's turn) and S.I.MO hasn't spoken or called a tool yet; about 1 s in the spike (#51). Sent again after a tool result goes back to Gemini, until audio starts.
+- `working`: Gemini called a tool, named in `tool`, until the relay sends the result back.
+- `speaking`: the first output audio chunk of the turn arrived.
+
+The browser works without it: with a relay that never sends `agent_state`, it infers speaking while agent audio is queued for playback and listening otherwise. Because `listening` follows generation, not playback, the browser keeps showing speaking while queued audio still plays.
 
 `ended` arrives before the socket closes and covers the no-quote and SMS-failed cases. The link itself never travels on this socket: the simulated phone reads it from the inbox endpoint (section 9.2). Live captions need Gemini Live's input and output transcription turned on. Transcripts become `buyer_said` and `agent_said` audit events (`docs/specs/README.md`), shown on the public dashboard (section 9.5). They never enter the engine input (vision §5). Because the chain hashes over `payload_hash` (section 8.5), the text can be deleted after the event without breaking the chain.
 

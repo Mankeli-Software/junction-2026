@@ -6,6 +6,7 @@
 import {
 	CLOSE_LIMIT,
 	CLOSE_NO_SESSION,
+	type AgentState,
 	type EndedMessage,
 	type ServerMessage,
 	type TranscriptMessage
@@ -42,7 +43,11 @@ export class VoiceCall {
 	captions = $state<Caption[]>([]);
 	muted = $state(false);
 	speaker = $state(true);
+	/** Agent audio is queued for playback. */
 	agentSpeaking = $state(false);
+	/** The relay's last `agent_state`; null while the relay never sent one. */
+	agentState = $state<AgentState | null>(null);
+	agentTool = $state<string | null>(null);
 	callerTalking = $state(false);
 	wakeLock = $state(false);
 	startedAt = $state<number | null>(null);
@@ -61,6 +66,19 @@ export class VoiceCall {
 
 	/** The socket closed mid-call without `ended`. */
 	lostConnection = $state(false);
+
+	/**
+	 * What the indicator shows. `agent_state` wins when the relay sends it; without it,
+	 * speaking while agent audio plays and listening otherwise. The relay says
+	 * `listening` when Gemini has finished generating, which can be before the
+	 * browser has finished playing, so queued audio still shows as speaking.
+	 */
+	get activity(): AgentState {
+		if (this.agentState === null || this.agentState === 'listening') {
+			return this.agentSpeaking ? 'speaking' : 'listening';
+		}
+		return this.agentState;
+	}
 
 	get dropped(): boolean {
 		return this.lostConnection || this.ended?.ended_by === 'dropped';
@@ -209,7 +227,15 @@ export class VoiceCall {
 			case 'interrupted':
 				this.#audio?.flush();
 				this.agentSpeaking = false;
+				if (this.agentState !== null) {
+					this.agentState = 'listening';
+					this.agentTool = null;
+				}
 				for (const caption of this.captions) if (caption.who === 'agent') caption.final = true;
+				break;
+			case 'agent_state':
+				this.agentState = message.state;
+				this.agentTool = message.state === 'working' ? (message.tool ?? null) : null;
 				break;
 			case 'transcript':
 				this.#onTranscript(message);
@@ -270,6 +296,8 @@ export class VoiceCall {
 		for (const timer of [this.#talkTimer, this.#pendingTimer, this.#connectTimer]) if (timer) clearTimeout(timer);
 		this.callerTalking = false;
 		this.agentSpeaking = false;
+		this.agentState = null;
+		this.agentTool = null;
 		this.captions = this.captions.filter((c) => !c.pending);
 		for (const caption of this.captions) caption.final = true;
 		if (this.#socket) {
