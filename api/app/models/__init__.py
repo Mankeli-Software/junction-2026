@@ -1,6 +1,6 @@
 """SQLAlchemy models. Import every model module here so Alembic sees all tables."""
 
-from app.models.audit import AuditEvent
+from app.models.audit import AuditEvent, RuleSetRow, StatusEvent
 from app.models.auth import AccessToken, WebSession
 from app.models.base import Base
 from app.models.catalogue import (
@@ -40,6 +40,8 @@ __all__ = [
     "SmsMessage",
     "Quote",
     "QuoteLine",
+    "RuleSetRow",
+    "StatusEvent",
     "User",
     "WebSession",
 ]

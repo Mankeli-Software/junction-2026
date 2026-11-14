@@ -56,7 +56,6 @@ async def run_tool(
             quote_id=named_quote,
             payload={"tool": name, "arguments": arguments},
             text=Localized(fi=f"Agentti kutsui: {name}", en=f"The agent called {name}"),
-            public={"tool": name},
         )
         try:
             async with db.begin_nested():
@@ -79,7 +78,6 @@ async def run_tool(
             quote_id=returned_quote,
             payload=payload,
             text=text,
-            public={"tool": name, "ok": error is None},
         )
     if error is not None:
         raise error

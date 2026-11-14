@@ -1,0 +1,73 @@
+{
+  "description": "Audit chain test vectors (#41). Format: docs/audit-chain.md. Shared by api/tests/test_audit_chain.py and web/src/lib/dashboard/verify.test.ts; never edit by hand.",
+  "genesis_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "events": [
+    {
+      "seq": 1,
+      "at": "2026-11-14T08:00:00.000000Z",
+      "type": "rule_set_loaded",
+      "actor": "system",
+      "session_id": null,
+      "quote_id": null,
+      "payload": {
+        "version": "2026-11-14.1",
+        "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rules_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "text_fi": null,
+      "text_en": null,
+      "payload_hash": "aa107e70d9dc820908ccf10411579229c82ecef5474f79dc59e0481cd71aee1d",
+      "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "session_prev_hash": null,
+      "hash_input": "0000000000000000000000000000000000000000000000000000000000000000\n\n1\n2026-11-14T08:00:00.000000Z\nrule_set_loaded\nsystem\n\n\naa107e70d9dc820908ccf10411579229c82ecef5474f79dc59e0481cd71aee1d",
+      "hash": "ffeb09fbb7573244dc88b59e8bce75bf206b9db6e3e990daaf108b52209c3050"
+    },
+    {
+      "seq": 2,
+      "at": "2026-11-14T10:23:45.123456Z",
+      "type": "buyer_said",
+      "actor": "buyer",
+      "session_id": "5b0c7a3e-2f41-4d8e-9a6b-1c2d3e4f5a6b",
+      "quote_id": null,
+      "payload": {
+        "text": "Kaksikymmentä litraa maitoa huomiseksi",
+        "lang": "fi",
+        "transcript": true
+      },
+      "text_fi": "Asiakas: Kaksikymmentä litraa maitoa huomiseksi",
+      "text_en": "Buyer: Kaksikymmentä litraa maitoa huomiseksi",
+      "payload_hash": "8b45d52e8ade2f1c24173fecb54d9bc552d9500383a625134ce103813c0dc589",
+      "prev_hash": "ffeb09fbb7573244dc88b59e8bce75bf206b9db6e3e990daaf108b52209c3050",
+      "session_prev_hash": null,
+      "hash_input": "ffeb09fbb7573244dc88b59e8bce75bf206b9db6e3e990daaf108b52209c3050\n\n2\n2026-11-14T10:23:45.123456Z\nbuyer_said\nbuyer\n5b0c7a3e-2f41-4d8e-9a6b-1c2d3e4f5a6b\n\n8b45d52e8ade2f1c24173fecb54d9bc552d9500383a625134ce103813c0dc589",
+      "hash": "4caae9b2dc539a7dd59f9a22cb2c65dc1b9630f649ad90fd84a9f71ae612e260"
+    },
+    {
+      "seq": 3,
+      "at": "2026-11-14T10:23:47.000005Z",
+      "type": "quote_built",
+      "actor": "engine",
+      "session_id": "5b0c7a3e-2f41-4d8e-9a6b-1c2d3e4f5a6b",
+      "quote_id": "8f14e45f-ceea-467a-9a6e-2b7c1d0e9f31",
+      "payload": {
+        "quote_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "total_cents": 2390,
+        "lines": [
+          {
+            "product_id": "6408430000012",
+            "quantity": 20,
+            "unit_price": 1.195
+          }
+        ],
+        "decision": "ready"
+      },
+      "text_fi": "Tarjous valmis: 1 rivi, 23,90 €",
+      "text_en": "Quote ready: 1 line, €23.90",
+      "payload_hash": "a64ffe300437997acb48ea0a7647c058fffa147b150fe55c2d76fd65c45318b4",
+      "prev_hash": "4caae9b2dc539a7dd59f9a22cb2c65dc1b9630f649ad90fd84a9f71ae612e260",
+      "session_prev_hash": "4caae9b2dc539a7dd59f9a22cb2c65dc1b9630f649ad90fd84a9f71ae612e260",
+      "hash_input": "4caae9b2dc539a7dd59f9a22cb2c65dc1b9630f649ad90fd84a9f71ae612e260\n4caae9b2dc539a7dd59f9a22cb2c65dc1b9630f649ad90fd84a9f71ae612e260\n3\n2026-11-14T10:23:47.000005Z\nquote_built\nengine\n5b0c7a3e-2f41-4d8e-9a6b-1c2d3e4f5a6b\n8f14e45f-ceea-467a-9a6e-2b7c1d0e9f31\na64ffe300437997acb48ea0a7647c058fffa147b150fe55c2d76fd65c45318b4",
+      "hash": "e78711968f7fec96feaebbfca779462a455a500b3dd96173b99ed580a03d6c0e"
+    }
+  ]
+}

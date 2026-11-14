@@ -10,7 +10,12 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncEngine,
+    AsyncSession,
+    create_async_engine,
+)
 from sqlalchemy.pool import NullPool
 
 import app.db
@@ -23,7 +28,6 @@ API_DIR = Path(__file__).resolve().parents[1]
 ACCOUNT_TABLES = (
     "sms_messages",
     "confirmations",
-    "audit_events",
     "quote_lines",
     "quotes",
     "sessions",
@@ -33,6 +37,18 @@ ACCOUNT_TABLES = (
     "kitchen_profiles",
     "companies",
 )
+
+# Append-only (#41): their triggers refuse TRUNCATE, so tests switch them off to empty them.
+AUDIT_TABLES = ("status_events", "audit_events", "rule_sets")
+
+
+async def empty_audit_tables(conn: AsyncConnection) -> None:
+    """Empty the append-only audit tables in the caller's transaction (tests only)."""
+    for table in AUDIT_TABLES:
+        await conn.execute(text(f"ALTER TABLE {table} DISABLE TRIGGER USER"))
+    await conn.execute(text(f"TRUNCATE {', '.join(AUDIT_TABLES)}"))
+    for table in AUDIT_TABLES:
+        await conn.execute(text(f"ALTER TABLE {table} ENABLE TRIGGER USER"))
 
 
 @pytest.fixture(scope="session")
@@ -116,6 +132,7 @@ async def app_db(
     finally:
         app.db.get_sessionmaker.cache_clear()
         async with engine.begin() as conn:
+            await empty_audit_tables(conn)
             await conn.execute(text(f"TRUNCATE {', '.join(ACCOUNT_TABLES)} CASCADE"))
         await engine.dispose()
 

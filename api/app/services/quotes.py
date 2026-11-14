@@ -249,7 +249,6 @@ async def _new_quote(
         "request_received",
         {"lines": [line.model_dump(mode="json") for line in lines]},
         Localized(fi=f"Tilauspyyntö, {len(lines)} riviä", en=f"Order request, {len(lines)} lines"),
-        {"line_count": len(lines)},
     )
 
     usual_items = customers.usual_items(caller)
@@ -273,7 +272,6 @@ async def _new_quote(
             "capped": len(kept) < len({i for ids in ranked.values() for i in ids}),
         },
         Localized(fi=f"Haettiin {len(kept)} tuotetta", en=f"Searched {len(kept)} products"),
-        {"candidate_count": len(kept)},
     )
 
     products = await catalog.get_products(sorted(kept))
@@ -291,7 +289,6 @@ async def _new_quote(
             fi=f"Tarkistettiin hinta ja saatavuus, {len(offers)} tuotetta",
             en=f"Checked price and availability of {len(offers)} products",
         ),
-        {"count": len(offers), "failed": failed},
     )
 
     rules = get_rule_set()
@@ -323,6 +320,8 @@ async def _new_quote(
         )
         quote_hash, jws = signing.quote_hash(payload), signing.sign_quote(payload)
 
+    # Stored once in `rule_sets` (with its audit event), so `rules_ref` resolves on replay.
+    await audit.ensure_rule_set(db, rules)
     stored_input = engine_input.model_dump(mode="json", exclude={"rules"})
     stored_output = output.model_dump(mode="json")
     quote = Quote(
@@ -509,7 +508,6 @@ async def _record_decision(
             ]
         },
         Localized(fi="Ehdokkaat suodatettiin", en="Candidates filtered"),
-        {},
         actor="engine",
     )
     for line in lines:
@@ -535,7 +533,7 @@ async def _record_decision(
         else:
             payload = {"line_id": line.line_id, "outcome": "needs_clarification"}
             text = Localized(fi="Rivi vaatii tarkennuksen", en="The line needs an answer")
-        await record("line_resolved", payload, text, {"line_id": line.line_id}, actor="engine")
+        await record("line_resolved", payload, text, actor="engine")
 
     decision_payload = {
         "decision": output.decision.value,
@@ -545,14 +543,13 @@ async def _record_decision(
         "engine_input": stored_input,
         "engine_output": output.model_dump(mode="json"),
     }
-    public = {"decision": output.decision.value, "total_cents": output.total_cents}
     if output.decision == Decision.ready:
-        await record("quote_built", decision_payload, output.speak, public)
+        await record("quote_built", decision_payload, output.speak)
     elif output.decision == Decision.needs_clarification:
         question = output.clarification.question if output.clarification else output.speak
-        await record("clarification_asked", decision_payload, question, public)
+        await record("clarification_asked", decision_payload, question)
     else:
-        await record("quote_rejected", decision_payload, output.speak, public)
+        await record("quote_rejected", decision_payload, output.speak)
 
 
 def _recorder(db: AsyncSession, session: OrderSession, quote_id: uuid.UUID):
@@ -560,7 +557,6 @@ def _recorder(db: AsyncSession, session: OrderSession, quote_id: uuid.UUID):
         type: str,
         payload: dict[str, Any],
         text: Localized,
-        public: dict[str, Any],
         *,
         actor: str = "service",
     ) -> None:
@@ -572,7 +568,6 @@ def _recorder(db: AsyncSession, session: OrderSession, quote_id: uuid.UUID):
             quote_id=quote_id,
             payload=payload,
             text=text,
-            public=public,
         )
 
     return record
@@ -586,7 +581,7 @@ async def _record(
     payload: dict[str, Any],
     text: Localized,
 ) -> None:
-    await _recorder(db, session, quote_id)(type, payload, text, payload)
+    await _recorder(db, session, quote_id)(type, payload, text)
 
 
 # --- Loading ----------------------------------------------------------------------------

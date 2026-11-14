@@ -148,6 +148,5 @@ async def _start(
             "prompt_version": prompt_version,
         },
         text=Localized(fi="Keskustelu alkoi", en="Conversation started"),
-        public={"channel": caller.channel, "client_name": caller.client_name},
     )
     return session

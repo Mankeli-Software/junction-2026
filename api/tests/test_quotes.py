@@ -32,9 +32,9 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 from app.services import accounts, catalog, dev_caller, quotes, sessions, signing
+from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
-from app.services.rules_store import load_rule_set_by_ref
 
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
