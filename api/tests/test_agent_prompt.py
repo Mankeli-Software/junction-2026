@@ -144,6 +144,13 @@ def test_answer_in_the_callers_language_is_explicit():
     assert "If the caller speaks English, answer in English" in text
 
 
+def test_a_language_switch_holds_to_the_end_of_the_call():
+    # #85: after an English "yes", the link sentence came back in the account's Finnish.
+    text = prompt()
+    assert "Stay in the language of the caller's latest turn" in text
+    assert "the link and the goodbye" in text
+
+
 def test_backticked_names_match_the_contract():
     for channel in ("phone", "web_chat"):
         names = set(re.findall(r"`([^`]+)`", prompt(channel)))
