@@ -89,6 +89,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/quotes/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current Quote
+         * @description The caller's newest quote, for the webshop chat panel (§9.6). Not an agent tool.
+         */
+        get: operations["current_quote_api_v1_quotes_current_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{quote_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Quote
+         * @description One of the caller's company's quotes, for the webshop chat panel (§9.6).
+         */
+        get: operations["get_quote_api_v1_quotes__quote_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quotes/{quote_id}/update": {
         parameters: {
             query?: never;
@@ -223,6 +263,47 @@ export interface paths {
          * @description Log out: revoke this browser's session and clear the cookie. Safe to repeat.
          */
         delete: operations["delete_session_api_v1_session_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/private/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Inbox
+         * @description This browser's messages, oldest first. Held messages appear when the call ends.
+         */
+        get: operations["get_inbox_api_v1_private_inbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/private/inbox/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inbox Stream
+         * @description Server-sent events: `snapshot` (the inbox so far, as `GET /inbox`), then one
+         *     `inbox_message` per new message, with the message as JSON.
+         */
+        get: operations["inbox_stream_api_v1_private_inbox_stream_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -456,6 +537,23 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * InboxMessage
+         * @description One message in the simulated phone (`InboxMessage` in `web/src/lib/demo/types.ts`).
+         */
+        InboxMessage: {
+            /** Id */
+            id: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Text */
+            text: string;
+            /** Link */
+            link: string;
+        };
+        /**
          * LineRequest
          * @description One structured line from the agent. The engine never sees raw speech (vision §5).
          */
@@ -656,9 +754,13 @@ export interface components {
         /**
          * QuoteStatus
          * @description Quote lifecycle (technical-plan.md §8.1).
+         *
+         *     A quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's
+         *     decision. Only a `ready` quote can be sent for confirmation; the other two are
+         *     answered or changed with `update_quote`.
          * @enum {string}
          */
-        QuoteStatus: "ready" | "pending_confirmation" | "confirmed" | "cancelled" | "expired" | "void";
+        QuoteStatus: "ready" | "needs_clarification" | "rejected" | "pending_confirmation" | "confirmed" | "cancelled" | "expired" | "void";
         /** Recipe */
         Recipe: {
             /** Recipe Id */
@@ -953,6 +1055,57 @@ export interface operations {
             };
         };
     };
+    current_quote_api_v1_quotes_current_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteResponse"];
+                };
+            };
+        };
+    };
+    get_quote_api_v1_quotes__quote_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quote_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_quote_api_v1_quotes__quote_id__update_post: {
         parameters: {
             query?: never;
@@ -1147,6 +1300,44 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_inbox_api_v1_private_inbox_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxMessage"][];
+                };
+            };
+        };
+    };
+    inbox_stream_api_v1_private_inbox_stream_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
