@@ -16,7 +16,9 @@
 choices:
   milk_free:
     label: {fi: maidoton, en: milk-free}
-    block: [AM]
+    # Lactose comes from milk and is not safe for a milk allergy, so ML
+    # blocks too. A lactose-free claim never makes a product milk-free.
+    block: [AM, ML]
 
   lactose_free:
     label: {fi: laktoositon, en: lactose-free}
