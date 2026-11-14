@@ -68,6 +68,13 @@ A voice query names a kind of product, not a product. The engine picks a default
 - **Category inference.** The query's category is the category whose Finnish or English name matches the query (`Jauheliha` for "naudan jauheliha"). When no category name matches, it is the category holding most of the strong text matches (a plurality vote over the top 20, ties broken by category id). Products in the inferred category get a boost. An explicit `category` filter replaces the inference.
 - **Modifier penalty.** `api/app/search/modifiers.yaml` lists words that change what a product is: `kypsä`, `ruskistettu`, `pakaste`, `kahvi`, `kaakao`, `suklaa`, `annos`, `pihvi`, `burger`, … A product whose name contains a modifier the query does not contain is pushed down. When the buyer says "kypsä jauheliha", the cooked ones are not penalised. The list starts at about 30 words and grows only through the evaluation harness.
 
+Refinements found while tuning (§8):
+
+- The category name match uses the Finnish and English stemmers first (a whole-word match counts fully) and trigram similarity inside a longer word only at 0.8, and only the best-matching categories within 0.05 are boosted. Otherwise "tomaatti" boosts "Tomaattisäilykkeet" instead of "Tomaatit".
+- **Brand words** (any word that is a product's brand) are left out of category inference, and a query with a brand gets no plurality guess: a brand means a specific product, not a vague kind. One category is even named "Valio kermat".
+- Modifiers are checked against the category name too, so a product in "…lihapakasteet" counts as frozen even when its own name does not say so.
+- When a claim is passed, the words that say the same thing ("laktoositon", "lactose", "free") are dropped from the text; they only matched noise.
+
 The inferred category and any penalties are returned in `matched_on`, so the decision trace can say why a product came first.
 
 ### 3.5 Refinement through the names
@@ -83,11 +90,12 @@ On `products`:
 
 | Column | Type | Content |
 |---|---|---|
-| `search_fi` | `tsvector` | `setweight(to_tsvector('finnish', name_fi), 'A') ‖ setweight(to_tsvector('finnish', brand), 'B') ‖ setweight(to_tsvector('finnish', category name_fi), 'C')` |
+| `search_fi` | `tsvector` | `setweight(to_tsvector('finnish', name_fi), 'A') ‖ setweight(to_tsvector('finnish', category name_fi), 'C')`. No brand: it is already in the name, and counting it twice made "Valio" outrank the product words |
 | `search_en` | `tsvector` | The same with `name_en` and category `name_en`, config `english` |
 | `search_trgm` | `text` | `immutable_unaccent(lower(name_fi ‖ ' ' ‖ name_en))` |
 
-- Indexes: GIN on `search_fi`, GIN on `search_en`, GIN `gin_trgm_ops` on `search_trgm`.
+- Indexes: GIN on `search_fi`, GIN on `search_en`, GIN `gin_trgm_ops` on `search_trgm`, and a btree on `immutable_unaccent(lower(brand))` for the brand check.
+- Each match path (full-text Finnish, full-text English, one trigram lookup per word) is its own indexed lookup, joined with `UNION`; an `OR` across them scanned every row (130 ms instead of 11 ms).
 - `immutable_unaccent(text)`: an `IMMUTABLE` SQL wrapper around `unaccent('unaccent', …)`, so it can be used in the index and in the query. Full-text columns keep `ä` and `ö`, because the Finnish stemmer needs them.
 - The columns are filled by one `UPDATE products … FROM categories` at the end of the catalogue load (inside the same transaction), not as generated columns, because they need the category names from another table. The migration runs the same `UPDATE` once so an existing database does not need a reload.
 
@@ -95,8 +103,8 @@ On `products`:
 
 ```python
 # api/app/search/__init__.py
-def search_products(
-    db: Session,
+async def search_products(
+    db: AsyncConnection | AsyncSession,
     q: str,
     *,
     claims: Sequence[Claim] = (),
@@ -111,7 +119,7 @@ class SearchHit:
     matched_on: tuple[str, ...]  # "fts_fi", "fts_en", "trigram", "synonym": for the decision trace
 ```
 
-- **Score**: text score (`2 × ts_rank_cd(search_fi) + 2 × ts_rank_cd(search_en) + mean trigram word similarity over the query words + exact token matches`), plus the category boost, minus the modifier penalty (§3.4); rounded to 4 decimals. Starting weights are *proposed* and tuned only through §6.2. **Order by score descending, then `product_id` ascending.**
+- **Score**: `W_COVERAGE × coverage + W_FTS × (ts_rank_cd(search_fi) + ts_rank_cd(search_en))`, plus `W_CATEGORY` for the inferred category, minus `W_MODIFIER` per unasked modifier (§3.4); rounded to 4 decimals. **Order by score descending, then `product_id` ascending.** Coverage is the mean over the buyer's words of the best trigram word similarity (synonyms count), with a word of 5 or more letters found inside a name word counting fully ("maito" in "kevytmaito"); amounts count as exact token matches. Current weights: coverage 1.0, full-text 0.5, category 0.3, modifier 0.3 per word. The weights live in `app/search/search.py` and are changed only through §6.2 (`--param NAME=VALUE` tries one without editing the code).
 - `limit` up to 20. The services take the top 20 as the shortlist for price and availability (#31); the tool shows 10 by default (`SearchProductsRequest.limit`).
 - Only product ids and scores. The services load `ProductRecord`s and offers, and build `ProductHit`s for the tool. `api/app/schemas/` is not changed.
 - An empty query with a category or claims returns that filtered set ordered by `product_id`. An empty query with no filters returns nothing.
@@ -165,3 +173,20 @@ Extend `api/tests/fixtures/products_sample.json` with about 10 distractors (coff
 8. **Vague requests: pick a default, offer the options.** For "naudan jauheliha 10 kg" the buyer hears the default and what else exists in one turn ("Atria naudan jauheliha 10 %, 2 kg. Also 17 % or Snellman, should I change it?"), and the confirmation page shows the assumption. The default and the options come from the top of the search ranking. This narrows `technical-plan.md` §4.2 ("ambiguous matches go to the buyer") for matches of the same kind; it is for the engine (#36, #39) and the prompt (#53) to carry out, and their owners are told on those issues.
 9. **Typical-product signals**: category inference and the modifier penalty (§3.4). Recipe popularity and name length are not used.
 10. **No structured attributes.** Fat %, pack size, brand and state stay in the names; there are too many to structure. Refinement is a new search with the extra words (§3.5).
+11. **Vectors are a measured experiment, with Gemini embeddings.** After the text-only baseline, product names are embedded once and stored; the query is embedded at search time with the Gemini embedding model, cached per query text, and served from the cache in snapshot mode for the stage. Vectors only add candidates and a score term next to the text match (`technical-plan.md` §5.3), and they stay only if the harness shows a gain without `core` regressions.
+
+## 8. Tuning log
+
+Every change was measured on all four sets against the saved baseline (`python -m app.search.eval`). Kept changes only.
+
+| Step | core pass / rank 1 / clean 5 | noisy top 20 | recipes pass / top 20 | p95 |
+|---|---|---|---|---|
+| First text-only version | 78% / 84% / 82% | 86% | 70% / 93% | 364 ms |
+| Indexed `UNION` lookups | same | same | same | 56 ms |
+| Stemmed category names, more modifiers, `ground` synonym, scenario fixes | 92% / 95% / 96% | 89% | 64% / 88% | 61 ms |
+| No brand in full-text columns; brand words out of category inference; no plurality guess with a brand | 93% / 96% / 96% | 89% | 67% / 92% | 60 ms |
+| A word of 5+ letters inside a name word counts fully | 95% / 96% / 98% | 89% | 67% / 92% | 60 ms (recipes 191 ms) |
+
+Tried and dropped: full-text weight 0.25 and 0.1 (noisy up, recipes down), weighting categories by their share of the top matches (broke two chicken scenarios), a modifier penalty of 0.5 or 0.8 (56 to 70 scenarios broken: real products carry incidental modifier words).
+
+Still below target: `noisy` top 20 (89%, target 90%), `recipes` rank 1 (67%), and the p95 of long recipe queries (191 ms; `core` is 60 ms).
