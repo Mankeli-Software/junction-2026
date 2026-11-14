@@ -3,7 +3,7 @@
  * itself (flags, reasons, product names) come from the engine as `Text`.
  * Design rules: the agent is always written S.I.MO, no middle-dot character.
  */
-import type { Channel, FlagKind, Lang, Text } from './types';
+import type { Channel, Lang, Text } from './types';
 
 const strings = {
 	yourOrder: { en: 'Your order', fi: 'Tilauksesi' },
@@ -19,6 +19,14 @@ const strings = {
 	newFlag: { en: 'New', fi: 'Uusi' },
 	askedAdded: { en: 'You asked, we added', fi: 'Pyysit, lisäsimme' },
 	youAsked: { en: 'You asked: {asked}', fi: 'Pyysit: {asked}' },
+	askedFallback: { en: '{amount} {product} by {date}', fi: '{amount} {product}, {date} mennessä' },
+	checkThis: { en: 'Check this', fi: 'Tarkista tämä' },
+	groupLabel: { en: 'For {group}', fi: 'Reseptiin {group}' },
+	traceFound: { en: 'products found', fi: 'tuotetta löytyi' },
+	traceLeft: { en: 'left after these checks', fi: 'jäi jäljelle' },
+	tracePicked: { en: 'We picked by: {rule}', fi: 'Valintaperuste: {rule}' },
+	inYourOrder: { en: 'In your order', fi: 'Tilauksessasi' },
+	altText: { en: '{quantity} for {total}', fi: '{quantity} hintaan {total}' },
 	why: { en: 'Why', fi: 'Miksi' },
 	whyLabel: { en: 'Why this product', fi: 'Miksi tämä tuote' },
 	changeLine: { en: 'Change this line', fi: 'Muuta riviä' },
@@ -87,21 +95,4 @@ export function t(lang: Lang, key: StringKey, vars: Record<string, string | numb
 
 export function channelText(lang: Lang, channel: Channel, time: string): string {
 	return t(lang, `channel_${channel}`, { time });
-}
-
-/** Short marker shown on a line that has one flag. */
-const flagMarks: Record<FlagKind, Text> = {
-	unusual_quantity: { en: 'Unusual amount', fi: 'Poikkeava määrä' },
-	substitute: { en: 'Substitute', fi: 'Korvaava' },
-	rounded_up: { en: 'Rounded', fi: 'Pyöristetty' },
-	stock_not_confirmed: { en: 'Stock', fi: 'Saatavuus' },
-	no_allergen_info: { en: 'No allergen info', fi: 'Ei allergiatietoa' },
-	new_product: { en: 'New product', fi: 'Uusi tuote' },
-	possible_duplicate: { en: 'Duplicate?', fi: 'Tuplatilaus?' },
-	pack_size_from_name: { en: 'Pack size', fi: 'Pakkauskoko' },
-	exact_fit_available: { en: 'Exact fit', fi: 'Tarkka määrä' }
-};
-
-export function flagMark(lang: Lang, kind: FlagKind): string {
-	return flagMarks[kind][lang];
 }

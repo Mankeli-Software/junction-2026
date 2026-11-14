@@ -17,7 +17,12 @@
 	<div class="facts">
 		<div class="fact">
 			<span class="label">{t(lang, 'delivery')}</span>
-			<span class="value">{date(view.quote.delivery.date, lang)}</span>
+			<span class="value">
+				{#if view.quote.delivery}
+					{date(view.quote.delivery.earliest, lang)}{#if view.quote.delivery.latest !== view.quote.delivery.earliest}
+						&ndash; {date(view.quote.delivery.latest, lang)}{/if}
+				{/if}
+			</span>
 		</div>
 		<div class="fact">
 			<span class="label">{t(lang, 'totalInclVat')}</span>

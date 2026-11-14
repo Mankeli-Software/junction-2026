@@ -30,8 +30,8 @@ export function apiSource(baseUrl: string, fetchImpl: typeof fetch = fetch): Con
 			if (!response.ok) throw await toError(response);
 			return response.json();
 		},
-		acknowledge: (token, quoteHash, flagKey) =>
-			post(token, '/acknowledgements', { quote_hash: quoteHash, flag_key: flagKey }),
+		acknowledge: (token, quoteHash, flagKey, optionId = null) =>
+			post(token, '/acknowledgements', { quote_hash: quoteHash, flag_key: flagKey, option_id: optionId }),
 		edit: (token, quoteHash, edit: EditOp) => post(token, '/edits', { quote_hash: quoteHash, ...edit }),
 		confirm: (token, quoteHash) => post(token, '/confirm', { quote_hash: quoteHash }),
 		cancel: (token, quoteHash) => post(token, '/cancel', { quote_hash: quoteHash })

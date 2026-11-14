@@ -75,7 +75,7 @@ test('shows the updated order when stock changed before confirming', async ({ pa
 	await confirmButton(page).click();
 
 	await expect(page.getByTestId('requote')).toHaveText('Stock changed since the quote. Here is the updated order.');
-	const substitute = flag(page, /Substitute/);
+	const substitute = flag(page, /Other pack size/);
 	await expect(substitute).toContainText('New');
 	await expect(confirmButton(page)).toBeDisabled();
 
@@ -113,7 +113,7 @@ test('cancels after asking once', async ({ page }) => {
 
 test('switches language', async ({ page }) => {
 	await page.goto(`/c/${token('ready')}`);
-	await page.getByRole('link', { name: 'FI' }).click();
+	await page.getByRole('link', { name: 'FI', exact: true }).click();
 	await expect(page.getByRole('heading', { name: 'Tilauksesi' })).toBeVisible();
 	await expect(page.getByText('Hassu Hauki Oy, puhelu klo 10.02')).toBeVisible();
 	await expect(page.getByTestId('flag-count')).toHaveText('1/3 tarkistettu');

@@ -1,45 +1,45 @@
 <script lang="ts">
 	/** One order line under "You asked, we added" (spec §4.3): asked versus added, price, why. */
+	import { askedText, codeTitle, quantityText } from '../display';
 	import { money } from '../format';
 	import { pageUrl, type PageUrl } from '../forms.svelte';
-	import { flagMark, t } from '../i18n';
-	import type { Flag, Lang, Line } from '../types';
+	import { t } from '../i18n';
+	import type { Lang, QuoteLine, ViewFlag } from '../types';
 	import Icon from './Icon.svelte';
 
 	let {
 		line,
-		asked,
 		flags,
 		lang,
 		url,
 		changed
-	}: { line: Line; asked: string; flags: Flag[]; lang: Lang; url: PageUrl; changed: boolean } = $props();
+	}: { line: QuoteLine; flags: ViewFlag[]; lang: Lang; url: PageUrl; changed: boolean } = $props();
 
-	const lineFlags = $derived(flags.filter((f) => line.flag_keys.includes(f.key)));
+	const lineFlags = $derived(flags.filter((f) => f.line_ids.includes(line.line_id)));
 	const mark = $derived(
 		lineFlags.length === 1
-			? flagMark(lang, lineFlags[0].kind)
+			? codeTitle(lineFlags[0].code, lang)
 			: lineFlags.length > 1
 				? t(lang, 'flagsCount', { n: lineFlags.length })
 				: null
 	);
-	const sheetUrl = $derived(pageUrl(url, { line: line.id, cancel: null }));
+	const sheetUrl = $derived(pageUrl(url, { line: line.line_id, cancel: null }));
 </script>
 
-<article class="card" class:changed id="line-{line.id}" data-testid="line" data-line-id={line.id}>
-	<span class="asked">{t(lang, 'youAsked', { asked })}</span>
+<article class="card" class:changed id="line-{line.line_id}" data-testid="line" data-line-id={line.line_id}>
+	<span class="asked">{t(lang, 'youAsked', { asked: askedText(line, lang) })}</span>
 	<div class="row">
 		<div class="thumb">
-			{#if line.product.image_url}
-				<img src={line.product.image_url} alt="" width="56" height="56" />
+			{#if line.image_url}
+				<img src={line.image_url} alt="" width="56" height="56" />
 			{:else}
 				<Icon name="box" size={26} stroke="var(--faint)" weight={1.8} />
 			{/if}
 		</div>
 		<div class="what">
-			<a class="name" href={sheetUrl} data-sveltekit-reset="false">{line.product.name[lang]}</a>
+			<a class="name" href={sheetUrl} data-sveltekit-reset="false">{line.name[lang]}</a>
 			<span class="qty">
-				{line.quantity_text[lang]}
+				{quantityText(line, lang)}
 				{#if mark}<span class="mark">{mark}</span>{/if}
 				{#if changed}<span class="mark changed-mark">{t(lang, 'changed')}</span>{/if}
 			</span>
@@ -47,7 +47,7 @@
 		<span class="price">{money(line.line_total_cents)}</span>
 	</div>
 	<div class="foot">
-		<span class="why">{line.why[lang]}</span>
+		<span class="why">{line.reason_text[lang]}</span>
 		<span class="actions">
 			<a class="chip" href={sheetUrl} aria-label={t(lang, 'whyLabel')} data-sveltekit-reset="false"
 				><Icon name="info" />{t(lang, 'why')}</a
