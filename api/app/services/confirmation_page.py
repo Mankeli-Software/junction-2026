@@ -27,6 +27,7 @@ flush: the caller commits, also after a `ConfirmationRefused` (a requote must be
 import hashlib
 import uuid
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -583,6 +584,63 @@ async def _replace(
     sessions.set_state(session, state, now)
     await db.flush()
     return new
+
+
+# --- The page's "Ask for changes" chat (#57, webshop-chat.md §5) ----------------------------
+
+
+@dataclass(frozen=True)
+class ChatTarget:
+    """What the page's chat acts on: the link's user and its current quote."""
+
+    user_id: uuid.UUID
+    quote_id: str
+    session_id: uuid.UUID
+    lines: list[LineRequest]
+
+
+async def chat_target(db: AsyncSession, token: str, *, now: datetime | None = None) -> ChatTarget:
+    """The link's user and current quote, for the chat. NotFoundError (404) for an unknown
+    token; ConfirmationRefused 410 when expired and 409 when no longer open."""
+    now = now or datetime.now(UTC)
+    confirmation = await _find(db, token)
+    if confirmation is None:
+        raise NotFoundError("unknown confirmation link")
+    quote = await _current_quote(db, confirmation)
+    state = _state(confirmation, quote, await _order(db, confirmation), now)
+    if state == "expired":
+        raise ConfirmationRefused(410, EXPIRED)
+    if state not in ("ready", "requote_needed"):
+        raise ConfirmationRefused(409, CLOSED)
+    return ChatTarget(
+        user_id=confirmation.user_id,
+        quote_id=str(quote.id),
+        session_id=quote.session_id,
+        lines=_priced_requests(quote, _output(quote)),
+    )
+
+
+async def adopt_chat_quote(
+    db: AsyncSession, token: str, quote_id: str, *, now: datetime | None = None
+) -> bool:
+    """Points the link at the quote the chat's `update_quote` just made from the link's
+    quote, as an edit with the page controls does (`_replace`). False, and nothing changes,
+    when `quote_id` is not a new version of the link's current quote."""
+    now = now or datetime.now(UTC)
+    confirmation, quote = await _open(db, token)
+    new = await db.get(Quote, uuid.UUID(quote_id), with_for_update=True)
+    if new is None or new.parent_quote_id != quote.id:
+        return False
+    if new.status == QuoteStatus.ready:
+        new.status = QuoteStatus.pending_confirmation
+    confirmation.quote_id = str(new.id)
+    if new.quote_hash is not None:
+        confirmation.quote_hash = new.quote_hash
+    confirmation.change_reason = "edit"
+    session = await sessions.quote_session(db, new, now=now)
+    sessions.set_state(session, SessionState.link_opened, now)
+    await db.flush()
+    return True
 
 
 class _NotReady(Exception):
