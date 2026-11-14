@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Table, delete, select
+from sqlalchemy import Table, delete, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
@@ -95,7 +95,8 @@ async def _upsert(conn: AsyncConnection, table: Table, rows: list[dict[str, Any]
         statement = insert(table)
         statement = statement.on_conflict_do_update(
             index_elements=keys,
-            set_={c.name: statement.excluded[c.name] for c in table.columns if c.name not in keys},
+            # Only the columns in the rows, so derived columns (search) aren't nulled.
+            set_={k: statement.excluded[k] for k in batch[0] if k not in keys},
         )
         await conn.execute(statement, batch)
 
@@ -159,6 +160,8 @@ async def load(
                 await conn.execute(delete(table).where(table.c.product_id.in_(batch)))
         for name, table in CHILD_TABLES.items():
             await _insert(conn, table, child_rows[name])
+
+        await conn.execute(text("SELECT refresh_product_search()"))
 
         stored = set((await conn.scalars(select(Product.id))).all())
         for stale in sorted(stored - product_ids):

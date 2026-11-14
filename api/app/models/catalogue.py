@@ -1,6 +1,7 @@
 """Catalogue tables, loaded from the static product file (#29, technical-plan.md §5.2).
 
-Search columns and indexes come in #30, product images in #33.
+The search columns are filled by the SQL function refresh_product_search() (#30).
+Product images come in #33.
 """
 
 from datetime import datetime
@@ -8,7 +9,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Numeric, SmallInteger, Text
-from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
+from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -68,6 +69,10 @@ class Product(Base):
     source_updated_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True))
     raw: Mapped[dict[str, Any]] = mapped_column(JSONB)
     loaded_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
+    # Filled by refresh_product_search() at the end of every catalogue load (#30).
+    search_fi: Mapped[str | None] = mapped_column(TSVECTOR, deferred=True)
+    search_en: Mapped[str | None] = mapped_column(TSVECTOR, deferred=True)
+    search_trgm: Mapped[str | None] = mapped_column(Text, deferred=True)
 
 
 def _product_fk() -> Any:
