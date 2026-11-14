@@ -12,11 +12,14 @@ from app.models.catalogue import (
     ProductUnit,
     ProductUnitConversion,
 )
+from app.models.customers import Company, KitchenProfile, User
 
 __all__ = [
     "AllergenCode",
     "Base",
     "Category",
+    "Company",
+    "KitchenProfile",
     "Product",
     "ProductAllergen",
     "ProductClaim",
@@ -24,4 +27,5 @@ __all__ = [
     "ProductSubstitution",
     "ProductUnit",
     "ProductUnitConversion",
+    "User",
 ]

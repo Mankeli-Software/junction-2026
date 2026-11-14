@@ -1,5 +1,9 @@
-from sqlalchemy import MetaData
-from sqlalchemy.orm import DeclarativeBase
+import uuid
+from datetime import datetime
+
+from sqlalchemy import DateTime, MetaData, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 # Stable constraint names, so migrations stay readable and reversible.
 NAMING_CONVENTION = {
@@ -13,3 +17,13 @@ NAMING_CONVENTION = {
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
+def uuid_pk() -> Mapped[uuid.UUID]:
+    return mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
+
+
+def timestamp_now() -> Mapped[datetime]:
+    return mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
