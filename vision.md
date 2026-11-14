@@ -263,7 +263,8 @@ Payment standards (x402 and similar) do not fit invoice-based B2B wholesale and 
 3. OpenAI clients use WebMCP. For connectors we build the Claude connector first, then an OpenAI connector or similar.
 4. All recipes are searchable, not a hand-picked set.
 5. The dashboard is public for the event, with no login, conversations included, in redacted form (section 11). Phone numbers and emails only appear masked. The confirmation token and link, cookies and caller tokens are never shown, and only the simulated inbox stays private. Production is revisited in #70.
+6. A demo account's order history (#61). Every demo company is one of seven kitchen types, chosen from its phone number so the same number always gets the same company: pizza restaurant, school kitchen, lunch restaurant, bar, vegan catering company, cafe, or tech office (snacks and drinks). Each type has eight weeks of history at its own rhythm, from weekly to three times a week, with real catalogue products and quantities that vary a little between orders. "My usual" is each staple at its usual amount; "the same as last time" is the latest order. The visitor still chooses the kitchen's exclusions, and a history item the kitchen can't have is swapped for its alternative (milk for an oat drink). The vegan catering type starts with the vegan exclusion ticked. A fixed stage number always gives the school kitchen, so the scripted demo knows its usual. Products, quantities and rhythms: `docs/plans/61-order-history.md`.
 
 ### Still open
 
-1. What kitchen profile and order history a demo account gets. We answer this once we have some data and have used the product ourselves.
+Nothing at the moment.
