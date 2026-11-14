@@ -4,9 +4,13 @@ Typing a phone number is the login. The same number always gets the same company
 kitchen profile; each browser that types it is its own user, so its inbox and transcripts
 stay its own. Nothing about the number is verified.
 
+Connector accounts (#48) log in with an email and a password instead; they too get the
+number's company. A hand-out account starts without a number and sets it on first login.
+
 The functions take the request's `AsyncSession` and only flush: the caller commits.
 """
 
+import re
 import uuid
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
@@ -14,6 +18,7 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Company, KitchenProfile, User, WebSession
@@ -21,6 +26,7 @@ from app.schemas.common import Exclusion, Lang
 from app.schemas.engine import UsualItem
 
 from .company_names import company_name_candidates
+from .passwords import MIN_PASSWORD_LENGTH, failed_logins, hash_password, verify_password
 from .phone import mask_phone, normalize_phone
 from .tokens import hash_token, new_token
 
@@ -49,12 +55,16 @@ class DemoAccount:
 
 @dataclass(frozen=True)
 class SessionUser:
-    """Who a valid web session belongs to."""
+    """Who a valid web session belongs to.
+
+    `company_id` and `phone_e164` are None only for a hand-out account that hasn't set its
+    number yet (#48); such a session can do nothing but `set_phone()`.
+    """
 
     session_id: uuid.UUID
     user_id: uuid.UUID
-    company_id: uuid.UUID
-    phone_e164: str
+    company_id: uuid.UUID | None
+    phone_e164: str | None
 
 
 @dataclass(frozen=True)
@@ -185,7 +195,10 @@ async def revoke_session(db: AsyncSession, raw_token: str, *, now: datetime | No
 
 
 async def me(db: AsyncSession, user_id: uuid.UUID) -> Account | None:
-    """The logged-in user's company, kitchen profile, masked number and language."""
+    """The logged-in user's company, kitchen profile, masked number and language.
+
+    None for an unknown user and for a hand-out account without a number yet.
+    """
     row = (
         await db.execute(
             select(User, Company.name, KitchenProfile.exclusions)
@@ -197,6 +210,7 @@ async def me(db: AsyncSession, user_id: uuid.UUID) -> Account | None:
     if row is None:
         return None
     user, company_name, exclusions = row
+    assert user.company_id is not None and user.phone_e164 is not None  # the inner join
     return Account(
         user_id=user.id,
         company_id=user.company_id,
@@ -205,6 +219,176 @@ async def me(db: AsyncSession, user_id: uuid.UUID) -> Account | None:
         exclusions=_clean_exclusions(exclusions or []),
         lang=user.lang,
     )
+
+
+# --- Connector accounts: email and password (#48) ---
+
+# A deliberately loose check: something@something.tld, no spaces. Nothing is verified.
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+MAX_EMAIL_LENGTH = 254
+
+
+class InvalidEmail(ValueError):
+    """Not an email address."""
+
+
+class WeakPassword(ValueError):
+    """Shorter than MIN_PASSWORD_LENGTH."""
+
+
+class EmailTaken(Exception):
+    """An account with this email exists already."""
+
+
+class LoginFailed(Exception):
+    """Wrong email or password: one error for both, so the reply never tells which."""
+
+
+class TooManyLogins(Exception):
+    """Too many failed tries for this email lately."""
+
+
+class PhoneAlreadySet(Exception):
+    """The account has a number already; it can be set only once."""
+
+
+@dataclass(frozen=True)
+class LoginResult:
+    session_token: str
+    session_expires_at: datetime
+    user_id: uuid.UUID
+    phone_required: bool
+
+
+def normalize_email(raw: str) -> str:
+    email = raw.strip().lower()
+    if len(email) > MAX_EMAIL_LENGTH or not _EMAIL.match(email):
+        raise InvalidEmail("not an email address")
+    return email
+
+
+def _check_password(password: str) -> None:
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise WeakPassword(f"at least {MIN_PASSWORD_LENGTH} characters")
+
+
+async def _user_by_email(db: AsyncSession, email: str) -> User | None:
+    return await db.scalar(select(User).where(User.email == email))
+
+
+async def _replace_session(
+    db: AsyncSession, user_id: uuid.UUID, current_session_token: str | None, now: datetime
+) -> tuple[str, WebSession]:
+    if current_session_token:
+        await revoke_session(db, current_session_token, now=now)
+    return await _create_session(db, user_id, now)
+
+
+async def signup(
+    db: AsyncSession,
+    email: str,
+    password: str,
+    phone: str,
+    current_session_token: str | None = None,
+    *,
+    now: datetime | None = None,
+    names: Iterator[str] | None = None,
+) -> LoginResult:
+    """Open sign-up: a new user of the number's company, logged in.
+
+    Raises InvalidEmail, WeakPassword, InvalidPhoneNumber or EmailTaken. The company is
+    found or created like a demo account's; its kitchen profile is left as it is.
+    """
+    now = now or datetime.now(UTC)
+    email = normalize_email(email)
+    _check_password(password)
+    phone_e164 = normalize_phone(phone)
+    if await _user_by_email(db, email) is not None:
+        raise EmailTaken(email)
+
+    company, _ = await _find_or_create_company(db, phone_e164, names)
+    user = User(
+        company_id=company.id,
+        phone_e164=phone_e164,
+        email=email,
+        password_hash=hash_password(password),
+        lang="en",
+    )
+    try:
+        async with db.begin_nested():
+            db.add(user)
+            await db.flush()
+    except IntegrityError as error:  # the same email signed up concurrently
+        raise EmailTaken(email) from error
+    raw, session = await _replace_session(db, user.id, current_session_token, now)
+    return LoginResult(raw, session.expires_at, user.id, phone_required=False)
+
+
+async def login(
+    db: AsyncSession,
+    email: str,
+    password: str,
+    current_session_token: str | None = None,
+    *,
+    now: datetime | None = None,
+) -> LoginResult:
+    """Email and password log the browser in, replacing its previous session.
+
+    Raises LoginFailed for a wrong email or password alike (an unknown email costs the
+    same password check), and TooManyLogins after 10 failed tries for the email within
+    10 minutes. A successful login clears the count.
+    """
+    now = now or datetime.now(UTC)
+    try:
+        email = normalize_email(email)
+    except InvalidEmail:
+        verify_password(None, password)
+        raise LoginFailed() from None
+    if failed_logins.blocked(email):
+        raise TooManyLogins()
+    user = await _user_by_email(db, email)
+    matches = verify_password(user.password_hash if user else None, password)
+    if user is None or not matches:
+        failed_logins.record_failure(email)
+        raise LoginFailed()
+    failed_logins.clear(email)
+    raw, session = await _replace_session(db, user.id, current_session_token, now)
+    return LoginResult(raw, session.expires_at, user.id, phone_required=user.phone_e164 is None)
+
+
+async def create_unclaimed_account(db: AsyncSession, email: str, password: str) -> User:
+    """A hand-out account: email and password, no number and so no company yet.
+
+    Raises InvalidEmail, WeakPassword or EmailTaken.
+    """
+    email = normalize_email(email)
+    _check_password(password)
+    if await _user_by_email(db, email) is not None:
+        raise EmailTaken(email)
+    user = User(email=email, password_hash=hash_password(password), lang="en")
+    db.add(user)
+    await db.flush()
+    return user
+
+
+async def set_phone(
+    db: AsyncSession, user_id: uuid.UUID, phone: str, *, names: Iterator[str] | None = None
+) -> Account:
+    """First login of a hand-out account: set its number, once, and so its company.
+
+    Raises InvalidPhoneNumber, or PhoneAlreadySet when the number is set already.
+    """
+    phone_e164 = normalize_phone(phone)
+    user = await db.get(User, user_id, with_for_update=True)
+    if user is None or user.phone_e164 is not None:
+        raise PhoneAlreadySet()
+    company, _ = await _find_or_create_company(db, phone_e164, names)
+    user.phone_e164 = phone_e164
+    user.company_id = company.id
+    await db.flush()
+    account = await me(db, user_id)
+    assert account is not None
+    return account
 
 
 async def _find_or_create_company(

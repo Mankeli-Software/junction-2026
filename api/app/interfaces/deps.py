@@ -99,6 +99,22 @@ async def web_session_user(request: Request) -> Caller:
     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not signed in")
 
 
+async def session_user(request: Request) -> accounts.SessionUser:
+    """FastAPI dependency: this browser's session, cookie only, or 401.
+
+    Unlike `web_session_user()` it also accepts a hand-out account that has no number yet,
+    for the routes that finish such an account or need only the user (#48).
+    """
+    raw = request.cookies.get(SESSION_COOKIE)
+    if raw:
+        async with get_sessionmaker()() as db:
+            session = await accounts.resolve_session(db, raw)
+            await db.commit()
+        if session is not None:
+            return session
+    raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not signed in")
+
+
 async def _caller_from_session(db: AsyncSession, raw: str) -> Caller | None:
     session = await accounts.resolve_session(db, raw)
     if session is None:
