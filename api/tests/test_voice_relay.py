@@ -5,6 +5,7 @@ The messages and close codes are the ones the phone page expects
 """
 
 import json
+import logging
 import time
 from typing import Any
 
@@ -289,6 +290,74 @@ def test_a_tool_call_goes_through_mcp_with_working_and_the_filler(call, monkeypa
         "output": {"quote_id": "q-1", "decision": "ready", "total_cents": 4190}
     }
     assert ("agent", filler.TEXT["fi"], {"lang": "fi", "filler": True}) in service.said
+
+
+def test_voice_tool_telemetry_records_safe_mcp_outcomes(call, monkeypatch, caplog):
+    live, tools, _ = call
+    results = iter(
+        [
+            {
+                "output": {
+                    "decision": "rejected",
+                    "lines": [{}, {}],
+                    "flags": [],
+                    "rejections": [
+                        {
+                            "line_id": "jane.doe@example.com",
+                            "reason_code": "INPUT_INVALID",
+                            "text": "+358 40 123 4567",
+                            "next_step": "https://simo.mankeli.co/c/secret",
+                        }
+                    ],
+                    "not_ordered": [],
+                }
+            },
+            {"error": "jane.doe@example.com +358 40 123 4567 /c/secret"},
+        ]
+    )
+
+    async def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        return next(results)
+
+    monkeypatch.setattr(tools, "call_tool", call_tool)
+    observed = []
+    annotate = relay.telemetry.annotate
+
+    def record_annotations(**attributes: Any) -> None:
+        if "mcp_outcome" in attributes:
+            observed.append(attributes)
+        annotate(**attributes)
+
+    monkeypatch.setattr(relay.telemetry, "annotate", record_annotations)
+    caplog.set_level(logging.INFO, logger="simo.events")
+
+    with connect() as ws:
+        sock = Socket(ws)
+        greet(live, sock)
+        live.push(fx.tool_call("build_quote", {"lines": []}, "c1"))
+        live.wait_for(lambda: len(live.tool_responses) == 1)
+        live.push(fx.tool_call("build_quote", {"lines": []}, "c2"))
+        live.wait_for(lambda: len(live.tool_responses) == 2)
+        sock.hang_up()
+
+    assert len(observed) == 2
+    assert {key: value for key, value in observed[0].items() if key != "round_trip_ms"} == {
+        "mcp_outcome": "ok",
+        "quote_decision": "rejected",
+        "quote_line_count": 2,
+        "quote_flag_count": 0,
+        "quote_rejection_count": 1,
+        "quote_not_ordered_count": 0,
+        "quote_rejection_codes": "INPUT_INVALID",
+    }
+    assert {key: value for key, value in observed[1].items() if key != "round_trip_ms"} == {
+        "mcp_outcome": "error"
+    }
+    records = [record for record in caplog.records if record.name == "simo.events"]
+    exported = " ".join(f"{record.getMessage()} {record.__dict__}" for record in records)
+    assert "jane.doe@example.com" not in exported
+    assert "+358 40 123 4567" not in exported
+    assert "/c/secret" not in exported
 
 
 def test_a_quick_tool_gets_no_filler(call):

@@ -559,11 +559,14 @@ class Call:
         """The tool round trip as the caller lives it, from Gemini's call to its answer (#84)."""
         timer = telemetry.Timer()
         with telemetry.span(f"voice tool {name}", arguments=telemetry.summary(arguments)):
-            await self._run_tool_inner(call_id, name, arguments)
-            telemetry.annotate(round_trip_ms=timer.ms)
-        telemetry.event(f"voice tool {name}", round_trip_ms=timer.ms)
+            response = await self._run_tool_inner(call_id, name, arguments)
+            result = _tool_result_attributes(response)
+            telemetry.annotate(round_trip_ms=timer.ms, **result)
+        telemetry.event(f"voice tool {name}", round_trip_ms=timer.ms, **result)
 
-    async def _run_tool_inner(self, call_id: str, name: str, arguments: dict[str, Any]) -> None:
+    async def _run_tool_inner(
+        self, call_id: str, name: str, arguments: dict[str, Any]
+    ) -> dict[str, Any] | None:
         assert self.tools is not None and self.session is not None
         filler_task = self._spawn(self._filler_after(time.monotonic()))
         try:
@@ -578,7 +581,7 @@ class Call:
         finally:
             filler_task.cancel()
         if self.pending.pop(call_id, None) is None:
-            return  # cancelled by Gemini meanwhile
+            return None  # cancelled by Gemini meanwhile
         await self.session.send_tool_response(
             function_responses=[types.FunctionResponse(id=call_id, name=name, response=response)]
         )
@@ -586,6 +589,7 @@ class Call:
             await self._set_state("working", next(iter(self.pending.values()))[0])
         else:
             await self._set_state("thinking")  # the result went back; no audio yet
+        return response
 
     async def _caller_answered(self) -> bool:
         """The caller has spoken since the latest quote (#53: the link only after a yes,
@@ -711,3 +715,43 @@ class Call:
             await self.ws.close(code, reason)
         except Exception:
             pass
+
+
+def _tool_result_attributes(response: dict[str, Any] | None) -> dict[str, Any]:
+    """A bounded, non-content summary of the MCP result for the phone tool span."""
+    if response is None:
+        return {"mcp_outcome": "cancelled"}
+    if "error" in response:
+        return {"mcp_outcome": "error"}
+
+    output = response.get("output")
+    if not isinstance(output, dict):
+        return {"mcp_outcome": "ok"}
+
+    attributes: dict[str, Any] = {"mcp_outcome": "ok"}
+    decision = output.get("decision")
+    if isinstance(decision, str):
+        attributes["quote_decision"] = decision[:40]
+
+    for field, attribute in (
+        ("lines", "quote_line_count"),
+        ("flags", "quote_flag_count"),
+        ("rejections", "quote_rejection_count"),
+        ("not_ordered", "quote_not_ordered_count"),
+    ):
+        value = output.get(field)
+        if isinstance(value, list):
+            attributes[attribute] = len(value)
+
+    rejections = output.get("rejections")
+    if isinstance(rejections, list):
+        codes = sorted(
+            {
+                rejection["reason_code"][:80]
+                for rejection in rejections
+                if isinstance(rejection, dict) and isinstance(rejection.get("reason_code"), str)
+            }
+        )
+        if codes:
+            attributes["quote_rejection_codes"] = ",".join(codes)[:200]
+    return attributes
