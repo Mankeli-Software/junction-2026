@@ -301,6 +301,71 @@
 				}
 			}
 		},
+		"/api/v1/quotes/current": {
+			"get": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Current Quote",
+				"description": "The caller's newest quote, for the webshop chat panel (§9.6). Not an agent tool.",
+				"operationId": "current_quote_api_v1_quotes_current_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/QuoteResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/quotes/{quote_id}": {
+			"get": {
+				"tags": [
+					"tools"
+				],
+				"summary": "Get Quote",
+				"description": "One of the caller's company's quotes, for the webshop chat panel (§9.6).",
+				"operationId": "get_quote_api_v1_quotes__quote_id__get",
+				"parameters": [
+					{
+						"name": "quote_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Quote Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/QuoteResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/quotes/{quote_id}/update": {
 			"post": {
 				"tags": [
@@ -604,6 +669,47 @@
 				"operationId": "delete_session_api_v1_session_delete",
 				"responses": {
 					"204": {
+						"description": "Successful Response"
+					}
+				}
+			}
+		},
+		"/api/v1/private/inbox": {
+			"get": {
+				"tags": [
+					"inbox"
+				],
+				"summary": "Get Inbox",
+				"description": "This browser's messages, oldest first. Held messages appear when the call ends.",
+				"operationId": "get_inbox_api_v1_private_inbox_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/InboxMessage"
+									},
+									"type": "array",
+									"title": "Response Get Inbox Api V1 Private Inbox Get"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/private/inbox/stream": {
+			"get": {
+				"tags": [
+					"inbox"
+				],
+				"summary": "Inbox Stream",
+				"description": "Server-sent events: `snapshot` (the inbox so far, as `GET /inbox`), then one\n`inbox_message` per new message, with the message as JSON.",
+				"operationId": "inbox_stream_api_v1_private_inbox_stream_get",
+				"responses": {
+					"200": {
 						"description": "Successful Response"
 					}
 				}
@@ -1115,6 +1221,36 @@
 				},
 				"type": "object",
 				"title": "HTTPValidationError"
+			},
+			"InboxMessage": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"title": "Id"
+					},
+					"at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "At"
+					},
+					"text": {
+						"type": "string",
+						"title": "Text"
+					},
+					"link": {
+						"type": "string",
+						"title": "Link"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"at",
+					"text",
+					"link"
+				],
+				"title": "InboxMessage",
+				"description": "One message in the simulated phone (`InboxMessage` in `web/src/lib/demo/types.ts`)."
 			},
 			"LineRequest": {
 				"properties": {
@@ -1795,6 +1931,8 @@
 				"type": "string",
 				"enum": [
 					"ready",
+					"needs_clarification",
+					"rejected",
 					"pending_confirmation",
 					"confirmed",
 					"cancelled",
@@ -1802,7 +1940,7 @@
 					"void"
 				],
 				"title": "QuoteStatus",
-				"description": "Quote lifecycle (technical-plan.md §8.1)."
+				"description": "Quote lifecycle (technical-plan.md §8.1).\n\nA quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's\ndecision. Only a `ready` quote can be sent for confirmation; the other two are\nanswered or changed with `update_quote`."
 			},
 			"Recipe": {
 				"properties": {
