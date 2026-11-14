@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from app.engine.codes import Containment, KitchenChoice, ReasonCode
+from app.schemas import Containment, Exclusion, ReasonCode, RuleSet
 from app.services.policy import DATA_FILES, POLICY_FILES, PolicyError, load_rule_set
 from app.settings import REPO_ROOT
 
@@ -44,7 +44,7 @@ def test_the_committed_rule_set_loads():
     rules = load_rule_set(POLICY_DIR, DATA_DIR)
 
     assert set(rules.messages) == set(ReasonCode)
-    assert set(rules.kitchen) == set(KitchenChoice)
+    assert set(rules.kitchen) == set(Exclusion)
     assert set(rules.containment) == set(Containment)
     assert rules.policy.rounding.max_overage_ratio == Decimal("0.02")
     assert rules.policy.business_time.isoformat() == "2026-11-12T09:00:00+02:00"
@@ -73,10 +73,10 @@ def test_any_edit_changes_the_hash_even_without_a_version_bump(dirs):
 def test_kitchen_rules_match_the_decisions():
     kitchen = load_rule_set(POLICY_DIR, DATA_DIR).kitchen
 
-    assert set(kitchen[KitchenChoice.MILK_FREE].block) == {"AM", "ML"}
-    assert {"AN", "SA", "AP", "PN"} <= set(kitchen[KitchenChoice.NUT_FREE].block)
-    assert "SO" not in kitchen[KitchenChoice.NUT_FREE].block
-    vegan = kitchen[KitchenChoice.VEGAN]
+    assert set(kitchen[Exclusion.milk_free].block) == {"AM", "ML"}
+    assert {"AN", "SA", "AP", "PN"} <= set(kitchen[Exclusion.nut_free].block)
+    assert "SO" not in kitchen[Exclusion.nut_free].block
+    vegan = kitchen[Exclusion.vegan]
     assert [c.code for c in vegan.require_claim] == ["VEGAN"]
     assert {"AM", "AE", "AF", "BF", "CM", "PO"} <= set(vegan.block)
     for rule in kitchen.values():
@@ -151,3 +151,17 @@ def test_a_missing_file_is_refused(dirs):
     (policy / "unit_codes.csv").unlink()
 
     assert "missing file policy/unit_codes.csv" in problems_of(policy, data)
+
+
+def test_limits_must_match_the_contract(dirs):
+    policy, data = dirs
+    edit_yaml(policy / "policy.yaml", lambda d: d["limits"].update(max_lines=60))
+
+    assert "limits.max_lines is 60" in problems_of(policy, data)
+
+
+def test_the_rule_set_survives_a_json_round_trip():
+    """Replay stores the engine input as JSON, so the rule set must come back equal."""
+    rules = load_rule_set(POLICY_DIR, DATA_DIR)
+
+    assert RuleSet.model_validate_json(rules.model_dump_json()) == rules

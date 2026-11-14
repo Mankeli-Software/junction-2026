@@ -16,16 +16,20 @@ from typing import Any
 import yaml
 from pydantic import ValidationError
 
-from app.engine.codes import TEMPLATE_FIELDS, Containment, KitchenChoice, ReasonCode
-from app.engine.rules import (
+from app.schemas import (
+    TEMPLATE_FIELDS,
     AllergenName,
-    ContainmentPhrase,
+    Containment,
+    Exclusion,
     KitchenRule,
+    Localized,
     Message,
     Policy,
+    ReasonCode,
     RuleSet,
     UnitName,
 )
+from app.schemas.engine import MAX_LINES, MAX_QUANTITY, MAX_TEXT_LENGTH
 from app.settings import get_settings
 
 POLICY_FILES = ("policy.yaml", "allergen_rules.yaml", "messages.yaml", "unit_codes.csv")
@@ -78,6 +82,7 @@ def content_hash(raw: dict[str, bytes]) -> str:
 
 def _build(raw: dict[str, bytes], problems: list[str]) -> RuleSet:
     policy = Policy.model_validate(_yaml(raw["policy/policy.yaml"]))
+    _check_limits(policy, problems)
     allergens = _allergens(raw["data/gs1_allergen_codes.csv"])
     kitchen = _kitchen(_yaml(raw["policy/allergen_rules.yaml"]), allergens, problems)
     messages_doc = _yaml(raw["policy/messages.yaml"])
@@ -126,15 +131,13 @@ def _allergens(data: bytes) -> dict[str, AllergenName]:
 
 def _kitchen(
     doc: dict[str, Any], allergens: dict[str, AllergenName], problems: list[str]
-) -> dict[KitchenChoice, KitchenRule]:
+) -> dict[Exclusion, KitchenRule]:
     choices = doc.get("choices") or {}
-    _same_keys(
-        "allergen_rules.yaml choices", set(choices), {c.value for c in KitchenChoice}, problems
-    )
+    _same_keys("allergen_rules.yaml choices", set(choices), {c.value for c in Exclusion}, problems)
 
-    kitchen: dict[KitchenChoice, KitchenRule] = {}
+    kitchen: dict[Exclusion, KitchenRule] = {}
     for key, body in choices.items():
-        if key not in KitchenChoice.__members__.values():
+        if key not in Exclusion.__members__.values():
             continue
         rule = KitchenRule.model_validate(body)
         codes = list(rule.block)
@@ -147,7 +150,7 @@ def _kitchen(
                 problems.append(f"{key}: unknown allergen code {code}")
         if not codes and not rule.require_claim:
             problems.append(f"{key}: blocks nothing")
-        kitchen[KitchenChoice(key)] = rule
+        kitchen[Exclusion(key)] = rule
     return kitchen
 
 
@@ -173,13 +176,13 @@ def _messages(doc: dict[str, Any], problems: list[str]) -> dict[ReasonCode, Mess
 
 def _containment(
     data: bytes, english: dict[str, str], problems: list[str]
-) -> dict[Containment, ContainmentPhrase]:
+) -> dict[Containment, Localized]:
     finnish = {row["value"]: row["phrase_fi"] for row in _csv(data)}
     expected = {c.value for c in Containment}
     _same_keys("allergen_containment_levels.csv", set(finnish), expected, problems)
     _same_keys("messages.yaml containment_en", set(english), expected, problems)
     return {
-        level: ContainmentPhrase(fi=finnish[level], en=english[level])
+        level: Localized(fi=finnish[level], en=english[level])
         for level in Containment
         if level in finnish and level in english
     }
@@ -193,6 +196,20 @@ def _units(data: bytes, problems: list[str]) -> dict[str, UnitName]:
             problems.append(f"unit_codes.csv: duplicate code {code}")
         units[code] = UnitName.model_validate(row)
     return units
+
+
+def _check_limits(policy: Policy, problems: list[str]) -> None:
+    # The contract validates requests with these constants, so they must agree.
+    for name, in_policy, in_contract in (
+        ("max_lines", policy.limits.max_lines, MAX_LINES),
+        ("max_text_length", policy.limits.max_text_length, MAX_TEXT_LENGTH),
+        ("max_quantity", policy.limits.max_quantity, MAX_QUANTITY),
+    ):
+        if in_policy != in_contract:
+            problems.append(
+                f"policy.yaml limits.{name} is {in_policy} but app/schemas/engine.py has "
+                f"{in_contract}; change both"
+            )
 
 
 def _placeholders(template: str) -> set[str]:

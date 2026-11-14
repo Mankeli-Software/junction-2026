@@ -24,7 +24,6 @@ from .engine import (
     ProductAllergen,
     ProductRecord,
     RecipeRef,
-    RuleSet,
     ScheduleLine,
     UnitConversion,
     UsualItem,
@@ -42,6 +41,22 @@ from .quote import (
     Rejection,
     Trace,
     TraceRemoval,
+)
+from .rules import (
+    TEMPLATE_FIELDS,
+    AllergenName,
+    ClaimException,
+    ClaimRule,
+    Containment,
+    KitchenRule,
+    Limits,
+    Message,
+    Policy,
+    ReasonCode,
+    Rounding,
+    RuleSet,
+    Substitution,
+    UnitName,
 )
 from .tools import (
     BuildQuoteRequest,
@@ -65,6 +80,19 @@ from .tools import (
 )
 
 __all__ = [
+    "AllergenName",
+    "ClaimException",
+    "ClaimRule",
+    "Containment",
+    "KitchenRule",
+    "Limits",
+    "Message",
+    "Policy",
+    "ReasonCode",
+    "Rounding",
+    "Substitution",
+    "TEMPLATE_FIELDS",
+    "UnitName",
     "Alternative",
     "AskedLine",
     "BuildQuoteRequest",

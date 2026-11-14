@@ -30,10 +30,10 @@ def test_every_model_rejects_unknown_fields(model):
 
 
 def test_decimal_dumps_as_json_number_and_round_trips():
-    dumped = RULES.model_dump_json()
+    dumped = RULES.policy.rounding.model_dump_json()
     raw = json.loads(dumped)
-    assert raw["round_up_max_ratio"] == 0.02
-    assert '"round_up_max_ratio":0.02' in dumped
+    assert raw["max_overage_ratio"] == 0.02
+    assert '"max_overage_ratio":0.02' in dumped
 
     one = line(quantity="1.15")
     assert json.loads(one.model_dump_json())["quantity"] == 1.15
@@ -43,7 +43,7 @@ def test_decimal_dumps_as_json_number_and_round_trips():
 
 
 def test_python_dump_keeps_decimal():
-    assert isinstance(RULES.model_dump()["round_up_max_ratio"], Decimal)
+    assert isinstance(RULES.model_dump()["policy"]["rounding"]["max_overage_ratio"], Decimal)
 
 
 @pytest.mark.parametrize("model", TOOL_MODELS, ids=lambda m: m.__name__)

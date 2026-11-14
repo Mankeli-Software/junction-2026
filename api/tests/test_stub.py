@@ -1,6 +1,6 @@
 from app.engine import decide
 from app.schemas import Decision
-from tests.contract_fixtures import engine_input, line
+from tests.contract_fixtures import RULES, engine_input, line
 
 
 def test_milk_line_is_ready():
@@ -19,7 +19,7 @@ def test_milk_line_is_ready():
     assert out.groups[0].subtotal_cents == 345
     assert out.delivery is not None
     assert "3,45 €" in out.speak.fi and "€3.45" in out.speak.en
-    assert out.rules_version == "2026-11-14.1"
+    assert out.rules_ref == RULES.ref
 
 
 def test_unclear_needs_clarification():

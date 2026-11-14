@@ -9,19 +9,11 @@ from app.schemas import (
     KitchenProfile,
     LineRequest,
     RequestedUnit,
-    RuleSet,
 )
+from app.services.policy import load_rule_set
+from app.settings import REPO_ROOT
 
-RULES = RuleSet(
-    version="2026-11-14.1",
-    quote_ttl_seconds=None,
-    enforce_closing_time=True,
-    unverified_stock_threshold=999999,
-    round_up_max_units=1,
-    round_up_max_ratio=Decimal("0.02"),
-    duplicate_window_seconds=7200,
-    substitute_max_price_increase_ratio=Decimal("0.10"),
-)
+RULES = load_rule_set(REPO_ROOT / "policy", REPO_ROOT / "data")
 
 
 def line(line_id: str = "l1", text: str = "maito", quantity: str = "2", **kw) -> LineRequest:

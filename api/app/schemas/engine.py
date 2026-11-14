@@ -26,8 +26,10 @@ from .quote import (
     QuoteLine,
     Rejection,
 )
+from .rules import RuleSet
 
-# Limits from policy/policy.yaml `limits` (vision §8).
+# Limits from policy/policy.yaml `limits` (vision §8). Pydantic needs them when the
+# classes are defined; the policy loader refuses a policy.yaml that differs from them.
 MAX_LINES = 50
 MAX_TEXT_LENGTH = 200
 MAX_QUANTITY = Decimal("100000")
@@ -126,19 +128,6 @@ class Offer(StrictModel):
     source: OfferSource
 
 
-class RuleSet(StrictModel):
-    """Engine values from policy/policy.yaml, with the same names and units. Extended in #35."""
-
-    version: str
-    quote_ttl_seconds: int | None
-    enforce_closing_time: bool
-    unverified_stock_threshold: int
-    round_up_max_units: int  # rounding.max_overage_units
-    round_up_max_ratio: JsonDecimal  # rounding.max_overage_ratio
-    duplicate_window_seconds: int
-    substitute_max_price_increase_ratio: JsonDecimal  # substitution.max_price_increase_ratio
-
-
 class EngineInput(StrictModel):
     lines: list[LineRequest] = Field(min_length=1, max_length=MAX_LINES)
     kitchen: KitchenProfile
@@ -164,4 +153,4 @@ class EngineOutput(StrictModel):
     total_cents: int
     delivery: DeliverySummary | None
     speak: Localized
-    rules_version: str
+    rules_ref: str  # RuleSet.ref: version plus content hash

@@ -140,7 +140,7 @@ def decide(data: EngineInput) -> EngineOutput:
             total_cents=0,
             delivery=None,
             speak=Localized(fi="Mitä maitoa tarkoitat?", en="Which milk do you mean?"),
-            rules_version=data.rules.version,
+            rules_ref=data.rules.ref,
         )
 
     rejections = [
@@ -205,5 +205,5 @@ def decide(data: EngineInput) -> EngineOutput:
         total_cents=total,
         delivery=DeliverySummary(earliest=min(dates), latest=max(dates)) if dates else None,
         speak=speak,
-        rules_version=data.rules.version,
+        rules_ref=data.rules.ref,
     )
