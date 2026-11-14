@@ -47,7 +47,7 @@ The landing page. Shows all activity, newest first.
 | Counter | Meaning |
 |---|---|
 | Active now | Sessions with a call or chat in progress |
-| Waiting for confirmation | SMS sent, not yet confirmed, not expired |
+| Waiting for confirmation | Link sent, not yet confirmed, not expired |
 | Confirmed | Orders confirmed |
 | Needs attention | Rejected, expired, SMS failed, callback requested |
 | Total confirmed value | Sum of confirmed order totals, gross |
@@ -101,7 +101,7 @@ The extra view for the details. Everything that happened in the session, in one 
 | Buyer | What the buyer said or typed, word for word | Voice transcript or chat message |
 | Agent | What the agent said or wrote back | Voice transcript or chat message |
 | Tool call | Which MCP tool the agent called, a readable summary of the arguments, and the decision that came back (`ready`, `needs_clarification`, `rejected`) | MCP server |
-| Engine and confirmation | The engine's steps and what happened after the call: SMS, link opened, flags acknowledged, confirmed | Engine and confirmation page |
+| Engine and confirmation | The engine's steps and what happened after the call: link sent, link opened, flags acknowledged, confirmed | Engine and confirmation page |
 
 Example:
 
@@ -114,8 +114,8 @@ Example:
 > 10:02:33 **Engine:** Quote ready: 1,000 pcs, 1,150.00 € incl. VAT. 2 flags. → decision `ready`
 > 10:02:36 **Agent:** "I found Valio Arki lactose-free semi-skimmed milk, 1,000 litres for 1,150 euros, arriving Monday. Shall I send it to your phone for confirmation?"
 > 10:02:41 **Buyer:** "Yes, please."
-> 10:02:42 **Tool call:** `request_confirmation` → SMS queued for the end of the call.
-> 10:03:40 **Call ended.** SMS sent to +358 40 ••• ••12. Link shown on the call screen.
+> 10:02:42 **Tool call:** `request_confirmation` → link queued for the end of the call.
+> 10:03:40 **Call ended.** Link sent to the demo phone.
 > 10:04:05 **Buyer** opened the link.
 > 10:04:22 **Buyer** acknowledged 2 flags: stock not confirmed, not ordered before.
 > 10:04:23 **Order confirmed.**
@@ -168,14 +168,14 @@ The status the dashboard shows. Derived from events, not stored separately by th
 |---|---|---|
 | `in_conversation` | Active | First event of a session (call started, chat started, first tool call) |
 | `needs_clarification` | Active, asking | `build_quote` or `update_quote` returned a clarification question |
-| `quote_ready` | Active, quote ready | Latest quote decision is `ready` and SMS not yet sent |
-| `awaiting_confirmation` | Waiting | SMS sent |
+| `quote_ready` | Active, quote ready | Latest quote decision is `ready` and link not yet sent |
+| `awaiting_confirmation` | Waiting | Link sent (demo phone inbox, and SMS when it is on) |
 | `link_opened` | Waiting, buyer looking | Confirmation page loaded |
 | `confirmed` | Confirmed | Buyer tapped Confirm and the recheck passed |
 | `cancelled` | Cancelled | Buyer tapped Cancel |
 | `expired` | Needs attention | Quote expired before confirmation (production only; quotes do not expire during the event) |
 | `rejected` | Needs attention | Decision `rejected` with no later ready quote |
-| `sms_failed` | Needs attention | SMS delivery failed (on the phone channel the visitor can still confirm through the call screen notification) |
+| `sms_failed` | Needs attention | SMS delivery failed, for an allowlisted number (the visitor can still confirm through the demo phone's inbox) |
 | `callback_requested` | Needs attention | The next step offered was a callback and the buyer accepted |
 | `requote_needed` | Needs attention | Availability got worse at confirmation, quote voided |
 | `abandoned` | Ended, no order | Conversation ended without a quote |
@@ -204,7 +204,7 @@ The dashboard reads its own **read model**, fed from the audit events. It never 
 | `seq`, `prev_hash`, `hash` | Audit chain status |
 
 - Conversation events, written by our agent runtime (phone, webshop chat) and the MCP server: `buyer_said`, `agent_said` (text, language, whether it is a transcript), `tool_called` (tool name, full arguments), `tool_returned` (full response). These are written for every channel where we have them (see the table in section 3.3). Their content is private (section 2).
-- Event types (first list, to align with the engine): `session_started`, `customer_identified`, `request_received`, `products_searched`, `candidates_filtered`, `availability_checked`, `line_resolved`, `clarification_asked`, `quote_built`, `quote_voided`, `sms_sent`, `sms_failed`, `link_shown_on_call_screen`, `link_opened`, `flags_acknowledged`, `quote_edited`, `order_confirmed`, `order_cancelled`, `quote_expired`, `callback_requested`, `session_ended`.
+- Event types (first list, to align with the engine): `session_started`, `customer_identified`, `request_received`, `products_searched`, `candidates_filtered`, `availability_checked`, `line_resolved`, `clarification_asked`, `quote_built`, `quote_voided`, `inbox_delivered`, `sms_sent`, `sms_failed`, `link_opened`, `flags_acknowledged`, `quote_edited`, `order_confirmed`, `order_cancelled`, `quote_expired`, `callback_requested`, `session_ended`.
 - The masking happens before the event reaches the read model. The dashboard never receives the full number.
 - Each event has a public part (type, status, counts, totals, timestamps, the plain-language sentence, hashes, the generated company name) and a private part (conversation text, tool arguments and responses, payload, identity). The public view and its live updates get only the public part (section 2).
 

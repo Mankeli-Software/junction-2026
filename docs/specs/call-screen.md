@@ -20,10 +20,10 @@ Four screens, in order, on one page:
 ### 2.1 Start
 
 - Short intro: "Order from Valio Aimo by talking to an AI agent. You will confirm the order on this phone."
-- Phone number field. Country code defaults to +358; other countries are allowed because Twilio can send to them.
+- Phone number field. Country code defaults to +358; other countries are allowed.
 - Notices, shown before the visitor continues, in plain words:
   - "Your order shows on our public demo dashboard under a made-up company name. What you say and your number are shown only to you, in this browser."
-  - "We send one SMS to this number with a link to confirm your order. This is a demo; no real order is placed."
+  - "The link to confirm your order arrives in the demo phone on this page. This is a demo; no real order is placed."
 - One button: "Continue".
 
 Nothing is verified about the number in the demo; whoever types it is treated as its owner. See section 6 for the limits that stop misuse.
@@ -70,14 +70,15 @@ The agent greets the caller by company name ("Hi, Hassu Hauki Oy, what can I get
 ### 2.4 Call ended
 
 - "Call ended, 2:14".
-- If a quote is ready and the visitor agreed to it, two things happen at the same moment:
-  - The SMS goes out through Twilio (always).
-  - A phone-style **notification banner** appears at the top of the call page: "Valio Aimo: confirm your order, 1,150.00 €". Tapping it opens the confirmation page. A real browser notification is shown too, only if the visitor has allowed notifications (see `confirmation-page.md`, "How the link reaches the buyer").
-- Below the banner: "We also sent the link by SMS to +358 40 ••• ••12."
+- If a quote is ready and the visitor agreed to it, at the same moment:
+  - The message with the link lands in the **demo phone's inbox** for this account (always). The inbox is shown on this phone page only.
+  - A phone-style **notification banner** appears at the top of the call page: "Valio Aimo: confirm your order, 1,150.00 €". Tapping it opens the message in the demo phone, and its link opens the confirmation page. A real browser notification is shown too, only if the visitor has allowed notifications (see `confirmation-page.md`, "How the link reaches the buyer").
+  - A real SMS goes out through Twilio only when real SMS is turned on (a flag, off by default) and the number is on our allowlist (`technical-plan.md` section 8.2). Every other number gets the inbox message only, so a typed number that belongs to a stranger never gets our SMS.
+- Below the banner, only when a real SMS was sent: "We also sent the link by SMS to +358 40 *** **12."
 - If no quote was made: "No order was made on this call." and nothing is sent.
 - A "Call again" button. A new call is a new order session for the same company.
 
-The banner stays on the page until the visitor taps it or leaves, so it can be opened later.
+The banner stays on the page until the visitor taps it or leaves. The message stays in the demo phone's inbox, so it can be opened later.
 
 ## 3. When things go wrong
 
@@ -88,10 +89,10 @@ Never a dead end: each case says what happened and what to do.
 | Microphone access denied | "We need the microphone for the call." How to allow it, and a retry button |
 | No microphone or unsupported browser | "This browser cannot make the call. Try Chrome or Safari on your phone." |
 | Cannot connect | "Could not connect. Try again." with a retry button |
-| Call drops mid-call | "The call dropped." If a quote was ready and the visitor had agreed to it (`request_confirmation` was called), the link is still sent by SMS and shown in the banner. Otherwise nothing is sent. A "Call again" button |
+| Call drops mid-call | "The call dropped." If a quote was ready and the visitor had agreed to it (`request_confirmation` was called), the message still lands in the demo phone's inbox (and goes by SMS to an allowlisted number) and the banner is shown. Otherwise nothing is sent. A "Call again" button |
 | Invalid phone number | Inline message on the field |
-| Too many calls or SMS for this number (section 6) | "This number has reached the demo limit. Ask us at the booth." |
-| SMS fails | The banner still works. The page says: "The SMS did not arrive, use the link above." The dashboard shows the failure |
+| Too many calls for this number, or too many SMS for an allowlisted number (section 6) | "This number has reached the demo limit. Ask us at the booth." |
+| SMS fails (allowlisted numbers only) | The banner and the inbox message still work. The page says: "The SMS did not arrive, use the message above." The dashboard shows the failure |
 
 ## 4. What the dashboard sees
 
@@ -100,7 +101,7 @@ Every step writes an audit event and appears live on the dashboard (`dashboard.m
 - `session_started` (channel phone), `customer_identified` (company, masked number, new or returning account).
 - Conversation events: `buyer_said`, `agent_said` (transcripts), `tool_called`, `tool_returned`.
 - `session_ended` with call length and who ended it (visitor, agent, time limit, dropped).
-- `sms_sent` or `sms_failed`, and `link_shown_on_call_screen`.
+- `inbox_delivered` (the message is in the demo phone), and `sms_sent` or `sms_failed` when a real SMS goes out.
 
 Mute, unmute and screen changes are not logged.
 
@@ -114,7 +115,8 @@ Mute, unmute and screen changes are not logged.
 
 The demo trusts any typed number, so we limit what one person can do with someone else's number:
 
-- At most a few SMS per number per hour (for example 3), and a limit per browser session.
+- Real SMS go only to numbers on our allowlist, and only when real SMS is turned on (off by default). Any other typed number gets no SMS; its link goes to the demo phone's inbox only.
+- For allowlisted numbers: at most a few SMS per number per hour (for example 3), and a limit per browser session.
 - The SMS text says clearly that it is a demo and comes from our Junction project, so a stranger receiving it knows what it is.
 - Phone numbers are stored only for the event and deleted afterwards. The dashboard and the audit log only ever get the masked number, and the dashboard shows it only in the private view.
 - Transcripts are private: only the browser that made the call sees them on the dashboard. Typing someone else's number never shows their conversations (`dashboard.md` section 2).
@@ -139,5 +141,6 @@ None at the moment.
 - The visitor chooses the kitchen profile on the account screen.
 - The phone is on speaker, not held to the ear. Live captions for both the visitor and the agent.
 - If the call drops after the visitor agreed to the quote, the link is still sent.
+- Every link goes to the demo phone's inbox on this page. Real SMS through Twilio sits behind a flag that is off by default and goes only to allowlisted numbers.
 - The call screen shows elapsed time. Any maximum call length is a backend decision, not decided yet.
 - The conversation and the number are private on the dashboard, shown only to the visitor who made the call. The rest of the order is public.
