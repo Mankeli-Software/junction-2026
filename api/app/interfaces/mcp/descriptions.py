@@ -33,14 +33,14 @@ GET_RECIPE = (
     "kitchen's exclusions."
 )
 BUILD_QUOTE = (
-    "The main ordering call: call it once, with every line the buyer wants, after they say "
-    "the order is complete or ask for the price or a summary, not after each line. In each "
-    "line, text keeps the product words and any pack size the buyer said "
-    '("kevytmaito 1 l"), and product_id is only an id a tool returned for that product (a '
-    "get_customer_context usual item, a search_products result or a recipe ingredient), "
-    "never invented. Returns a decision (ready, needs_clarification or rejected), priced "
-    "lines, flags, a clarification question or rejections, and speak, a short summary in "
-    "Finnish and English."
+    "Price the whole order. Call it once, with every line the buyer wants, only after they "
+    'say the order is complete ("that\'s all") or ask for the price or a summary; never '
+    "while they are still adding lines, and not after each line. In each line, text keeps "
+    'the product words and any pack size the buyer said ("kevytmaito 1 l"), and product_id '
+    "is only an id a tool returned for that product (a get_customer_context usual item, a "
+    "search_products result or a recipe ingredient), never invented. Returns a decision "
+    "(ready, needs_clarification or rejected), priced lines, flags, a clarification question "
+    "or rejections, and speak, a short summary in Finnish and English."
 )
 UPDATE_QUOTE = (
     "Answer the engine's clarification or change a quote's lines; returns a new quote that "
