@@ -47,6 +47,7 @@ CATALOGUE_SAMPLES = ("products_sample.json", "products_search_sample.json")
 ACCOUNT_TABLES = (
     "sms_messages",
     "confirmations",
+    "recipe_drafts",
     "quote_lines",
     "quotes",
     "sessions",
