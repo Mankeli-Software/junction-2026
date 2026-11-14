@@ -1,68 +1,21 @@
 /** Merging live stream events into the page state (#50: replace on snapshot, merge by session). */
-import { matchesFilter, stateGroup } from './states';
-import type { OrderUpdated, OverviewFilter, OverviewResponse, Step, StateGroup, TranscriptLine } from './types';
-
-/** The group each session was last seen in, so totals can be adjusted without a refetch. */
-export type KnownGroups = Map<string, StateGroup | null>;
-
-export function rememberGroups(data: OverviewResponse, known: KnownGroups): void {
-	for (const company of data.companies) {
-		for (const order of company.orders) known.set(order.session_id, stateGroup(order.state));
-	}
-}
-
-function adjustTotals(
-	data: OverviewResponse,
-	update: OrderUpdated,
-	previous: { group: StateGroup | null; total_cents: number | null } | undefined
-): void {
-	const totals = data.totals;
-	const nextGroup = stateGroup(update.order.state);
-	if (previous === undefined) totals.by_channel[update.order.channel] = (totals.by_channel[update.order.channel] ?? 0) + 1;
-	const prevGroup = previous?.group ?? null;
-	if (prevGroup !== nextGroup) {
-		if (prevGroup) totals[prevGroup] = Math.max(0, totals[prevGroup] - 1);
-		if (nextGroup) totals[nextGroup] += 1;
-		if (prevGroup === 'confirmed') totals.confirmed_cents -= previous?.total_cents ?? 0;
-		if (nextGroup === 'confirmed') totals.confirmed_cents += update.order.total_cents ?? 0;
-	}
-}
+import { matchesFilter } from './states';
+import type { OrderUpdated, OverviewFilter, OverviewResponse, Step, TranscriptLine } from './types';
 
 /**
  * Applies one `order_updated`: replaces the card, moves it and its company to the top
- * (newest activity first), drops it when it no longer matches the filter, and keeps the
- * counters right. Mutates `data` (a `$state` proxy on the page).
- *
- * Totals: taken from the event when the server sends them. Otherwise adjusted from the
- * card's previous group. A session never seen before counts as new, except while a filter
- * is on, when it may just have been filtered out; then the totals are left alone.
+ * (newest activity first), drops it when it no longer matches the filter, and takes the
+ * counters from the event (the API always sends them). Mutates `data` (a `$state` proxy on
+ * the page). Applying the same event twice, as after a resume, changes nothing more.
  */
-export function applyOrderUpdated(
-	data: OverviewResponse,
-	update: OrderUpdated,
-	filter: OverviewFilter,
-	known: KnownGroups
-): void {
+export function applyOrderUpdated(data: OverviewResponse, update: OrderUpdated, filter: OverviewFilter): void {
 	const id = update.order.session_id;
-	let previousCard: { group: StateGroup | null; total_cents: number | null } | undefined;
-
 	for (const company of data.companies) {
 		const index = company.orders.findIndex((o) => o.session_id === id);
-		if (index >= 0) {
-			const [old] = company.orders.splice(index, 1);
-			previousCard = { group: stateGroup(old.state), total_cents: old.total_cents };
-		}
+		if (index >= 0) company.orders.splice(index, 1);
 	}
 	data.companies = data.companies.filter((c) => c.orders.length > 0);
-
-	if (update.totals) {
-		data.totals = update.totals;
-	} else if (previousCard || known.has(id)) {
-		adjustTotals(data, update, previousCard ?? { group: known.get(id) ?? null, total_cents: null });
-	} else if (!filter.state && !filter.channel) {
-		adjustTotals(data, update, undefined);
-	}
-	known.set(id, stateGroup(update.order.state));
+	if (update.totals) data.totals = update.totals;
 
 	if (!matchesFilter(update.order, filter)) return;
 

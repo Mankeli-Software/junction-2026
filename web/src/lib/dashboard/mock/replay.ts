@@ -5,11 +5,13 @@
  * world resets with a fresh snapshot and the script loops.
  *
  * Runs in the browser only. New steps are hashed with the same `computeHash` as the real
- * chain, so the live call's audit log keeps verifying while it grows.
+ * chain, so the live call's audit log keeps verifying while it grows. Like the API's stream,
+ * a step's transcript line and the card update it causes share the step's id, and every
+ * `order_updated` carries the totals.
  */
 import liveCallEvents from '../fixtures/live-call-events.json';
 import { computeHash, formatAt, payloadHash } from '../hash';
-import { matchesFilter } from '../states';
+import { matchesFilter, stateGroup } from '../states';
 import type {
 	AuditEvent,
 	CompanyRef,
@@ -37,6 +39,8 @@ let world: OverviewResponse = mockOverview();
 let backlog: StreamMessage[] = [];
 let lastLive = (liveCallEvents as AuditEvent[]).at(-1)!;
 let eventId = 0;
+/** The id of this tick's latest step: the card update it causes shares it, as in the API. */
+let stepId: number | null = null;
 let cursor = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -57,7 +61,20 @@ function findCard(sessionId: string): { company: CompanyRef; order: OrderCard } 
 	return null;
 }
 
-/** Changes a card in the world and sends `order_updated`. Totals are left to the client. */
+/** Moves the world's counters for a card that changed state, as the API counts them. */
+function adjustTotals(previous: OrderCard | undefined, next: OrderCard): void {
+	const totals = world.totals;
+	if (!previous) totals.by_channel[next.channel] = (totals.by_channel[next.channel] ?? 0) + 1;
+	const before = previous ? stateGroup(previous.state) : null;
+	const after = stateGroup(next.state);
+	if (before === after) return;
+	if (before) totals[before] = Math.max(0, totals[before] - 1);
+	if (after) totals[after] += 1;
+	if (before === 'confirmed') totals.confirmed_cents -= previous?.total_cents ?? 0;
+	if (after === 'confirmed') totals.confirmed_cents += next.total_cents ?? 0;
+}
+
+/** Changes a card in the world and sends `order_updated` with the new totals. */
 function updateCard(sessionId: string, patch: Partial<OrderCard>, company?: CompanyRef): void {
 	const found = findCard(sessionId);
 	const stateChanged = patch.state !== undefined && patch.state !== found?.order.state;
@@ -67,12 +84,17 @@ function updateCard(sessionId: string, patch: Partial<OrderCard>, company?: Comp
 		...(stateChanged ? { state_since: new Date().toISOString() } : {})
 	};
 	const ref = company ?? found!.company;
+	adjustTotals(found?.order, order);
 	for (const c of world.companies) c.orders = c.orders.filter((o) => o.session_id !== sessionId);
 	world.companies = world.companies.filter((c) => c.orders.length > 0);
 	const existing = world.companies.find((c) => c.name === ref.name);
 	if (existing) existing.orders.unshift(order);
 	else world.companies.unshift({ ...ref, orders: [order] });
-	send({ event: 'order_updated', id: String(++eventId), data: { company: ref, order } });
+	send({
+		event: 'order_updated',
+		id: String(stepId ?? ++eventId),
+		data: { company: ref, order, totals: structuredClone(world.totals) }
+	});
 }
 
 async function addStep(actor: string, type: string, text: Localized, payload: Record<string, unknown>): Promise<void> {
@@ -109,9 +131,10 @@ async function addStep(actor: string, type: string, text: Localized, payload: Re
 		quote_id
 	};
 	lastLive = event;
+	stepId = ++eventId;
 	const message: StreamMessage = {
 		event: 'step',
-		id: String(++eventId),
+		id: String(stepId),
 		data: { session_id: LIVE_CALL_SESSION_ID, step: event }
 	};
 	backlog.push(message);
@@ -123,7 +146,7 @@ async function say(who: 'buyer' | 'agent', text: string): Promise<void> {
 	const line: TranscriptLine = { at: lastLive.at, who, text, lang: 'en' };
 	const message: StreamMessage = {
 		event: 'transcript',
-		id: String(++eventId),
+		id: String(stepId),
 		data: { session_id: LIVE_CALL_SESSION_ID, line }
 	};
 	backlog.push(message);
@@ -226,13 +249,15 @@ const SCRIPT: Array<() => Promise<void> | void> = [
 				identity_masked: 'p***@example.com',
 				state: 'in_conversation',
 				state_since: new Date().toISOString(),
-				title: { en: '20 kg frozen blueberries by Wednesday', fi: '20 kg pakastemustikoita keskiviikoksi' },
-				step_text: { en: 'Searching products', fi: 'Haetaan tuotteita' },
+				// As the API titles a session before its first request.
+				title: { en: 'No order yet', fi: 'Ei vielä tilausta' },
+				step_text: { en: 'Conversation started', fi: 'Keskustelu alkoi' },
 				line_count: 0,
 				total_cents: null,
 				flags: [],
 				next_step: null,
-				delivery_date: '2026-11-18'
+				delivery_date: '2026-11-18',
+				recipe_count: null
 			},
 			{ name: 'Puolukka Pub Oy', exclusions: [] }
 		),
@@ -254,7 +279,12 @@ const SCRIPT: Array<() => Promise<void> | void> = [
 		);
 		updateCard(LIVE, { state: 'confirmed', order_number: 'D-1046' });
 	},
-	() => updateCard('s_2611_0044', { state: 'awaiting_confirmation', step_text: null })
+	() => updateCard('s_2611_0044', { state: 'awaiting_confirmation', step_text: null }),
+	() =>
+		updateCard('s_2611_0047', {
+			title: { en: '20 kg frozen blueberries by Wednesday', fi: '20 kg pakastemustikoita keskiviikoksi' },
+			step_text: { en: 'Searching products', fi: 'Haetaan tuotteita' }
+		})
 ];
 
 function reset(): void {
@@ -279,6 +309,7 @@ async function tick(): Promise<void> {
 	if (running) return;
 	running = true;
 	try {
+		stepId = null;
 		if (cursor < SCRIPT.length) await SCRIPT[cursor]();
 		cursor++;
 		if (cursor >= SCRIPT.length + PAUSE_TICKS) reset();

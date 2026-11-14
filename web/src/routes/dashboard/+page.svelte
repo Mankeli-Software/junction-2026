@@ -4,7 +4,7 @@
 	import { formatMoney } from '#lib/dashboard/format.ts';
 	import { t, type StringKey } from '#lib/dashboard/i18n.ts';
 	import { connectStream } from '#lib/dashboard/live.svelte.ts';
-	import { applyOrderUpdated, rememberGroups, type KnownGroups } from '#lib/dashboard/merge.ts';
+	import { applyOrderUpdated } from '#lib/dashboard/merge.ts';
 	import { exclusionsSentence } from '#lib/dashboard/states.ts';
 	import type { Channel, CompanyGroup, OverviewFilter, StateGroup } from '#lib/dashboard/types.ts';
 	import { useUi } from '#lib/dashboard/ui.svelte.ts';
@@ -17,16 +17,11 @@
 	// The first paint uses the load data; the effect below takes over after that.
 	let overview = $state(untrack(() => structuredClone(data.overview)));
 	let flash = $state<Record<string, number>>({});
-	const known: KnownGroups = new Map();
 
 	// A new load (filter change) replaces the local copy.
 	$effect.pre(() => {
 		const fresh = structuredClone(data.overview);
-		untrack(() => {
-			overview = fresh;
-			known.clear();
-			rememberGroups(fresh, known);
-		});
+		untrack(() => (overview = fresh));
 	});
 
 	$effect(() => {
@@ -34,10 +29,8 @@
 		const live = connectStream(filter, (message) => {
 			if (message.event === 'snapshot') {
 				overview = message.data;
-				known.clear();
-				rememberGroups(overview, known);
 			} else if (message.event === 'order_updated') {
-				applyOrderUpdated(overview, message.data, filter, known);
+				applyOrderUpdated(overview, message.data, filter);
 				const id = message.data.order.session_id;
 				flash[id] = (flash[id] ?? 0) + 1;
 			}

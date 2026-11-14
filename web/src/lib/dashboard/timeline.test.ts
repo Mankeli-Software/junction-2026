@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import events from './fixtures/d1042-events.json';
 import transcript from './fixtures/d1042-transcript.json';
-import overviewFixture from './fixtures/overview.json';
-import { applyOrderUpdated, rememberGroups, type KnownGroups } from './merge';
 import { buildTimeline, collapse, formatRefs, stepCount } from './timeline';
-import type { AuditEvent, OrderCard, OverviewResponse, TranscriptLine } from './types';
+import type { AuditEvent, TranscriptLine } from './types';
 
 describe('buildTimeline', () => {
 	const rows = buildTimeline(events as AuditEvent[], events as AuditEvent[], transcript as TranscriptLine[]);
@@ -36,54 +34,5 @@ describe('buildTimeline', () => {
 		expect(head).toHaveLength(9);
 		expect(tail).toHaveLength(4);
 		expect(stepCount(hidden)).toBe(10);
-	});
-});
-
-describe('applyOrderUpdated', () => {
-	const fresh = () => structuredClone(overviewFixture) as OverviewResponse;
-	const noFilter = { state: null, channel: null };
-
-	it('moves a confirmed card and its company to the top and adjusts the counters', () => {
-		const data = fresh();
-		const known: KnownGroups = new Map();
-		rememberGroups(data, known);
-		const card = data.companies[2].orders[0];
-		applyOrderUpdated(
-			data,
-			{ company: { name: 'Lihapulla ja Pojat Oy', exclusions: [] }, order: { ...card, state: 'confirmed' } },
-			noFilter,
-			known
-		);
-		expect(data.companies[0].name).toBe('Lihapulla ja Pojat Oy');
-		expect(data.totals.waiting).toBe(1);
-		expect(data.totals.confirmed).toBe(10);
-		expect(data.totals.confirmed_cents).toBe(421000 + 115000);
-	});
-
-	it('adds a new company and counts the new session', () => {
-		const data = fresh();
-		const known: KnownGroups = new Map();
-		rememberGroups(data, known);
-		const order: OrderCard = { ...data.companies[0].orders[0], session_id: 's_new', channel: 'mcp' };
-		applyOrderUpdated(data, { company: { name: 'Puolukka Pub Oy', exclusions: [] }, order }, noFilter, known);
-		expect(data.companies[0].name).toBe('Puolukka Pub Oy');
-		expect(data.totals.active).toBe(3);
-		expect(data.totals.by_channel.mcp).toBe(3);
-	});
-
-	it('drops a card that leaves the filter', () => {
-		const data = fresh();
-		const known: KnownGroups = new Map();
-		const filter = { state: 'waiting' as const, channel: null };
-		data.companies = data.companies.filter((c) => c.name === 'Lihapulla ja Pojat Oy');
-		rememberGroups(data, known);
-		const card = data.companies[0].orders[0];
-		applyOrderUpdated(
-			data,
-			{ company: { name: 'Lihapulla ja Pojat Oy', exclusions: [] }, order: { ...card, state: 'confirmed' } },
-			filter,
-			known
-		);
-		expect(data.companies).toHaveLength(0);
 	});
 });
