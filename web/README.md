@@ -1,6 +1,6 @@
 # web
 
-SvelteKit app with `adapter-node`: start page (`/`), demo phone (`/phone`), webshop, confirmation page (`/c/[token]`) and dashboard (`technical-plan.md` §11).
+SvelteKit app with `adapter-node`: start page (`/`), demo phone (`/phone`), webshop (`/shop`), confirmation page (`/c/[token]`) and dashboard (`technical-plan.md` §11).
 
 ```sh
 pnpm install
@@ -8,6 +8,7 @@ pnpm dev                                  # http://localhost:5173, with the fixt
 pnpm check                                # svelte-check
 pnpm build                                # node build in build/
 pnpm test                                 # Vitest unit tests
+pnpm gen:api-types                        # TypeScript types from src/lib/generated/openapi.json
 pnpm serve:mock                           # the build with the fixtures and the mock voice relay on /voice/ws
 pnpm exec playwright install chromium     # once, for the end-to-end tests
 pnpm test:e2e                             # Playwright: builds the app and runs it against the fixtures
@@ -22,6 +23,7 @@ The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`
 | `CONFIRMATION_SOURCE` | `fixture`: an in-memory stand-in for the engine. `api`: the FastAPI endpoints in `technical-plan.md` §9.4 | `fixture` in `pnpm dev`, `api` in a build. Compose sets `api`; set `fixture` to opt in |
 | `DEMO_SOURCE` | `fixture`: in-memory demo accounts and inbox, and the mock voice relay. `api`: the FastAPI endpoints in `technical-plan.md` §9.2 and the real relay (§9.3) | `fixture` in `pnpm dev`, `api` in a build. Compose sets `api`; `pnpm serve:mock` sets `fixture` |
 | `API_BASE_URL` | Where FastAPI runs, used with either setting on `api` | `http://localhost:8000`. Compose sets `http://api:8000` |
+| `SHOP_LANG` | The webshop's default language. `auto`: Finnish when the browser's most preferred language (`Accept-Language`) is `fi` or `fi-*`, English for anything else. `fi` or `en`: always that language. The EN/FI toggle (`?lang=fi`, `?lang=en`) works with every value | `auto` |
 
 The server reads them from its process environment, for example `CONFIRMATION_SOURCE=api pnpm dev`. Neither `pnpm dev` nor the Compose `web` service reads the root `.env` yet, so the lines in `.env.example` document the defaults rather than set them.
 
@@ -33,9 +35,9 @@ The server reads them from its process environment, for example `CONFIRMATION_SO
 | `/phone` | The demo phone: set up, Contacts with S.I.MO, call, call ended and the inbox (`docs/specs/call-screen.md`, `docs/design` 10 to 14). On a computer it shows inside a phone frame |
 | `/c/[token]` | The confirmation page (`docs/specs/confirmation-page.md`) |
 | `/dashboard` | The live order dashboard (`docs/specs/dashboard.md`, #50) |
+| `/shop` | The webshop with the WebMCP tools (#56): our own page in the Aimo webshop's style, twelve Valio products, the phone's number entry |
 | `/api/v1/demo/accounts`, `/api/v1/me`, `/api/v1/private/inbox`, `/api/v1/private/inbox/stream` | The fixture for `technical-plan.md` §9.2 with `DEMO_SOURCE=fixture`; passed through to FastAPI with `api` |
-
-The webshop is not built yet.
+| The agent tools' REST twins (`/api/v1/products`, `/api/v1/quotes`, ...) | Passed through to FastAPI with `DEMO_SOURCE=api`. With `fixture` they answer 503: there is no engine fixture |
 
 ### The demo phone with the fixtures
 
@@ -60,13 +62,32 @@ With `CONFIRMATION_SOURCE=fixture`, the token picks a scenario: `fx-<scenario>` 
 
 For example http://localhost:5173/c/fx-ready-mine. The fixture keeps its state in memory until the server restarts.
 
+## Webshop and WebMCP
+
+`/shop` (#56) is a static page: twelve real Valio products (`src/lib/shop/products.json`, picked from the static product file by `scripts/select_shop_products.py` in the repository root), no prices, cart or search. Visitors type their number in the same number entry as the phone, which makes the same demo account and `simo_session` cookie, so `/phone` in the same tab opens on Contacts with that account. Product pictures are hotlinked with `referrerpolicy="no-referrer"` and a placeholder; the product image file is not in the repository yet, so every product shows the placeholder for now.
+
+The page registers the agent tools with the browser's agent through `document.modelContext`, falling back to `navigator.modelContext` (`src/lib/shop/webmcp.ts`). They are exactly the tools `/mcp` lists, with the same names, descriptions and input schemas, and each calls its REST twin under `/api/v1` with the session cookie. Confirm, cancel, the inbox and page edits are never tools. After `request_confirmation` the page says the link is in the demo phone and links to `/phone`, never to the link itself.
+
+Generated files in `src/lib/generated/`, never edited by hand:
+
+| File | Made by | Checked by |
+|---|---|---|
+| `agent-tools.json` | `uv run python -m app.interfaces.web_contract` in `api/`, from the MCP server's tool list and the REST twins' routes | `api/tests/test_web_contract.py` |
+| `openapi.json` | the same command, from FastAPI's OpenAPI document | `api/tests/test_web_contract.py` |
+| `openapi.ts` | `pnpm gen:api-types`, with `openapi-typescript` from `openapi.json` | `scripts/api-types.test.ts` (`pnpm test`) |
+
+After changing a tool, a tool description or an API schema, run both commands and commit the three files.
+
+To try the tools locally, run FastAPI (see `api/`) and the web app against it: `DEMO_SOURCE=api pnpm dev`, then open http://localhost:5173/shop. With the default `DEMO_SOURCE=fixture` the page and the number entry work, but the tools answer 503. The page needs a browser with WebMCP: the ChatGPT desktop app's built-in browser, or ordinary Chrome with the MCP-B extension (its `@mcp-b/global` polyfill) or Chrome's WebMCP testing flag in `chrome://flags`. The tools card on the page says whether it found one. The Playwright tests use a shim instead (`tests/support/webmcp-shim.ts`).
+
 ## Screenshots
 
-`tests/screenshots.spec.ts` and `tests/phone-screenshots.spec.ts` save screenshots in `docs/screenshots/confirmation-page/` and `docs/screenshots/phone/`. They are skipped in normal test runs. Regenerate them with:
+`tests/screenshots.spec.ts`, `tests/phone-screenshots.spec.ts` and `tests/shop-screenshots.spec.ts` save screenshots in `docs/screenshots/confirmation-page/`, `docs/screenshots/phone/` and `docs/screenshots/shop/`. They are skipped in normal test runs. Regenerate them with:
 
 ```sh
 SCREENSHOTS=1 pnpm exec playwright test screenshots --project=phone
 SCREENSHOTS=1 pnpm exec playwright test phone-screenshots
+SCREENSHOTS=1 pnpm exec playwright test shop-screenshots
 ```
 
 ## Dashboard on mock data
