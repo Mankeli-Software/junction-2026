@@ -23,14 +23,15 @@ Work goes issue by issue:
    - **`decision`** if it needs a team answer before it can be built. Remove it once the decision is written into the issue.
 3. **Grill the questions.** Before writing code, list every open question, ambiguity and assumption in the issue and ask them, one round at a time. Don't guess at product decisions; `vision.md` §13 and `technical-plan.md` §14 may already answer some. Write the answers back into the issue. Questions go in the issue itself, not in #63.
 4. **Implement the issue.** Tick the issue's checklist items as they land on `main`. Run the linters and tests for what you touched.
-5. **Rebase and push to `main`** when it is ready: `git pull --rebase`, rerun the tests if the rebase pulled in changes, then push. Put `Closes #<n>` in the last commit's body so the issue closes on push.
+5. **Get a human review, then rebase and push to `main`.** When it is ready, commit locally and stop: show the human the commits and the diff, and wait for their explicit approval. Only after approval: `git pull --rebase`, rerun the tests if the rebase pulled in changes, then push. Put `Closes #<n>` in the last commit's body so the issue closes on push.
 
 Git rules:
 
-- **Push straight to `main`.** No feature branches or pull requests, not even at a handoff.
+- **Never push before a human has reviewed the changes.** Commit locally, show the diff and push only after the human explicitly approves. Approval covers the commits that were reviewed, not later ones.
+- **Push straight to `main`** once approved. No feature branches or pull requests, not even at a handoff.
 - **Keep history linear.** Always rebase, never merge: `git pull --rebase` before pushing (or set `git config pull.rebase true`). If a push is rejected, rebase onto `origin/main` and push again. No merge commits.
 - **Never force-push `main`** and never rewrite commits that are already pushed. If a pushed commit is wrong, fix it with a new commit or `git revert`.
-- **Small, focused commits.** One logical change per commit, so a rebase conflict stays small and a bad change is easy to revert. Commit and push often, because teammates are working on `main` at the same time.
+- **Small, focused commits.** One logical change per commit, so a rebase conflict stays small and a bad change is easy to revert. Commit often and ask for review often, because teammates are working on `main` at the same time.
 - **Commit messages**: imperative mood, sentence case, no prefix and no trailing period, matching the existing history (for example "Send the confirmation only after the visitor agrees"). Add a body when the reason isn't obvious from the subject.
 - **`main` must always work.** Teammates rebase onto it all the time, so run the linters and tests for what you touched before pushing. Don't push a half-finished feature that breaks startup; hide it behind a flag or keep it local.
 - **The `production` branch deploys, not `main`.** The VM runs whatever is on `production`. To release, fast-forward `production` to a tested commit on `main` (`git push origin <commit>:production`). Never commit directly to `production` and never merge into it, so it always points at a commit that is already on `main`. Deploy only when someone asks.
