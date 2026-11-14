@@ -17,9 +17,11 @@ from app.models.catalogue import (
 from app.models.confirmations import Confirmation, SmsMessage
 from app.models.customers import Company, KitchenProfile, User
 from app.models.ordering import OrderSession, Quote, QuoteLine
+from app.models.valio import ApiCache
 
 __all__ = [
     "AccessToken",
+    "ApiCache",
     "AllergenCode",
     "AuditEvent",
     "Base",

@@ -91,8 +91,11 @@ class Settings(BaseSettings):
     # the app uses a user that cannot change the schema. Empty means use `database_url`.
     migration_database_url: str = ""
 
-    valio_source: Literal["snapshot", "live"] = "snapshot"
+    # live: call the API (cached 300 s). record: call it and save every response under
+    # data/snapshots/. snapshot: read only the saved responses, never the network.
+    valio_source: Literal["snapshot", "record", "live"] = "snapshot"
     valio_api_key: str = ""
+    valio_base_url: str = "https://junction26.valioaimo.fi/api"
     gemini_api_key: str = ""
 
     sms_twilio_enabled: bool = False
