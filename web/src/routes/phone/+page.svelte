@@ -86,6 +86,13 @@
 				};
 				screen = 'contacts';
 				openInbox();
+			} else if (page.url.searchParams.has('inbox')) {
+				// From the connector login (#48): already signed in, so open the inbox.
+				const me = await getMe();
+				account = { ...me, usual_items: [], new_company: false, new_user: false };
+				screen = 'messages';
+				save();
+				openInbox();
 			}
 		} catch {
 			account = null; // No session any more: set up again.
