@@ -57,22 +57,24 @@
 		min-width: 0;
 	}
 	.picture {
-		aspect-ratio: 4 / 3;
+		position: relative;
+		aspect-ratio: 1 / 1;
+		overflow: hidden;
 		background: #fff;
 		border-bottom: 1px solid var(--divider);
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 	img {
+		position: absolute;
+		inset: 0;
 		width: 100%;
 		height: 100%;
+		box-sizing: border-box;
 		object-fit: contain;
 		padding: 12px;
 	}
 	.placeholder {
-		width: 100%;
-		height: 100%;
+		position: absolute;
+		inset: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;
