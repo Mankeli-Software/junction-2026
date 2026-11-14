@@ -1,0 +1,77 @@
+/* Shared look for the demo pages, from docs/design/README.md (Style). */
+:root {
+	--petrol: #1e4f68;
+	--petrol-dark: #123a4e;
+	--ink: #10303f;
+	--muted: #4a5f6b;
+	--muted-2: #2c4655;
+	--faint: #7d919c;
+	--page: #f3f6f8;
+	--lavender: #eee9f5;
+	--card: #ffffff;
+	--border: #dce3e8;
+	--border-strong: #b9c6ce;
+	--divider: #eef2f4;
+	--chip: #e9eff3;
+	--lime: #c6e02a;
+	--lime-soft: #e4edb6;
+	--lime-text: #6c7a2a;
+	--ok-bg: #f5f9ea;
+	--ok-border: #c9de7c;
+	--yellow: #ffe14d;
+	--yellow-soft: #fff3b0;
+	--yellow-note: #fff6c9;
+	--amber: #e3c200;
+	--red: #b5352a;
+	--font-body: 'Figtree', system-ui, sans-serif;
+	--font-head: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+	color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--page);
+	color: var(--ink);
+	font-family: var(--font-body);
+	font-size: 16px;
+	line-height: 1.35;
+}
+
+a {
+	color: var(--petrol);
+}
+
+a:hover {
+	color: var(--petrol-dark);
+}
+
+button {
+	font: inherit;
+	color: inherit;
+}
+
+.hd {
+	font-family: var(--font-head);
+	font-weight: 700;
+	letter-spacing: -0.2px;
+	margin: 0;
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
