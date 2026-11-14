@@ -33,6 +33,11 @@ class AuditEventType(StrEnum):
     quote_edited = "quote_edited"
     quote_expired = "quote_expired"
 
+    # Recipe drafts (#80): read from a photo or proposed by an agent, confirmed, discarded
+    recipe_read = "recipe_read"
+    recipe_confirmed = "recipe_confirmed"
+    recipe_discarded = "recipe_discarded"
+
     # Confirmation link and messages
     inbox_delivered = "inbox_delivered"
     sms_sent = "sms_sent"

@@ -62,6 +62,21 @@ class LineRequest(StrictModel):
     group: str | None = Field(default=None, max_length=80)  # echoed back with a subtotal
 
 
+class RecipeDraftRef(StrictModel):
+    """A confirmed recipe draft that some of the lines came from (#80).
+
+    The engine doesn't read it. The quote service stores it with the input, so the quote's
+    hash and replay cover exactly what the buyer confirmed (`confirmed_hash`), and labels
+    the draft's group from it. Its unticked ingredients (`not_ordered`) also go into the
+    input's `not_ordered`; they are kept here so an edit of the quote keeps them.
+    """
+
+    draft_id: str
+    confirmed_hash: str
+    group: str
+    not_ordered: list[NotOrdered] = []
+
+
 class KitchenProfile(StrictModel):
     exclusions: list[Exclusion]
 
@@ -159,6 +174,8 @@ class EngineInput(StrictModel):
     # Recipe ingredients without a product link (#34). The quote service lists them and
     # the engine returns them as they are, so a stored input replays to the same output.
     not_ordered: list[NotOrdered] = []
+    # Confirmed recipe drafts the lines came from; not used by the engine (#80).
+    recipe_drafts: list[RecipeDraftRef] = []
 
 
 class EngineOutput(StrictModel):

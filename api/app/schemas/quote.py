@@ -128,6 +128,10 @@ class GroupSubtotal(StrictModel):
     group: str
     line_ids: list[str]
     subtotal_cents: int
+    # "photo" when the group's lines came from a confirmed recipe draft (#80), which the
+    # confirmation page shows as "From your recipe photo".
+    source: Literal["photo"] | None = None
+    recipe_draft_id: str | None = None
 
 
 class DeliverySummary(StrictModel):

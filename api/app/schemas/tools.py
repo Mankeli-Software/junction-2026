@@ -1,4 +1,4 @@
-"""Request and response models for the eight agent tools (vision §8, technical-plan.md §9.1).
+"""Request and response models for the agent tools (vision §8, technical-plan.md §9.1).
 
 No tool response ever carries the confirmation token or link (technical-plan.md §9).
 """
@@ -6,7 +6,7 @@ No tool response ever carries the confirmation token or link (technical-plan.md 
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .common import (
     Claim,
@@ -119,7 +119,20 @@ class Recipe(StrictModel):
 
 
 class BuildQuoteRequest(StrictModel):
-    lines: list[LineRequest] = Field(min_length=1, max_length=MAX_LINES)
+    """The order's lines. With `recipe_draft_id`, a confirmed recipe draft's ingredients
+    are added as lines too, so `lines` may then be empty."""
+
+    lines: list[LineRequest] = Field(default=[], max_length=MAX_LINES)
+    recipe_draft_id: str | None = None
+    # When the draft's lines are needed by. Default: the earliest needed_by of `lines`,
+    # or else the next weekday.
+    needed_by: date | None = None
+
+    @model_validator(mode="after")
+    def _lines_or_draft(self) -> "BuildQuoteRequest":
+        if not self.lines and self.recipe_draft_id is None:
+            raise ValueError("give at least one line or a recipe_draft_id")
+        return self
 
 
 class UpdateQuoteRequest(StrictModel):

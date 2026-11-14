@@ -88,6 +88,7 @@ from .engine import (
     Offer,
     ProductAllergen,
     ProductRecord,
+    RecipeDraftRef,
     RecipeRef,
     ScheduleLine,
     UnitConversion,
@@ -106,6 +107,15 @@ from .quote import (
     Rejection,
     Trace,
     TraceRemoval,
+)
+from .recipe_drafts import (
+    ConfirmRecipeBody,
+    ConfirmRecipeRequest,
+    DraftIngredient,
+    DraftStatus,
+    ProposeRecipeRequest,
+    RecipeDraft,
+    RecipeSource,
 )
 from .rules import (
     REJECTING_CODES,
@@ -262,6 +272,14 @@ __all__ = [
     "RecipeHit",
     "RecipeIngredient",
     "RecipeRef",
+    "RecipeDraftRef",
+    "ConfirmRecipeBody",
+    "ConfirmRecipeRequest",
+    "DraftIngredient",
+    "DraftStatus",
+    "ProposeRecipeRequest",
+    "RecipeDraft",
+    "RecipeSource",
     "Rejection",
     "RequestConfirmationRequest",
     "RequestedUnit",
