@@ -1,6 +1,6 @@
 # Spec: Live order dashboard
 
-Status: draft v1, 2026-11-14. Builds on `vision.md` sections 4, 6, 9 and 11 and on issue #20. Visual style is decided later, after the specs are agreed. This file says what the dashboard shows and does, not how it looks.
+Status: draft v1, 2026-11-14. Builds on `vision.md` sections 4, 6, 9 and 11 and on `technical-plan.md` §8.5, §8.6 and §9.5. Built in #49 (backend) and #50 (UI). Visual style is decided later, after the specs are agreed. This file says what the dashboard shows and does, not how it looks.
 
 ## 1. Purpose
 
@@ -20,7 +20,7 @@ It is evidence for the judging criteria: end-to-end demo (30%), autonomy and con
 - **Never shown:** full phone numbers and emails (only masked), the confirmation token and link, cookies and tokens. The server redacts every response and live event. The simulated inbox is the only private data, and it is not on the dashboard (`technical-plan.md` §9.2).
 - It is read-only. Nothing on the dashboard can confirm, cancel, edit or resend an order. Those actions exist only on the confirmation page (vision section 6).
 - It plays the role of the **Aimo operator view** from vision section 11. The **buyer view** is the confirmation page and the "order received" page, reached through the link. We do not build a buyer account for the dashboard.
-- Agents never read the dashboard. It is not an MCP tool and the MCP server has no route to its data (vision section 8, issue #14). Nothing on it can act on an order.
+- Agents never read the dashboard. It is not an MCP tool and the MCP server has no route to its data (vision section 8, `technical-plan.md` §9). Nothing on it can act on an order.
 - **Privacy.** Booth visitors type their own real phone number. The dashboard never shows it in full, only masked as `+358 40 *** **12`. What they say on the call is shown as text on the public dashboard, including the big screen (section 3.3), and they are told so before the call starts. No other personal data exists.
 - **Demo companies.** Each new caller number gets its own generated company with a unique, funny-sounding Oy name (for example "Hassu Hauki Oy" or "Lihapulla ja Pojat Oy"). The same number calling again gets the same company. This makes the grouping by company on the overview meaningful and makes each visitor's order easy to spot on the screen.
 
@@ -87,7 +87,7 @@ Inside the drill-down, each filter's count expands to the products it removed. P
 
 **Flags.** Every flag on the quote with its plain-language text (the same text the buyer saw) and whether it was acknowledged on the page, and when.
 
-**Trust strip** at the bottom, one line: "Quote signed and verified · Audit chain intact, 14 events · Quote v2 (v1 voided after an edit)". Each part links into the full flow or the audit log.
+**Trust strip** at the bottom, one line of separate items: "Quote signed and verified", "Audit chain intact, 14 events", "Quote v2 (v1 voided after an edit)". Each item links into the full flow or the audit log.
 
 **Buttons to go deeper:** "See full flow" (3.3) and "Audit log" (3.4).
 
@@ -183,7 +183,7 @@ A session can move back from a waiting state to an active one (the buyer edits o
 
 **The backend owns the event format.** This section lists what the dashboard needs from it; the backend team decides the actual schema and may rename or restructure fields as long as this information is there.
 
-The dashboard reads its own **read model**, fed from the audit events. It never writes to the audit log and the audit log stays append-only and hash-chained (vision section 11, issue #20).
+The dashboard reads its own **read model**, fed from the audit events. It never writes to the audit log and the audit log stays append-only and hash-chained (vision section 11, `technical-plan.md` §8.5 and §8.6, #41).
 
 - Transport: server push (Server-Sent Events are enough; the dashboard only receives). On connect, it gets a snapshot of current sessions, then live events.
 - Each event the engine writes needs, at minimum:
