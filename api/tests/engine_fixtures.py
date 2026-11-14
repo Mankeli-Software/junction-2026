@@ -124,6 +124,7 @@ def milk_line(line_id: str = "milk", **kw) -> LineRequest:
 def engine_input(
     *lines: LineRequest,
     candidates: dict[str, list[str]] | None = None,
+    substitutes: dict[str, list[str]] | None = None,
     products: list[ProductRecord] | None = None,
     offers: list[Offer] | None = None,
     exclusions: tuple[Exclusion, ...] = (),
@@ -135,6 +136,7 @@ def engine_input(
         kitchen=KitchenProfile(exclusions=list(exclusions)),
         history=HistorySummary(usual_items=list(usual), recent_lines=[]),
         candidates=candidates if candidates is not None else {"milk": MILK_SEARCH},
+        substitutes=substitutes or {},
         products=products if products is not None else MILK_PRODUCTS,
         offers=offers if offers is not None else MILK_OFFERS,
         rules=RULES,

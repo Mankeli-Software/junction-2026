@@ -55,6 +55,11 @@ def name_size(product: ProductRecord) -> tuple[Decimal, str] | None:
     return found.pop() if len(found) == 1 else None
 
 
+def without_size(name: str) -> str:
+    """The name in lower case with its pack sizes removed: "Valio voi 500 g" -> "valio voi"."""
+    return " ".join(_SIZE.sub(" ", name).lower().replace(",", " ").split())
+
+
 def _edges(product: ProductRecord, with_name: bool) -> dict[str, list[tuple[str, Decimal]]]:
     edges: dict[str, list[tuple[str, Decimal]]] = {}
 

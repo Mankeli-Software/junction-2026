@@ -160,14 +160,15 @@ codes:
     ack: true
     fi: "Tuote {product} vaihdettiin Valio Aimon suosittelemaan korvaavaan tuotteeseen {substitute}."
     en: "{product} was replaced by Valio Aimo's recommended substitute {substitute}."
+  # The two questions below follow the sentence that says why the asked product can't be used.
   SUBSTITUTE_SUGGESTED:
     kind: reason
-    fi: "Tuotetta {product} ei saada. Käykö tilalle {substitute}?"
-    en: "{product} isn't available. Would {substitute} work instead?"
+    fi: "Käykö tilalle {substitute}, yhteensä {total}?"
+    en: "Would {substitute} work instead, {total} in total?"
   SUBSTITUTE_PRICE_TOO_HIGH:
     kind: reason
-    fi: "Korvaava tuote {substitute} on {percent} % kalliimpi, joten en vaihtanut sitä automaattisesti. Käykö se?"
-    en: "The substitute {substitute} costs {percent}% more, so I didn't swap it automatically. Is it okay?"
+    fi: "Korvaava tuote {substitute} on litra- tai kilohinnaltaan {percent} % kalliimpi, joten en vaihtanut sitä automaattisesti. Käykö se, yhteensä {total}?"
+    en: "The substitute {substitute} costs {percent}% more per litre or kilo, so I didn't swap it automatically. Is it okay, {total} in total?"
   CALLBACK_REQUESTED:
     kind: reason
     fi: "En löytänyt sopivaa korvaavaa tuotetta tuotteelle {product}. Valio Aimon asiakaspalvelu ottaa teihin yhteyttä."
@@ -220,5 +221,5 @@ texts:
     fi: "Edullisin vaihtoehto, joka ehtii perille {date} mennessä."
     en: "The lowest-priced option that arrives by {date}."
   RANKING_RULE:
-    fi: "edullisin kokonaishinta, sitten varmistettu saldo"
-    en: "lowest total price, then verified stock"
+    fi: "vähiten hävikkiä, edullisin kokonaishinta, varmistettu saldo, aiemmin tilattu, kotimainen"
+    en: "least waste, lowest total price, verified stock, ordered before, Finnish origin"

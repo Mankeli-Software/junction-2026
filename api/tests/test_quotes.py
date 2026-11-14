@@ -446,7 +446,7 @@ async def test_a_lactose_free_kitchen_gets_a_lactose_free_milk(db, caller):
     assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == []
 
 
-async def test_a_milk_free_kitchen_asking_for_milk_without_an_offer_gets_a_rejection(db):
+async def test_a_milk_free_kitchen_asking_for_milk_without_an_offer_gets_a_callback(db):
     milk_free = await other_caller(db, [Exclusion.milk_free])
 
     response = await quotes.build_quote(db, milk_free, build(), now=T0)
@@ -454,15 +454,17 @@ async def test_a_milk_free_kitchen_asking_for_milk_without_an_offer_gets_a_rejec
     assert response.decision == Decision.rejected
     assert response.status == QuoteStatus.rejected
     (rejection,) = response.rejections
-    assert rejection.reason_code == "ALLERGEN_CONFLICT"
+    assert rejection.reason_code == "CALLBACK_REQUESTED"
+    assert rejection.text.en.startswith("Valio")
     assert rejection.next_step.en
     quote = await stored(db, response.quote_id)
     # Every milk lists milk, so the plant drink comes from the category map (milk ->
-    # plant-based drinks, #78); it has no recorded offer here, so the line stays rejected.
+    # plant-based drinks, #78); it has no recorded offer here, so no substitute is left
+    # and the substitution ladder ends in a callback request (#39).
     assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == ["460825"]
 
 
-async def test_a_milk_free_kitchen_gets_a_plant_drink_from_the_category_map(db, monkeypatch):
+async def test_a_milk_free_kitchen_is_offered_a_plant_drink_from_the_category_map(db, monkeypatch):
     # No curated pair: the oat drink comes from data/category_substitutes.csv (#78).
     real_offers = valio.get_offers
 
@@ -479,11 +481,13 @@ async def test_a_milk_free_kitchen_gets_a_plant_drink_from_the_category_map(db, 
 
     quote = await stored(db, response.quote_id)
     assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == ["460825"]
-    assert response.decision == Decision.ready
-    assert response.lines[0].product_id == "460825"
+    # A similar product from another category is never swapped automatically (#39).
+    assert response.decision == Decision.needs_clarification
+    assert response.clarification is not None
+    assert [o.product_id for o in response.clarification.options] == ["460825"]
 
 
-async def test_a_milk_free_kitchen_gets_a_curated_oat_drink_for_milk(db, monkeypatch):
+async def test_a_milk_free_kitchen_is_offered_a_curated_oat_drink_for_milk(db, monkeypatch):
     # A curated pair from the top hit for "maito" to the oat drink, in this test only.
     db.add(ProductSubstitution(product_id="464119", substitute_product_id="460825", position=9))
     await db.flush()
@@ -503,8 +507,11 @@ async def test_a_milk_free_kitchen_gets_a_curated_oat_drink_for_milk(db, monkeyp
     quote = await stored(db, response.quote_id)
     assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == ["460825"]
     assert quote.engine_input["candidates"]["l1"][-1] == "460825"
-    assert response.decision == Decision.ready
-    assert response.lines[0].product_id == "460825"
+    assert quote.engine_input["substitutes"]["l1"] == ["460825"]
+    # Curated, but not like for like for the milk it replaces, so the buyer is asked (#39).
+    assert response.decision == Decision.needs_clarification
+    assert response.clarification is not None
+    assert [o.product_id for o in response.clarification.options] == ["460825"]
 
 
 async def test_candidate_order_is_deterministic(db, caller):

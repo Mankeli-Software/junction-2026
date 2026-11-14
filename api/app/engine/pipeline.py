@@ -3,7 +3,6 @@
 Pure: everything comes in through EngineInput, so the same input gives the same output.
 """
 
-from collections import Counter
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -21,8 +20,10 @@ from app.schemas import (
     Localized,
     ProductRecord,
     QuoteLine,
+    RankedCandidate,
     ReasonCode,
     Rejection,
+    RemovedProduct,
     RequestedUnit,
     RuleSet,
     StockStatus,
@@ -31,7 +32,7 @@ from app.schemas import (
     TraceRemoval,
 )
 
-from . import text, units
+from . import substitute, text
 from .filters import Candidate, Context, Removal, allergens_unknown, check
 
 # Order of the filter steps (§4.2), so the trace lists removals in pipeline order.
@@ -54,6 +55,8 @@ MAX_ALTERNATIVES = 2
 SPOKEN_LINES = 3  # lines named in the spoken summary; the rest are counted
 # A line whose best candidate fails on these goes back to the buyer as a question.
 ASK_BUYER = {ReasonCode.UNIT_CONVERSION_UNKNOWN, ReasonCode.PACKAGING_AMBIGUOUS}
+# Removals because the product doesn't suit the kitchen, not because of price or stock.
+KITCHEN = {ReasonCode.DIET_CLAIM_MISSING, ReasonCode.ALLERGEN_CONFLICT}
 
 
 @dataclass
@@ -91,6 +94,8 @@ def _line(
         return _reject(line, ReasonCode.INPUT_INVALID, {}, rules)
 
     # Resolve: a named product, "my usual", or the search results for this line.
+    given = [pid for pid in data.candidates.get(line.line_id, []) if pid in products]
+    sub_ids = set(data.substitutes.get(line.line_id, []))
     named = False
     if line.product_id is not None:
         if line.product_id not in products:
@@ -107,19 +112,28 @@ def _line(
             )
         ids, named = usual, True
     else:
-        ids = [pid for pid in data.candidates.get(line.line_id, []) if pid in products]
-        if not ids:
-            return _clarify(line, ReasonCode.NO_MATCH, {"product": _asked(line)}, rules)
+        ids = [pid for pid in given if pid not in sub_ids]
+    subs = [pid for pid in given if pid in sub_ids and pid not in ids]
+    if not ids and not subs:
+        return _clarify(line, ReasonCode.NO_MATCH, {"product": _asked(line)}, rules)
 
-    survivors, removals = _filter([products[pid] for pid in ids], ctx)
+    checked = _check([products[pid] for pid in ids], ctx)
+    survivors = [c for c, r in checked if r is None]
+    removals = [(c, r) for c, r in checked if r is not None]
+
+    # The best candidate that suits the kitchen couldn't be priced: ask to try again
+    # rather than quote a worse one or reject the line (§4.2).
+    first_safe = next(((c, r) for c, r in checked if r is None or r.code not in KITCHEN), None)
+    if first_safe is not None and first_safe[1] is not None:
+        if first_safe[1].code == ReasonCode.OFFER_UNAVAILABLE:
+            return _clarify(line, ReasonCode.OFFER_UNAVAILABLE, first_safe[1].fields, rules)
 
     if not survivors:
-        if all(r.code == ReasonCode.OFFER_UNAVAILABLE for _, r in removals):
-            first = removals[0][1]
-            return _clarify(line, first.code, first.fields, rules)
         first = removals[0][1]  # the best search hit's reason is the most relevant one
         if first.code in ASK_BUYER:
             return _clarify(line, first.code, first.fields, rules)
+        if subs:
+            return _substitute(line, data, products, ctx, checked, subs)
         return _reject(line, first.code, first.fields, rules)
 
     if not named and line.category is None:
@@ -136,9 +150,69 @@ def _line(
             )
 
     ranked = _rank(survivors, data)
-    result = _priced(line, ranked, _trace(len(ids), removals, len(survivors), rules), rules)
+    trace = _trace(len(ids), removals, ranked, rules)
+    result = _priced(line, ranked, trace, rules)
     result.allergens_unknown = allergens_unknown(ranked[0].product, ctx.exclusions, rules)
     return result
+
+
+def _substitute(
+    line: LineRequest,
+    data: EngineInput,
+    products: dict[str, ProductRecord],
+    ctx: Context,
+    checked: list[tuple[Candidate, Removal | None]],
+    subs: list[str],
+) -> LineResult:
+    """The line can't be filled from its own candidates: run the substitution ladder."""
+    rules = data.rules
+    original, why = checked[0]
+    assert why is not None
+    curated = {s for c, _ in checked for s in c.product.substitutions}
+    sub_checked = _check([products[pid] for pid in subs], ctx)
+    steps = [
+        substitute.Step(c, substitute.step_of(original.product, c.product, curated), i)
+        for i, (c, r) in enumerate(sub_checked)
+        if r is None
+    ]
+    removals = [(c, r) for c, r in [*checked, *sub_checked] if r is not None]
+    lead = text.message(rules, why.code, **why.fields)
+    if not steps:
+        fields: dict[str, text.Field] = {"product": original.product.name}
+        return LineResult(
+            rejection=Rejection(
+                line_id=line.line_id,
+                reason_code=ReasonCode.CALLBACK_REQUESTED,
+                text=text.join(lead, text.message(rules, ReasonCode.CALLBACK_REQUESTED, **fields)),
+                next_step=text.next_step(rules, ReasonCode.CALLBACK_REQUESTED, **fields),
+            )
+        )
+
+    ordered_before = {h.product_id for h in data.history.recent_lines}
+    choice = substitute.choose(original, substitute.rank(steps, ordered_before), ctx.offers, rules)
+    ranked = [choice.chosen.candidate] + [
+        s.candidate for s in choice.ranked if s is not choice.chosen
+    ]
+    if choice.code in substitute.AUTOMATIC.values():
+        trace = _trace(len(checked) + len(sub_checked), removals, ranked, rules)
+        result = _priced(line, ranked, trace, rules, (choice.code, original.product, lead))
+        result.allergens_unknown = allergens_unknown(ranked[0].product, ctx.exclusions, rules)
+        return result
+
+    chosen = choice.chosen.candidate
+    question = text.message(
+        rules,
+        choice.code,
+        substitute=chosen.product.name,
+        total=text.euros(chosen.total_cents),
+        percent=choice.percent if choice.percent is not None else "",
+    )
+    options = [_alternative(c) for c in ranked[:MAX_OPTIONS]]
+    return LineResult(
+        clarification=Clarification(
+            line_id=line.line_id, question=text.join(lead, question), options=options
+        )
+    )
 
 
 def _valid(line: LineRequest, data: EngineInput) -> bool:
@@ -160,23 +234,18 @@ def _usual(line: LineRequest, data: EngineInput) -> list[str]:
     )
 
 
-def _filter(
-    products: list[ProductRecord], ctx: Context
-) -> tuple[list[Candidate], list[tuple[Candidate, Removal]]]:
-    survivors, removals = [], []
+def _check(products: list[ProductRecord], ctx: Context) -> list[tuple[Candidate, Removal | None]]:
+    """Every candidate with the reason it was removed, or None if it passed, in input order."""
+    checked = []
     for product in products:
         candidate = Candidate(product)
-        removal = check(candidate, ctx)
-        if removal is None:
-            survivors.append(candidate)
-        else:
-            removals.append((candidate, removal))
-    return survivors, removals
+        checked.append((candidate, check(candidate, ctx)))
+    return checked
 
 
 def _rank(candidates: list[Candidate], data: EngineInput) -> list[Candidate]:
     """Waste first: candidates within the round-up limits, then the least surplus. Then the
-    lowest total, verified stock, products ordered before, and product id."""
+    lowest total, verified stock, products ordered before, Finnish origin and product id."""
     ordered_before = {h.product_id for h in data.history.recent_lines}
     return sorted(
         candidates,
@@ -186,34 +255,82 @@ def _rank(candidates: list[Candidate], data: EngineInput) -> list[Candidate]:
             c.total_cents,
             c.stock != StockStatus.verified,
             c.product.product_id not in ordered_before,
+            c.product.origin != "FI",
             c.product.product_id,
         ),
     )
 
 
 def _trace(
-    found: int, removals: list[tuple[Candidate, Removal]], left: int, rules: RuleSet
+    found: int,
+    removals: list[tuple[Candidate, Removal]],
+    ranked: list[Candidate],
+    rules: RuleSet,
 ) -> Trace:
-    counts = Counter(r.code for _, r in removals)
+    """`ranked[0]` is the chosen candidate."""
+    removed: dict[ReasonCode, list[Candidate]] = {}
+    for candidate, removal in removals:
+        removed.setdefault(removal.code, []).append(candidate)
     return Trace(
         found=found,
         removed=[
-            TraceRemoval(reason_code=code, count=counts[code], text=text.short(rules, code))
+            TraceRemoval(
+                reason_code=code,
+                count=len(removed[code]),
+                text=text.short(rules, code),
+                products=[
+                    RemovedProduct(product_id=c.product.product_id, name=c.product.name)
+                    for c in removed[code]
+                ],
+            )
             for code in STEP_ORDER
-            if counts[code]
+            if code in removed
         ],
-        left=left,
+        left=len(ranked),
         ranking_rule=text.text(rules, TextKey.RANKING_RULE),
+        ranked=[
+            RankedCandidate(
+                rank=i + 1,
+                product_id=c.product.product_id,
+                name=c.product.name,
+                price_per_base_unit=_per_base(c)[0],
+                stock_status=c.stock,
+                chosen=i == 0,
+            )
+            for i, c in enumerate(ranked)
+        ],
     )
 
 
-def _priced(line: LineRequest, ranked: list[Candidate], trace: Trace, rules: RuleSet) -> LineResult:
+def _per_base(c: Candidate) -> tuple[Decimal | None, str | None]:
+    """Price per litre or kilo, to four decimals, and its unit label."""
+    found = substitute.price_per_base(c)
+    if found is None:
+        return None, None
+    return found[0].quantize(Decimal("0.0001")), found[1]
+
+
+def _priced(
+    line: LineRequest,
+    ranked: list[Candidate],
+    trace: Trace,
+    rules: RuleSet,
+    swap: tuple[ReasonCode, ProductRecord, Localized] | None = None,
+) -> LineResult:
+    """Price `ranked[0]`. `swap` is set when it replaces a product automatically: the
+    SUBSTITUTED_* code, the replaced product and why it was replaced."""
     chosen = ranked[0]
     product, amount = chosen.product, chosen.amount
     assert amount is not None
     reasons: list[str] = []
-    explain = [text.text(rules, TextKey.CHOSEN_CHEAPEST, date=text.day(line.needed_by))]
     flags: list[Flag] = []
+    if swap is None:
+        explain = [text.text(rules, TextKey.CHOSEN_CHEAPEST, date=text.day(line.needed_by))]
+    else:
+        code, replaced, why = swap
+        reasons.append(code)
+        flags.append(_flag(code, line, replaced, rules, substitute=product.name))
+        explain = [why, text.message(rules, code, product=replaced.name, substitute=product.name)]
 
     if chosen.surplus > 0:
         reasons.append(ReasonCode.ROUNDED_UP)
@@ -231,7 +348,7 @@ def _priced(line: LineRequest, ranked: list[Candidate], trace: Trace, rules: Rul
         reasons.append(ReasonCode.AVAILABILITY_UNVERIFIED)
         flags.append(_flag(ReasonCode.AVAILABILITY_UNVERIFIED, line, product, rules))
 
-    measure = units.base_measure(product, chosen.sales_unit)
+    per_base, base_unit = _per_base(chosen)
     quote_line = QuoteLine(
         line_id=line.line_id,
         group=line.group,
@@ -250,10 +367,8 @@ def _priced(line: LineRequest, ranked: list[Candidate], trace: Trace, rules: Rul
         quantity_sales_units=amount.sales_units,
         quantity_in_asked_unit=amount.in_asked_unit,
         unit_price_gross=chosen.unit_price,
-        price_per_base_unit=(chosen.unit_price / measure[0]).quantize(Decimal("0.0001"))
-        if measure
-        else None,
-        base_unit=measure[1] if measure else None,
+        price_per_base_unit=per_base,
+        base_unit=base_unit,
         line_total_cents=chosen.total_cents,
         delivery_date=line.needed_by,
         stock_status=chosen.stock,
