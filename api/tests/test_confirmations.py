@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.interfaces.deps import DEV_CALLER
 from app.models import Confirmation, SmsMessage
 from app.schemas import BuildQuoteRequest, LineRequest, QuoteResponse
-from app.services import accounts, confirmations, quotes
+from app.services import accounts, confirmations, quotes, sessions
 from app.services.caller import Caller, Channel
 from app.services.dashboard.redact import redact
 from app.services.dashboard.stream import Broadcaster, StreamEvent
@@ -48,6 +48,13 @@ async def sign_in(
         lang=lang,
         channel=channel,
     )
+
+
+async def on_a_call(db: AsyncSession, phone: str) -> Caller:
+    """A demo account for `phone` on a phone call in progress, as the voice relay starts it."""
+    caller = await sign_in(db, phone, channel="phone")
+    await sessions.start_call_session(db, caller, call_id=uuid.uuid4().hex)
+    return caller
 
 
 async def ready_quote(db: AsyncSession, caller: Caller) -> QuoteResponse:
@@ -185,7 +192,7 @@ def test_format_euros():
 
 
 async def test_the_phone_channel_holds_the_message_until_the_call_ends(db):
-    caller = await sign_in(db, new_number(), channel="phone")
+    caller = await on_a_call(db, new_number())
     quote = await ready_quote(db, caller)
 
     response = await confirmations.request_confirmation(db, caller, quote)
@@ -217,8 +224,8 @@ async def test_other_channels_deliver_at_once(db, channel):
 
 async def test_releasing_touches_only_that_users_messages(db):
     phone = new_number()
-    one = await sign_in(db, phone, channel="phone")
-    two = await sign_in(db, phone, channel="phone")
+    one = await on_a_call(db, phone)
+    two = await on_a_call(db, phone)
     await confirmations.request_confirmation(db, one, await ready_quote(db, one))
     await confirmations.request_confirmation(db, two, await ready_quote(db, two))
 
@@ -258,7 +265,7 @@ async def test_the_stream_sends_a_snapshot_then_inbox_message_after_commit(db):
 
 
 async def test_a_held_message_reaches_the_stream_when_released(db):
-    caller = await sign_in(db, new_number(), channel="phone")
+    caller = await on_a_call(db, new_number())
     await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
     await db.commit()
 
@@ -328,7 +335,7 @@ async def test_no_token_or_link_reaches_the_public_dashboard(db, caplog):
 
     previous, stream._broadcaster = stream._broadcaster, public
     try:
-        caller = await sign_in(db, new_number(), channel="phone")
+        caller = await on_a_call(db, new_number())
         response = await confirmations.request_confirmation(
             db, caller, await ready_quote(db, caller)
         )

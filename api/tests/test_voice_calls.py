@@ -129,6 +129,118 @@ async def test_end_call_releases_once_and_ends_the_session(app_db):
     assert [e.type for e in recorded].count("inbox_delivered") == 1
 
 
+# --- A request_confirmation that finishes after the hang-up (#88) ------------------------
+
+
+async def quote_in_a_call(
+    engine: AsyncEngine, client: TestClient
+) -> tuple[uuid.UUID, voice_calls.CallStart, str]:
+    """A started call with a ready quote: (user id, the call, the quote id)."""
+    user_id = await user_id_of(engine, client)
+    async with AsyncSession(engine) as db:
+        start = await voice_calls.start_call(db, user_id, prompt_version=PROMPT_VERSION)
+        assert start is not None
+        built = await quotes.build_quote(db, start.caller, BuildQuoteRequest(lines=[LINE]))
+        await db.commit()
+    return user_id, start, built.quote_id
+
+
+async def end(engine: AsyncEngine, user_id: uuid.UUID, start: voice_calls.CallStart):
+    async with AsyncSession(engine) as db:
+        ended = await voice_calls.end_call(
+            db, user_id, start.session_id, ended_by="visitor", duration_s=60
+        )
+        await db.commit()
+    return ended
+
+
+async def test_a_confirmation_after_the_call_ended_is_delivered_at_once(app_db):
+    client = browser()
+    user_id, start, quote_id = await quote_in_a_call(app_db, client)
+    assert (await end(app_db, user_id, start)).released_quote_ids == []
+
+    async with AsyncSession(app_db) as db:
+        sent = await quotes.request_confirmation(
+            db, start.caller, RequestConfirmationRequest(quote_id=quote_id)
+        )
+        await db.commit()
+    assert sent.delivery_status == "off"
+    [message] = client.get("/api/v1/private/inbox").json()
+    assert message["link"].startswith("http")
+    delivered = [e for e in await events(app_db, start.session_id) if e.type == "inbox_delivered"]
+    assert [e.payload["quote_id"] for e in delivered] == [quote_id]
+
+
+async def test_the_end_of_a_call_waits_for_a_running_confirmation(app_db):
+    """The confirmation holds the call's session; the end of the call waits for its commit
+    and then releases its held link."""
+    client = browser()
+    user_id, start, quote_id = await quote_in_a_call(app_db, client)
+
+    async with AsyncSession(app_db) as db:
+        sent = await quotes.request_confirmation(
+            db, start.caller, RequestConfirmationRequest(quote_id=quote_id)
+        )
+        assert sent.delivery_status == "held"
+        ending = asyncio.create_task(end(app_db, user_id, start))
+        await asyncio.sleep(0.5)
+        assert not ending.done()  # waiting for the session lock
+        await db.commit()
+    ended = await asyncio.wait_for(ending, 10)
+
+    assert ended.released_quote_ids == [quote_id]
+    assert len(client.get("/api/v1/private/inbox").json()) == 1
+
+
+async def test_a_confirmation_waiting_on_the_end_of_the_call_is_delivered_at_once(app_db):
+    """The end of the call holds the session; the confirmation waits for it, then finds the
+    call ended and delivers the link itself."""
+    client = browser()
+    user_id, start, quote_id = await quote_in_a_call(app_db, client)
+
+    async with AsyncSession(app_db) as db:
+        ended = await voice_calls.end_call(
+            db, user_id, start.session_id, ended_by="visitor", duration_s=60
+        )
+        assert ended.released_quote_ids == []
+
+        async def confirm() -> str:
+            async with AsyncSession(app_db) as other:
+                sent = await quotes.request_confirmation(
+                    other, start.caller, RequestConfirmationRequest(quote_id=quote_id)
+                )
+                await other.commit()
+            return sent.delivery_status
+
+        confirming = asyncio.create_task(confirm())
+        await asyncio.sleep(0.5)
+        assert not confirming.done()  # waiting for the session lock
+        await db.commit()
+    assert await asyncio.wait_for(confirming, 10) == "off"
+    assert len(client.get("/api/v1/private/inbox").json()) == 1
+
+
+async def test_a_confirmation_in_another_open_call_stays_held(app_db):
+    """A quote from an earlier session, sent during a call, still waits for that call."""
+    client = browser()
+    user_id, first, quote_id = await quote_in_a_call(app_db, client)
+    await end(app_db, user_id, first)
+    async with AsyncSession(app_db) as db:
+        second = await voice_calls.start_call(db, user_id, prompt_version=PROMPT_VERSION)
+        await db.commit()
+    assert second is not None
+
+    async with AsyncSession(app_db) as db:
+        sent = await quotes.request_confirmation(
+            db, second.caller, RequestConfirmationRequest(quote_id=quote_id)
+        )
+        await db.commit()
+    assert sent.delivery_status == "held"
+    assert client.get("/api/v1/private/inbox").json() == []
+    assert (await end(app_db, user_id, second)).released_quote_ids == [quote_id]
+    assert len(client.get("/api/v1/private/inbox").json()) == 1
+
+
 async def test_transcripts_are_public_events_with_masked_numbers(app_db):
     client = browser()
     user_id = await user_id_of(app_db, client)

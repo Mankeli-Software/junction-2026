@@ -236,7 +236,9 @@ class Call:
             self._spawn(coroutine)
         await self.done.wait()
         # A request_confirmation in flight may finish first, so its held link is there to
-        # release. Short: the page stops waiting for `ended` 3 s after its hang-up.
+        # release and the `ended` message can say so. Short: the page stops waiting for
+        # `ended` 3 s after its hang-up. One that finishes on the server after the release
+        # delivers its link at once (#88, `confirmations.call_in_progress`).
         running = [task for name, task in self.pending.values() if name == REQUEST_CONFIRMATION]
         if running:
             await asyncio.wait(running, timeout=PENDING_TOOLS_S)

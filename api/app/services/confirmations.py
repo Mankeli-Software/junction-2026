@@ -10,8 +10,9 @@ no recipient argument (vision §6).
 - Every message lands in the user's simulated phone inbox (`sms_messages`, path `inbox`).
   Twilio (path `twilio`, behind `SMS_TWILIO_ENABLED` and `SMS_ALLOWLIST`) comes later.
 - On the phone channel the message is `held` until the call ends: the voice relay (#52)
-  calls `release_held_messages()` on hang-up, a dropped call or the time limit. Every
-  other channel delivers at once.
+  calls `release_held_messages()` on hang-up, a dropped call or the time limit. A phone
+  request that only finishes after the call has ended delivers at once (#88). Every other
+  channel delivers at once.
 
 A delivered message goes out on the user's inbox stream after the database transaction
 commits, so a rolled-back request never shows up in a browser. Like the other services,
@@ -30,15 +31,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sse_starlette import ServerSentEvent
 
-from app.models import Confirmation, SmsMessage, User
-from app.schemas import ConfirmationRequestResponse, QuoteResponse
+from app.models import Confirmation, OrderSession, Quote, SmsMessage, User
+from app.schemas import ConfirmationRequestResponse, Localized, QuoteResponse
 from app.schemas.common import Lang
 from app.settings import get_settings
 
+from . import audit
 from .caller import Caller, Channel
 from .dashboard.stream import Broadcaster, StreamEvent
 from .errors import StateError
 from .phone import mask_phone
+from .sessions import IDLE_TIMEOUT
 from .tokens import hash_token, new_token
 
 log = logging.getLogger(__name__)
@@ -120,7 +123,7 @@ async def request_confirmation(
 
     link = confirmation_link(token)
     text, body = message_text(user.lang, quote.total_cents, link)
-    held = caller.channel in HELD_CHANNELS
+    held = caller.channel in HELD_CHANNELS and await call_in_progress(db, user.id, now=now)
     message = SmsMessage(
         confirmation_id=confirmation.id,
         user_id=user.id,
@@ -136,6 +139,11 @@ async def request_confirmation(
     await db.flush()
     if not held:
         _publish_after_commit(db, message)
+        if caller.channel in HELD_CHANNELS:
+            # No call to wait for: it ended while this request ran, and the relay has
+            # released already (#88).
+            quote_row = await db.get_one(Quote, uuid.UUID(quote.quote_id))
+            await record_inbox_delivered(db, quote_row.session_id, quote_row.id)
     log.info(
         "Confirmation %s for quote %s: inbox message %s %s",
         confirmation.id,
@@ -148,6 +156,55 @@ async def request_confirmation(
         # Twilio is off for now (#46's Twilio items): `held` until the call ends, else `off`.
         delivery_status="held" if held else "off",
         inbox=True,
+    )
+
+
+async def call_in_progress(
+    db: AsyncSession, user_id: uuid.UUID, *, now: datetime | None = None
+) -> bool:
+    """Whether a phone call of the user is still going on, so a new link waits for its end.
+
+    A call is a relay-started phone session (`call_id`) that has not ended, active in the
+    last `IDLE_TIMEOUT` (the call's tool calls find it the same way, and a call is shorter
+    than that), so a session left open by a crash doesn't hold links forever.
+
+    Locks those sessions until commit, which makes the hold race-free against the relay's
+    `voice_calls.end_call()`, which locks the call's session before it releases: either
+    the end of the call waits for this transaction and then releases the held message, or
+    it has committed `ended_at` first and this query, waiting on the lock and then
+    re-checking the row, no longer finds the call (#88).
+    """
+    now = now or datetime.now(UTC)
+    calls = await db.scalars(
+        select(OrderSession.id)
+        .where(
+            OrderSession.user_id == user_id,
+            OrderSession.channel == "phone",
+            OrderSession.call_id.is_not(None),
+            OrderSession.ended_at.is_(None),
+            OrderSession.last_activity_at > now - IDLE_TIMEOUT,
+        )
+        .order_by(OrderSession.id)
+        .with_for_update()
+    )
+    return bool(calls.all())
+
+
+async def record_inbox_delivered(
+    db: AsyncSession, session_id: uuid.UUID, quote_id: uuid.UUID | str
+) -> None:
+    """`inbox_delivered`: a held link reached the demo phone."""
+    await audit.record(
+        db,
+        type="inbox_delivered",
+        actor="service",
+        session_id=session_id,
+        quote_id=quote_id,
+        payload={"quote_id": str(quote_id), "path": "inbox"},
+        text=Localized(
+            fi="Vahvistuslinkki toimitettiin demopuhelimeen",
+            en="The confirmation link was delivered to the demo phone",
+        ),
     )
 
 

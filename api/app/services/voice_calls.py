@@ -178,20 +178,13 @@ async def end_call(
     `inbox_delivered` and `session_ended`. Safe to call twice: the second call releases
     nothing and leaves the session as it is."""
     now = now or datetime.now(UTC)
+    # The session first (#88): a request_confirmation still running holds this lock until
+    # it commits, so the release below sees its held message. One that starts later finds
+    # the call ended and delivers at once (`confirmations.call_in_progress`).
+    session = await db.get(OrderSession, session_id, with_for_update=True)
     released = await confirmations.release_held_messages(db, user_id, now=now)
     for quote_id in released:
-        await audit.record(
-            db,
-            type="inbox_delivered",
-            actor="service",
-            session_id=session_id,
-            quote_id=quote_id,
-            payload={"quote_id": str(quote_id), "path": "inbox"},
-            text=Localized(
-                fi="Vahvistuslinkki toimitettiin demopuhelimeen",
-                en="The confirmation link was delivered to the demo phone",
-            ),
-        )
+        await confirmations.record_inbox_delivered(db, session_id, quote_id)
     quote_id: str | None = None
     total_cents: int | None = None
     if released:
@@ -199,7 +192,6 @@ async def end_call(
         if quote is not None:
             quote_id, total_cents = str(quote.id), quote.total_cents
 
-    session = await db.get(OrderSession, session_id, with_for_update=True)
     if session is not None and session.ended_at is None:
         session.ended_at = now
         session.ended_by = ended_by

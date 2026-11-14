@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from app.interfaces.deps import SESSION_COOKIE
 from app.main import app
-from app.services import confirmations
+from app.services import confirmations, voice_calls
 from app.services.accounts import resolve_session
 from app.services.tokens import issue_caller_token
 
@@ -142,8 +142,10 @@ async def test_mcp_on_a_phone_call_holds_the_message_until_released(
     client = browser(new_number(), lang="fi")
     user_id = await user_id_of(app_db, client)
     async with AsyncSession(app_db) as db:
-        token = await issue_caller_token(db, user_id, "phone", "S.I.MO phone")
+        start = await voice_calls.start_call(db, user_id, prompt_version="test")
         await db.commit()
+    assert start is not None
+    token = start.token
 
     built = _rpc_result(_call_tool(live_client, token, "build_quote", {"lines": [LINE]}))
     quote_id = built["structuredContent"]["quote_id"]
