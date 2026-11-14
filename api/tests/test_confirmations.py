@@ -8,6 +8,7 @@ import json
 import logging
 import random
 import re
+import uuid
 
 import pytest
 from sqlalchemy import select, text
@@ -49,8 +50,8 @@ async def sign_in(
     )
 
 
-def ready_quote(caller: Caller) -> QuoteResponse:
-    quote = quotes.build_quote(caller, BuildQuoteRequest(lines=[LINE]))
+async def ready_quote(db: AsyncSession, caller: Caller) -> QuoteResponse:
+    quote = await quotes.build_quote(db, caller, BuildQuoteRequest(lines=[LINE]))
     assert quote.quote_hash is not None
     return quote
 
@@ -68,7 +69,7 @@ async def messages_of(db: AsyncSession, caller: Caller) -> list[SmsMessage]:
 async def test_the_token_is_never_returned_and_is_stored_hashed(db, caplog):
     caplog.set_level(logging.DEBUG)
     caller = await sign_in(db, new_number())
-    quote = ready_quote(caller)
+    quote = await ready_quote(db, caller)
 
     response = await confirmations.request_confirmation(db, caller, quote)
 
@@ -104,7 +105,7 @@ async def test_the_token_is_never_returned_and_is_stored_hashed(db, caplog):
 async def test_each_link_has_its_own_token(db):
     caller = await sign_in(db, new_number())
     for _ in range(2):
-        await confirmations.request_confirmation(db, caller, ready_quote(caller))
+        await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
 
     first, second = await messages_of(db, caller)
     assert token_of(first) != token_of(second)
@@ -116,7 +117,7 @@ async def test_the_link_goes_only_to_the_callers_own_account(db):
     same_number_other_browser = await sign_in(db, phone)
     other_number = await sign_in(db, new_number())
 
-    await confirmations.request_confirmation(db, caller, ready_quote(caller))
+    await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
 
     [message] = await messages_of(db, caller)
     confirmation = await db.get_one(Confirmation, message.confirmation_id)
@@ -129,10 +130,11 @@ async def test_the_link_goes_only_to_the_callers_own_account(db):
 
 
 async def test_a_caller_without_an_account_gets_nothing_sent(db):
-    quote = ready_quote(DEV_CALLER)
+    quote = await ready_quote(db, await sign_in(db, new_number()))
+    nobody = DEV_CALLER.model_copy(update={"user_id": uuid.uuid4()})
 
     with pytest.raises(StateError):
-        await confirmations.request_confirmation(db, DEV_CALLER, quote)
+        await confirmations.request_confirmation(db, nobody, quote)
     assert (
         await db.scalar(select(Confirmation).where(Confirmation.quote_id == quote.quote_id))
     ) is None
@@ -150,7 +152,7 @@ async def test_a_caller_without_an_account_gets_nothing_sent(db):
 )
 async def test_the_message_is_in_the_accounts_language(db, lang, text):
     caller = await sign_in(db, new_number(), lang=lang)
-    quote = ready_quote(caller)
+    quote = await ready_quote(db, caller)
 
     await confirmations.request_confirmation(db, caller, quote)
 
@@ -169,7 +171,7 @@ def test_format_euros():
 
 async def test_the_phone_channel_holds_the_message_until_the_call_ends(db):
     caller = await sign_in(db, new_number(), channel="phone")
-    quote = ready_quote(caller)
+    quote = await ready_quote(db, caller)
 
     response = await confirmations.request_confirmation(db, caller, quote)
 
@@ -191,7 +193,7 @@ async def test_the_phone_channel_holds_the_message_until_the_call_ends(db):
 async def test_other_channels_deliver_at_once(db, channel):
     caller = await sign_in(db, new_number(), channel=channel)
 
-    response = await confirmations.request_confirmation(db, caller, ready_quote(caller))
+    response = await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
 
     assert response.sms_status == "off"
     assert len(await confirmations.inbox(db, caller.user_id)) == 1
@@ -202,8 +204,8 @@ async def test_releasing_touches_only_that_users_messages(db):
     phone = new_number()
     one = await sign_in(db, phone, channel="phone")
     two = await sign_in(db, phone, channel="phone")
-    await confirmations.request_confirmation(db, one, ready_quote(one))
-    await confirmations.request_confirmation(db, two, ready_quote(two))
+    await confirmations.request_confirmation(db, one, await ready_quote(db, one))
+    await confirmations.request_confirmation(db, two, await ready_quote(db, two))
 
     await confirmations.release_held_messages(db, one.user_id)
 
@@ -227,7 +229,7 @@ async def test_the_stream_sends_a_snapshot_then_inbox_message_after_commit(db):
     try:
         assert await _next_event(events) == ("snapshot", [])
 
-        await confirmations.request_confirmation(db, caller, ready_quote(caller))
+        await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
         await db.commit()
 
         event, data = await _next_event(events)
@@ -242,7 +244,7 @@ async def test_the_stream_sends_a_snapshot_then_inbox_message_after_commit(db):
 
 async def test_a_held_message_reaches_the_stream_when_released(db):
     caller = await sign_in(db, new_number(), channel="phone")
-    await confirmations.request_confirmation(db, caller, ready_quote(caller))
+    await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
     await db.commit()
 
     async def snapshot():
@@ -268,7 +270,7 @@ async def test_a_rolled_back_request_is_not_streamed(db):
     broadcaster = confirmations._inbox_broadcaster(caller.user_id)
     broadcaster.publish = received.append  # type: ignore[method-assign]
     try:
-        await confirmations.request_confirmation(db, caller, ready_quote(caller))
+        await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
         await db.rollback()
         await db.commit()
     finally:
@@ -286,7 +288,7 @@ async def test_another_users_stream_gets_nothing(db):
     broadcaster = confirmations._inbox_broadcaster(other.user_id)
     broadcaster.publish = received.append  # type: ignore[method-assign]
     try:
-        await confirmations.request_confirmation(db, caller, ready_quote(caller))
+        await confirmations.request_confirmation(db, caller, await ready_quote(db, caller))
         await db.commit()
     finally:
         confirmations._inboxes.pop(other.user_id, None)
@@ -312,7 +314,9 @@ async def test_no_token_or_link_reaches_the_public_dashboard(db, caplog):
     previous, stream._broadcaster = stream._broadcaster, public
     try:
         caller = await sign_in(db, new_number(), channel="phone")
-        response = await confirmations.request_confirmation(db, caller, ready_quote(caller))
+        response = await confirmations.request_confirmation(
+            db, caller, await ready_quote(db, caller)
+        )
         await confirmations.release_held_messages(db, caller.user_id)
         await db.commit()
     finally:

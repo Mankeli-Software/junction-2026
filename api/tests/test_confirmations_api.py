@@ -81,15 +81,18 @@ def test_rest_twin_sends_to_this_browsers_inbox_only():
 
 
 @pytest.mark.usefixtures("dev_caller")
-def test_the_dev_caller_has_no_inbox_and_gets_nothing_sent():
+def test_the_dev_callers_link_goes_to_its_own_account_and_no_browser_can_read_it():
+    # Since #45 the dev caller has database rows, so its link lands in the dev account's
+    # inbox. That inbox is cookie only, so without a session nobody can read it.
     client = TestClient(app)
     quote = build(client)
 
     response = client.post(f"/api/v1/quotes/{quote['quote_id']}/confirmation-request")
 
-    assert response.status_code == 409, response.text
+    assert response.status_code == 200, response.text
+    assert "link" not in response.text and "/c/" not in response.text
     status = client.get(f"/api/v1/quotes/{quote['quote_id']}/status").json()
-    assert status["status"] == "ready"  # can still be sent once signed in
+    assert status["status"] == "pending_confirmation"
     assert client.get("/api/v1/private/inbox").status_code == 401
     assert client.get("/api/v1/private/inbox/stream").status_code == 401
 
