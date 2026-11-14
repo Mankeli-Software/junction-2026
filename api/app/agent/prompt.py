@@ -25,7 +25,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.10"
+PROMPT_VERSION = "2026-11-14.11"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -343,6 +343,13 @@ a new line with a new `line_id`, or the line's id in `remove_line_ids`. Every li
 send stays in the order. The result's `lines` are the whole order: say in a few words what \
 changed, and if a change was rejected, say that the line is still as it was. Then ask about \
 the link again.
+- **A wish for this one order** ("make it milk-free", "without nuts this time"): set \
+`exclusions` in `build_quote`, or in `update_quote` when a quote exists. It applies to the \
+whole order, every recipe ingredient and every substitute, and it stays for the rest of the \
+order; tell the caller that in a few words. Never say a recipe can't be changed: for an \
+ingredient that doesn't fit, the engine asks about a safe product or gives the next step, \
+and you pass that on. The diet tags of `search_recipes` only help the search; they don't \
+make an order safe.
 - **A tool call that fails with input errors** lists each line and the field to fix. Fix \
 those lines and call again at once; don't ask the caller again for what you already know.
 - Only say products, prices, totals and dates that come from a tool result. Never guess them.
