@@ -1,0 +1,53 @@
+# Words that change what a product is (#30, docs/plans/30-product-search.md §3.4).
+# A product whose name contains one of these, when the query doesn't, is pushed down.
+# Matched as substrings of the folded name, so compounds count (kahvimaito).
+# Change only through the evaluation harness (python -m app.search.eval).
+- kypsä
+- ruskistettu
+- paahdettu
+- pakaste
+- kahvi
+- kaakao
+- suklaa
+- annos
+- pihvi
+- burger
+- pyörykkä
+- jauhe
+- coffee
+- cocoa
+- chocolate
+- portion
+- cooked
+- frozen
+- kondensoitu
+- condensed
+- liemessä
+- öljyssä
+- kuiv
+- dried
+- keitetty
+- kuorittu
+- leivitetty
+- paneroitu
+- breaded
+- tempura
+- nugget
+- sous vide
+- kuutio
+- suikale
+- mauste
+- flavoured
+- kasvirasva
+- marinoitu
+- marinated
+- säilyke
+- cafe
+- maidoton
+- dairy free
+- sisältää
+- contains
+- nauta-sika
+- sika-nauta
+- nauta-possu
+- possu-nauta

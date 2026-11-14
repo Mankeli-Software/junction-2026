@@ -1,0 +1,12 @@
+# Query-side synonyms for product search (#30, docs/plans/30-product-search.md §3.3).
+# word -> extra words. Only for words the names don't cover: spoken forms, colloquial
+# words and Finnish genitives the stemmer and trigrams miss. Change only through the
+# evaluation harness (python -m app.search.eval).
+milk: [maito]
+kevari: [kevytmaito]
+naudan: [nauta]
+sian: [sika]
+porsaan: [porsas]
+kanan: [kana]
+broilerin: [broileri]
+ground: [jauheliha, mince, minced]
