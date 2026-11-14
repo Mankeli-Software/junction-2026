@@ -14,3 +14,7 @@ __pycache__/
 
 # Node
 node_modules/
+
+# The Valio product file: downloaded by the catalogue loader, never committed
+data/valio-products.json
+data/*.part
