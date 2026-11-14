@@ -37,6 +37,19 @@ RECIPE = {
         "Yes, order its ingredients.",
     ],
 }
+# #103: after the recipe's read-back the caller asks for the rest too, as in the #99 call.
+RECIPE_REST = {
+    "fi": [
+        *RECIPE["fi"],
+        "Etsi tuotteet myös lopuille aineksille. Niiden ei tarvitse olla tarkkoja, mikä "
+        "tahansa käy.",
+    ],
+    "en": [
+        *RECIPE["en"],
+        "Find products for the rest of the ingredients too. They don't need to be exact, "
+        "anything will do.",
+    ],
+}
 
 LANGS = ("fi", "en")
 
@@ -104,3 +117,21 @@ async def test_a_recipe_by_phone_is_quoted_as_one_recipe(run, lang):
     assert quote["not_ordered"], "the recipe's unlinked ingredients are not listed"
     groups = {line["group"] for line in quote["lines"]}
     assert len(groups) == 1 and None not in groups, f"not one recipe group: {groups}"
+
+
+@pytest.mark.parametrize("lang", LANGS)
+async def test_the_rest_of_a_recipe_is_found_when_the_caller_asks(run, lang):
+    call, inbox, quote = await call_as(run, "call-recipe-rest", lang, [], RECIPE_REST[lang])
+
+    check_the_call_itself(call)
+    assert "build_quote" in call.tools and "update_quote" in call.tools
+    assert "search_products" not in call.tools, "S.I.MO searched instead of quoting"
+    assert quote and quote["lines"], "no quote with lines after the call"
+    # Only ingredients without an amount (salt "to taste") may stay not ordered.
+    left = [n["name"] for n in quote["not_ordered"] if n["quantity"] is not None]
+    assert left == [], f"still not ordered: {left}"
+    groups = {line["group"] for line in quote["lines"]}
+    assert len(groups) == 1 and None not in groups, f"not one recipe group: {groups}"
+    # "Anything will do": S.I.MO picks instead of asking, and the call ends with the link.
+    assert quote["decision"] == "ready", quote["decision"]
+    assert call.link_requested(), "S.I.MO never got to sending the link"
