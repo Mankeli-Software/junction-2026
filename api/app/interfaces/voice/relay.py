@@ -32,6 +32,7 @@ from typing import Any
 from google.genai import types
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
+from app import telemetry
 from app.agent import CALL_CONNECTED, END_CALL, PROMPT_VERSION, build_system_prompt
 from app.db import get_sessionmaker
 from app.interfaces.voice import bridge, filler, live
@@ -135,6 +136,12 @@ class Call:
         self.buyer_utterances = 0
         self.buyer_spoke = asyncio.Event()
         self.quote_mark: int | None = None  # buyer_utterances when the latest quote came back
+        # Measurements for Application Insights (#84).
+        self.last_buyer_at: float | None = None  # the caller's latest transcribed words
+        self.awaiting_reply = False  # the caller spoke and S.I.MO hasn't answered yet
+        self.turns = 0
+        self.interruptions = 0
+        self.tokens: dict[str, int] = {"prompt": 0, "response": 0, "total": 0}
 
         # Audio down: when the browser will have played everything sent so far.
         self.play_until = 0.0
@@ -166,34 +173,44 @@ class Call:
             await self.ws.close(CLOSE_NO_SESSION, "No demo account")
             return
         log.info("Call %s started for session %s", self.start.call_id, self.start.session_id)
-        try:
-            async with open_tools(self.start.token) as tools:
-                self.tools = tools
-                declarations = bridge.declarations(await tools.list_tools())
-                config = live.connect_config(
-                    system_prompt=build_system_prompt(
-                        self.start.context,
-                        "phone",
-                        get_rule_set().policy.call_language,
-                        today=voice_calls.business_date(),
-                    ),
-                    declarations=declarations,
-                    vocabulary=vocabulary,
-                    voice=self.settings.voice_name,
-                    silence_ms=self.settings.voice_silence_ms,
-                )
-                async with connect_gemini(self.settings.voice_model, config) as session:
-                    self.session = session
-                    await self._converse()
-        except Exception as error:
-            if live.is_rate_limit(error):
-                log.error("Gemini rate limit (429) on call %s", self.start.call_id)
-            else:
-                log.exception("Call %s failed", self.start.call_id)
-            self._request_end("dropped")
-        finally:
-            # Shielded: even if this handler is cancelled, the link is released.
-            await asyncio.shield(asyncio.ensure_future(self._finish()))
+        # Every span and log line of this call carries its ids (#84); tasks spawned inside
+        # inherit them.
+        with telemetry.bound(
+            session_id=self.start.session_id,
+            call_id=self.start.call_id,
+            channel="phone",
+            prompt_version=PROMPT_VERSION,
+            voice_model=self.settings.voice_model,
+            voice=self.settings.voice_name,
+        ):
+            try:
+                async with open_tools(self.start.token) as tools:
+                    self.tools = tools
+                    declarations = bridge.declarations(await tools.list_tools())
+                    config = live.connect_config(
+                        system_prompt=build_system_prompt(
+                            self.start.context,
+                            "phone",
+                            get_rule_set().policy.call_language,
+                            today=voice_calls.business_date(),
+                        ),
+                        declarations=declarations,
+                        vocabulary=vocabulary,
+                        voice=self.settings.voice_name,
+                        silence_ms=self.settings.voice_silence_ms,
+                    )
+                    async with connect_gemini(self.settings.voice_model, config) as session:
+                        self.session = session
+                        await self._converse()
+            except Exception as error:
+                if live.is_rate_limit(error):
+                    log.error("Gemini rate limit (429) on call %s", self.start.call_id)
+                else:
+                    log.exception("Call %s failed", self.start.call_id)
+                self._request_end("dropped")
+            finally:
+                # Shielded: even if this handler is cancelled, the link is released.
+                await asyncio.shield(asyncio.ensure_future(self._finish()))
 
     async def _finish(self) -> None:
         await self._cancel_tasks()
@@ -263,6 +280,17 @@ class Call:
                 await db.commit()
         except Exception:
             log.exception("Ending call %s failed", self.start.call_id)
+        telemetry.event(
+            "voice call ended",
+            ended_by=ended_by,
+            duration_s=duration,
+            turns=self.turns,
+            interruptions=self.interruptions,
+            buyer_utterances=self.buyer_utterances,
+            prompt_tokens=self.tokens["prompt"],
+            response_tokens=self.tokens["response"],
+            total_tokens=self.tokens["total"],
+        )
         log.info(
             "Call %s ended by %s after %d s; released %s",
             self.start.call_id,
@@ -344,6 +372,9 @@ class Call:
     async def _on_message(self, message: types.LiveServerMessage) -> None:
         if message.go_away is not None:
             log.warning("Gemini go_away: %s left", message.go_away.time_left)
+        if (usage := message.usage_metadata) is not None:
+            for key in self.tokens:
+                self.tokens[key] += getattr(usage, f"{key}_token_count", None) or 0
         if message.tool_call_cancellation is not None:
             for call_id in message.tool_call_cancellation.ids or []:
                 pending = self.pending.pop(call_id, None)
@@ -370,6 +401,8 @@ class Call:
                     {"type": "transcript", "who": "agent", "text": delta, "final": False}
                 )
         if content.interrupted:
+            self.interruptions += 1
+            telemetry.event("voice interrupted", turn=self.turns)
             await self._send_json({"type": "interrupted"})
             self.play_until = time.monotonic()
             self.turn_audio = False
@@ -388,6 +421,8 @@ class Call:
         if not self.buyer:
             self.buyer_utterances += 1
         self.buyer_spoke.set()
+        self.last_buyer_at = time.monotonic()
+        self.awaiting_reply = True
         delta = self.buyer.add(piece)
         if delta:
             await self._send_json(
@@ -402,6 +437,14 @@ class Call:
         self.last_audio_at = now
         if not self.turn_audio:
             self.turn_audio = True
+            if self.awaiting_reply and self.last_buyer_at is not None:
+                # From the caller's last transcribed words (Gemini doesn't say exactly when
+                # speech ended) to the first audio of the reply.
+                latency = round((now - self.last_buyer_at) * 1000)
+                self.awaiting_reply = False
+                self.turns += 1
+                telemetry.turn_latency.record(latency, telemetry.metric_attrs())
+                telemetry.event("voice turn", turn=self.turns, latency_ms=latency)
             if not self.pending:
                 await self._set_state("speaking")
         await self._send_audio(pcm)
@@ -486,6 +529,14 @@ class Call:
         await self._set_state("working", name)
 
     async def _run_tool(self, call_id: str, name: str, arguments: dict[str, Any]) -> None:
+        """The tool round trip as the caller lives it, from Gemini's call to its answer (#84)."""
+        timer = telemetry.Timer()
+        with telemetry.span(f"voice tool {name}", arguments=telemetry.summary(arguments)):
+            await self._run_tool_inner(call_id, name, arguments)
+            telemetry.annotate(round_trip_ms=timer.ms)
+        telemetry.event(f"voice tool {name}", round_trip_ms=timer.ms)
+
+    async def _run_tool_inner(self, call_id: str, name: str, arguments: dict[str, Any]) -> None:
         assert self.tools is not None and self.session is not None
         filler_task = self._spawn(self._filler_after(time.monotonic()))
         try:

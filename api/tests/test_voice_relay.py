@@ -452,3 +452,38 @@ def test_end_call_waits_for_the_goodbye_to_play(call):
     assert (END_CALL, {"ok": True}) in service.local_tools
     assert not live.tool_responses  # Gemini gets no answer, so it says nothing more
     assert service.log[-2:] == ["agent_said: Hei hei!", f"tool: {END_CALL}"]
+
+
+def test_a_call_reports_its_turns_interruptions_and_summary(call, caplog):
+    # Application Insights (#84): one event per reply with its latency, one per
+    # interruption, and a summary when the call ends.
+    import logging
+    import time
+
+    caplog.set_level(logging.INFO, logger="simo.events")
+    live, _, _ = call
+    with connect() as ws:
+        sock = Socket(ws)
+        sock.next("ready")
+        live.push(fx.said("Hei!"))
+        live.push(fx.audio())
+        live.push(fx.generation_complete())
+        sock.next("agent_state", state="listening")
+        live.push(fx.heard("Tarvitsen maitoa."))
+        sock.next("agent_state", state="thinking")
+        live.push(fx.said("Selvä,"))
+        live.push(fx.audio())
+        live.push(fx.interrupted())
+        sock.next("interrupted")
+        sock.hang_up()
+
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline and not any(
+        r.getMessage() == "voice call ended" for r in caplog.records
+    ):
+        time.sleep(0.05)
+    events = {r.getMessage(): r.__dict__ for r in caplog.records if r.name == "simo.events"}
+    assert int(events["voice turn"]["simo.latency_ms"]) >= 0
+    assert "voice interrupted" in events
+    ended = events["voice call ended"]
+    assert ended["simo.turns"] == "1" and ended["simo.interruptions"] == "1"
