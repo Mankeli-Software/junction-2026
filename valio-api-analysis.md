@@ -277,3 +277,14 @@ Synkka's marker "Allergeenitiedot annettu = Kyllä" (id 4008, meaning allergen i
 - Rule: for nuts record both the category (`AN`) and the specific nut. In the data 116 of 391 products with a specific nut as `CONTAINS` lack `AN` as `CONTAINS`.
 - Rule: gluten-containing cereals always get `AW` plus the specific cereal, but gluten-free oats or wheat are recorded **without** `AW`. In the data 212 of 569 products with oats as `CONTAINS` have no `AW`. So oats do not imply gluten, and "gluten-free" cannot be derived from the absence of `AW`. Use the `GLUTEN FREE_FROM` claim and `AW` together.
 - Rule: fish is recorded as general fish whatever the species, but the data also has species codes (`ABD` tuna, `ADQ` pollock). Use `AF` for the rule and the species codes for detail.
+
+## 14. The real webshop as a cross-check (toimitustukku.valioaimo.fi)
+
+The test account for the webshop (shared by the organisers) works on `toimitustukku.valioaimo.fi`. The shop is a JavaScript app with an identity-provider login, so it was driven with a headless browser. Findings:
+
+- **Category names:** the shop has its own three-level category tree (for example `Tuoretuotteet > Maitotaloustuotteet > Maidot ja piimät`). We matched 1 to 2 products per category by barcode (EAN) and used the shop's Finnish leaf name as `name_fi` in `data/valio_category_names.csv`. For 331 of 349 categories the Finnish title is the shop's own name; 18 are our translations (10 categories the shop has none of our products for, 7 where the sampled products disagreed, and 1 where the shop's name was misleading). See the columns `name_fi_source`, `confidence`, `shop_path_fi` and `shop_agree`.
+- **Ids differ:** the shop's product numbers (for example `8042230`) are not our API ids (for example `464073`). Barcode search is the only reliable link. About 28% of the sampled products are not sold in the shop at all.
+- **Delivery date:** the shop shows the delivery date **16.11.2026** in its header, matching the API's `availableDate`. Stock text in the shop reads for example "999+ pss varastossa", "Toimitettavissa 18.11." (deliverable 18.11) or "18.11. varastossa".
+- **Prices:** the shop shows each price net and with VAT, for example "2,53 € / pss" and "2,87 € / pss (alv 13.5 %)", which fits the API's `value` and `valueWithTax`.
+- **Allergens:** product pages list "Allergeenit" and "Ravitsemukselliset tiedot" (for example "Maito", "Väriaineeton, Laktoositon"), which can be used to cross-check our allergen data.
+- **Caution:** the shop's category for a single product can be misleading (for example farmed trout under "Luonnonkalat", wild fish). Where only one product was found the confidence is `shop-single`, and where the two sampled products disagreed it is `mixed`.

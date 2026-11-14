@@ -1,350 +1,350 @@
-category,name_en,mandate_group,product_count,confidence,note
-10400,Milk and sour milk drinks,dairy,91,checked,
-10401,Cream and cooking cream,dairy,53,checked,
-10402,"Plant-based drinks (oat, soy, almond)",dairy_alternatives,66,checked,
-10404,Condensed milk,dairy,7,checked,
-10405,Milk powder,dairy,14,checked,
-10406,Plant-based cooking cream,dairy_alternatives,30,checked,
-10411,"Fermented milk (viili, layered)",dairy,23,checked,
-10412,Yoghurt,dairy,150,checked,
-10413,Plant-based yoghurt and snacks,dairy_alternatives,46,checked,
-10418,Plant-based crème fraîche,dairy_alternatives,4,checked,
-10419,Sour cream and dips,dairy,29,checked,
-10430,Quark and skyr,dairy,49,checked,
-10431,Protein drinks and puddings,dairy,42,checked,
-10432,Chilled desserts and soft ice mixes,dairy,16,checked,
-10500,Butter,fats_oils,20,checked,
-10501,Portion butter,fats_oils,3,checked,
-10502,Flavoured butter,fats_oils,1,checked,
-10515,Margarine and spreads,fats_oils,42,checked,
-10516,Portion margarine,fats_oils,6,checked,
-10517,Liquid margarine and cooking fats,fats_oils,7,checked,
-10518,Baking margarine,fats_oils,5,checked,
-10530,Specialty and flavoured oils,fats_oils,24,checked,
-10531,Olive oil,fats_oils,45,checked,
-10532,"Sesame, peanut, coconut and other oils",fats_oils,17,checked,
-10590,Eggs (shell),eggs,9,checked,
-10592,Liquid egg products,eggs,21,checked,
-10600,"Cheese, blocks",dairy,129,checked,
-10602,"Cheese, sliced",dairy,89,checked,
-10603,"Cheese, grated",dairy,77,checked,
-10630,Goat and sheep cheese,dairy,10,checked,
-10631,White mould and soft cheese,dairy,24,checked,
-10632,Blue cheese,dairy,25,checked,
-10633,Processed and spreadable cheese,dairy,20,checked,
-10635,Cream cheese and mascarpone,dairy,54,checked,
-10636,Feta and salad cheese,dairy,47,checked,
-10637,Mozzarella,dairy,17,checked,
-10639,Halloumi and grilling cheese,dairy,16,checked,
-10640,"Paneer, bread cheese and specialty cheese",dairy,26,checked,
-10641,Plant-based cheese alternatives and other cheese,dairy_alternatives,27,low,"Mostly plant-based cheese, some regular cheese"
-10900,Rye bread,bakery,47,checked,
-10901,Mixed grain and wheat bread,bakery,71,checked,
-10902,Bread rolls and buns,bakery,16,checked,
-10903,Burger buns and specialty rolls,bakery,9,checked,
-11030,Sweet pastries and gluten-free baked goods,bakery,81,checked,
-17200,Sausages (raw and grill),meat,99,checked,
-17201,Frankfurters,meat,37,checked,
-17202,Bacon,meat,21,checked,
-17203,Ham,meat,82,checked,
-17204,Poultry cold cuts,meat,16,checked,
-17205,Sliced sausage cold cuts,meat,26,checked,
-17206,Salami,meat,63,checked,
-17207,Pâté and liver sausage,meat,16,checked,
-17208,Meat jelly and aspic,meat,5,checked,
-17209,Cooked meat snacks and pieces,meat,49,checked,
-17210,"Other chilled meat products (roast beef, meatballs)",meat,108,checked,
-17300,Chilled ready meals and casseroles,ready_meals,443,checked,
-17301,Chilled salads and fillings,ready_meals,102,checked,
-17302,Chilled side dishes and delicacies,ready_meals,43,checked,
-17303,"Wraps, sandwiches and filled bread",ready_meals,68,checked,
-17304,Fresh pasta and gnocchi,ready_meals,3,checked,
-17305,Hummus and dips,ready_meals,32,checked,
-17306,Plant-based protein products and tofu,ready_meals,123,checked,
-17401,Tomatoes,produce,29,checked,
-17402,"Cucumber, courgette and squash",produce,22,checked,
-17403,Lettuce and salad leaves,produce,41,checked,
-17404,Cabbage and cauliflower,produce,44,checked,
-17405,Onion and garlic,produce,24,checked,
-17406,Peppers and chillies,produce,27,checked,
-17407,"Fennel, asparagus, celery and aubergine",produce,22,checked,
-17408,Peas and green beans,produce,9,checked,
-17411,Citrus fruit,produce,16,checked,
-17412,Apples and pears,produce,16,checked,
-17413,Bananas,produce,6,checked,
-17414,"Grapes, stone fruit and avocado",produce,11,checked,
-17415,Exotic fruit,produce,32,checked,
-17421,"Potatoes, washed",produce,20,checked,
-17422,Peeled raw potatoes,produce,10,checked,
-17423,Cooked potato products,produce,32,checked,
-17424,Cut raw potatoes,produce,11,checked,
-17431,Root vegetables,produce,49,checked,
-17432,Peeled root vegetables and garlic,produce,22,checked,
-17433,Vegetable purées,produce,4,checked,
-17441,Prepared salad mixes,produce,42,checked,
-17442,"Cut vegetables (carrot, swede)",produce,49,checked,
-17443,"Cut tomato, cabbage and pepper",produce,105,checked,
-17444,Cut onion and leek,produce,15,checked,
-17445,Cut melon and fruit,produce,50,checked,
-17451,Fresh herbs,produce,29,checked,
-17452,Potted and cut herbs,produce,11,checked,
-17453,Specialty leaves and herbs,produce,16,low,Mixed specialty leaves and herbs
-17454,Microgreens and cress,produce,55,checked,
-17455,Edible flowers,produce,32,checked,
-17456,Sprouts,produce,3,checked,
-17457,Banana leaves,produce,2,checked,
-17471,Cultivated mushrooms,produce,21,checked,
-17472,Wild mushrooms,produce,5,checked,
-17473,Salted mushrooms,produce,2,checked,
-17481,"Berries, fresh",produce,17,checked,
-18701,Fresh salmon and trout,fish,81,checked,
-18702,Smoked fish,fish,16,checked,
-18703,"Shellfish and crab, chilled",fish,18,checked,
-18704,Roe and seaweed caviar,fish,6,checked,
-18705,Herring and preserved fish,fish,59,checked,
-18706,"Fish fillets, pre-cut",fish,3,checked,
-18707,Flamed and grilled fish,fish,3,checked,
-18708,Cold-smoked and marinated fish,fish,18,checked,
-18710,Fresh pork,meat,106,checked,
-18720,Fresh beef,meat,149,checked,
-18730,Reindeer and game,meat,1,checked,
-18740,Lamb,meat,3,checked,
-18750,Fresh poultry,meat,107,checked,
-18751,Duck,meat,1,checked,
-18760,Minced meat,meat,18,checked,
-18761,Meat patties and burger steaks,meat,19,checked,
-20000,Pet treats,non_food,4,checked,
-20011,Pots and pans,non_food,60,checked,
-20012,Gastronorm pans and lids,non_food,119,checked,
-20013,Baking tins and mixing bowls,non_food,26,checked,
-20014,"Bottles, freezer bags and storage",non_food,34,checked,
-20021,"Peelers, knives and hand tools",non_food,76,checked,
-20022,"Whisks, strainers and kitchen utensils",non_food,110,checked,
-20023,"Racks, baskets and mats",non_food,30,checked,
-20024,Timers and thermometers,non_food,5,checked,
-20031,Plates and bowls,non_food,106,checked,
-20032,Glasses,non_food,95,checked,
-20033,"Jugs, bowls and serving dishes",non_food,87,checked,
-20034,Serving tools and scoops,non_food,47,checked,
-20035,Cutlery and spoons,non_food,54,checked,
-20036,Bar and pastry tools,non_food,36,checked,
-21100,Crisp rolls and rusks,dry_goods,4,checked,
-21120,Crackers and biscuits,snacks_sweets,33,checked,
-21121,Croutons,dry_goods,3,checked,
-21130,Wafers and sponge cakes,snacks_sweets,50,checked,
-21140,Cookies and gingerbread,snacks_sweets,96,checked,
-21150,Snack and cereal bars,snacks_sweets,70,checked,
-21200,Rye crispbread,dry_goods,10,checked,
-21211,Crispbread and crackers,dry_goods,32,checked,
-21300,Wheat flour,dry_goods,28,checked,
-21310,Specialty and gluten-free flours,dry_goods,59,checked,
-21320,Baking mixes and pancake mixes,dry_goods,40,checked,
-21340,Rice,dry_goods,66,checked,
-21360,Starches and thickeners,dry_goods,28,checked,
-21370,"Oats, bran and flakes",dry_goods,71,checked,
-21371,"Barley, millet and instant porridge",dry_goods,25,checked,
-21372,Breakfast cereals,dry_goods,21,checked,
-21373,Muesli and granola,dry_goods,28,checked,
-21380,Pasta,dry_goods,140,checked,
-21381,Noodles,dry_goods,31,checked,
-21382,"Couscous, bulgur and quinoa",dry_goods,27,checked,
-21390,"Lentils, peas and seeds",dry_goods,28,checked,
-21391,Malt and malt extracts,dry_goods,5,checked,
-21393,"Plant protein products, dry",dry_goods,6,checked,
-21394,Instant mashed potato,dry_goods,8,checked,
-21400,Juice drinks,beverages,88,checked,
-21401,Juice concentrates,beverages,61,checked,
-21402,Berry soups and chilled fruit drinks,beverages,31,checked,
-21403,Juices,beverages,94,checked,
-21404,Smoothies,beverages,50,checked,
-21405,Non-alcoholic beer and mixed drinks,beverages,4,checked,
-21450,Jams,dry_goods,95,checked,
-21451,Fruit purées,dry_goods,36,checked,
-21452,Marmalade and jelly,dry_goods,29,checked,
-21453,Nut butters and spreads,dry_goods,15,checked,
-21460,Nuts and almonds,dry_goods,64,checked,
-21461,Dried fruit and berries,dry_goods,61,checked,
-21462,Seeds and seed mixes,dry_goods,35,checked,
-21463,Seaweed and miso,dry_goods,10,checked,
-21510,Canned meat and pâté,dry_goods,16,checked,
-21530,Canned fish,dry_goods,26,checked,
-21540,Canned snails and delicacies,dry_goods,8,checked,
-21550,Canned and dried mushrooms and truffle,dry_goods,25,checked,
-21580,Canned fruit,dry_goods,42,checked,
-21590,Canned tomato,dry_goods,78,checked,
-21591,Pickled cucumber and relish,dry_goods,49,checked,
-21592,Sauerkraut and red cabbage,dry_goods,9,checked,
-21593,Pickled beetroot,dry_goods,10,checked,
-21594,Canned beans and pulses,dry_goods,54,checked,
-21595,Olives,dry_goods,65,checked,
-21596,Canned and preserved vegetables,dry_goods,147,checked,
-21600,Baby food,dry_goods,54,checked,
-21900,Soups,dry_goods,11,checked,
-21901,Soup bases and miso paste,dry_goods,13,checked,
-21902,"Stock cubes, bouillon and fond",dry_goods,111,checked,
-21903,Liquid bouillon,dry_goods,6,checked,
-21904,"Sauce bases (hollandaise, tomato)",sauces,57,checked,
-21905,Sauce powders and cream sauces,sauces,51,checked,
-21910,Mayonnaise,sauces,87,checked,
-21912,Ketchup,sauces,33,checked,
-21917,Table sauces and marinades,sauces,184,checked,
-21918,Dressings,sauces,81,checked,
-21919,"Tahini, balsamic cream and dressings",sauces,20,checked,
-21920,Cooking sauces and curry sauces,sauces,43,checked,
-21921,Soy sauce and Asian sauces,sauces,41,checked,
-21950,Supplements and special foods,dry_goods,8,low,"Supplements, vitamins, rose water and similar"
-21952,Specialty snacks and thickeners,dry_goods,2,low,"Only 2 products, specialty items"
-21980,Dessert mixes and creams,dry_goods,48,checked,
-21981,Dessert sauces and toppings,dry_goods,39,checked,
-21982,"Condensed milk, pizza layers and baking items",dry_goods,4,low,Mixed baking items
-21990,Chips and crisps,snacks_sweets,49,checked,
-21991,Tortillas and Tex-Mex,dry_goods,33,checked,
-21992,Nut mixes,snacks_sweets,35,checked,
-21993,"Snacks, nachos and jerky",snacks_sweets,42,checked,
-21994,Salsa and cheese sauces,sauces,56,checked,
-22100,Sugar,dry_goods,40,checked,
-22140,Syrups,dry_goods,125,checked,
-22150,Honey,dry_goods,19,checked,
-22190,Sweeteners,dry_goods,10,checked,
-22300,Ground coffee,beverages,109,checked,
-22410,Coffee beans,beverages,44,checked,
-22411,Espresso coffee,beverages,4,checked,
-22412,Instant coffee,beverages,23,checked,
-22413,Ready-to-drink coffee,beverages,27,checked,
-22530,Herbal and flavoured tea,beverages,106,checked,
-22531,Black and green tea,beverages,23,checked,
-22532,Iced tea and tea drinks,beverages,21,checked,
-22540,Cocoa and hot chocolate,beverages,27,checked,
-22600,Salt,dry_goods,40,checked,
-22601,Baking decorations and confectionery ingredients,dry_goods,190,low,Mixed baking and confectionery ingredients
-22610,Mustard,sauces,45,checked,
-22620,Vinegar,sauces,65,checked,
-22630,Spices and seasonings,dry_goods,432,checked,
-22640,Liquid flavourings,dry_goods,17,checked,
-22641,Curry and spice pastes,dry_goods,64,checked,
-22646,Spice blends and seasonings,dry_goods,19,checked,
-22660,Yeast,dry_goods,7,checked,
-22670,"Cooking additives (pectin, acids, mirin)",dry_goods,30,low,"Cooking additives, mixed"
-22700,Soft drinks,beverages,157,checked,
-22701,Energy drinks,beverages,78,checked,
-22702,Tonics and non-alcoholic specialty drinks,beverages,47,checked,
-22703,Functional shots and coconut water,beverages,27,checked,
-22704,Kombucha,beverages,15,checked,
-22705,Spring water,beverages,17,checked,
-22706,Mineral water,beverages,63,checked,
-22707,Soft drink concentrates,beverages,11,checked,
-30010,Pest control and garden,non_food,3,checked,
-32990,Lighters and matches,non_food,13,checked,
-41701,Frozen pork,frozen,56,checked,
-41702,Frozen beef,frozen,109,checked,
-41703,Frozen game and reindeer,frozen,39,checked,
-41704,Frozen lamb,frozen,31,checked,
-41705,"Frozen meat products (patties, meatballs)",frozen,140,checked,
-41710,Frozen chicken,frozen,129,checked,
-41711,Frozen duck and wild bird,frozen,9,checked,
-41712,"Frozen chicken products (nuggets, wings)",frozen,46,checked,
-41720,Frozen fish,frozen,122,checked,
-41721,Frozen shellfish and seafood,frozen,52,checked,
-41722,Frozen roe,frozen,8,checked,
-41723,"Frozen fish products (fried, breaded)",frozen,74,checked,
-41731,Frozen vegetables,frozen,136,checked,
-41732,Frozen vegetable mixes,frozen,49,checked,
-41733,Frozen herbs and greens,frozen,11,checked,
-41734,Frozen vegetable purées,frozen,7,checked,
-41740,Frozen berries,frozen,35,low,A few misfiled products (for example a liver patty)
-41741,Frozen fruit,frozen,17,checked,
-41742,Frozen fruit purées,frozen,64,checked,
-41750,Frozen purées and rösti,frozen,6,checked,
-41751,Frozen potato products,frozen,78,checked,
-41752,Frozen fish and meat dishes,frozen,8,checked,
-41753,Frozen ready meals,frozen,146,checked,
-41754,Frozen vegetarian and vegan products,frozen,47,checked,
-41755,Frozen pizza and pasta,frozen,221,checked,
-41760,Frozen bread and flatbread,frozen,244,checked,
-41761,Frozen buns and burger buns,frozen,119,checked,
-41762,Frozen pastries and savoury bakery,frozen,131,checked,
-41763,Frozen cakes,frozen,349,checked,
-41764,Frozen sweet buns and doughnuts,frozen,179,checked,
-41765,Frozen pies and pastries,frozen,81,checked,
-41766,Frozen dough and bases,frozen,66,checked,
-41770,Frozen coffee concentrate and ice cubes,frozen,17,low,"Mixed: ice, coffee concentrate, cheese, eggs"
-41771,Frozen cheese (lactose-free),frozen,25,checked,
-41800,"Ice cream, sticks and singles",frozen,124,checked,
-41801,"Ice cream, tubs",frozen,109,checked,
-41820,"Ice cream, bulk",frozen,139,checked,
-41830,Frozen pancakes and crêpes,frozen,39,checked,
-52200,Chocolate bars and sweets,snacks_sweets,91,checked,
-52201,Chocolate tablets,snacks_sweets,58,checked,
-52202,Pralines and chocolate confectionery,snacks_sweets,40,checked,
-52208,Lollipops and chocolate raisins,snacks_sweets,34,checked,
-52209,Pick and mix candy,snacks_sweets,62,checked,
-52210,Candy bags,snacks_sweets,152,checked,
-52240,Pastilles and chewing sweets,snacks_sweets,80,checked,
-52260,Chewing gum,snacks_sweets,21,checked,
-52290,Liquorice and assorted chocolates,snacks_sweets,90,checked,
-63000,Shampoo and personal care,non_food,18,checked,
-63001,Soap and hand wash,non_food,125,checked,
-63002,Oral care,non_food,25,checked,
-63070,Hygiene products,non_food,11,checked,
-63071,Gloves and first aid,non_food,77,checked,
-63072,Wet wipes and refreshing towels,non_food,21,checked,
-63100,Dishwashing detergents,non_food,117,checked,
-63113,Laundry products,non_food,52,checked,
-63114,Cleaning products,non_food,181,checked,
-63115,Air fresheners and machine cleaners,non_food,83,checked,
-63120,Cleaning tools and brushes,non_food,164,checked,
-63121,Garbage bags,non_food,44,checked,
-63122,Waste bins,non_food,19,checked,
-63130,Measuring jugs and storage boxes,non_food,21,checked,
-63131,Buckets and tubs,non_food,10,checked,
-63200,Kitchen paper,non_food,6,checked,
-63210,Toilet paper,non_food,37,checked,
-63230,Small napkins,non_food,79,checked,
-63231,"Napkins, 33 cm",non_food,94,checked,
-63232,Tablecloths and table covers,non_food,113,checked,
-63233,Dispenser napkins,non_food,40,checked,
-63234,Napkin holders and dispensers,non_food,16,checked,
-63235,Dinner napkins,non_food,238,checked,
-63240,Hand towels,non_food,42,checked,
-63241,Toilet paper and tissue dispensers,non_food,38,checked,
-63242,Tissues,non_food,8,checked,
-63270,Cooking twine and ties,non_food,2,checked,
-63271,Coffee filters,non_food,31,checked,
-63272,Baking paper and foil,non_food,46,checked,
-63273,Roasting and ham bags,non_food,12,checked,
-63300,Workwear and kitchen towels,non_food,36,checked,
-63900,Small kitchen appliances,non_food,11,checked,
-64000,Disposable plates,non_food,35,checked,
-64001,Disposable cups and glasses,non_food,180,checked,
-64002,Disposable cutlery,non_food,33,checked,
-64003,"Doilies, pastry cups and skewers",non_food,125,checked,
-64004,Takeaway trays and boxes,non_food,343,checked,
-64005,Food bags and packaging,non_food,88,checked,
-64006,Carrier bags,non_food,21,checked,
-64007,Lids and bakery boxes,non_food,29,checked,
-64008,Cooler boxes and cold packs,non_food,12,checked,
-64010,Candles,non_food,61,checked,
-64011,Lanterns and outdoor candles,non_food,42,checked,
-64100,Charcoal and grill supplies,non_food,11,checked,
-64130,Pet waste bags and pet items,non_food,2,checked,
-64300,"Clocks, sauna and thermometers",non_food,18,checked,
-64301,Batteries and electrical,non_food,21,checked,
-64310,Car and lamp fluids,non_food,4,checked,
-64500,Gift and storage boxes,non_food,14,checked,
-67730,Newspapers,non_food,6,checked,
-67800,Seasonal and gift items,non_food,7,checked,
-77722,Gases (CO2),non_food,2,checked,
-84966,Non-alcoholic beer and cider,beverages,15,checked,
-84967,Alcohol-free cider and long drinks,beverages,5,checked,
-84988,Alcohol-free long drinks and spritz,beverages,6,checked,
-85001,Alcohol-free beer,beverages,31,checked,
-85028,Alcohol-free wine,beverages,27,checked,
-85034,Alcohol-free cider,beverages,1,checked,
-90011,Folders and pockets,non_food,49,checked,
-90012,Pens and markers,non_food,45,checked,
-90013,Paper,non_food,7,checked,
-90014,Thermal paper rolls,non_food,11,checked,
-90015,Notebooks and sticky notes,non_food,31,checked,
-90021,Mailers and envelopes,non_food,12,checked,
-90022,Tape and labels,non_food,37,checked,
-90024,Office supplies,non_food,32,checked,
+category,name_en,name_fi,name_fi_source,mandate_group,product_count,confidence,note,shop_path_fi,shop_agree,shop_products_checked
+10400,Milk and sour milk drinks,Maidot ja piimät,shop,dairy,91,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Maidot ja piimät,2/2,2
+10401,Cream and cooking cream,Valio kermat,shop,dairy,53,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Kermat > Valio kermat,2/2,2
+10402,"Plant-based drinks (oat, soy, almond)",Kasvipohjaiset maidonkaltaiset,shop,dairy_alternatives,66,shop-checked,,Tuoretuotteet > Kasvipohjaiset > Kasvipohjaiset maidonkaltaiset,2/2,2
+10404,Condensed milk,Kondensoidut maidot,shop,dairy,7,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Kondensoidut maidot,2/2,2
+10405,Milk powder,Maito- ja kermajauheet,shop,dairy,14,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Maito- ja kermajauheet,2/2,2
+10406,Plant-based cooking cream,Kasvipohjaiset kermankaltaiset,shop,dairy_alternatives,30,shop-checked,,Tuoretuotteet > Kasvipohjaiset > Kasvipohjaiset kermankaltaiset,2/2,2
+10411,"Fermented milk (viili, layered)",Viilit,shop,dairy,23,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Viilit,2/2,2
+10412,Yoghurt,Jogurtit,shop,dairy,150,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Jogurtit,2/2,2
+10413,Plant-based yoghurt and snacks,Kasvipohjaiset jogurtin kaltaiset,shop,dairy_alternatives,46,shop-checked,,Tuoretuotteet > Kasvipohjaiset > Kasvipohjaiset jogurtin kaltaiset,2/2,2
+10418,Plant-based cooking products (crème fraîche),Kasvipohjaiset ruoanvalmistustuotteet,shop,dairy_alternatives,4,shop-checked,,Tuoretuotteet > Kasvipohjaiset > Kasvipohjaiset ruoanvalmistustuotteet,2/2,2
+10419,Sour cream and other soured milk products,Muut hapanmaitotuotteet,shop,dairy,29,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Muut hapanmaitotuotteet,2/2,2
+10430,Quark and skyr,Rahkat,shop,dairy,49,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Rahkat,2/2,2
+10431,Puddings and dairy snacks,Vanukkaat ja välipalat,shop,dairy,42,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Vanukkaat ja välipalat,2/2,2
+10432,Chilled desserts and soft ice mixes,Soft Ice- ja jälkiruoka-ainekset,shop,dairy,16,shop-checked,,Tuoretuotteet > Maitotaloustuotteet > Soft Ice- ja jälkiruoka-ainekset,2/2,2
+10500,Butter,Voirasiat ja -paketit,shop,fats_oils,20,shop-checked,,Tuoretuotteet > Voit > Voirasiat ja -paketit,2/2,2
+10501,Portion butter,Annosvoit,shop,fats_oils,3,shop-checked,,Tuoretuotteet > Voit > Annosvoit,2/2,2
+10502,Flavoured butter,Maustevoit,shop,fats_oils,1,shop-single,,Tuoretuotteet > Voit > Maustevoit,1/1,1
+10515,Margarine and spreads,Margariinirasiat ja -paketit,shop,fats_oils,42,shop-checked,,Tuoretuotteet > Margariinit > Margariinirasiat ja -paketit,2/2,2
+10516,Portion margarine,Annosmargariinit,shop,fats_oils,6,shop-checked,,Tuoretuotteet > Margariinit > Annosmargariinit,2/2,2
+10517,Liquid margarine and cooking fats,Juoksevat margariinit,shop,fats_oils,7,shop-checked,,Tuoretuotteet > Margariinit > Juoksevat margariinit,2/2,2
+10518,Baking margarine,Leivontamargariinit,shop,fats_oils,5,shop-checked,,Tuoretuotteet > Margariinit > Leivontamargariinit,2/2,2
+10530,Specialty and flavoured oils,Ruokaöljyt,shop,fats_oils,24,shop-checked,,Teolliset elintarvikkeet > Öljyt > Ruokaöljyt,2/2,2
+10531,Olive oil,"Oliiviöljyt, myös maustetut",shop,fats_oils,45,shop-checked,,"Teolliset elintarvikkeet > Öljyt > Oliiviöljyt, myös maustetut",2/2,2
+10532,"Sesame, peanut, coconut and other oils","Muut öljyt, myös maustetut",shop,fats_oils,17,shop-checked,,"Teolliset elintarvikkeet > Öljyt > Muut öljyt, myös maustetut",2/2,2
+10590,Eggs (shell),Kananmunat,shop,eggs,9,shop-checked,,Tuoretuotteet > Munat ja munavalmisteet > Kananmunat,2/2,2
+10592,Liquid egg products,Kananmunavalmisteet,shop,eggs,21,shop-checked,,Tuoretuotteet > Munat ja munavalmisteet > Kananmunavalmisteet,2/2,2
+10600,"Cheese, blocks",Palajuustot,shop,dairy,129,shop-checked,,Tuoretuotteet > Juustot > Palajuustot,2/2,2
+10602,"Cheese, sliced",Viipalejuustot,shop,dairy,89,shop-checked,,Tuoretuotteet > Juustot > Viipalejuustot,2/2,2
+10603,"Cheese, grated","Juustoraasteet, -murut ja -lastut",shop,dairy,77,shop-checked,,"Tuoretuotteet > Juustot > Juustoraasteet, -murut ja -lastut",2/2,2
+10630,Goat and sheep cheese,Vuohen- ja lampaanmaitojuustot,shop,dairy,10,shop-checked,,Tuoretuotteet > Juustot > Vuohen- ja lampaanmaitojuustot,2/2,2
+10631,White mould and soft cheese,Valkohome- ja kittijuustot,shop,dairy,24,shop-checked,,Tuoretuotteet > Juustot > Valkohome- ja kittijuustot,2/2,2
+10632,Blue cheese,Sini- ja punahomejuustot,shop,dairy,25,shop-checked,,Tuoretuotteet > Juustot > Sini- ja punahomejuustot,2/2,2
+10633,Processed and spreadable cheese,Sulatejuustot,shop,dairy,20,shop-single,,Tuoretuotteet > Juustot > Sulatejuustot,1/1,1
+10635,Cream cheese and mascarpone,Tuorejuustot,shop,dairy,54,shop-checked,,Tuoretuotteet > Juustot > Tuorejuustot,2/2,2
+10636,Feta and salad cheese,Fetat ja salaattijuustot,shop,dairy,47,shop-checked,,Tuoretuotteet > Juustot > Fetat ja salaattijuustot,2/2,2
+10637,Mozzarella,Mozzarellajuustot,shop,dairy,17,shop-checked,,Tuoretuotteet > Juustot > Mozzarellajuustot,2/2,2
+10639,Halloumi and grilling cheese,Halloumit ja grillijuustot,shop,dairy,16,shop-checked,,Tuoretuotteet > Juustot > Halloumit ja grillijuustot,2/2,2
+10640,"Paneer, bread cheese and specialty cheese",Muut juustot,shop,dairy,26,shop-checked,,Tuoretuotteet > Juustot > Muut juustot,2/2,2
+10641,Plant-based cheese alternatives,Kasvipohjaiset juustonkaltaiset,shop,dairy_alternatives,27,shop-checked,,Tuoretuotteet > Kasvipohjaiset > Kasvipohjaiset juustonkaltaiset,10/10,10
+10900,Rye bread,Tummat ruokaleivät,shop,bakery,47,shop-checked,,Tuoretuotteet > Tuore leipä > Tummat ruokaleivät,2/2,2
+10901,Mixed grain and wheat bread,Vaaleat ruokaleivät,shop,bakery,71,shop-checked,,Tuoretuotteet > Tuore leipä > Vaaleat ruokaleivät,2/2,2
+10902,Bread rolls and buns,Sämpylät ja patongit,shop,bakery,16,shop-checked,,Tuoretuotteet > Tuore leipä > Sämpylät ja patongit,2/2,2
+10903,Burger buns and specialty rolls,Muut ruokaleivät ja sämpylät,shop,bakery,9,shop-checked,,Tuoretuotteet > Tuore leipä > Muut ruokaleivät ja sämpylät,2/2,2
+11030,Sweet pastries and gluten-free baked goods,"Kahvileivät, viinerit, kakut",shop,bakery,81,shop-checked,,"Tuoretuotteet > Tuore leipä > Kahvileivät, viinerit, kakut",2/2,2
+17200,Sausages (raw and grill),Makkarat,shop,meat,99,shop-checked,,Tuoretuotteet > Lihajalosteet > Makkarat,2/2,2
+17201,Frankfurters,Nakit,shop,meat,37,shop-checked,,Tuoretuotteet > Lihajalosteet > Nakit,2/2,2
+17202,Bacon,Pekonit,shop,meat,21,shop-checked,,Tuoretuotteet > Lihajalosteet > Pekonit,2/2,2
+17203,Ham,Kokonaiset kinkut ja leikkeleet,shop,meat,82,shop-checked,,Tuoretuotteet > Lihajalosteet > Kokonaiset kinkut ja leikkeleet,2/2,2
+17204,Poultry cold cuts,Broileri- ja kalkkunaleikkeleet,shop,meat,16,shop-checked,,Tuoretuotteet > Lihajalosteet > Broileri- ja kalkkunaleikkeleet,2/2,2
+17205,Sliced sausage cold cuts,Leikkelemakkarat,shop,meat,26,shop-checked,,Tuoretuotteet > Lihajalosteet > Leikkelemakkarat,2/2,2
+17206,Salami,Meetvurstit ja salamit,shop,meat,63,shop-checked,,Tuoretuotteet > Lihajalosteet > Meetvurstit ja salamit,2/2,2
+17207,Pâté and liver sausage,Maksamakkarat ja -pasteijat,shop,meat,16,shop-checked,,Tuoretuotteet > Lihajalosteet > Maksamakkarat ja -pasteijat,2/2,2
+17208,Meat jelly and aspic,Lihahyytelöt ja muut leivänpäälliset,shop,meat,5,shop-checked,,Tuoretuotteet > Lihajalosteet > Lihahyytelöt ja muut leivänpäälliset,2/2,2
+17209,Cooked meat snacks and pieces,Suikaleet ja kuutiot,shop,meat,49,shop-checked,,Tuoretuotteet > Lihajalosteet > Suikaleet ja kuutiot,2/2,2
+17210,"Other chilled meat products (roast beef, meatballs)",Muut kypsät kokolihavalmisteet,shop,meat,108,shop-checked,,Tuoretuotteet > Lihajalosteet > Muut kypsät kokolihavalmisteet,2/2,2
+17300,Chilled ready meals and casseroles,Valmisruoat ja -keitot,shop,ready_meals,443,shop-checked,,Tuoretuotteet > Valmisruoka > Valmisruoat ja -keitot,2/2,2
+17301,Chilled salads and fillings,Ruokasalaatit,shop,ready_meals,102,shop-checked,,Tuoretuotteet > Valmisruoka > Ruokasalaatit,2/2,2
+17302,Chilled side dishes and delicacies,Kylmät lisäkkeet ja herkut,translated,ready_meals,43,mixed,Shop paths differ: 1x Rahkat | 1x Valmisruoat ja -keitot,Tuoretuotteet > Maitotaloustuotteet > Rahkat,1/2,2
+17303,"Wraps, sandwiches and filled bread",Annostuotteet ja take away,shop,ready_meals,68,shop-checked,,Tuoretuotteet > Valmisruoka > Annostuotteet ja take away,2/2,2
+17304,Fresh pasta and gnocchi,Tuorepastat,shop,ready_meals,3,shop-single,,Tuoretuotteet > Valmisruoka > Tuorepastat,1/1,1
+17305,Hummus and dips,Hummukset ja dipit,translated,ready_meals,32,mixed,Shop paths differ: 1x Maustetahnat | 1x Ateriatahnat ja -levitteet,Teolliset elintarvikkeet > Mausteet ja etikat > Maustetahnat,1/2,2
+17306,Plant-based protein products and tofu,Kasviproteiinit,shop,ready_meals,123,shop-checked,,Tuoretuotteet > Valmisruoka > Kasviproteiinit,2/2,2
+17401,Tomatoes,Tomaatit,shop,produce,29,shop-checked,,Hedelmät ja vihannekset > Vihannekset > Tomaatit,2/2,2
+17402,"Cucumber, courgette and squash","Kurkut, zuccinit ja kurpitsat",shop,produce,22,shop-single,,"Hedelmät ja vihannekset > Vihannekset > Kurkut, zuccinit ja kurpitsat",1/1,1
+17403,Lettuce and salad leaves,Salaatit,shop,produce,41,shop-checked,,Hedelmät ja vihannekset > Vihannekset > Salaatit,2/2,2
+17404,Cabbage and cauliflower,Kaalit,shop,produce,44,shop-single,,Hedelmät ja vihannekset > Vihannekset > Kaalit,1/1,1
+17405,Onion and garlic,Sipulit,shop,produce,24,shop-single,,Hedelmät ja vihannekset > Vihannekset > Sipulit,1/1,1
+17406,Peppers and chillies,Paprikat,shop,produce,27,shop-checked,,Hedelmät ja vihannekset > Vihannekset > Paprikat,2/2,2
+17407,"Fennel, asparagus, celery and aubergine",Muut vihannekset,shop,produce,22,shop-single,,Hedelmät ja vihannekset > Vihannekset > Muut vihannekset,1/1,1
+17408,Peas and green beans,"Pavut, herneet ja palkokasvit",shop,produce,9,shop-checked,,"Hedelmät ja vihannekset > Vihannekset > Pavut, herneet ja palkokasvit",2/2,2
+17411,Citrus fruit,Sitrushedelmät,shop,produce,16,shop-checked,,Hedelmät ja vihannekset > Hedelmät > Sitrushedelmät,2/2,2
+17412,Apples and pears,Omenat ja päärynät,shop,produce,16,shop-checked,,Hedelmät ja vihannekset > Hedelmät > Omenat ja päärynät,2/2,2
+17413,Bananas,Banaanit,shop,produce,6,shop-checked,,Hedelmät ja vihannekset > Hedelmät > Banaanit,2/2,2
+17414,"Grapes, stone fruit and avocado",Kivelliset hedelmät,shop,produce,11,shop-checked,,Hedelmät ja vihannekset > Hedelmät > Kivelliset hedelmät,2/2,2
+17415,Exotic fruit,Muut hedelmät,shop,produce,32,shop-checked,,Hedelmät ja vihannekset > Hedelmät > Muut hedelmät,2/2,2
+17421,"Potatoes, washed",Kuorelliset perunat,shop,produce,20,shop-checked,,Hedelmät ja vihannekset > Perunat > Kuorelliset perunat,2/2,2
+17422,Peeled raw potatoes,Raa'at ja kuoritut perunat,shop,produce,10,shop-checked,,Hedelmät ja vihannekset > Perunat > Raa'at ja kuoritut perunat,2/2,2
+17423,Cooked potato products,Keitetyt perunat,shop,produce,32,shop-checked,,Hedelmät ja vihannekset > Perunat > Keitetyt perunat,2/2,2
+17424,Cut raw potatoes,Raa'at ja leikatut perunat,shop,produce,11,shop-checked,,Hedelmät ja vihannekset > Perunat > Raa'at ja leikatut perunat,2/2,2
+17431,Root vegetables,Juurekset,shop,produce,49,shop-checked,,Hedelmät ja vihannekset > Juurekset > Juurekset,2/2,2
+17432,Peeled root vegetables and garlic,Kuoritut juurekset ja sipulit,shop,produce,22,shop-single,,Hedelmät ja vihannekset > Juurekset > Kuoritut juurekset ja sipulit,1/1,1
+17433,Vegetable purées,Tuoreet juuressoseet,shop,produce,4,shop-checked,,Hedelmät ja vihannekset > Juurekset > Tuoreet juuressoseet,2/2,2
+17441,Prepared salad mixes,Leikatut salaatit,shop,produce,42,shop-checked,,Hedelmät ja vihannekset > Leikattu hevi > Leikatut salaatit,2/2,2
+17442,"Cut vegetables (carrot, swede)",Leikatut juurekset,shop,produce,49,shop-checked,,Hedelmät ja vihannekset > Leikattu hevi > Leikatut juurekset,2/2,2
+17443,"Cut tomato, cabbage and pepper",Leikatut vihannekset,shop,produce,105,shop-checked,,Hedelmät ja vihannekset > Leikattu hevi > Leikatut vihannekset,2/2,2
+17444,Cut onion and leek,Leikatut sipulit,shop,produce,15,shop-checked,,Hedelmät ja vihannekset > Leikattu hevi > Leikatut sipulit,2/2,2
+17445,Cut melon and fruit,Leikatut hedelmät,shop,produce,50,shop-checked,,Hedelmät ja vihannekset > Leikattu hevi > Leikatut hedelmät,2/2,2
+17451,Fresh herbs,Yrttipuntit,shop,produce,29,shop-checked,,Hedelmät ja vihannekset > Yrtit ja versot > Yrttipuntit,2/2,2
+17452,Potted and cut herbs,Yrttiruukut,shop,produce,11,shop-single,,Hedelmät ja vihannekset > Yrtit ja versot > Yrttiruukut,1/1,1
+17453,Boxed herbs and sprouts,Yrttirasiat,shop,produce,16,shop-checked,Shop paths differ: 4x Yrttirasiat | 1x Idut ja versot,Hedelmät ja vihannekset > Yrtit ja versot > Yrttirasiat,4/5,5
+17454,Microgreens and cress,Idut ja versot,shop,produce,55,shop-checked,,Hedelmät ja vihannekset > Yrtit ja versot > Idut ja versot,2/2,2
+17455,Edible flowers,Syötävät kukat,shop,produce,32,shop-checked,,Hedelmät ja vihannekset > Syötävät kukat,2/2,2
+17456,Sprouts,Idut ja versot,shop,produce,3,shop-checked,,Hedelmät ja vihannekset > Yrtit ja versot > Idut ja versot,2/2,2
+17457,Banana leaves,Maustekasvit ja -lehdet,shop,produce,2,shop-single,,Hedelmät ja vihannekset > Yrtit ja versot > Maustekasvit ja -lehdet,1/1,1
+17471,Cultivated mushrooms,Viljellyt tuoreet sienet,shop,produce,21,shop-checked,,Hedelmät ja vihannekset > Sienet > Viljellyt tuoreet sienet,2/2,2
+17472,Wild mushrooms,Luonnon tuoreet sienet,shop,produce,5,mixed,Shop paths differ: 1x Viljellyt tuoreet sienet | 1x Luonnon tuoreet sienet,Hedelmät ja vihannekset > Sienet > Viljellyt tuoreet sienet,1/2,2
+17473,Salted mushrooms,Suolasienet,translated,produce,2,low,No shop match found; Finnish title translated by us,,,0
+17481,"Berries, fresh",Tuoreet marjat,shop,produce,17,shop-checked,,Hedelmät ja vihannekset > Marjat > Tuoreet marjat,2/2,2
+18701,Fresh salmon and trout,Tuore lohi ja kirjolohi,translated,fish,81,shop-single,,Tuore liha ja kala > Tuore kala > Luonnonkalat,1/1,1
+18702,Smoked fish,Savukalat,shop,fish,16,shop-checked,,Tuore liha ja kala > Tuore kala > Savukalat,2/2,2
+18703,"Shellfish and crab, chilled",Äyriäiset,shop,fish,18,shop-checked,,Tuore liha ja kala > Tuore kala > Äyriäiset,2/2,2
+18704,Roe and seaweed caviar,Mädit ja merilevävalmisteet,shop,fish,6,shop-checked,,Tuore liha ja kala > Tuore kala > Mädit ja merilevävalmisteet,2/2,2
+18705,Fish products (herring and preserved fish),Kalajalosteet,shop,fish,59,shop-checked,,Tuore liha ja kala > Tuore kala > Kalajalosteet,2/2,2
+18706,Farmed fish,Kasvatetut kalat,shop,fish,3,shop-checked,,Tuore liha ja kala > Tuore kala > Kasvatetut kalat,2/2,2
+18707,Flamed and grilled fish,Liekitetyt ja grillatut kalat,translated,fish,3,low,No shop match found; Finnish title translated by us,,,0
+18708,Cold-smoked and marinated fish,Graavi- ja kylmäsavukalat,shop,fish,18,shop-checked,,Tuore liha ja kala > Tuore kala > Graavi- ja kylmäsavukalat,2/2,2
+18710,Fresh pork,Porsaan- ja sianliha,shop,meat,106,shop-checked,,Tuore liha ja kala > Tuore liha > Porsaan- ja sianliha,2/2,2
+18720,Fresh beef,Vasikan- ja naudanliha,shop,meat,149,shop-checked,,Tuore liha ja kala > Tuore liha > Vasikan- ja naudanliha,2/2,2
+18730,Reindeer and game,Poro ja riista,translated,meat,1,low,No shop match found; Finnish title translated by us,,,0
+18740,Lamb,Lammas,translated,meat,3,low,No shop match found; Finnish title translated by us,,,0
+18750,Fresh poultry,"Kanan-, broilerin- ja kalkkunanliha",shop,meat,107,shop-checked,,"Tuore liha ja kala > Tuore kana, broileri ja kalkkuna > Kanan-, broilerin- ja kalkkunanliha",2/2,2
+18751,Duck,Ankka,translated,meat,1,low,No shop match found; Finnish title translated by us,,,0
+18760,Minced meat,Jauheliha,shop,meat,18,mixed,Shop paths differ: 1x Muut kypsät kokolihavalmisteet | 1x Tuore liha,Tuoretuotteet > Lihajalosteet > Muut kypsät kokolihavalmisteet,1/2,2
+18761,Meat patties and burger steaks,Muut kokolihavalmisteet,shop,meat,19,shop-checked,,Tuore liha ja kala > Tuore liha > Muut kokolihavalmisteet,2/2,2
+20000,Pet treats,Eläinten ruoat,shop,non_food,4,shop-checked,,Teolliset elintarvikkeet > Eläinten ruoat > Eläinten ruoat,2/2,2
+20011,Pots and pans,"Kattilat, padat ja pannut",shop,non_food,60,shop-checked,,"Nonfood > Ruoanvalmistus > Kattilat, padat ja pannut",2/2,2
+20012,Gastronorm pans and lids,GN-astiat,shop,non_food,119,shop-checked,,Nonfood > Ruoanvalmistus > GN-astiat,2/2,2
+20013,Baking tins and mixing bowls,Leivonta- ja uunivuoat,shop,non_food,26,shop-checked,,Nonfood > Ruoanvalmistus > Leivonta- ja uunivuoat,2/2,2
+20014,"Bottles, freezer bags and storage","Pullot, pakastepussit ja säilytys",translated,non_food,34,mixed,Shop paths differ: 1x Muovi- ja paperipussit | 1x Annos- ja pakasterasiat ja kannet,Nonfood > Take away > Muovi- ja paperipussit,1/2,2
+20021,"Peelers, knives and hand tools","Leikkuulaudat, -veitset ja tarvikkeet",shop,non_food,76,shop-checked,,"Nonfood > Keittiötyövälineet > Leikkuulaudat, -veitset ja tarvikkeet",2/2,2
+20022,"Whisks, strainers and kitchen utensils",Keittiö- ja leivontatyövälineet,shop,non_food,110,shop-checked,,Nonfood > Keittiötyövälineet > Keittiö- ja leivontatyövälineet,2/2,2
+20023,"Racks, baskets and mats",Muut keittiövälineet,shop,non_food,30,shop-checked,,Nonfood > Keittiötyövälineet > Muut keittiövälineet,2/2,2
+20024,Timers and thermometers,"Mittarit, vaa'at ja ajastimet",shop,non_food,5,shop-checked,,"Nonfood > Keittiötyövälineet > Mittarit, vaa'at ja ajastimet",2/2,2
+20031,Plates and bowls,Posliini- ja keraamiset astiat,shop,non_food,106,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Posliini- ja keraamiset astiat",2/2,2
+20032,Glasses,Juomalasit,shop,non_food,95,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Juomalasit",2/2,2
+20033,"Jugs, bowls and serving dishes",Muut tarjoiluastiat,shop,non_food,87,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Muut tarjoiluastiat",2/2,2
+20034,Serving tools and scoops,Tarjoiluvälineet,shop,non_food,47,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Tarjoiluvälineet",2/2,2
+20035,Cutlery and spoons,Aterimet,shop,non_food,54,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Aterimet",2/2,2
+20036,Bar and pastry tools,Baaritarvikkeet,shop,non_food,36,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Baaritarvikkeet",2/2,2
+21100,Crisp rolls and rusks,Korput ja rinkelit,shop,dry_goods,4,shop-checked,,Teolliset elintarvikkeet > Keksit > Korput ja rinkelit,2/2,2
+21120,Crackers and biscuits,Voileipä- ja suolakeksit sekä riisikakut,shop,snacks_sweets,33,shop-checked,,Teolliset elintarvikkeet > Keksit > Voileipä- ja suolakeksit sekä riisikakut,2/2,2
+21121,Croutons,Leipätikut ja krutongit,shop,dry_goods,3,shop-checked,,Teolliset elintarvikkeet > Kuivat leivät > Leipätikut ja krutongit,2/2,2
+21130,Wafers and sponge cakes,Täytekeksit ja vohvelit,shop,snacks_sweets,50,shop-checked,,Teolliset elintarvikkeet > Keksit > Täytekeksit ja vohvelit,2/2,2
+21140,Cookies and gingerbread,Keksit ja piparkakut,shop,snacks_sweets,96,shop-checked,,Teolliset elintarvikkeet > Keksit > Keksit ja piparkakut,2/2,2
+21150,Snack and cereal bars,Välipalakeksit ja -patukat,shop,snacks_sweets,70,shop-single,,Teolliset elintarvikkeet > Keksit > Välipalakeksit ja -patukat,1/1,1
+21200,Rye crispbread,Hapankorput,shop,dry_goods,10,shop-checked,,Teolliset elintarvikkeet > Kuivat leivät > Hapankorput,2/2,2
+21211,Crispbread and crackers,Näkkileivät,shop,dry_goods,32,shop-checked,,Teolliset elintarvikkeet > Kuivat leivät > Näkkileivät,2/2,2
+21300,Wheat flour,Vehnäjauhot,shop,dry_goods,28,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Vehnäjauhot",2/2,2
+21310,Specialty and gluten-free flours,Muut jauhot,shop,dry_goods,59,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Muut jauhot",2/2,2
+21320,Baking mixes and pancake mixes,Jauhoseokset,shop,dry_goods,40,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Jauhoseokset",2/2,2
+21340,Rice,Riisit,shop,dry_goods,66,shop-checked,,Teolliset elintarvikkeet > Riisit > Riisit,2/2,2
+21360,Starches and thickeners,Perunajauhot ja tärkkelykset,shop,dry_goods,28,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Perunajauhot ja tärkkelykset",2/2,2
+21370,"Oats, bran and flakes",Hiutaleet ja leseet,shop,dry_goods,71,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Hiutaleet ja leseet",2/2,2
+21371,"Barley, millet and instant porridge",Ryynit ja suurimot,shop,dry_goods,25,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Ryynit ja suurimot",2/2,2
+21372,Breakfast cereals,Murot,shop,dry_goods,21,shop-checked,,Teolliset elintarvikkeet > Murot ja myslit > Murot,2/2,2
+21373,Muesli and granola,Myslit ja granolat,shop,dry_goods,28,shop-checked,,Teolliset elintarvikkeet > Murot ja myslit > Myslit ja granolat,2/2,2
+21380,Pasta,Pastat,shop,dry_goods,140,shop-checked,,Teolliset elintarvikkeet > Pastat ja nuudelit > Pastat,2/2,2
+21381,Noodles,Nuudelit,shop,dry_goods,31,shop-checked,,Teolliset elintarvikkeet > Pastat ja nuudelit > Nuudelit,2/2,2
+21382,"Couscous, bulgur and quinoa",Bulgurit ja muut lisäkkeet,shop,dry_goods,27,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Bulgurit ja muut lisäkkeet",2/2,2
+21390,"Lentils, peas and seeds",Herneet ja pavut,shop,dry_goods,28,shop-checked,,Teolliset elintarvikkeet > Herneet ja pavut > Herneet ja pavut,2/2,2
+21391,Malt and malt extracts,Maltaat ja mallasuutteet,shop,dry_goods,5,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Maltaat ja mallasuutteet",2/2,2
+21393,"Plant protein products, dry",Soijarouheet ja -suikaleet,shop,dry_goods,6,shop-checked,,Teolliset elintarvikkeet > Herneet ja pavut > Soijarouheet ja -suikaleet,2/2,2
+21394,Instant mashed potato,Perunamuusiaineet,shop,dry_goods,8,shop-checked,,"Teolliset elintarvikkeet > Jauhot, hiutaleet ja ryynit > Perunamuusiaineet",2/2,2
+21400,Juice drinks,Mehut,shop,beverages,88,shop-checked,,Juomat > Mehut > Mehut,2/2,2
+21401,Juice concentrates,Juomatiivisteet,shop,beverages,61,shop-checked,,Juomat > Mehut > Juomatiivisteet,2/2,2
+21402,Berry soups and chilled fruit drinks,Mehukeitot,shop,beverages,31,shop-checked,,Juomat > Mehukeitot ja smoothiet > Mehukeitot,2/2,2
+21403,Juices,Tuore- ja täysmehut,shop,beverages,94,shop-checked,,Juomat > Mehut > Tuore- ja täysmehut,2/2,2
+21404,Smoothies,Smoothiet,shop,beverages,50,shop-checked,,Juomat > Mehukeitot ja smoothiet > Smoothiet,2/2,2
+21405,Non-alcoholic beer and mixed drinks,Alkoholittomat oluet ja sekajuomat,translated,beverages,4,mixed,"Shop paths differ: 1x Alkoholittomat lonkerot | 1x Juomat alle 2,8%",Juomat > Alkoholittomat juomat > Alkoholittomat lonkerot,1/2,2
+21450,Jams,Hillot,shop,dry_goods,95,shop-checked,,"Teolliset elintarvikkeet > Hillot, soseet ja marmeladit > Hillot",2/2,2
+21451,Fruit purées,Soseet,shop,dry_goods,36,shop-checked,,"Teolliset elintarvikkeet > Hillot, soseet ja marmeladit > Soseet",2/2,2
+21452,Marmalade and jelly,Marmeladit,shop,dry_goods,29,shop-checked,,"Teolliset elintarvikkeet > Hillot, soseet ja marmeladit > Marmeladit",2/2,2
+21453,Nut butters and spreads,Pähkinälevitteet,shop,dry_goods,15,shop-checked,,"Teolliset elintarvikkeet > Hillot, soseet ja marmeladit > Pähkinälevitteet",2/2,2
+21460,Nuts and almonds,Pähkinät,shop,dry_goods,64,shop-checked,,"Teolliset elintarvikkeet > Kuivat hedelmät, pähkinät ja siemenet > Pähkinät",2/2,2
+21461,Dried fruit and berries,"Kuivatut hedelmät, marjat ja marjajauheet",shop,dry_goods,61,shop-checked,,"Teolliset elintarvikkeet > Kuivat hedelmät, pähkinät ja siemenet > Kuivatut hedelmät, marjat ja marjajauheet",2/2,2
+21462,Seeds and seed mixes,Siemenet,shop,dry_goods,35,shop-checked,,"Teolliset elintarvikkeet > Kuivat hedelmät, pähkinät ja siemenet > Siemenet",2/2,2
+21463,"Dried vegetables, seaweed and miso",Kuivatut sienet ja vihannekset,shop,dry_goods,10,shop-checked,,"Teolliset elintarvikkeet > Kuivat hedelmät, pähkinät ja siemenet > Kuivatut sienet ja vihannekset",2/2,2
+21510,Canned meat and pâté,Liha- ja ruokasäilykkeet,shop,dry_goods,16,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Liha- ja ruokasäilykkeet,2/2,2
+21530,Canned fish,Liha- ja ruokasäilykkeet,shop,dry_goods,26,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Liha- ja ruokasäilykkeet,2/2,2
+21540,Canned snails and delicacies,Liha- ja ruokasäilykkeet,shop,dry_goods,8,shop-single,,Teolliset elintarvikkeet > Säilykkeet > Liha- ja ruokasäilykkeet,1/1,1
+21550,Canned and dried mushrooms and truffle,Sienisäilykkeet,shop,dry_goods,25,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Sienisäilykkeet,2/2,2
+21580,Canned fruit,Hedelmäsäilykkeet,shop,dry_goods,42,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Hedelmäsäilykkeet,2/2,2
+21590,Canned tomato,Tomaattisäilykkeet,shop,dry_goods,78,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Tomaattisäilykkeet,2/2,2
+21591,Pickled cucumber and relish,Kurkkusäilykkeet,shop,dry_goods,49,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Kurkkusäilykkeet,2/2,2
+21592,Sauerkraut and red cabbage,Kaalisäilykkeet,shop,dry_goods,9,mixed,Shop paths differ: 1x Muut valmisruuat | 1x Kaalisäilykkeet,Tuoretuotteet > Valmisruoka > Muut valmisruuat,1/2,2
+21593,Pickled beetroot,Punajuurisäilykkeet,shop,dry_goods,10,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Punajuurisäilykkeet,2/2,2
+21594,Canned beans and pulses,Papu- ja hernesäilykkeet,shop,dry_goods,54,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Papu- ja hernesäilykkeet,2/2,2
+21595,Olives,Oliivisäilykkeet,shop,dry_goods,65,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Oliivisäilykkeet,2/2,2
+21596,Canned and preserved vegetables,Muut vihannessäilykkeet,shop,dry_goods,147,shop-checked,,Teolliset elintarvikkeet > Säilykkeet > Muut vihannessäilykkeet,2/2,2
+21600,Baby food,Lasten ruoat,shop,dry_goods,54,shop-checked,,Teolliset elintarvikkeet > Lasten ruoat > Lasten ruoat,2/2,2
+21900,Soups,Valmiskeitot,shop,dry_goods,11,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Valmiskeitot,2/2,2
+21901,Soup bases and miso paste,Keittopohjat,shop,dry_goods,13,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Keittopohjat,2/2,2
+21902,"Stock cubes, bouillon and fond",Liemitiivisteet,shop,dry_goods,111,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Liemitiivisteet,2/2,2
+21903,Liquid bouillon,Valmisliemet,shop,dry_goods,6,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Valmisliemet,2/2,2
+21904,"Sauce bases (hollandaise, tomato)",Valmiskastikkeet,shop,sauces,57,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Valmiskastikkeet,2/2,2
+21905,Sauce powders and cream sauces,Kastikepohjat,shop,sauces,51,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Kastikepohjat,2/2,2
+21910,Mayonnaise,Majoneesit,shop,sauces,87,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Majoneesit,2/2,2
+21912,Ketchup,Ketsupit,shop,sauces,33,shop-checked,,Teolliset elintarvikkeet > Mausteet ja etikat > Ketsupit,2/2,2
+21917,Table sauces and marinades,Maustekastikkeet,shop,sauces,184,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Maustekastikkeet,2/2,2
+21918,Dressings,Salaattikastikkeet,shop,sauces,81,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Salaattikastikkeet,2/2,2
+21919,"Tahini, balsamic cream and dressings",Muut kastikkeet,shop,sauces,20,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Muut kastikkeet,2/2,2
+21920,Cooking sauces and curry sauces,Ateriakastikkeet,shop,sauces,43,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Ateriakastikkeet,2/2,2
+21921,Soy sauce and Asian sauces,Soijakastikkeet,shop,sauces,41,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Soijakastikkeet,2/2,2
+21950,Natural health products and supplements,Luontaistuotteet,shop,dry_goods,8,shop-checked,,Teolliset elintarvikkeet > Luontaistuotteet > Luontaistuotteet,7/7,7
+21952,Specialty snacks and thickeners,Erikoisvälipalat ja suurusteet,translated,dry_goods,2,mixed,"Only 2 products, specialty items; Shop paths differ: 2x Urheilulisäravinteet | 2x Välipalakeksit ja -patukat",Teolliset elintarvikkeet > Luontaistuotteet > Urheilulisäravinteet,2/4,4
+21980,Dessert mixes and creams,Jälkiruokajauheet ja -kermat,translated,dry_goods,48,low,No shop match found; Finnish title translated by us,,,0
+21981,Dessert sauces and toppings,Jälkiruokakastikkeet,shop,dry_goods,39,shop-checked,,Teolliset elintarvikkeet > Keitot ja kastikkeet > Jälkiruokakastikkeet,2/2,2
+21982,Bakery products and baking chocolate (mixed content),Leipomotuotteet ja leivontasuklaat,shop,dry_goods,4,mixed,"Only a few products, of mixed kind",Teolliset elintarvikkeet > Leipomotuotteet ja leivontasuklaat > Leipomotuotteet ja leivontasuklaat,2/2,2
+21990,Chips and crisps,Sipsit,shop,snacks_sweets,49,shop-checked,,Teolliset elintarvikkeet > Snacks > Sipsit,2/2,2
+21991,Tortillas and Tex-Mex,"Texmex tacot, tortillat ja nachot",shop,dry_goods,33,shop-checked,,"Teolliset elintarvikkeet > Texmex > Texmex tacot, tortillat ja nachot",2/2,2
+21992,Nut mixes,Pähkinäsnacksit,shop,snacks_sweets,35,shop-checked,,Teolliset elintarvikkeet > Snacks > Pähkinäsnacksit,2/2,2
+21993,"Snacks, nachos and jerky",Muut snacksit,shop,snacks_sweets,42,shop-checked,,Teolliset elintarvikkeet > Snacks > Muut snacksit,2/2,2
+21994,Salsa and cheese sauces,Texmex kastikkeet,shop,sauces,56,shop-checked,,Teolliset elintarvikkeet > Texmex > Texmex kastikkeet,2/2,2
+22100,Sugar,Sokerit,shop,dry_goods,40,shop-checked,,"Teolliset elintarvikkeet > Sokerit, siirapit ja makusiirapit > Sokerit",2/2,2
+22140,Syrups,Siirapit ja makusiirapit,shop,dry_goods,125,shop-checked,,"Teolliset elintarvikkeet > Sokerit, siirapit ja makusiirapit > Siirapit ja makusiirapit",2/2,2
+22150,Honey,Hunajat,shop,dry_goods,19,shop-checked,,"Teolliset elintarvikkeet > Sokerit, siirapit ja makusiirapit > Hunajat",2/2,2
+22190,Sweeteners,Muut makeutusaineet,shop,dry_goods,10,shop-checked,,"Teolliset elintarvikkeet > Sokerit, siirapit ja makusiirapit > Muut makeutusaineet",2/2,2
+22300,Ground coffee,Jauhetut kahvit,shop,beverages,109,shop-checked,,Juomat > Kahvit > Jauhetut kahvit,2/2,2
+22410,Coffee beans,Papukahvit,shop,beverages,44,shop-checked,,Juomat > Kahvit > Papukahvit,2/2,2
+22411,Espresso coffee,Espressokahvit,translated,beverages,4,low,No shop match found; Finnish title translated by us,,,0
+22412,Instant coffee,Pika- ja kapselikahvit,shop,beverages,23,shop-checked,,Juomat > Kahvit > Pika- ja kapselikahvit,2/2,2
+22413,Ready-to-drink coffee,Valmiit kahvijuomat,shop,beverages,27,shop-checked,,Juomat > Kahvit > Valmiit kahvijuomat,2/2,2
+22530,Herbal and flavoured tea,Pussiteet ja haudukkeet,shop,beverages,106,shop-checked,,Juomat > Teet > Pussiteet ja haudukkeet,2/2,2
+22531,Black and green tea,Irtoteet ja haudukkeet,shop,beverages,23,shop-checked,,Juomat > Teet > Irtoteet ja haudukkeet,2/2,2
+22532,Iced tea and tea drinks,Teejuomat,shop,beverages,21,shop-checked,,Juomat > Teet > Teejuomat,2/2,2
+22540,Cocoa and hot chocolate,Kaakaot,shop,beverages,27,shop-checked,,Juomat > Kaakaot,2/2,2
+22600,Salt,Suolat,shop,dry_goods,40,shop-single,,Teolliset elintarvikkeet > Mausteet ja etikat > Suolat,1/1,1
+22601,Bakery products and baking chocolate,Leipomotuotteet ja leivontasuklaat,shop,dry_goods,190,shop-checked,,Teolliset elintarvikkeet > Leipomotuotteet ja leivontasuklaat > Leipomotuotteet ja leivontasuklaat,17/17,17
+22610,Mustard,Sinapit,shop,sauces,45,shop-checked,,Teolliset elintarvikkeet > Mausteet ja etikat > Sinapit,2/2,2
+22620,Vinegar,Etikat,shop,sauces,65,shop-checked,,Teolliset elintarvikkeet > Mausteet ja etikat > Etikat,2/2,2
+22630,Spices and seasonings,Kuivatut mausteet,shop,dry_goods,432,shop-checked,,Teolliset elintarvikkeet > Mausteet ja etikat > Kuivatut mausteet,2/2,2
+22640,Liquid flavourings,Nestemäiset mausteet,shop,dry_goods,17,shop-single,,Teolliset elintarvikkeet > Mausteet ja etikat > Nestemäiset mausteet,1/1,1
+22641,Curry and spice pastes,Maustetahnat,shop,dry_goods,64,shop-checked,,Teolliset elintarvikkeet > Mausteet ja etikat > Maustetahnat,2/2,2
+22646,Spice blends and seasonings,Muut mausteet,shop,dry_goods,19,shop-checked,,Teolliset elintarvikkeet > Mausteet ja etikat > Muut mausteet,2/2,2
+22660,Yeast,Hiivat,shop,dry_goods,7,shop-checked,,Teolliset elintarvikkeet > Leipomotuotteet ja leivontasuklaat > Hiivat,2/2,2
+22670,Gelling and preserving agents,Hyytelö- ja säilöntäaineet,shop,dry_goods,30,shop-checked,,Teolliset elintarvikkeet > Mausteet ja etikat > Hyytelö- ja säilöntäaineet,11/11,11
+22700,Soft drinks,Virvoitusjuomat,shop,beverages,157,shop-checked,,Juomat > Virvoitusjuomat > Virvoitusjuomat,2/2,2
+22701,Energy drinks,"Energia-, proteiini- ja urheilujuomat",shop,beverages,78,shop-checked,,"Juomat > Virvoitusjuomat > Energia-, proteiini- ja urheilujuomat",2/2,2
+22702,Mixers and tonics,Mixerit,shop,beverages,47,shop-checked,,Juomat > Virvoitusjuomat > Mixerit,2/2,2
+22703,Wellness drinks and shots,Hyvinvointijuomat,shop,beverages,27,shop-checked,,Juomat > Virvoitusjuomat > Hyvinvointijuomat,2/2,2
+22704,Kombucha,Kombuchat,shop,beverages,15,shop-checked,,Juomat > Virvoitusjuomat > Kombuchat,2/2,2
+22705,Spring water,Vedet,shop,beverages,17,shop-checked,,Juomat > Virvoitusjuomat > Vedet,2/2,2
+22706,Mineral water,Kivennäisvedet,shop,beverages,63,shop-checked,,Juomat > Virvoitusjuomat > Kivennäisvedet,2/2,2
+22707,Soft drink concentrates,Post-mix uutteet,shop,beverages,11,shop-checked,,Juomat > Virvoitusjuomat > Post-mix uutteet,2/2,2
+30010,Garden soil and fertilisers,Mullat ja lannoitteet,shop,non_food,3,shop-checked,,Nonfood > Vapaa-aika ja harrastus > Mullat ja lannoitteet,2/2,2
+32990,Lighters and matches,Tulitikut ja sytyttimet,shop,non_food,13,shop-checked,,Nonfood > Savukkeet ja välineet > Tulitikut ja sytyttimet,2/2,2
+41701,Frozen pork,Porsaaan- ja sianlihapakasteet,shop,frozen,56,shop-checked,,Pakasteet > Lihapakasteet > Porsaaan- ja sianlihapakasteet,2/2,2
+41702,Frozen beef,Vasikan- ja naudanlihapakasteet,shop,frozen,109,shop-checked,,Pakasteet > Lihapakasteet > Vasikan- ja naudanlihapakasteet,2/2,2
+41703,Frozen game and reindeer,Riista- ja poronlihapaksteet,shop,frozen,39,shop-checked,,Pakasteet > Lihapakasteet > Riista- ja poronlihapaksteet,2/2,2
+41704,Frozen lamb,Karitsan- ja lampaanlihapakasteet,shop,frozen,31,shop-checked,,Pakasteet > Lihapakasteet > Karitsan- ja lampaanlihapakasteet,2/2,2
+41705,"Frozen meat products (patties, meatballs)",Lihavalmisruokapakasteet,shop,frozen,140,shop-checked,,Pakasteet > Lihavalmisruokapakasteet,2/2,2
+41710,Frozen chicken,"Kanan-, broilerin- ja kalkkunanlihapakasteet",shop,frozen,129,shop-checked,,"Pakasteet > Siipikarjapakasteet > Kanan-, broilerin- ja kalkkunanlihapakasteet",2/2,2
+41711,Frozen duck and wild bird,Riistalintu- ja muut siipikarjapakasteet,shop,frozen,9,shop-checked,,Pakasteet > Siipikarjapakasteet > Riistalintu- ja muut siipikarjapakasteet,2/2,2
+41712,"Frozen chicken products (nuggets, wings)",Riistalintu- ja muut siipikarjapakasteet,shop,frozen,46,shop-checked,,Pakasteet > Siipikarjapakasteet > Riistalintu- ja muut siipikarjapakasteet,2/2,2
+41720,Frozen fish,Kalapakasteet,shop,frozen,122,shop-checked,,Pakasteet > Kala- ja äyriäispakasteet > Kalapakasteet,2/2,2
+41721,Frozen shellfish and seafood,Äyriäispakasteet,shop,frozen,52,shop-checked,,Pakasteet > Kala- ja äyriäispakasteet > Äyriäispakasteet,2/2,2
+41722,Frozen roe,Mätipakasteet,shop,frozen,8,shop-checked,,Pakasteet > Kala- ja äyriäispakasteet > Mätipakasteet,2/2,2
+41723,"Frozen fish products (fried, breaded)",Kalapakasteet,shop,frozen,74,shop-single,,Pakasteet > Kala- ja äyriäispakasteet > Kalapakasteet,1/1,1
+41731,Frozen vegetables,Vihannespakasteet,shop,frozen,136,shop-checked,,"Pakasteet > Vihannes-, yrtti- ja pyrepakasteet > Vihannespakasteet",2/2,2
+41732,Frozen vegetable mixes,Vihannessekoitukset,shop,frozen,49,shop-checked,,"Pakasteet > Vihannes-, yrtti- ja pyrepakasteet > Vihannessekoitukset",2/2,2
+41733,Frozen herbs and greens,Yrttipakasteet,shop,frozen,11,shop-checked,,"Pakasteet > Vihannes-, yrtti- ja pyrepakasteet > Yrttipakasteet",2/2,2
+41734,Frozen vegetable purées,Kasvispyreet ja -soseet,shop,frozen,7,shop-checked,,"Pakasteet > Vihannes-, yrtti- ja pyrepakasteet > Kasvispyreet ja -soseet",2/2,2
+41740,Frozen berries,Marjapakasteet,shop,frozen,35,shop-checked,"Shop also files a liver patty (475615) under frozen meat dishes, so it is misfiled in the source data; Shop paths differ: 5x Marjapakasteet | 1x Lihavalmisruokapakasteet",Pakasteet > Marja- ja hedelmäpakasteet ja -soseet > Marjapakasteet,5/6,6
+41741,Frozen fruit,Hedelmäpakasteet,shop,frozen,17,shop-single,,Pakasteet > Marja- ja hedelmäpakasteet ja -soseet > Hedelmäpakasteet,1/1,1
+41742,Frozen fruit purées,Marja- ja hedelmäpyreet ja -soseet,shop,frozen,64,shop-checked,,Pakasteet > Marja- ja hedelmäpakasteet ja -soseet > Marja- ja hedelmäpyreet ja -soseet,2/2,2
+41750,Frozen purées and rösti,Pakastesoseet ja rösti,translated,frozen,6,mixed,Shop paths differ: 1x Muut valmisruoka- ja aterianosapakasteet | 1x Lihatuotteet,Pakasteet > Valmisruokapakasteet > Muut valmisruoka- ja aterianosapakasteet,1/2,2
+41751,Frozen potato products,Perunapakasteet,shop,frozen,78,shop-checked,,Pakasteet > Perunapakasteet > Perunapakasteet,2/2,2
+41752,Frozen fish and meat dishes,Kalatuotteet,shop,frozen,8,shop-checked,,Pakasteet > Valmisruokapakasteet > Kalatuotteet,2/2,2
+41753,Frozen ready meals (mostly vegetarian),Kasvisvalmisruoat (pakaste),translated,frozen,146,mixed,Shop paths differ: 1x Kasviproteiinit | 1x Kasvistuotteet,Pakasteet > Valmisruokapakasteet > Kasviproteiinit,1/2,2
+41754,Frozen vegetarian and vegan products,Kasviproteiinit,shop,frozen,47,shop-checked,,Pakasteet > Valmisruokapakasteet > Kasviproteiinit,2/2,2
+41755,Frozen pizza and pasta,Muut valmisruoka- ja aterianosapakasteet,shop,frozen,221,shop-checked,,Pakasteet > Valmisruokapakasteet > Muut valmisruoka- ja aterianosapakasteet,2/2,2
+41760,Frozen bread and flatbread,Leipäpakasteet,shop,frozen,244,shop-checked,,Pakasteet > Leipomopakasteet > Leipäpakasteet,2/2,2
+41761,Frozen buns and burger buns,Sämpyläpakasteet,shop,frozen,119,shop-checked,,Pakasteet > Leipomopakasteet > Sämpyläpakasteet,2/2,2
+41762,Frozen pastries and savoury bakery,Konditoria- ja taikinapakasteet,shop,frozen,131,shop-checked,,Pakasteet > Leipomopakasteet > Konditoria- ja taikinapakasteet,2/2,2
+41763,Frozen cakes,"Kakut, kakkupohjat ja leivokset",shop,frozen,349,shop-checked,,"Pakasteet > Leipomopakasteet > Kakut, kakkupohjat ja leivokset",2/2,2
+41764,Frozen sweet buns and doughnuts,"Pullat, munkit ja croissantit",shop,frozen,179,shop-checked,,"Pakasteet > Leipomopakasteet > Pullat, munkit ja croissantit",2/2,2
+41765,Frozen pies and pastries,Piirakat ja muut leipomotuotteet,shop,frozen,81,shop-checked,,Pakasteet > Leipomopakasteet > Piirakat ja muut leipomotuotteet,2/2,2
+41766,Frozen dough and bases,Konditoria- ja taikinapakasteet,shop,frozen,66,shop-checked,,Pakasteet > Leipomopakasteet > Konditoria- ja taikinapakasteet,2/2,2
+41770,"Other frozen products (ice, coffee concentrate, frozen cheese)",Muut pakasteet,shop,frozen,17,shop-checked,"Shop category ""Muut pakasteet"" (other frozen); contains ice, coffee concentrate and some oddities; Shop paths differ: 12x Muut pakasteet | 1x Pakastejuustot",Pakasteet > Juustot ja muut pakasteet > Muut pakasteet,12/13,13
+41771,Frozen cheese (lactose-free),Pakastejuustot,shop,frozen,25,shop-checked,,Pakasteet > Juustot ja muut pakasteet > Pakastejuustot,2/2,2
+41800,"Ice cream, sticks and singles","Jäätelöpuikot, -tuutit ja sorbetit",shop,frozen,124,shop-checked,,"Pakasteet > Jäätelöt ja jälkiruoat > Jäätelöpuikot, -tuutit ja sorbetit",2/2,2
+41801,"Ice cream, tubs","Jäätelöpurkit, -paketit ja sorbetit",shop,frozen,109,shop-checked,,"Pakasteet > Jäätelöt ja jälkiruoat > Jäätelöpurkit, -paketit ja sorbetit",2/2,2
+41820,"Ice cream, bulk",Irtojäätelöt ja sorbetit,shop,frozen,139,shop-checked,,Pakasteet > Jäätelöt ja jälkiruoat > Irtojäätelöt ja sorbetit,2/2,2
+41830,Frozen pancakes and crêpes,Jälkiruokapakasteet,shop,frozen,39,shop-checked,,Pakasteet > Jäätelöt ja jälkiruoat > Jälkiruokapakasteet,2/2,2
+52200,Chocolate bars and sweets,Suklaa- ja makeispatukat,shop,snacks_sweets,91,shop-checked,,Teolliset elintarvikkeet > Makeiset > Suklaa- ja makeispatukat,2/2,2
+52201,Chocolate tablets,Suklaa- ja makeislevyt,shop,snacks_sweets,58,shop-checked,,Teolliset elintarvikkeet > Makeiset > Suklaa- ja makeislevyt,2/2,2
+52202,Pralines and chocolate confectionery,Konvehdit ja käärelliset makeiset,shop,snacks_sweets,40,shop-checked,,Teolliset elintarvikkeet > Makeiset > Konvehdit ja käärelliset makeiset,2/2,2
+52208,Lollipops and chocolate raisins,Muut makeiset,shop,snacks_sweets,34,shop-checked,,Teolliset elintarvikkeet > Makeiset > Muut makeiset,2/2,2
+52209,Pick and mix candy,Irtomakeiset,shop,snacks_sweets,62,shop-checked,,Teolliset elintarvikkeet > Makeiset > Irtomakeiset,2/2,2
+52210,Candy bags,Makeispussit- ja rasiat,shop,snacks_sweets,152,shop-checked,,Teolliset elintarvikkeet > Makeiset > Makeispussit- ja rasiat,2/2,2
+52240,Pastilles and chewing sweets,Pastillit,shop,snacks_sweets,80,shop-checked,,Teolliset elintarvikkeet > Makeiset > Pastillit,2/2,2
+52260,Chewing gum,Purukumit,shop,snacks_sweets,21,shop-checked,,Teolliset elintarvikkeet > Makeiset > Purukumit,2/2,2
+52290,Liquorice and assorted chocolates,Kausimakeiset,shop,snacks_sweets,90,shop-checked,,Teolliset elintarvikkeet > Makeiset > Kausimakeiset,2/2,2
+63000,Shampoo and personal care,Hiustenhoito,shop,non_food,18,shop-checked,,Nonfood > Puhtaus ja terveys > Hiustenhoito,2/2,2
+63001,Soap and hand wash,Vartalonhoito,shop,non_food,125,shop-checked,,Nonfood > Puhtaus ja terveys > Vartalonhoito,2/2,2
+63002,Oral care,Suuhygienia,shop,non_food,25,shop-checked,,Nonfood > Puhtaus ja terveys > Suuhygienia,2/2,2
+63070,Hygiene products,Vaipat ja intiimihygienia,shop,non_food,11,shop-checked,,Nonfood > Puhtaus ja terveys > Vaipat ja intiimihygienia,2/2,2
+63071,Gloves and first aid,Suojavarusteet ja ensiapu,shop,non_food,77,shop-checked,,Nonfood > Puhtaus ja terveys > Suojavarusteet ja ensiapu,2/2,2
+63072,Wet wipes and refreshing towels,Muut hygieniatuotteet,shop,non_food,21,shop-checked,,Nonfood > Puhtaus ja terveys > Muut hygieniatuotteet,2/2,2
+63100,Dishwashing detergents,Astianpesuaineet,shop,non_food,117,shop-checked,,Nonfood > Siivous > Astianpesuaineet,2/2,2
+63113,Laundry products,Pyykinpesuaineet,shop,non_food,52,shop-checked,,Nonfood > Siivous > Pyykinpesuaineet,2/2,2
+63114,Cleaning products,Yleispuhdistusaineet,shop,non_food,181,shop-checked,,Nonfood > Siivous > Yleispuhdistusaineet,2/2,2
+63115,Air fresheners and machine cleaners,Erikoispuhdistusaineet,shop,non_food,83,shop-checked,,Nonfood > Siivous > Erikoispuhdistusaineet,2/2,2
+63120,Cleaning tools and brushes,Siivoustarvikkeet,shop,non_food,164,shop-checked,,Nonfood > Siivous > Siivoustarvikkeet,2/2,2
+63121,Garbage bags,Jätesäkit ja roskapussit,shop,non_food,44,shop-checked,,Nonfood > Siivous > Jätesäkit ja roskapussit,2/2,2
+63122,Waste bins,Roska-astiat,shop,non_food,19,shop-checked,,Nonfood > Siivous > Roska-astiat,2/2,2
+63130,"Storage boxes, measuring jugs and food containers","Kattaus, ruoanvalmistus ja säilytys",shop,non_food,21,shop-checked,,"Nonfood > Take away > Kattaus, ruoanvalmistus ja säilytys",2/2,2
+63131,Buckets and tubs,Ämpärit ja saavit,shop,non_food,10,shop-checked,,Nonfood > Take away > Ämpärit ja saavit,2/2,2
+63200,Kitchen paper,Talouspaperit,shop,non_food,6,shop-checked,,Nonfood > WC- ja talouspaperit > Talouspaperit,2/2,2
+63210,Toilet paper,WC-paperit,shop,non_food,37,shop-checked,,Nonfood > WC- ja talouspaperit > WC-paperit,2/2,2
+63230,Small napkins,Lautasliinat 24 cm ja tai pienempi,shop,non_food,79,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Lautasliinat 24 cm ja tai pienempi",2/2,2
+63231,"Napkins, 33 cm",Lautasliinat 25-33 cm,shop,non_food,94,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Lautasliinat 25-33 cm",2/2,2
+63232,Tablecloths and table covers,"Pöytäliinat, tabletit, kaita- ja kateliinat",shop,non_food,113,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Pöytäliinat, tabletit, kaita- ja kateliinat",2/2,2
+63233,Dispenser napkins,Annostelijaliinat,shop,non_food,40,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Annostelijaliinat",2/2,2
+63234,Napkin holders and dispensers,Lautasliina-annostelijat,shop,non_food,16,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Lautasliina-annostelijat",2/2,2
+63235,Dinner napkins,Lautasliinat 34 cm ja isompi,shop,non_food,238,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Lautasliinat 34 cm ja isompi",2/2,2
+63240,Hand towels,Käsipyyhkeet,shop,non_food,42,shop-checked,,Nonfood > WC- ja talouspaperit > Käsipyyhkeet,2/2,2
+63241,Toilet paper and tissue dispensers,WC- ja käsipyyheannostelijat,shop,non_food,38,shop-checked,,Nonfood > WC- ja talouspaperit > WC- ja käsipyyheannostelijat,2/2,2
+63242,Tissues,Nenäliinat ja kasvopyyhkeet,shop,non_food,8,shop-checked,,Nonfood > WC- ja talouspaperit > Nenäliinat ja kasvopyyhkeet,2/2,2
+63270,Cooking twine and ties,Muut ruoanvalmistustuotteet,shop,non_food,2,shop-checked,,Nonfood > Ruoanvalmistus > Muut ruoanvalmistustuotteet,2/2,2
+63271,Coffee filters,Suodatinpaperit,shop,non_food,31,shop-checked,,Nonfood > Ruoanvalmistus > Suodatinpaperit,2/2,2
+63272,Baking paper and foil,"Foliot, kelmut ja ruoanvalmistuspaperit",shop,non_food,46,shop-checked,,"Nonfood > Ruoanvalmistus > Foliot, kelmut ja ruoanvalmistuspaperit",2/2,2
+63273,Roasting and ham bags,Ruoanvalmistuspussit,shop,non_food,12,shop-checked,,Nonfood > Ruoanvalmistus > Ruoanvalmistuspussit,2/2,2
+63300,Workwear and kitchen towels,Tekstiilit,shop,non_food,36,shop-checked,,Nonfood > Tekstiilit > Tekstiilit,2/2,2
+63900,Small kitchen appliances,Kodinkoneet,shop,non_food,11,shop-checked,,Nonfood > Keittiötyövälineet > Kodinkoneet,2/2,2
+64000,Disposable plates,Kertakäyttölautaset,shop,non_food,35,shop-checked,,Nonfood > Take away > Kertakäyttölautaset,2/2,2
+64001,Disposable cups and glasses,"Kertakäyttökupit, -mukit ja -kannet",shop,non_food,180,shop-checked,,"Nonfood > Take away > Kertakäyttökupit, -mukit ja -kannet",2/2,2
+64002,Disposable cutlery,Kertakäyttöaterimet,shop,non_food,33,shop-checked,,Nonfood > Take away > Kertakäyttöaterimet,2/2,2
+64003,"Doilies, pastry cups and skewers",Muut kertakäyttötuotteet,shop,non_food,125,shop-checked,,Nonfood > Take away > Muut kertakäyttötuotteet,2/2,2
+64004,Takeaway trays and boxes,Annos- ja pakasterasiat ja kannet,shop,non_food,343,shop-checked,,Nonfood > Take away > Annos- ja pakasterasiat ja kannet,2/2,2
+64005,Food bags and packaging,Muovi- ja paperipussit,shop,non_food,88,shop-checked,,Nonfood > Take away > Muovi- ja paperipussit,2/2,2
+64006,Carrier bags,Muovi- ja paperikassit,shop,non_food,21,shop-checked,,Nonfood > Take away > Muovi- ja paperikassit,2/2,2
+64007,Lids and bakery boxes,"Pizza-, kakku- ja leivoslaatikot",shop,non_food,29,shop-checked,,"Nonfood > Take away > Pizza-, kakku- ja leivoslaatikot",2/2,2
+64008,Cooler boxes and cold packs,Termolaatikot ja -kassit,shop,non_food,12,shop-checked,,Nonfood > Take away > Termolaatikot ja -kassit,2/2,2
+64010,Candles,Kynttilät,shop,non_food,61,shop-checked,,"Nonfood > Kattaus, tarjoilu ja somistus > Kynttilät",2/2,2
+64011,Lanterns and outdoor candles,"Ulkotulet, -kynttilät ja lyhdyt",shop,non_food,42,shop-single,,"Nonfood > Kattaus, tarjoilu ja somistus > Ulkotulet, -kynttilät ja lyhdyt",1/1,1
+64100,"Leisure and outdoor supplies (charcoal, grill)",Vapaa-aika ja harrastus,shop,non_food,11,shop-checked,,Nonfood > Vapaa-aika ja harrastus > Vapaa-aika ja harrastus,2/2,2
+64130,Pet waste bags and pet items,Lemmikkitarvikkeet,shop,non_food,2,shop-single,,Nonfood > Vapaa-aika ja harrastus > Lemmikkitarvikkeet,1/1,1
+64300,Hardware and household items,Rautakauppa,shop,non_food,18,shop-checked,,Nonfood > Vapaa-aika ja harrastus > Rautakauppa,2/2,2
+64301,Batteries and electrical,Lamput ja paristot,shop,non_food,21,shop-checked,,Nonfood > Lamput ja paristot > Lamput ja paristot,2/2,2
+64310,Car and lamp fluids,Autotarvikkeet,shop,non_food,4,shop-checked,,Nonfood > Vapaa-aika ja harrastus > Autotarvikkeet,2/2,2
+64500,Gift and storage boxes,Pakkaustarvikkeet,shop,non_food,14,shop-single,,Nonfood > Take away > Pakkaustarvikkeet,1/1,1
+67730,Newspapers,Sanomalehdet,translated,non_food,6,low,No shop match found; Finnish title translated by us,,,0
+67800,Seasonal and gift items,Kausituotteet,shop,non_food,7,shop-checked,,Nonfood > Vapaa-aika ja harrastus > Kausituotteet,2/2,2
+77722,Gases (CO2),Kaasut (hiilidioksidi),translated,non_food,2,low,No shop match found; Finnish title translated by us,,,0
+84966,Non-alcoholic beer and cider,Alkoholittomat oluet,shop,beverages,15,shop-checked,,Juomat > Alkoholittomat juomat > Alkoholittomat oluet,2/2,2
+84967,Alcohol-free cider and long drinks,Alkoholittomat siiderit,shop,beverages,5,shop-checked,,Juomat > Alkoholittomat juomat > Alkoholittomat siiderit,2/2,2
+84988,Alcohol-free long drinks and spritz,Alkoholittomat lonkerot,shop,beverages,6,shop-checked,,Juomat > Alkoholittomat juomat > Alkoholittomat lonkerot,2/2,2
+85001,Alcohol-free beer,Alkoholittomat oluet,shop,beverages,31,shop-checked,,Juomat > Alkoholittomat juomat > Alkoholittomat oluet,2/2,2
+85028,Alcohol-free wine,Alkoholittomat viinit,shop,beverages,27,shop-checked,,Juomat > Alkoholittomat juomat > Alkoholittomat viinit,2/2,2
+85034,Alcohol-free cider,Alkoholittomat siiderit,shop,beverages,1,shop-single,,Juomat > Alkoholittomat juomat > Alkoholittomat siiderit,1/1,1
+90011,Folders and pockets,"Mapit, muovitaskut ja arkistointi",shop,non_food,49,shop-checked,,"Nonfood > Toimistotarvikkeet > Mapit, muovitaskut ja arkistointi",2/2,2
+90012,Pens and markers,"Kynät, kumit ja viivaimet",shop,non_food,45,shop-single,,"Nonfood > Toimistotarvikkeet > Kynät, kumit ja viivaimet",1/1,1
+90013,Paper,Kopiopaperit ja kartongit,shop,non_food,7,shop-checked,,Nonfood > Toimistotarvikkeet > Kopiopaperit ja kartongit,2/2,2
+90014,Thermal paper rolls,"Lämpöpaperit, kuittirullat ja kassakirjat",shop,non_food,11,shop-checked,,"Nonfood > Toimistotarvikkeet > Lämpöpaperit, kuittirullat ja kassakirjat",2/2,2
+90015,Notebooks and sticky notes,"Vihkot, lehtiöt ja muistilaput",shop,non_food,31,shop-checked,,"Nonfood > Toimistotarvikkeet > Vihkot, lehtiöt ja muistilaput",2/2,2
+90021,Mailers and envelopes,Postituspussit ja kirjekuoret,translated,non_food,12,low,No shop match found; Finnish title translated by us,,,0
+90022,Tape and labels,"Kuminauhat, teipit, liimat yms.",shop,non_food,37,shop-single,,"Nonfood > Toimistotarvikkeet > Kuminauhat, teipit, liimat yms.",1/1,1
+90024,Office supplies,Muut toimistotarvikkeet,shop,non_food,32,shop-checked,,Nonfood > Toimistotarvikkeet > Muut toimistotarvikkeet,2/2,2
