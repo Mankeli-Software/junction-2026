@@ -295,7 +295,16 @@ async def test_summary_steps_transcript_and_events_of_a_built_quote(client, app_
     [request] = summary["requests"]
     assert request["request_id"] == "l1"
     assert request["lines"][0]["product_id"] == "464306"
-    assert request["lines"][0]["trace"]["found"] >= 1
+    trace = request["lines"][0]["trace"]
+    assert trace["found"] >= 1
+    # The "why this product" drill-down: the engine's ranked survivors, the chosen one first
+    # flagged, and the products each check removed (#39).
+    assert trace["ranked"], trace
+    assert [c["chosen"] for c in trace["ranked"]].count(True) == 1
+    assert next(c for c in trace["ranked"] if c["chosen"])["product_id"] == "464306"
+    assert sum(len(r["products"]) for r in trace["removed"]) == sum(
+        r["count"] for r in trace["removed"]
+    )
 
     steps = client.get(f"{API}/orders/{session_id}/steps").json()
     assert [s["order_index"] for s in steps] == list(range(1, len(steps) + 1))

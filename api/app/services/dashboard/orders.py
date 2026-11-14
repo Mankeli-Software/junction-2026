@@ -204,15 +204,18 @@ def _summary_line(line: Any) -> SummaryLine:
         delivery_date=line.delivery_date,
         stock_status=line.stock_status,
         reason_text=line.reason_text,
-        # The engine keeps no ranked list or removed product ids yet, so both stay empty.
+        # The engine reports the ranked survivors and each check's removed products (#39).
         trace=SummaryTrace(
             found=trace.found,
             removed=[
-                SummaryTraceRemoval(reason_code=r.reason_code, count=r.count, text=r.text)
+                SummaryTraceRemoval(
+                    reason_code=r.reason_code, count=r.count, text=r.text, products=r.products
+                )
                 for r in trace.removed
             ],
             left=trace.left,
             ranking_rule=trace.ranking_rule,
+            ranked=trace.ranked,
         ),
     )
 
