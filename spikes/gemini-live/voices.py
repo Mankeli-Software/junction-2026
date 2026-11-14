@@ -1,11 +1,12 @@
 """Have S.I.MO say one Finnish reply in a few Live voices, to pick the most natural one.
 
     uv run voices.py                               # Kore, Aoede, Sulafat, Achird, Charon
-    uv run voices.py --voices Puck Zephyr --asr-model gemini-flash-latest
+    uv run voices.py --voices Puck Zephyr --asr-model gemini-3.8-flash
 
 Listen to out/voices/<time>/<voice>.wav and judge by ear. As a rough intelligibility
 check, each reply is also transcribed back with a text model (--asr-model) and
-compared with what the voice was asked to say.
+compared with what the voice was asked to say, and the same model rates how native each
+clip sounds in one extra request (a hint only; listen yourself).
 """
 
 from __future__ import annotations
@@ -63,6 +64,19 @@ def transcribe(client, model: str, wav_bytes: bytes) -> str:
     return (resp.text or "").strip()
 
 
+def rate(client, model: str, wavs: list) -> str:
+    """One request: a text model rates how native each clip's Finnish sounds. A hint, not a human judgement."""
+    parts: list = []
+    for i, w in enumerate(wavs, 1):
+        parts += [f"Clip {i}: voice {w.stem}", types.Part.from_bytes(data=w.read_bytes(), mime_type="audio/wav")]
+    parts.append(
+        "All clips say the same Finnish sentence. As a native Finnish listener would, rate each clip 1-5 for how "
+        "natural and native the Finnish sounds (vowel length, double consonants, stress on the first syllable, "
+        "intonation, any foreign accent). One line per voice: name, score, one short reason. Then name the best one."
+    )
+    return client.models.generate_content(model=model, contents=parts).text or ""
+
+
 async def main_async(args) -> None:
     client = make_client()
     out_dir = HERE / "out" / "voices" / datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -91,6 +105,13 @@ async def main_async(args) -> None:
         rows.append(row)
         print(json.dumps(row, ensure_ascii=False))
         await asyncio.sleep(1.0)
+    if args.asr_model and rows:
+        try:
+            rating = rate(client, args.asr_model, [out_dir / f"{r['voice']}.wav" for r in rows])
+            (out_dir / "model_rating.txt").write_text(rating)
+            print(rating)
+        except Exception as exc:  # noqa: BLE001
+            print(f"rating failed: {type(exc).__name__}: {exc}")
     (out_dir / "results.json").write_text(
         json.dumps({"model": args.model, "reply": REPLY, "rows": rows}, ensure_ascii=False, indent=2)
     )
