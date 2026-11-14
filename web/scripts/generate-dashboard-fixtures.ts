@@ -603,7 +603,9 @@ function transcriptOf(events: Built[]) {
 	return events
 		.filter((e) => e.type === 'buyer_said' || e.type === 'agent_said')
 		.map((e) => ({
-			at: e.at,
+			// Transcript times aren't hashed, so they look like the API's datetimes: no
+			// fractional seconds when there are none. Only steps keep the hashed six digits.
+			at: e.at.replace(/\.0{6}Z$/, 'Z'),
 			who: e.type === 'buyer_said' ? 'buyer' : 'agent',
 			text: String(e.payload.text),
 			lang: String(e.payload.lang ?? 'en')
