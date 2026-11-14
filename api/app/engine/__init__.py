@@ -1,8 +1,8 @@
 """The decision engine. Pure: no database, HTTP, clock reads or randomness.
 
-The stub is replaced piece by piece by the real pipeline (Aku).
+Everything comes in through EngineInput, so the same input always gives the same output.
 """
 
-from .stub import decide
+from .pipeline import decide
 
 __all__ = ["decide"]

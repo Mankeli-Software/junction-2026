@@ -192,11 +192,11 @@ codes:
 # Sentences that belong to no single code. The agent speaks the summary (#36).
 texts:
   SUMMARY_READY:
-    fi: "Tarjous on valmis: {count} tuotetta, yhteensä {total}, toimitus {dates}."
-    en: "The quote is ready: {count} products, total {total}, delivery {dates}."
+    fi: "Tarjous on valmis. Toimitus {dates}, tuotteita {count}, yhteensä {total}."
+    en: "The quote is ready. Delivery {dates}, products: {count}, total {total}."
   SUMMARY_NOTES:
-    fi: "Vahvistussivulla on {notes} kohtaa tarkistettavana."
-    en: "There are {notes} notes to check on the confirmation page."
+    fi: "Tarkistettavia kohtia vahvistussivulla: {notes}."
+    en: "Notes to check on the confirmation page: {notes}."
   SUMMARY_REJECTED:
     fi: "En valitettavasti voi tilata mitään pyytämistänne tuotteista."
     en: "Unfortunately I can't order any of the products you asked for."
