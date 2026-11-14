@@ -7,12 +7,14 @@ function fakeFetch(status = 200, body: unknown = { ok: 1 }) {
 	return vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify(body), { status }));
 }
 
-test('the tools are exactly the eight agent tools, and nothing that confirms, cancels or reads the inbox', () => {
+test('the tools are exactly the ten agent tools, and nothing that confirms an order, cancels or reads the inbox', () => {
 	expect(AGENT_TOOLS.map((t) => t.name)).toEqual([
 		'search_products',
 		'get_customer_context',
 		'search_recipes',
 		'get_recipe',
+		'propose_recipe',
+		'confirm_recipe',
 		'build_quote',
 		'update_quote',
 		'request_confirmation',
@@ -22,8 +24,12 @@ test('the tools are exactly the eight agent tools, and nothing that confirms, ca
 		expect(t.description).toBeTruthy();
 		expect(t.inputSchema.type).toBe('object');
 		expect(t.rest.path).toMatch(/^\/api\/v1\//);
-		expect(t.rest.path).not.toMatch(/private|inbox|cancel|\/confirm(\/|$)/);
+		expect(t.rest.path).not.toMatch(/private|inbox|cancel|confirmations/);
+		// confirm_recipe confirms what was read from a recipe photo (#80), never an order: the
+		// only /confirm path an agent may reach. Every other /confirm stays off limits.
+		if (t.name !== 'confirm_recipe') expect(t.rest.path).not.toMatch(/\/confirm(\/|$)/);
 	}
+	expect(tool('confirm_recipe').rest.path).toBe('/api/v1/recipe-drafts/{draft_id}/confirm');
 });
 
 describe('callTwin', () => {

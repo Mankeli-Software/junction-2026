@@ -76,7 +76,7 @@ test('the page registers exactly the agent tools, as /mcp lists them', async ({ 
 	for (const forbidden of ['confirm', 'confirm_order', 'cancel', 'cancel_order', 'get_inbox', 'read_inbox', 'edit_quote']) {
 		expect(names).not.toContain(forbidden);
 	}
-	await expect(page.getByText('8 ordering tools are ready')).toBeVisible();
+	await expect(page.getByText('10 ordering tools are ready')).toBeVisible();
 });
 
 test('the tools fall back to navigator.modelContext', async ({ page }) => {
