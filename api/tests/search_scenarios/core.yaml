@@ -1,0 +1,418 @@
+# Core search scenarios (#30, docs/plans/30-product-search.md §6.2). Drafted by Claude from
+# the real catalogue, to be reviewed by Miska before the first baseline.
+#
+# Queries are what a kitchen buyer says on the phone: vague, Finnish or English. Grades:
+#   typical:    what a kitchen most likely means. Rank 1 should be one of these.
+#   acceptable: same kind, another variant (fat %, brand, pack size). Fine as an option.
+#   wrong_kind: matches the words, but is not what was asked. Must not be in the top 5.
+# A grade is a selector: `ids`, or `categories` + `name` regex + `not` regex (Postgres ~*,
+# on the Finnish and English names). The scenario's claims also apply to typical and
+# acceptable. The noisy set is generated from these queries.
+
+# Dairy ----------------------------------------------------------------------------------
+
+- id: milk-lactose-free-claim
+  q: laktoositon maito
+  claims: [lactose_free]
+  note: The headline scenario (valio-api-analysis.md §11). The agent passes the claim.
+  typical: {categories: ["10400"], name: "(täys|kevyt|rasvaton|^valio |^arla )?maito(juoma)?\\M", not: "kahvi|caf[eéè]|annos|piimä|kaakao|suklaa|jauhe"}
+  acceptable: {categories: ["10400"], not: "piimä|kaakao|suklaa"}
+  wrong_kind: {name: "kahvimaito|caf[eéè] maito|annosmaito|kondensoitu|jogurtti|rahka|kaakao|suklaa|maitojauhe"}
+
+- id: milk-lactose-free-text
+  q: laktoositon maito
+  note: The same request when the agent does not turn "laktoositon" into a claim.
+  typical: {categories: ["10400"], name: "laktoositon", not: "kahvi|caf[eéè]|annos|piimä|kaakao|suklaa"}
+  acceptable: {categories: ["10400"], not: "piimä"}
+  wrong_kind: {name: "kahvimaito|caf[eéè] maito|annosmaito|kondensoitu|jogurtti|rahka|kaakao|suklaa|maitojauhe|kasvirasva"}
+
+- id: milk-plain
+  q: maito
+  typical: {categories: ["10400"], name: "maito", not: "kahvi|caf[eéè]|annos|piimä|kaakao|suklaa"}
+  acceptable: {categories: ["10400"]}
+  wrong_kind: {name: "kahvimaito|annosmaito|kondensoitu|jogurtti|rahka|maitojauhe|maitosuklaa"}
+
+- id: semi-skimmed-milk
+  q: kevytmaito
+  typical: {categories: ["10400"], name: "kevytmaito"}
+  wrong_kind: {name: "jauhe|kaakao"}
+
+- id: skimmed-milk
+  q: rasvaton maito
+  typical: {categories: ["10400"], name: "rasvaton maito|rasvaton maitojuoma"}
+  acceptable: {categories: ["10400"], name: "rasvaton", not: "piimä"}
+  wrong_kind: {name: "maitojauhe|piimä|jogurtti|rahka"}
+
+- id: whole-milk
+  q: täysmaito
+  typical: {categories: ["10400"], name: "täysmaito"}
+  wrong_kind: {name: "jauhe"}
+
+- id: whipping-cream
+  q: kuohukerma
+  typical: {categories: ["10401"], name: "kuohukerma"}
+  wrong_kind: {name: "kasvirasva|jäätelö|kakku"}
+
+- id: cooking-cream
+  q: ruokakerma
+  typical: {categories: ["10401"], name: "ruokakerma", not: "juusto|sipuli|tomaatti|pippuri|savu|yrtti|valkosipuli"}
+  acceptable: {categories: ["10401"], name: "ruokakerma"}
+
+- id: cream-vague
+  q: kermaa
+  note: Partitive, as spoken. Any plain cream is fine.
+  typical: {categories: ["10401"], name: "kerma", not: "juusto|sipuli|tomaatti|pippuri|savu|yrtti"}
+  acceptable: {categories: ["10401", "10406"]}
+  wrong_kind: {name: "kermaviili|jäätelö|kermajauhe|kermakakku|kerma-perunat|kermaperuna|kastike"}
+
+- id: butter
+  q: voi
+  typical: {categories: ["10500"], name: "\\mvoi\\M|voi \\d", not: "maustevoi|grillivoi|kaakaovoi|yrtti|valkosipuli"}
+  acceptable: {categories: ["10500", "10501"]}
+  wrong_kind: {name: "kaakaovoi|maapähkinävoi|voileipä|voisilmä|voitaikina|voipulla|voisarvi|croissant"}
+
+- id: grated-cheese
+  q: juustoraaste
+  typical: {categories: ["10603"], name: "raaste"}
+  wrong_kind: {categories: ["41705", "41762", "17300"]}
+
+- id: emmental
+  q: emmental juusto
+  typical: {categories: ["10600", "10602", "10603"], name: "emmental"}
+  wrong_kind: {categories: ["41705"]}
+
+- id: feta
+  q: fetajuusto
+  typical: {categories: ["10636"], name: "feta"}
+  wrong_kind: {categories: ["41762", "41753", "17200", "17301"]}
+
+- id: cream-cheese
+  q: maustamaton tuorejuusto
+  typical: {categories: ["10635"], name: "maustamaton"}
+  acceptable: {categories: ["10635"]}
+
+- id: natural-yoghurt
+  q: maustamaton jogurtti
+  typical: {categories: ["10412"], name: "maustamaton|turkkilainen|kreikkalainen jogurtti \\d|luonnonjogurtti"}
+  acceptable: {categories: ["10412"]}
+  wrong_kind: {name: "kastike|feta|salaatti"}
+
+- id: quark
+  q: maitorahka
+  typical: {categories: ["10430"], name: "maitorahka|rahka \\d", not: "vanilja|mansikka|mustikka|luumu|sitruuna|kaneli|suklaa|persikka|marja|mango|vadelma"}
+  acceptable: {categories: ["10430"]}
+  wrong_kind: {categories: ["41764", "41763", "17302"]}
+
+- id: buttermilk
+  q: piimä
+  typical: {categories: ["10400"], name: "piimä"}
+  wrong_kind: {name: "piimäjuusto|leipä|piimälimppu"}
+
+- id: sour-cream
+  q: kermaviili
+  typical: {categories: ["10419", "10411"], name: "kermaviili", not: "dippi"}
+  acceptable: {categories: ["10419", "10411"], name: "kermaviili"}
+  wrong_kind: {categories: ["21120"]}
+
+- id: smetana
+  q: smetana
+  typical: {categories: ["10419"], name: "smetana"}
+
+- id: oat-drink
+  q: kaurajuoma
+  typical: {categories: ["10402"], name: "kaurajuoma", not: "suklaa|kaakao|välipala|kahvi|ikaffe|barista|vanilja|mansikka"}
+  acceptable: {categories: ["10402"], name: "kaura"}
+  wrong_kind: {categories: ["10413"]}
+
+# Meat -----------------------------------------------------------------------------------
+
+- id: beef-mince
+  q: naudan jauheliha
+  note: Raw beef mince. Mixes, cooked, frozen and patties are the wrong kind.
+  typical: {categories: ["18760", "18720"], name: "jauheliha", not: "sika|possu|porsas|kypsä|ruskistettu|pakaste|pihvi|burger"}
+  acceptable: {categories: ["18760", "18720"], name: "jauheliha", not: "kypsä|ruskistettu|pihvi|burger"}
+  wrong_kind: {name: "kypsä|ruskistettu|paahdettu|pihvi|burger|pyörykkä|piirakka|lasagne|kastike"}
+
+- id: beef-mince-17
+  q: naudan jauheliha 17%
+  note: Refinement after an offer. The 17 % ones first.
+  typical: {categories: ["18760", "18720"], name: "jauheliha.*17 ?%", not: "sika|possu|kypsä|pakaste"}
+  acceptable: {categories: ["18760", "18720"], name: "jauheliha", not: "kypsä|pakaste"}
+  wrong_kind: {name: "kypsä|ruskistettu|pihvi|burger"}
+
+- id: beef-mince-brand
+  q: snellmanin jauheliha
+  note: Refinement by brand.
+  typical: {categories: ["18760", "18720"], name: "snellman.*jauheliha"}
+  acceptable: {categories: ["18760", "18720"], name: "jauheliha"}
+
+- id: mixed-mince
+  q: nauta-sika jauheliha
+  typical: {categories: ["18760"], name: "(nauta|naudan).?(sika|possu)|(sika|possu).?nauta"}
+  acceptable: {categories: ["18760", "18720"], name: "jauheliha"}
+  wrong_kind: {name: "kypsä|ruskistettu|pihvi"}
+
+- id: chicken-breast
+  q: broilerin rintafilee
+  typical: {categories: ["18750"], name: "rintafilee", not: "marinoitu|kypsä"}
+  acceptable: {categories: ["18750", "41710"], name: "rintafilee|rintaleike"}
+  wrong_kind: {name: "kypsä|pyörykkä|nugget|leike, paneroitu|sous vide"}
+
+- id: chicken-strips
+  q: broilerin suikale
+  typical: {categories: ["17209", "18750"], name: "suikale"}
+  acceptable: {categories: ["17209", "18750", "41710"], name: "suikale"}
+
+- id: pork-loin
+  q: porsaan ulkofilee
+  typical: {categories: ["18710"], name: "ulkofile"}
+  wrong_kind: {name: "paneroitu|leike|kypsä"}
+
+- id: bacon
+  q: pekoni
+  typical: {categories: ["17202"]}
+  wrong_kind: {name: "pulla|panini|pizza|pihvi|keitto|piirakka|kiusaus|salaatti"}
+
+- id: frankfurters
+  q: nakit
+  typical: {categories: ["17201"]}
+  wrong_kind: {categories: ["17300", "17306"]}
+
+- id: ham-cold-cuts
+  q: kinkkuleike
+  typical: {categories: ["17203"], name: "kinkku"}
+  wrong_kind: {name: "pizza|kiusaus|piirakka|pasteija|patonki|lämpimäinen"}
+
+# Fish -----------------------------------------------------------------------------------
+
+- id: salmon-fillet
+  q: lohifilee
+  typical: {categories: ["18701"], name: "lohifile", not: "kirjolohi"}
+  acceptable: {categories: ["18701", "41720"], name: "lohi"}
+  wrong_kind: {categories: ["18702", "18708"]}
+
+- id: rainbow-trout
+  q: kirjolohifilee
+  typical: {categories: ["18701"], name: "kirjolohi"}
+  acceptable: {categories: ["18701", "41720"], name: "kirjolohi"}
+  wrong_kind: {name: "kiusaus|pyörykkä|savu|graavi|kylmäsavu"}
+
+- id: shrimps
+  q: katkaravut
+  typical: {name: "katkarap|katkarav", not: "salaatti|leipä|voileipä|piirakka|pizza|kastike"}
+  wrong_kind: {categories: ["17301", "17302"]}
+
+- id: tuna-can
+  q: tonnikalasäilyke
+  typical: {categories: ["21530"], name: "tonnikala"}
+  wrong_kind: {name: "pizza|salaatti|sashimi"}
+
+# Produce, eggs -------------------------------------------------------------------------
+
+- id: potatoes
+  q: perunat
+  typical: {categories: ["17421", "17420", "17422"], name: "peruna"}
+  acceptable: {categories: ["17421", "17420", "17422", "17423"]}
+  wrong_kind: {name: "lastu|chips|salaatti|muusi|gratiini|kiusaus|ranskalai|lohko|jauho"}
+
+- id: onions
+  q: sipuli
+  typical: {categories: ["17405"], name: "sipuli", not: "kevätsipuli|ruohosipuli"}
+  acceptable: {categories: ["17405", "17443"]}
+  wrong_kind: {categories: ["22630", "41755"]}
+
+- id: carrots
+  q: porkkana
+  typical: {categories: ["17431", "17442"], name: "porkkana", not: "violetti|keltainen"}
+  acceptable: {name: "porkkana", categories: ["17431", "17442", "41731"]}
+  wrong_kind: {categories: ["41763", "17300"]}
+
+- id: tomatoes
+  q: tomaatti
+  typical: {categories: ["17401"]}
+  wrong_kind: {categories: ["21590", "21912", "21917"]}
+
+- id: cucumber
+  q: kurkku
+  typical: {categories: ["17402"], name: "kurkku"}
+  acceptable: {categories: ["17402", "17443"], name: "kurkku"}
+  wrong_kind: {categories: ["21591", "52240"]}
+
+- id: iceberg
+  q: jäävuorisalaatti
+  typical: {name: "jäävuori"}
+
+- id: peppers
+  q: punainen paprika
+  typical: {categories: ["17406"], name: "punainen"}
+  acceptable: {categories: ["17406", "17443"]}
+  wrong_kind: {categories: ["22630"]}
+
+- id: eggs
+  q: kananmunat
+  typical: {categories: ["10590"]}
+  acceptable: {categories: ["10590", "10592"]}
+  wrong_kind: {categories: ["21380"]}
+
+# Dry goods, oils, sauces ----------------------------------------------------------------
+
+- id: wheat-flour
+  q: vehnäjauho
+  typical: {categories: ["21300"], name: "vehnäjauho"}
+  wrong_kind: {name: "leipä|sämpylä|pizza|piirakka|seos"}
+
+- id: sugar
+  q: sokeri
+  typical: {categories: ["22100"], name: "sokeri", not: "hillo|ruoko|fariini|tomu|kide|siirappi"}
+  acceptable: {categories: ["22100"]}
+  wrong_kind: {name: "sokeriton|sokeriliem|virvoitus|limonadi"}
+
+- id: salt
+  q: suola
+  typical: {categories: ["22600"]}
+  wrong_kind: {categories: ["18750", "21120"]}
+
+- id: rice
+  q: riisi
+  typical: {categories: ["21340"], not: "etikka|viini|nuudeli|jauho|kakku|puuro"}
+  acceptable: {categories: ["21340"]}
+  wrong_kind: {name: "kypsä|pakaste|pasteija|etikka|piirakka"}
+
+- id: spaghetti
+  q: spagetti
+  typical: {categories: ["21380"], name: "spagetti|spaghetti"}
+  wrong_kind: {name: "kurpitsa|bolognese|ateria"}
+
+- id: macaroni
+  q: makaroni
+  typical: {categories: ["21380"], name: "makaroni"}
+  wrong_kind: {categories: ["17300"]}
+
+- id: oat-flakes
+  q: kaurahiutaleet
+  typical: {categories: ["21370"], name: "kaurahiutale"}
+
+- id: rapeseed-oil
+  q: rypsiöljy
+  typical: {categories: ["10530"], name: "rypsiöljy"}
+  wrong_kind: {categories: ["21530", "10517"]}
+
+- id: olive-oil
+  q: oliiviöljy
+  typical: {categories: ["10531"], name: "oliiviöljy", not: "maustettu|basilika|chili|valkosipuli|sitruuna"}
+  acceptable: {categories: ["10531"]}
+
+- id: crushed-tomatoes
+  q: tomaattimurska
+  typical: {categories: ["21590"], name: "murska"}
+
+- id: ketchup
+  q: ketsuppi
+  typical: {categories: ["21912"]}
+
+- id: mayonnaise
+  q: majoneesi
+  typical: {categories: ["21910"]}
+
+- id: soy-sauce
+  q: soijakastike
+  typical: {categories: ["21921"]}
+
+- id: coffee
+  q: jauhettu kahvi
+  typical: {categories: ["22300"]}
+  wrong_kind: {name: "kahvimaito|kahvikerma|kahvileipä|kahvisuodatin|kahvikuppi"}
+
+# Frozen, bakery -------------------------------------------------------------------------
+
+- id: frozen-peas
+  q: pakasteherneet
+  typical: {categories: ["41731", "41732"], name: "herne"}
+  wrong_kind: {categories: ["21594", "41753", "17300"]}
+
+- id: fries
+  q: ranskanperunat
+  typical: {categories: ["41751"], name: "ranskalai|ranskan|french|fries|puikula"}
+  acceptable: {categories: ["41751"]}
+  wrong_kind: {categories: ["21918", "18705"]}
+
+- id: vanilla-ice-cream
+  q: vaniljajäätelö
+  typical: {categories: ["41820", "41801"], name: "vanilja"}
+  wrong_kind: {name: "kastike|rahka|jogurtti|vanukas"}
+
+- id: rye-bread
+  q: ruisleipä
+  typical: {categories: ["10900", "41760"], name: "ruis"}
+  wrong_kind: {name: "leipäaines|jauho"}
+
+# Non-food -------------------------------------------------------------------------------
+
+- id: dish-soap
+  q: astianpesuaine
+  typical: {categories: ["63100"]}
+
+- id: bin-bags
+  q: roskapussit
+  typical: {categories: ["63121"]}
+
+- id: kitchen-roll
+  q: talouspaperi
+  typical: {categories: ["63200"]}
+
+- id: foil
+  q: alumiinifolio
+  typical: {categories: ["63272"], name: "folio", not: "vuoka|kansi"}
+  acceptable: {categories: ["63272", "64003"], name: "folio"}
+
+# English --------------------------------------------------------------------------------
+
+- id: en-lactose-free-milk
+  q: lactose free milk
+  claims: [lactose_free]
+  typical: {categories: ["10400"], name: "(whole|semi skimmed|skimmed|fat free)? ?milk( drink)?\\M", not: "coffee|caf[eéè]|portion|buttermilk|cocoa|chocolate|powder"}
+  acceptable: {categories: ["10400"]}
+  wrong_kind: {name: "coffee milk|caf[eéè] milk|portion|condensed|yoghurt|yogurt|quark|cocoa|chocolate|powder"}
+
+- id: en-ground-beef
+  q: ground beef
+  typical: {categories: ["18760", "18720"], name: "jauheliha", not: "sika|possu|kypsä|ruskistettu|pakaste|pihvi|burger"}
+  acceptable: {categories: ["18760", "18720"], name: "jauheliha|mince"}
+  wrong_kind: {name: "kypsä|cooked|ruskistettu|pihvi|burger|patty"}
+
+- id: en-chicken-breast
+  q: chicken breast fillet
+  typical: {categories: ["18750"], name: "rintafilee", not: "marinoitu|kypsä"}
+  acceptable: {categories: ["18750", "41710"], name: "rintafilee|rintaleike|breast"}
+  wrong_kind: {name: "kypsä|cooked|nugget|paneroitu"}
+
+- id: en-butter
+  q: butter
+  typical: {categories: ["10500"], not: "maustevoi|grillivoi|yrtti|valkosipuli|garlic|herb"}
+  acceptable: {categories: ["10500", "10501"]}
+  wrong_kind: {name: "kaakaovoi|cocoa butter|peanut|maapähkinä|croissant|voitaikina"}
+
+- id: en-whipping-cream
+  q: whipping cream
+  typical: {categories: ["10401"], name: "vispikerma|kuohukerma|whipping", not: "kasvirasva"}
+  wrong_kind: {name: "kasvirasva|jäätelö|ice cream"}
+
+- id: en-salmon
+  q: salmon fillet
+  typical: {categories: ["18701"], name: "lohifile", not: "kirjolohi"}
+  acceptable: {categories: ["18701", "41720"], name: "lohi|salmon"}
+  wrong_kind: {categories: ["18702", "18708"]}
+
+- id: en-oat-drink
+  q: oat drink
+  typical: {categories: ["10402"], name: "kaura|oat", not: "suklaa|chocolate|kaakao|välipala|vanilja|mansikka"}
+  acceptable: {categories: ["10402"]}
+  wrong_kind: {categories: ["10413"]}
+
+- id: en-wheat-flour
+  q: wheat flour
+  typical: {categories: ["21300"]}
+
+- id: en-dish-soap
+  q: dishwashing liquid
+  typical: {categories: ["63100"]}

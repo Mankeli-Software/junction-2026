@@ -1,0 +1,83 @@
+# Precision scenarios (#30, spec §6.2): what must not come back near the top.
+# Only `wrong_kind` is checked (no wrong-kind product in the top 5).
+
+- id: neg-low-lactose-is-not-lactose-free
+  q: maito
+  claims: [lactose_free]
+  wrong_kind: {name: "vähälaktoosinen|low lactose"}
+
+- id: neg-sour-milk-for-milk
+  q: maito
+  wrong_kind: {name: "piimä|viili|jogurtti"}
+
+- id: neg-chocolate-milk
+  q: laktoositon maito
+  wrong_kind: {name: "kaakao|suklaa|chocolate|cocoa"}
+
+- id: neg-coffee-milk
+  q: kevytmaito
+  wrong_kind: {name: "kahvi|cafe|café"}
+
+- id: neg-cooked-mince
+  q: jauheliha
+  wrong_kind: {name: "kypsä|ruskistettu|paahdettu"}
+
+- id: neg-mince-patties
+  q: naudan jauheliha
+  wrong_kind: {name: "pihvi|burger|pyörykkä|piirakka"}
+
+- id: neg-cream-dessert
+  q: kerma
+  wrong_kind: {name: "jäätelö|kakku|leivos|kermaviili"}
+
+- id: neg-butter-cocoa
+  q: voi
+  wrong_kind: {name: "kaakaovoi|maapähkinävoi|cocoa butter"}
+
+- id: neg-salmon-smoked
+  q: lohi
+  wrong_kind: {name: "kiusaus|pizza|salaatti|keitto"}
+
+- id: neg-potato-chips
+  q: peruna
+  wrong_kind: {name: "chips|lastu|sipsi"}
+
+- id: neg-tomato-ketchup
+  q: tomaatti
+  wrong_kind: {name: "ketsuppi|ketchup"}
+
+- id: neg-sugar-free
+  q: sokeri
+  wrong_kind: {name: "sokeriton|sugar free"}
+
+- id: neg-egg-pasta
+  q: kananmuna
+  wrong_kind: {name: "pasta|tagliatelle|pasteija"}
+
+- id: neg-oat-yoghurt
+  q: kaurajuoma
+  wrong_kind: {name: "jogurtti|yoghurt|gurt"}
+
+- id: neg-cooked-chicken
+  q: broilerin rintafilee
+  wrong_kind: {name: "kypsä|cooked|nugget"}
+
+- id: neg-cheese-pizza
+  q: juusto
+  wrong_kind: {name: "pizza|piirakka|sämpylä|leipä|kakku"}
+
+- id: neg-rice-vinegar
+  q: riisi
+  wrong_kind: {name: "etikka|vinegar|viini"}
+
+- id: neg-onion-spice
+  q: sipuli
+  wrong_kind: {name: "rouhe|jauhe|keitto|kastike"}
+
+- id: neg-carrot-cake
+  q: porkkana
+  wrong_kind: {name: "kakku|leivos|muffin"}
+
+- id: neg-milk-powder
+  q: rasvaton maito
+  wrong_kind: {name: "jauhe|powder"}
