@@ -76,8 +76,8 @@ REPO = HERE.parents[1]
 OUT_DIR = HERE / "out" / "prompt_calls"
 SESSIONS_LOG = OUT_DIR / "sessions.log"
 CHAT_MODEL = "gemini-3.8-flash"
-VOICE = "Aoede"  # the spike's proposal for S.I.MO
-CALLER_VOICE = "Achird"  # the spike's caller voice
+VOICE = "Achird"  # S.I.MO's voice, picked in #67 (`voice_name` in api/app/settings.py)
+CALLER_VOICE = "Achird"  # the spike's caller voice; the caller audio is cached under audio/
 
 # The harness's demo account. The butter id is made up: the stub prices every line as milk.
 CONTEXT = CustomerContext(
@@ -374,6 +374,7 @@ class Turn:
     heard: str = ""  # input transcription, audio runs only
     seconds: float = 0.0
     timed_out: bool = False
+    speech_s: float = 0.0  # length of S.I.MO's audio in this turn (phone calls)
 
 
 @dataclass
@@ -454,6 +455,7 @@ class LiveCall:
             for part in sc.model_turn.parts or []:
                 if part.inline_data and part.inline_data.data:
                     self.audio_out.extend(part.inline_data.data)
+                    turn.speech_s += len(part.inline_data.data) / (2 * OUT_RATE)
         if sc.turn_complete and self.pending <= 0 and not self.awaiting_reply:
             self.turn_done.set()
 
@@ -758,6 +760,31 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
     return rows
 
 
+# --- Length ---------------------------------------------------------------------------
+
+
+def words(text: str) -> int:
+    return len(re.findall(r"\w+", text))
+
+
+def length(result: CallResult) -> dict[str, Any]:
+    """Words and seconds of S.I.MO speech: per call, and the longest single turn.
+
+    Seconds are the audio Live sent for the turn (24 kHz PCM), so they are real speaking
+    time in text runs too. The chat call has no audio, only words.
+    """
+    turns = [t for t in result.turns if t.agent.strip()]
+    longest = max(turns, key=lambda t: (t.speech_s, words(t.agent)), default=None)
+    return {
+        "turns": len(turns),
+        "words": sum(words(t.agent) for t in turns),
+        "seconds": round(sum(t.speech_s for t in turns), 1),
+        "longest_words": words(longest.agent) if longest else 0,
+        "longest_seconds": round(longest.speech_s, 1) if longest else 0.0,
+        "longest_turn": longest.index if longest else None,
+    }
+
+
 # --- Report --------------------------------------------------------------------------
 
 
@@ -765,6 +792,20 @@ def report(
     out_dir: Path, results: list[tuple[Scenario, CallResult]], version: str = PROMPT_VERSION, tools: str | None = None
 ) -> None:
     md = [f"# Prompt calls {out_dir.name}", "", f"Prompt version {version}", "", f"Tool descriptions: {tools or DESCRIPTIONS_SOURCE}", ""]
+    md += [
+        "## Length of S.I.MO speech",
+        "",
+        "| Call | Mode | Turns | Words | Seconds | Longest turn |",
+        "|---|---|---|---|---|---|",
+    ]
+    for scenario, result in results:
+        n = length(result)
+        md.append(
+            f"| {scenario.id} | {result.mode} | {n['turns']} | {n['words']} | {n['seconds']} | "
+            f"turn {n['longest_turn']}: {n['longest_words']} words, {n['longest_seconds']} s |"
+        )
+        print(f"{scenario.id} ({result.mode}): {n}")
+    md.append("")
     data = []
     for scenario, result in results:
         rows = check(scenario, result)
@@ -777,9 +818,17 @@ def report(
             md.append(f"- **{t.index} caller**: {t.caller}" + (f" (heard: {t.heard.strip()})" if t.heard else ""))
             for c in t.tool_calls:
                 md.append(f"  - tool `{c['name']}` `{json.dumps(c['args'], ensure_ascii=False)}`")
-            md.append(f"  - **agent** ({t.seconds} s{', TIMEOUT' if t.timed_out else ''}): {t.agent.strip()}")
+            timing = f"{t.seconds} s to turn end, {words(t.agent)} words, {t.speech_s:.1f} s speech"
+            md.append(f"  - **agent** ({timing}{', TIMEOUT' if t.timed_out else ''}): {t.agent.strip()}")
         md.append("")
-        data.append({"scenario": scenario.__dict__, "result": {**result.__dict__, "turns": [t.__dict__ for t in result.turns]}, "checks": rows})
+        data.append(
+            {
+                "scenario": scenario.__dict__,
+                "result": {**result.__dict__, "turns": [t.__dict__ for t in result.turns]},
+                "checks": rows,
+                "length": length(result),
+            }
+        )
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "results.md").write_text("\n".join(md), encoding="utf-8")
     (out_dir / "results.json").write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
