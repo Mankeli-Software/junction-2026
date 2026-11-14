@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import OrderSession, Product, Quote
 from app.schemas import CustomerContext, Lang, Localized
-from app.services import accounts, audit, confirmations, customers, sessions, tokens
+from app.services import accounts, audit, confirmations, customers, sessions, sms, tokens
 from app.services.caller import Caller
 from app.services.dashboard.redact import redact_text
 from app.services.policy import get_rule_set
@@ -175,7 +175,8 @@ async def end_call(
     now: datetime | None = None,
 ) -> CallEnd:
     """Release the call's held confirmation link (#46), end the session and write
-    `inbox_delivered` and `session_ended`. Safe to call twice: the second call releases
+    `inbox_delivered` and `session_ended`. A held SMS goes out once this commits; then
+    `sms_delivery()` tells how it went. Safe to call twice: the second call releases
     nothing and leaves the session as it is."""
     now = now or datetime.now(UTC)
     # The session first (#88): a request_confirmation still running holds this lock until
@@ -219,6 +220,15 @@ async def end_call(
     return CallEnd(
         released_quote_ids=[str(q) for q in released], quote_id=quote_id, total_cents=total_cents
     )
+
+
+async def sms_delivery(end: CallEnd) -> str:
+    """After `end_call()` has committed: how the released link went by SMS, for the relay's
+    `ended` message. `sent` (or queued), `failed` when Twilio refused it, `off` when no
+    SMS goes out for it (Twilio off, a number not on the allowlist, or over the limit)."""
+    if end.quote_id is None:
+        return "off"
+    return await sms.delivery_status_for_quote(end.quote_id)
 
 
 _ENDED_BY_FI = {
