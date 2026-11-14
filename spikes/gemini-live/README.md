@@ -347,25 +347,72 @@ On a real call through the relay, a caller who started in English and went on in
 
 - **"S.I.MO" never showed up in a caption here**, in any caller turn of the 9 calls; 2 of the calls had "S.I.MO" in the vocabulary. The real-call caption still points at the vocabulary: a recogniser doesn't write the dotted spelling "S.I.MO" for speech on its own, only as a boosted term it falls back on when unsure. Callers have no reason to say the agent's name, so the relay no longer sends it.
 - **The model acts on what the recogniser heard.** In run 1 the misheard "to get some" made S.I.MO ask how many, and the Finnish caption "Tässä on. Kiitos." got a Finnish reply. This matches #51 (the vocabulary fixed what the model understood, not only the caption) and the "Ja, vad heter du?" caption that S.I.MO answered with its name. A bad caption is bad context, not only a bad line on the screen.
-- **The Finnish vocabulary pulls short English lines towards Finnish.** "That's all" after a Finnish opening became "Tässä on" in all 4 runs with the vocabulary and came through right in the one run without. The vocabulary can't go: #51 showed real speech needs it for product names. Live takes the transcription config once per session, so the relay can't swap vocabularies when the caller switches.
+- **The Finnish vocabulary pulls short English lines towards Finnish.** "That's all" after a Finnish opening became "Tässä on" in all 4 runs with the vocabulary and came through right in the one run without. The vocabulary can't go: #51 showed real speech needs it for product names. Live takes the transcription config once per session, so the relay can't swap vocabularies when the caller switches. Half an hour later the same audio and vocabulary came through right 5 times out of 5 (#116, next section), so the failure is intermittent.
 - **A `language_codes` hint (`fi-FI`, `en-US`) didn't help** (run 3), so the relay still sends none and leaves detection automatic.
 - **Prompt .10.** In run 4 the English yes got the link sentence in the account's Finnish. The language section now says to stay in the language of the caller's latest turn until they switch again, also for the quote, the link and the goodbye. Run 5 passed every language check.
 - Every result above comes from one run, and the TTS lines are cleaner than a real caller's.
 
-## Vocabulary and short English lines (#116, 2026-11-14, in progress)
+## Vocabulary and short English lines (#116, 2026-11-14)
 
-`vocab_probe.py` runs one Live call per transcription vocabulary. Turns 1 to 4 are `switch_fi_en` with the same audio as #85; then the ten #51 phrases in Jesse's voice (#67) with short English lines between them, then `en01` and two short Finnish lines. So one session gives the #85 caption, the short-line captions and the product-name key terms (/66, as in #67).
+#85 found that the English "That's all, thanks." after a Finnish opening was captioned "Tässä on." in 4 of 4 runs with the relay's Finnish vocabulary. #116 tried other vocabularies. Result: **the failure didn't come back, not even with the unchanged vocabulary**, so no variant could beat it, and the relay keeps its vocabulary as it is (a known limit, see Decision).
+
+### The probe
+
+`vocab_probe.py` measures the switch captions and the product names in one Live session per vocabulary. Ten single-phrase sessions per variant, as in #51, wouldn't fit a budget of 10 sessions. The call runs on the real prompt and tools with the stub engine, as `prompt_calls.py` does.
+
+- **Turns 1 to 4** are `switch_fi_en` with the same audio as #85: Jesse's `p01`, then the cached TTS lines. So turn 3 is the #85 failure, sample for sample.
+- **The ten #51 phrases** follow in Jesse's voice (#67). Short English lines come between them: the #85 lines again, right after Finnish, and three lines that are in no vocabulary ("No, nothing else.", "Okay, sounds good.", "That's it for today.").
+- **Then the other direction**: `en01`, then the short Finnish lines "Ei muuta, siinä kaikki." and "Joo, lähetä se.".
+- **Scoring.** A short line (at most five words) is right when its caption's WER is at most 0.25: "That's all. Thanks." passes, "Tässä on. Thanks." doesn't. Key terms are the #51 check over the ten phrases and `en01` (66 terms, as in #67).
 
 ```sh
-uv run vocab_probe.py --list                                        # the variants and the turns
+uv run vocab_probe.py --list                                     # the variants and the turns
 uv run vocab_probe.py --variant fi --audio-dir recordings/jesse --budget 10
+uv run vocab_probe.py --recheck out/vocab_probe/<dir>            # score a saved run again
 ```
 
-Results so far (one run each):
+`--budget` refuses to open a session once `out/prompt_calls/sessions.log` lists that many.
 
-| Session | Variant | Call | "That's all, thanks." (turn 3) | Short English lines right | Short Finnish lines right | Key terms |
-|---|---|---|---|---|---|---|
-| 1 | `fi` (the relay's, 25 terms) | probe | "That's all. Thanks." | 7/7 | 2/2 | 61/66 |
-| 2 | `fi` | `switch_fi_en` | "That's all. Thanks." | | | |
+### Variants
 
-The #85 failure did not come back: the same audio, vocabulary and prompt that gave "Tässä on" in 4 of 4 runs at 22:39 to 22:47 gave the right caption 3 times out of 3 at 23:13 to 23:18.
+| Variant | Terms | What |
+|---|---|---|
+| `fi` | 25 | What the relay sends, as #85 measured it: `BASE_VOCABULARY` plus the #51 product terms (in place of the catalogue's brands and compound words) |
+| `fi+en` | 29 | `fi` plus the issue's English order phrases: "that's all", "send it", "yes please", "thank you" |
+| `small` | 9 | Only the terms the recogniser got wrong without a vocabulary in #51 (TTS) or #67 (Jesse): Valio, Eila, Oltermanni, novobox, vispikerma, Viola, Oddlygood, Barista, kaurajuoma |
+| `none` | 0 | Control: no vocabulary |
+
+### Results
+
+6 Live sessions, all between 23:13 and 23:33. The #85 runs were at 22:39 to 22:47.
+
+| Run | Variant | Call | Turn 3, "That's all, thanks." | Short English lines right | Short Finnish lines after English right | Key terms | Mean WER |
+|---|---|---|---|---|---|---|---|
+| #85 runs 1, 2, 3, 5 | `fi` (run 1 also "S.I.MO") | `switch_fi_en` | "Tässä on." 4 times | | | | |
+| #85 run 4 | `none` | `switch_fi_en` | "That's all. Thanks." | | | | |
+| 1 | `fi` | probe | "That's all. Thanks." | 7/7 | 2/2 | 61/66 | 0.17 |
+| 2 | `fi` | `switch_fi_en` | "That's all. Thanks." | 2/2 | | | |
+| 3 | `fi+en` | probe | "That's all. Thanks." | 7/7 | 2/2 | 55/66 | 0.24 |
+| 4 | `small` | probe | "That's all. Thanks." | 6/6 | 2/2 | 61/66 | 0.13 |
+| 5 | `fi` | probe | "That's all. Thanks." | 7/7 | 2/2 | 60/66 | 0.19 |
+| 6 | `none` | probe | "That's all. Thanks." | 7/7 | **0/2** | **55/66** | 0.22 |
+| #67 | the 22 #51 terms | one session per phrase | | | | 63/66 | 0.13 |
+| #67 | `none` | one session per phrase | | | | 56/66 | 0.26 |
+
+In run 4, p02's caption came after the reply and landed in the next turn, whose own caption ("That's all, thanks.") never came. The table counts the p02 caption for p02 and leaves the lost one out (6/6). Since then the probe waits up to 3 s for a late caption.
+
+- **The #85 failure didn't come back.** The same clip, after the same Finnish opening, with the same vocabulary, prompt and tools, was captioned right 5 times out of 5 with `fi` (runs 1, 2 and 5; twice in each probe), and right every time with the other variants. The 4 failures all came in one 8-minute window half an hour earlier. So the failure is real but intermittent: the recogniser varies from run to run, or changed in between. With no failure to beat, these runs can't show that any variant fixes it.
+- **The vocabulary helps in the other direction.** Without it, the short Finnish lines after English became "Ai, multa. Siinä kaikki." and "Yo, le hace." (0/2). With each of the three vocabularies they came through (2/2). This is the same pull towards Finnish that #85 blamed for "Tässä on", and here the Finnish lines need it.
+- **The probe sees the product-name gain.** Without a vocabulary, key terms fell to 55/66 (#67: 56/66), with the #67 kind of misses: "Novabox", "600 gramman" for 900, "viispiikermää", "viulutorejustoa", "Ayla" for Eila, "Lactosan". `fi` gave 61 and 60, `small` 61.
+- **`fi+en` scored 55/66**, but its misses were two cut-off captions: p07 ended after "sulatejuustoa" and p08 after "kaksi tensinpurkkia". The same cut hit p07 with `fi` in run 5 (2/6). One run can't tell whether the English phrases cost anything.
+- **p07 loses words with every vocabulary.** The opening "kolme sankoa" was missing in all 4 vocabulary probes and in #67's vocabulary run, and in 2 of the probes the end was missing too. Without a vocabulary it came through whole, here and in #67. "Koskenlaskija" is in `fi` but not in `small`, and both lost the opening, so it isn't that one term.
+- **`small` did as well as `fi`, but that proves little.** Its 9 terms were picked from these very test phrases, so they pass here by construction. The relay's real list is up to 100 terms from the whole catalogue, for products these phrases don't name. That list couldn't be built for this test: the laptop's database was empty and no product file was at hand, so every vocabulary run here used the #51 terms in place of the catalogue's, as #85 did.
+- **Correct captions don't always get a reply in the same language.** In the probes S.I.MO often answered the short English lines between Finnish phrases in Finnish ("That's it for today." got "Selvä. Hyvää päivänjatkoa!"). That is the prompt under an unnatural back-and-forth, not the recogniser; the `switch_*` calls still pass the language checks.
+
+### Decision: a known limit; the relay keeps its vocabulary
+
+- **Not `fi+en`.** It fixed nothing measurable, since the baseline didn't fail. And English words in the list could pull Finnish lines the other way ("Tässä on" towards "That's all") on a call that stays in Finnish, which these runs tested only twice per variant.
+- **Not `small`.** It is tuned to the test phrases; the catalogue terms are what cover the rest of the range.
+- **The limit stays as #85 described it.** Now and then a short English line right after Finnish can be captioned in Finnish, and S.I.MO then answers in Finnish. The caller can repeat it or say "in English, please". Once an English line has been captioned right, the prompt keeps S.I.MO in English.
+
+Every number above comes from one run per row, with one speaker, and TTS lines that are cleaner than a real caller's.
