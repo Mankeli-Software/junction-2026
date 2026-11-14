@@ -172,6 +172,23 @@ def test_checklist_rules_are_present():
     assert "Never offer email, SMS" in text
 
 
+def test_phone_replies_are_short():
+    phone, chat = prompt("phone"), prompt("web_chat")
+    assert "at most one or two short sentences per turn, and at most one question" in phone
+    assert "Don't repeat back what the caller just said" in phone
+    assert '"Selvä. Muuta?" / "Got it. Anything else?"' in phone
+    assert "give one compact summary from the result: the total and the delivery day" in phone
+    assert "Always say both" in phone
+    assert "Don't read out each line, pack size or price" in phone
+    # The engine's `speak` may be shortened, but not the parts the buyer must know.
+    assert "keep anything the buyer must know: the allergen notice, a substitute" in phone
+    # The chat keeps its read-back: the page shows the quote card next to it.
+    assert "repeat it back in a few words (product, quantity, day)" in chat
+    assert "for each line the product chosen" in chat
+    for text in ("Don't repeat back", "compact summary", "`speak`** is"):
+        assert text not in chat
+
+
 @pytest.mark.parametrize("channel", ["phone", "web_chat"])
 @pytest.mark.parametrize("call_language", ["auto", "fi", "en"])
 def test_name_and_characters(channel, call_language):
