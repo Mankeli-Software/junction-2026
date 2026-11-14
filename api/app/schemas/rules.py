@@ -71,6 +71,7 @@ TEMPLATE_FIELDS = frozenset(
         "quantity",
         "unit",
         "available",
+        "usual",  # the usual range of a product, for QUANTITY_UNUSUAL (#42)
         "date",
         "allergen",
         "allergen_fi",
