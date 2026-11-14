@@ -265,11 +265,19 @@ class TranscriptLine(StrictModel):
 
 
 class AuditEvent(Step):
-    """A full redacted event, as `/events` returns it. The payload shape depends on `type`."""
+    """A full redacted event, as `/events` returns it. The payload shape depends on `type`.
+
+    `payload_hash` covers `{payload, text_fi, text_en}` exactly as stored (docs/audit-chain.md),
+    so the raw sentences are here too, null when the event has none; `text` turns a null into
+    an empty string for display. `payload` is null when it was deleted after the event.
+    """
 
     channel: Channel
     identity_masked: str | None
-    payload: dict[str, Any]
+    payload: dict[str, Any] | None
+    # Defaults only so older fixtures still load; the API always sends both.
+    text_fi: str | None = None
+    text_en: str | None = None
 
 
 # GET /api/v1/public/audit/verify
