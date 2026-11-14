@@ -102,6 +102,10 @@ class Settings(BaseSettings):
     policy_dir: Path = REPO_ROOT / "policy"
     data_dir: Path = REPO_ROOT / "data"
 
+    # Until real accounts land (#44), every request acts as one fixed demo customer when this
+    # is on. Off means requests without a caller get 401.
+    dev_fake_caller: bool = False
+
     @classmethod
     def settings_customise_sources(
         cls,
