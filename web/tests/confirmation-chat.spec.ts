@@ -49,3 +49,13 @@ test('asks for a change in words, reloads the view, and Confirm stays the page b
 	await expect(ask.getByRole('button', { name: 'Add a recipe photo' })).toHaveCount(0);
 	await expect(page.getByRole('button', { name: /confirm/i })).toHaveCount(1);
 });
+
+test('a recipe group shows the recipe image in its heading', async ({ page }) => {
+	await page.route('https://cdn-wp.valio.fi/**', (route) =>
+		route.fulfill({ headers: { 'content-type': 'image/svg+xml' }, body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="267"/>' })
+	);
+	await page.goto(`/c/${token('recipe')}`);
+	const heading = page.getByRole('heading', { name: 'For Lihapullat tomaattikastikkeessa' });
+	await expect(heading).toBeVisible();
+	await expect(heading.locator('img')).toHaveAttribute('referrerpolicy', 'no-referrer');
+});

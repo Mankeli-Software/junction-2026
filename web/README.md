@@ -69,6 +69,7 @@ With `CONFIRMATION_SOURCE=fixture`, the token picks a scenario: `fx-<scenario>` 
 | `fx-confirmed-...` | Already confirmed: the receipt |
 | `fx-cancelled-...` | Cancelled |
 | `fx-expired-...` | Expired |
+| `fx-recipe-...` | An order with a recipe group that shows the recipe's image |
 
 For example http://localhost:5173/c/fx-ready-mine. The fixture keeps its state in memory until the server restarts.
 

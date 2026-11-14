@@ -9,7 +9,8 @@
  *
  * Tokens pick a scenario: `fx-<scenario>` or `fx-<scenario>-<anything>`, so each
  * test can use its own token. Scenarios: ready, fi, requote, confirmed, cancelled,
- * expired. Any other token is invalid.
+ * expired, recipe (the first two lines ordered for one of our recipes, a group with the
+ * recipe's image). Any other token is invalid.
  *
  * The products and prices are invented, like the mock data in docs/design.
  */
@@ -238,7 +239,7 @@ const MAX_TOKENS = 500;
 const store = new Map<string, FxState>();
 let nextOrderNumber = 1042;
 
-const SCENARIOS = ['ready', 'fi', 'requote', 'confirmed', 'cancelled', 'expired'];
+const SCENARIOS = ['ready', 'fi', 'requote', 'confirmed', 'cancelled', 'expired', 'recipe'];
 
 function scenarioOf(token: string): string | null {
 	const match = /^fx-([a-z]+)(?:-[A-Za-z0-9_-]+)?$/.exec(token);
@@ -436,6 +437,30 @@ function lineView(line: FxLine): QuoteLine {
 	};
 }
 
+/** The `recipe` scenario: the first two requests are for one of our recipes. */
+const RECIPE_GROUP = {
+	group: 'Lihapullat tomaattikastikkeessa',
+	requests: ['r1', 'r2'],
+	image_url: 'https://cdn-wp.valio.fi/valio-wp-network/sites/32/2024/11/37515-lihapullat-tomaattikastikkeessa-400x300.jpeg'
+};
+
+function groupOf(s: FxState, line: FxLine): string | null {
+	return s.scenario === 'recipe' && RECIPE_GROUP.requests.includes(line.request_id) ? RECIPE_GROUP.group : null;
+}
+
+function groupsOf(s: FxState): ConfirmationView['groups'] {
+	const lines = s.lines.filter((line) => groupOf(s, line) !== null);
+	if (lines.length === 0) return [];
+	return [
+		{
+			group: RECIPE_GROUP.group,
+			line_ids: lines.map((l) => l.line_id),
+			subtotal_cents: lines.reduce((sum, l) => sum + lineTotal(l), 0),
+			image_url: RECIPE_GROUP.image_url
+		}
+	];
+}
+
 function toView(s: FxState): ConfirmationView {
 	return {
 		state: s.state,
@@ -454,8 +479,8 @@ function toView(s: FxState): ConfirmationView {
 			total_cents: total(s),
 			delivery: s.lines.length > 0 ? { earliest: NEEDED_BY, latest: NEEDED_BY } : null
 		},
-		lines: s.lines.map(lineView),
-		groups: [],
+		lines: s.lines.map((line) => ({ ...lineView(line), group: groupOf(s, line) })),
+		groups: groupsOf(s),
 		not_ordered: [],
 		flags: s.flags,
 		change: s.change,

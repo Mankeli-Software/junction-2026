@@ -5,6 +5,7 @@
 	 * all product text is escaped (never {@html}).
 	 */
 	import { page } from '$app/state';
+	import Thumb from '#lib/a2ui/components/Thumb.svelte';
 	import ClosedState from '#lib/confirmation/components/ClosedState.svelte';
 	import ConfirmBar from '#lib/confirmation/components/ConfirmBar.svelte';
 	import FlagCard from '#lib/confirmation/components/FlagCard.svelte';
@@ -35,6 +36,11 @@
 			groupStart: line.group !== null && line.group !== view.lines[i - 1]?.group ? line.group : null
 		}))
 	);
+
+	/** The recipe image of a group, when the API gives one; no image and no placeholder otherwise. */
+	function groupImage(group: string): string | null {
+		return view.groups.find((g) => g.group === group)?.image_url ?? null;
+	}
 
 	const failure = $derived(form && 'status' in form ? form : null);
 	const sheetError = $derived(failure && failure.lineId && failure.lineId === openLine?.line_id ? failure.text : null);
@@ -101,7 +107,12 @@
 		<section class="block">
 			<h2 class="hd">{t(lang, 'askedAdded')}</h2>
 			{#each rows as { line, groupStart } (line.line_id)}
-				{#if groupStart}<h3 class="group">{t(lang, 'groupLabel', { group: groupStart })}</h3>{/if}
+				{#if groupStart}
+					<h3 class="group">
+						<Thumb src={groupImage(groupStart)} width={48} height={32} placeholder="none" radius={4} />
+						<span>{t(lang, 'groupLabel', { group: groupStart })}</span>
+					</h3>
+				{/if}
 				<LineCard
 					{line}
 					flags={view.flags}
@@ -200,6 +211,9 @@
 	}
 	.group {
 		margin: 6px 4px 0;
+		display: flex;
+		align-items: center;
+		gap: 10px;
 		font-size: 15px;
 		color: var(--muted-2);
 	}

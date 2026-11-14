@@ -96,6 +96,10 @@ export interface GroupSubtotal {
 	group: string;
 	line_ids: string[];
 	subtotal_cents: number;
+	source?: 'photo' | null;
+	recipe_draft_id?: string | null;
+	/** The recipe's image for a group from one of our recipes (technical-plan.md §5.5), or null. */
+	image_url?: string | null;
 }
 
 export interface NotOrdered {
