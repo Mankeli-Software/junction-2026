@@ -167,3 +167,34 @@ async def test_the_live_embedding_finds_the_async_engine_behind_any_database_han
         assert async_engine(conn) is db_engine
         assert async_engine(AsyncSession(bind=conn)) is db_engine
     assert async_engine(AsyncSession(bind=db_engine)) is db_engine
+
+
+async def test_a_live_query_embedding_through_a_session_is_cached(
+    catalogue, db_engine, monkeypatch
+):
+    # The failing path from the VM: SEARCH_VECTORS=live, a phrase not cached yet, and an
+    # ORM session bound to the engine, as in the API (the `db` fixture's session is bound to
+    # a connection, which hid the bug). The Gemini call is mocked; the cache write is real.
+    from sqlalchemy import text
+
+    from app.search import embeddings
+    from app.settings import get_settings
+
+    async def fake_embed(client, api_key, texts, task, tries=1):
+        return [[1.0] + [0.0] * (embeddings.DIMENSIONS - 1) for _ in texts]
+
+    monkeypatch.setattr(get_settings(), "search_vectors", "live")
+    monkeypatch.setattr(get_settings(), "gemini_api_key", "test-key")
+    monkeypatch.setattr(embeddings, "embed_texts", fake_embed)
+    q = "uusi hakulause sessiosta"
+
+    async with AsyncSession(bind=db_engine) as db:
+        hits = await search_products(db, q, limit=3)
+
+    assert isinstance(hits, list)
+    async with db_engine.begin() as conn:
+        cached = await conn.scalar(
+            text("SELECT count(*) FROM query_embeddings WHERE query_text = :q"), {"q": q}
+        )
+        await conn.execute(text("DELETE FROM query_embeddings WHERE query_text = :q"), {"q": q})
+    assert cached == 1
