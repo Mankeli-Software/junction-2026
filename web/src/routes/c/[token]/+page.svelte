@@ -50,7 +50,7 @@
 
 <svelte:head>
 	<title>{view.state === 'confirmed' ? t(lang, 'orderReceived') : t(lang, 'yourOrder')}: S.I.MO</title>
-	<meta name="referrer" content="no-referrer" />
+	<meta name="referrer" content="same-origin" />
 	<meta name="robots" content="noindex" />
 </svelte:head>
 

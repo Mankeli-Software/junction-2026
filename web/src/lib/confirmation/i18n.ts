@@ -15,7 +15,7 @@ const strings = {
 	checkFirst: { en: 'Check these first', fi: 'Tarkista ensin' },
 	doneCount: { en: '{done} of {total} done', fi: '{done}/{total} tarkistettu' },
 	gotIt: { en: 'Got it', fi: 'Selvä' },
-	checked: { en: 'checked', fi: 'tarkistettu' },
+	checked: { en: 'Checked', fi: 'Tarkistettu' },
 	newFlag: { en: 'New', fi: 'Uusi' },
 	askedAdded: { en: 'You asked, we added', fi: 'Pyysit, lisäsimme' },
 	youAsked: { en: 'You asked: {asked}', fi: 'Pyysit: {asked}' },

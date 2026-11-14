@@ -10,7 +10,7 @@
 
 <svelte:head>
 	<title>S.I.MO</title>
-	<meta name="referrer" content="no-referrer" />
+	<meta name="referrer" content="same-origin" />
 	<meta name="robots" content="noindex" />
 </svelte:head>
 

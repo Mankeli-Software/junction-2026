@@ -42,8 +42,8 @@
 				{:else}
 					{flag.text[lang]}
 				{/if}
-				{#if flag.acknowledged}<span class="checked">, {t(lang, 'checked')}</span>{/if}
 			</span>
+			{#if flag.acknowledged}<span class="checked">{t(lang, 'checked')}</span>{/if}
 		</div>
 	</div>
 
@@ -142,6 +142,11 @@
 	}
 	.text a:hover {
 		text-decoration: underline;
+	}
+	.checked {
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--lime-text);
 	}
 	.new {
 		font-family: var(--font-head);
