@@ -50,11 +50,11 @@ All commands run from this folder.
 - Speech generation: https://aistudio.google.com/docs/speech-generation. 30 prebuilt voices (the same names work for Live). Finnish is supported by `gemini-3.8-flash-tts` but not by `gemini-3.8-flash-lite-tts`. Output is 24 kHz 16-bit mono.
 - SDK: `google-genai` 3.3.0 (PyPI, 2026-11-12).
 
-## Results (2026-11-14, TTS audio)
+## Results (2026-11-14, TTS audio and a real voice)
 
 Measured from WSL2 on a home connection, one run of each step: 46 Live sessions in total (one smoke test, 10 plain, 10 with vocabulary, 10 with tools, 1 English, 9 function-call sessions, 5 voices). Every number below comes from one run, so treat small differences as noise.
 
-**The caller audio is Gemini TTS (voice Achird), which is cleaner than real speech: these accuracy figures are an upper bound.** The real check is the same run in a human voice (`record_mic.py`, step 6), which is still to do.
+**The caller audio is Gemini TTS (voice Achird), which is cleaner than real speech: these accuracy figures are an upper bound.** The same run in a human voice (#67) is under Real voice, after Latency.
 
 ### Model
 
@@ -103,6 +103,26 @@ All figures are from the moment the last speech chunk was sent. They include the
 - **No interim input transcripts arrived** (`interim_input_transcription`). The caller's caption appears in one piece, about 1 s after they stop talking.
 - **The model makes a tool call silently and ends the turn.** It then needs about 0.65 s after the tool response to start speaking. So time to first audio is about 1 s, plus the engine time, plus 0.65 s.
 
+### Real voice (#67)
+
+Recorded on a laptop: the 11 phrases (the 10 Finnish ones plus `en01`) as 16-bit 44.1 kHz WAVs, one speaker (Jesse). Run with `run_live.py --audio-dir recordings/jesse`, plain and with `--vocab`. The recordings stay git-ignored.
+
+| | TTS baseline (10 phrases) | Real voice, plain (11) | Real voice, vocab (11) |
+|---|---|---|---|
+| WER, mean | 0.19 | 0.26 | **0.13** |
+| WER, median | | 0.22 | 0.12 |
+| Key terms | 56/61 | 56/66 | **63/66** |
+| First audio back, median | 1.07 s | 0.59 s | 0.50 s |
+| First audio back, worst | 1.42 s | 0.88 s | 1.10 s |
+
+- **Without the vocabulary, real speech breaks product names.** "Oddlygood Barista kaurajuomaa" was heard as "Ugly Duck parista kauraolutta", "vispikermaa" as "wiskermaania", "Viola" as "violettia", and "yhdeksänsadan gramman" (900 g) as "600 g". With the vocabulary they all came through.
+- **Misses left with the vocabulary:** "laktoositon" dropped in p02, the opening "kolme sankoa" clipped in p07, and a stray "C" in p03.
+- **English (`en01`):** WER 0.00 with the vocabulary.
+- **Voice:** chosen by listening: **Achird**. It is the relay's default (`voice_name` in `api/app/settings.py`).
+- **Conclusion: the vocabulary is required for real speech, not optional.** The relay always sends one (#52).
+
+**Noisy take.** One take with booth-like background noise, judged by ear only, with no numbers. With noise it gets hard: the model still works some things out well from context, but it completely mishears others. More testing is planned once the recipe API (#34) is up. A second speaker is still to do.
+
 ### Function calls
 
 The declaration is a simplified `build_quote(lines: [{product_query, quantity, unit}], delivery_day)`. The stub result has prices and a `say` hint.
@@ -140,11 +160,11 @@ S.I.MO said the same Finnish confirmation sentence in five voices (`voices.py`):
 | Charon | 4/5 | Stiff |
 | Sulafat | 3.5/5 | Melodramatic intonation |
 
-**Proposal: Aoede, with Kore as the alternative, to be confirmed by a Finnish speaker listening to `out/voices/`.**
+**Proposal: Aoede, with Kore as the alternative, to be confirmed by a Finnish speaker listening to `out/voices/`.** Jesse listened in #67 and chose **Achird** (see Real voice).
 
 ### English fallback
 
-**Not needed for Finnish.** Finnish recognition with vocabulary was 61/61 on key terms (TTS audio).
+**Not needed for Finnish.** Finnish recognition with vocabulary was 61/61 on key terms with TTS audio, and 63/66 in a real voice.
 
 The opposite direction failed once: an English caller (en01, transcribed perfectly) got a Finnish reply. The system instruction said, in Finnish, "speak Finnish unless the caller speaks another language". That is a prompt problem for #53, not a recognition problem.
 
