@@ -16,7 +16,7 @@ async function shot(page: Page, project: string, name: string, fullPage = false)
 }
 
 test('phone screenshots', async ({ page }, info) => {
-	test.setTimeout(60_000);
+	test.setTimeout(90_000);
 	const project = info.project.name;
 
 	await page.goto('/');
@@ -34,9 +34,11 @@ test('phone screenshots', async ({ page }, info) => {
 	await shot(page, project, '11-contacts');
 
 	await page.getByRole('button', { name: 'Call S.I.MO' }).click();
+	await page.locator('[data-testid="indicator"][data-state="working"]').waitFor({ timeout: 20_000 });
+	await shot(page, project, '12-in-call-working');
 	await expect(page.getByTestId('caption-agent').nth(1)).toContainText('Shall I send the link', { timeout: 15_000 });
 	await shot(page, project, '12-in-call');
-	await expect(page.getByTestId('caption-agent').nth(2)).toContainText('The link comes', { timeout: 15_000 });
+	await expect(page.getByTestId('caption-agent').nth(2)).toContainText('The link comes', { timeout: 25_000 });
 
 	await page.getByRole('button', { name: 'Hang up' }).click();
 	await expect(page.getByTestId('notification')).toBeVisible();

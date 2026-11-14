@@ -8,6 +8,9 @@
  *   speech-like hum) with `transcript` messages for both sides;
  * - notices the caller speaking from the audio level, and sends `interrupted`
  *   when the caller talks over the agent;
+ * - sends `agent_state` as S.I.MO listens, thinks (about 0.8 s after each caller
+ *   line), works on a tool (`build_quote` when the order is put together,
+ *   `request_confirmation` before the link) and speaks;
  * - on `hangup` (or when the agent ends the call, or the socket drops) sends
  *   `ended` and, if the caller agreed to the link, drops a message with a
  *   `/c/fx-ready-<id>` link into the fixture inbox.
@@ -16,6 +19,9 @@
  * next scripted line is shown as their caption. The caller agrees to the link on
  * their second turn, like `request_confirmation` after a clear yes.
  *
+ * With the cookie `simo_mock_agent_state=off`, it never sends `agent_state`, like a
+ * relay without it, so tests can check the browser's fallback.
+ *
  * Attached to the HTTP server by vite.config.ts (dev and preview) and by
  * mock/serve.ts (the production build). Not part of the SvelteKit app.
  * Imports use `.ts` so Node can load this file directly.
@@ -23,7 +29,14 @@
 import type { IncomingMessage, Server } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { WebSocketServer, type RawData, type WebSocket } from 'ws';
-import { CLOSE_LIMIT, CLOSE_NO_SESSION, type EndedBy, type Lang, type ServerMessage } from '../../demo/types.ts';
+import {
+	CLOSE_LIMIT,
+	CLOSE_NO_SESSION,
+	type AgentState,
+	type EndedBy,
+	type Lang,
+	type ServerMessage
+} from '../../demo/types.ts';
 import { accountFor, deliverConfirmation, SESSION_COOKIE } from './fixture.ts';
 
 const IN_RATE = 16000;
@@ -35,12 +48,18 @@ const VOICE_RMS = 500;
 const ONSET_MS = 150;
 const END_SILENCE_MS = 600;
 const MAX_CALL_MS = 10 * 60 * 1000;
+/** S.I.MO thinks this long after each caller line, and briefly again after a tool result. */
+const THINK_MS = 800;
+const AFTER_TOOL_MS = 200;
+const AGENT_STATE_COOKIE = 'simo_mock_agent_state';
 
 interface Turn {
 	buyer: string;
 	agent: string;
 	agrees?: boolean;
 	endsCall?: boolean;
+	/** A tool S.I.MO calls before it answers, and how long it takes. */
+	tool?: { name: string; ms: number };
 }
 
 const SCRIPT: Record<Lang, { greeting: (company: string) => string; turns: Turn[]; more: Turn }> = {
@@ -49,12 +68,14 @@ const SCRIPT: Record<Lang, { greeting: (company: string) => string; turns: Turn[
 		turns: [
 			{
 				buyer: 'I need five kilos of ground beef for Monday.',
-				agent: 'Beef mince 10 %, two 2.5 kg packs, 41,90 euros, arriving Monday. Shall I send the link to confirm?'
+				agent: 'Beef mince 10 %, two 2.5 kg packs, 41,90 euros, arriving Monday. Shall I send the link to confirm?',
+				tool: { name: 'build_quote', ms: 1500 }
 			},
 			{
 				buyer: 'Yes, send it.',
 				agent: 'Done. The link comes to your phone when we hang up. Anything else?',
-				agrees: true
+				agrees: true,
+				tool: { name: 'request_confirmation', ms: 800 }
 			},
 			{ buyer: "No, that's all.", agent: "I'll send the link to your phone now. Bye!", endsCall: true }
 		],
@@ -65,9 +86,15 @@ const SCRIPT: Record<Lang, { greeting: (company: string) => string; turns: Turn[
 		turns: [
 			{
 				buyer: 'Tarvitsen viisi kiloa jauhelihaa maanantaiksi.',
-				agent: 'Naudan jauheliha 10 %, kaksi 2,5 kilon pakkausta, 41,90 euroa, perillä maanantaina. Lähetänkö vahvistuslinkin?'
+				agent: 'Naudan jauheliha 10 %, kaksi 2,5 kilon pakkausta, 41,90 euroa, perillä maanantaina. Lähetänkö vahvistuslinkin?',
+				tool: { name: 'build_quote', ms: 1500 }
 			},
-			{ buyer: 'Kyllä, lähetä.', agent: 'Selvä. Linkki tulee puhelimeesi, kun lopetamme puhelun. Muuta?', agrees: true },
+			{
+				buyer: 'Kyllä, lähetä.',
+				agent: 'Selvä. Linkki tulee puhelimeesi, kun lopetamme puhelun. Muuta?',
+				agrees: true,
+				tool: { name: 'request_confirmation', ms: 800 }
+			},
 			{ buyer: 'Ei muuta.', agent: 'Lähetän linkin puhelimeesi nyt. Hei hei!', endsCall: true }
 		],
 		more: { buyer: 'Vielä yksi asia.', agent: 'Kerro vain.' }
@@ -79,19 +106,20 @@ export function attachMockRelay(server: Server, path = '/voice/ws'): void {
 	server.on('upgrade', (request: IncomingMessage, socket: Duplex, head: Buffer) => {
 		const url = new URL(request.url ?? '/', 'http://localhost');
 		if (url.pathname !== path) return; // Vite's own HMR socket and anything else.
-		wss.handleUpgrade(request, socket, head, (ws) => runCall(ws, sessionFrom(request)));
+		const sendStates = cookie(request, AGENT_STATE_COOKIE) !== 'off';
+		wss.handleUpgrade(request, socket, head, (ws) => runCall(ws, cookie(request, SESSION_COOKIE), sendStates));
 	});
 }
 
-function sessionFrom(request: IncomingMessage): string | null {
+function cookie(request: IncomingMessage, wanted: string): string | null {
 	for (const part of (request.headers.cookie ?? '').split(';')) {
 		const [name, ...value] = part.trim().split('=');
-		if (name === SESSION_COOKIE) return decodeURIComponent(value.join('='));
+		if (name === wanted) return decodeURIComponent(value.join('='));
 	}
 	return null;
 }
 
-function runCall(ws: WebSocket, sessionId: string | null): void {
+function runCall(ws: WebSocket, sessionId: string | null, sendStates: boolean): void {
 	const account = accountFor(sessionId);
 	if (!sessionId || !account) {
 		ws.close(CLOSE_NO_SESSION, 'No demo session');
@@ -127,9 +155,19 @@ function runCall(ws: WebSocket, sessionId: string | null): void {
 		timers.add(timer);
 	};
 
+	// `agent_state`, sent only when it changes.
+	let agentState: AgentState | null = null;
+	let agentTool: string | null = null;
+	const setState = (state: AgentState, tool: string | null = null) => {
+		if (!sendStates || (state === agentState && tool === agentTool)) return;
+		agentState = state;
+		agentTool = tool;
+		send({ type: 'agent_state', state, tool });
+	};
+
 	function speak(text: string, after?: () => void): void {
 		const words = text.split(' ');
-		const durationMs = Math.min(2400, Math.max(1000, words.length * 170));
+		const durationMs = Math.min(2000, Math.max(1000, words.length * 150));
 		const pcm = speechLike(durationMs / 1000);
 		const bytesPerChunk = (OUT_RATE * 2 * CHUNK_MS) / 1000;
 		let offset = 0;
@@ -143,6 +181,7 @@ function runCall(ws: WebSocket, sessionId: string | null): void {
 		const interval = setInterval(() => {
 			if (ended || ws.readyState !== ws.OPEN) return clearInterval(interval);
 			if (offset < pcm.length) {
+				if (offset === 0) setState('speaking');
 				ws.send(pcm.subarray(offset, offset + bytesPerChunk));
 				offset += bytesPerChunk;
 			}
@@ -157,6 +196,7 @@ function runCall(ws: WebSocket, sessionId: string | null): void {
 				clearInterval(interval);
 				send({ type: 'transcript', who: 'agent', text, final: true });
 				speech = null;
+				setState('listening');
 				after?.();
 			}
 		}, CHUNK_MS);
@@ -166,6 +206,7 @@ function runCall(ws: WebSocket, sessionId: string | null): void {
 		if (!speech) return;
 		speech.stop();
 		send({ type: 'interrupted' });
+		setState('listening');
 		send({ type: 'transcript', who: 'agent', text: speech.words.slice(0, speech.sent).join(' '), final: true });
 		speech = null;
 	}
@@ -175,7 +216,17 @@ function runCall(ws: WebSocket, sessionId: string | null): void {
 		buyerTurns++;
 		send({ type: 'transcript', who: 'buyer', text: turn.buyer, final: true });
 		if (turn.agrees) agreed = true;
-		later(500, () => speak(turn.agent, turn.endsCall ? () => later(400, () => finish('agent')) : undefined));
+		const answer = () => speak(turn.agent, turn.endsCall ? () => later(400, () => finish('agent')) : undefined);
+		setState('thinking');
+		later(THINK_MS, () => {
+			if (!turn.tool) return answer();
+			const tool = turn.tool;
+			setState('working', tool.name);
+			later(tool.ms, () => {
+				setState('thinking'); // The tool result went back to Gemini.
+				later(AFTER_TOOL_MS, answer);
+			});
+		});
 	}
 
 	function onAudio(data: Buffer): void {
@@ -238,6 +289,7 @@ function runCall(ws: WebSocket, sessionId: string | null): void {
 
 	later(300, () => {
 		send({ type: 'ready' });
+		setState('listening');
 		later(200, () => speak(script.greeting(account.company_name)));
 	});
 	later(MAX_CALL_MS, () => finish('time_limit'));

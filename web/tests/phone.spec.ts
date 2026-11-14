@@ -23,6 +23,11 @@ async function setUp(page: Page, phone = number(), kitchen: string[] = []) {
 }
 
 const captions = (page: Page, who: 'agent' | 'buyer') => page.getByTestId(`caption-${who}`);
+/** The activity indicator in one state. Short states are caught with waitFor, which polls every frame. */
+const indicator = (page: Page, state: string) => page.locator(`[data-testid="indicator"][data-state="${state}"]`);
+
+// The fake caller pauses 5.5 s between lines, so a scripted call takes a while.
+test.describe.configure({ timeout: 60_000 });
 
 test('start page leads to the demo phone', async ({ page, isMobile }) => {
 	await page.goto('/');
@@ -60,9 +65,22 @@ test('call, captions, hang up, notification, inbox link opens the confirmation p
 	// The agent greets, the timer runs, the caller's lines arrive as captions.
 	await expect(captions(page, 'agent').first()).toContainText('AI helper', { timeout: 10_000 });
 	await expect(page.getByTestId('timer')).toHaveText(/^0:0\d$/);
-	await expect(captions(page, 'buyer').first()).toContainText('five kilos of ground beef', { timeout: 15_000 });
+	await indicator(page, 'listening').waitFor({ timeout: 10_000 });
+
+	// After the caller's line: thinking, then checking products (build_quote), then speaking.
+	await indicator(page, 'thinking').waitFor({ timeout: 15_000 });
+	await expect(captions(page, 'buyer').first()).toContainText('five kilos of ground beef');
+	await indicator(page, 'working').waitFor({ timeout: 5_000 });
+	await expect(page.getByTestId('indicator')).toHaveText('Checking products...');
+	await expect(page.getByTestId('agent-busy')).toHaveText('S.I.MO Checking products...');
+	await indicator(page, 'speaking').waitFor({ timeout: 5_000 });
+	await expect(page.getByTestId('agent-busy')).toHaveCount(0);
 	await expect(captions(page, 'agent').nth(1)).toContainText('Shall I send the link', { timeout: 10_000 });
+
+	// Before the link: preparing it (request_confirmation).
 	await expect(captions(page, 'buyer').nth(1)).toContainText('Yes, send it.', { timeout: 15_000 });
+	await indicator(page, 'working').waitFor({ timeout: 5_000 });
+	await expect(page.getByTestId('indicator')).toHaveText('Preparing your order link...');
 	await expect(captions(page, 'agent').nth(2)).toContainText('The link comes to your phone', { timeout: 10_000 });
 
 	await page.getByRole('button', { name: 'Hang up' }).click();
@@ -131,6 +149,24 @@ test('mute and captions toggle during the call', async ({ page }) => {
 	await expect(page.getByTestId('call-ended')).toBeVisible();
 });
 
+test('a relay without agent_state still shows speaking and listening', async ({ page, context, baseURL }) => {
+	await context.addCookies([{ name: 'simo_mock_agent_state', value: 'off', url: baseURL! }]);
+	await setUp(page);
+	await page.getByRole('button', { name: 'Call S.I.MO' }).click();
+
+	// Inferred from the audio the page plays: speaking during the greeting, then listening.
+	await indicator(page, 'speaking').waitFor({ timeout: 10_000 });
+	await expect(captions(page, 'agent').first()).toContainText('AI helper', { timeout: 10_000 });
+	await indicator(page, 'listening').waitFor({ timeout: 10_000 });
+	await expect(captions(page, 'buyer').first()).toContainText('five kilos', { timeout: 15_000 });
+	await expect(captions(page, 'agent').nth(1)).toContainText('Shall I send the link', { timeout: 10_000 });
+	await expect(page.getByTestId('agent-busy')).toHaveCount(0);
+	await expect(indicator(page, 'thinking')).toHaveCount(0);
+
+	await page.getByRole('button', { name: 'Hang up' }).click();
+	await expect(page.getByTestId('call-ended')).toBeVisible();
+});
+
 test('the caller can talk over the agent', async ({ page }) => {
 	// A microphone that stays quiet, then talks 1.3 s in, in the middle of the greeting.
 	await page.addInitScript(() => {
@@ -162,7 +198,7 @@ test('the caller can talk over the agent', async ({ page }) => {
 test('an SMS line shows only when an SMS went out', async ({ page }) => {
 	await setUp(page, number('7001'));
 	await page.getByRole('button', { name: 'Call S.I.MO' }).click();
-	await expect(captions(page, 'agent').nth(2)).toContainText('The link comes to your phone', { timeout: 25_000 });
+	await expect(captions(page, 'agent').nth(2)).toContainText('The link comes to your phone', { timeout: 40_000 });
 	await page.getByRole('button', { name: 'Hang up' }).click();
 	await expect(page.getByTestId('sms-line')).toHaveText(/^Also sent by SMS to \+358 40 \*\*\* \*\*01$/);
 	await expect(page.getByTestId('notification')).toBeVisible();

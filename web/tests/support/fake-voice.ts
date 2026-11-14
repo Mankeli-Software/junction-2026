@@ -1,16 +1,17 @@
 /**
  * A WAV file for Chromium's fake microphone (`--use-file-for-fake-audio-capture`),
- * so the call tests have a caller who talks: 3.5 s of silence, then 1.2 s of a
+ * so the call tests have a caller who talks: 5.5 s of silence, then 1.2 s of a
  * speech-like hum, over and over. The mock relay hears each hum as one utterance.
- * The silence is long enough for each scripted agent reply (at most 2.4 s) to
- * finish before the caller talks again, so the agent is not interrupted.
+ * The silence is long enough for each scripted reply (0.6 s to notice the end of
+ * the line, 0.8 s thinking, up to 1.7 s working, at most 2 s of speech) to finish
+ * before the caller talks again, so the agent is not interrupted.
  */
 import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const RATE = 48000;
-export const SILENCE_S = 3.5;
+export const SILENCE_S = 5.5;
 export const VOICE_S = 1.2;
 
 export function writeFakeVoice(): string {
