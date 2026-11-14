@@ -1,11 +1,45 @@
-"""FastAPI entry point. The real routes and the MCP server come in #43."""
+"""FastAPI entry point: the REST API under /api/v1 and the MCP server at /mcp."""
+
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from sqlalchemy import text
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.db import get_engine
+from app.interfaces.mcp.server import mcp, mcp_app
+from app.interfaces.rest import tools as rest_tools
 
-app = FastAPI(title="S.I.MO API", openapi_url="/api/v1/openapi.json", docs_url="/api/v1/docs")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    async with mcp.session_manager.run():
+        yield
+
+
+class McpSlashMiddleware:
+    """Serves /mcp like /mcp/, so clients never see the mount's trailing-slash redirect."""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+        await self.app(scope, receive, send)
+
+
+app = FastAPI(
+    title="S.I.MO ordering API",
+    openapi_url="/api/v1/openapi.json",
+    docs_url="/api/v1/docs",
+    lifespan=lifespan,
+)
+app.add_middleware(McpSlashMiddleware)
+app.include_router(rest_tools.router, prefix="/api/v1")
+rest_tools.add_error_handlers(app)
+app.mount("/mcp", mcp_app())
 
 
 @app.get("/api/v1/health")

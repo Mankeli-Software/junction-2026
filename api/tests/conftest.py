@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from app.settings import psycopg_url
+from app.settings import get_settings, psycopg_url
 
 API_DIR = Path(__file__).resolve().parents[1]
 
@@ -38,3 +38,22 @@ async def db_engine() -> AsyncIterator[AsyncEngine]:
     engine = create_async_engine(test_url)
     yield engine
     await engine.dispose()
+
+
+def _set_fake_caller(monkeypatch: pytest.MonkeyPatch, on: bool):
+    monkeypatch.setenv("DEV_FAKE_CALLER", "true" if on else "false")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+@pytest.fixture
+def dev_caller(monkeypatch: pytest.MonkeyPatch):
+    """Requests act as the fixed demo customer (DEV_FAKE_CALLER=true)."""
+    yield from _set_fake_caller(monkeypatch, True)
+
+
+@pytest.fixture
+def no_caller(monkeypatch: pytest.MonkeyPatch):
+    """Nobody is signed in (DEV_FAKE_CALLER=false)."""
+    yield from _set_fake_caller(monkeypatch, False)
