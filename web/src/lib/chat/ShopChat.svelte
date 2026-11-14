@@ -237,17 +237,21 @@
 				/>
 			</div>
 		{:else}
-			<ChatView {session} {lang} photos inputId="shop-chat-input" bind:input>
-				{#snippet empty(ask)}
-					<p class="bot">{t(lang, 'greeting')}</p>
-					<p class="notice" data-testid="chat-notice">{t(lang, 'noticeDashboard')}</p>
-					<div class="examples" role="group" aria-label={t(lang, 'examples')}>
-						{#each ['example1', 'example2', 'example3'] as const as key (key)}
-							<button type="button" class="sugg" onclick={() => ask(t(lang, key))}>{t(lang, key)}</button>
-						{/each}
-					</div>
-				{/snippet}
-			</ChatView>
+			<!-- The open order covers the chat until it is folded again; the chat keeps its state. -->
+			<div class="chat-wrap" class:covered={account && current && orderOpen}>
+				<ChatView {session} {lang} photos inputId="shop-chat-input" bind:input>
+					{#snippet empty(ask, pickPhoto)}
+						<p class="bot">{t(lang, 'greeting')}</p>
+						<p class="notice" data-testid="chat-notice">{t(lang, 'noticeDashboard')}</p>
+						<div class="examples" role="group" aria-label={t(lang, 'examples')}>
+							<button type="button" class="sugg" onclick={pickPhoto}>{t(lang, 'examplePhoto')}</button>
+							{#each ['example1', 'example2', 'example3'] as const as key (key)}
+								<button type="button" class="sugg" onclick={() => ask(t(lang, key))}>{t(lang, key)}</button>
+							{/each}
+						</div>
+					{/snippet}
+				</ChatView>
+			</div>
 		{/if}
 	</div>
 {/if}
@@ -376,12 +380,20 @@
 		transform: rotate(180deg);
 	}
 	.order {
-		flex-shrink: 0;
-		max-height: 50%;
+		flex: 1;
+		min-height: 0;
 		overflow-y: auto;
 		padding: 14px;
-		border-bottom: 1px solid var(--border);
 		background: var(--page);
+	}
+	.chat-wrap {
+		flex: 1;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+	}
+	.chat-wrap.covered {
+		display: none;
 	}
 
 	.entry {
@@ -434,9 +446,9 @@
 		align-items: flex-start;
 	}
 	.sugg {
-		min-height: 38px;
-		padding: 6px 14px;
-		border-radius: 19px;
+		min-height: 44px;
+		padding: 6px 16px;
+		border-radius: 22px;
 		border: 1px solid var(--border-strong);
 		background: var(--card);
 		color: var(--ink);

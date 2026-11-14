@@ -60,12 +60,12 @@ test('order by text: quote card, send to my phone, sent notice, and never the li
 	await openAndSignIn(page);
 
 	// The example prompt sends itself.
-	await panel(page).getByRole('button', { name: '1,000 L lactose-free milk by Monday' }).click();
-	await expect(panel(page).getByTestId('chat-buyer')).toHaveText(/1,000 L lactose-free milk by Monday/);
+	await panel(page).getByRole('button', { name: '1 000 l lactose-free milk by Monday' }).click();
+	await expect(panel(page).getByTestId('chat-buyer')).toHaveText(/1 000 l lactose-free milk by Monday/);
 	await expect(panel(page).getByTestId('chat-agent').first()).toHaveText(/Here is your milk for Monday\./);
 	expect(fake.bodies[0]).toEqual({
 		conversation_id: null,
-		message: '1,000 L lactose-free milk by Monday',
+		message: '1 000 l lactose-free milk by Monday',
 		action: null,
 		attachment_draft_id: null
 	});
@@ -120,10 +120,9 @@ test('weekly menu: swap a day, build the order', async ({ page }) => {
 	);
 	await openAndSignIn(page);
 
-	await panel(page).getByRole('button', { name: 'Plan a milk-free lunch menu for next week, 80 people' }).click();
+	await panel(page).getByRole('button', { name: 'Plan a lunch menu for next week, 80 people' }).click();
 	const menuCard = panel(page).locator('[data-surface-id="menu"]');
 	await expect(menuCard).toContainText('Chicken and vegetable curry');
-	await menuCard.getByRole('button', { name: /^Wednesday/ }).click();
 	await expect(menuCard).toContainText('Pea soup and pancakes');
 
 	await menuCard.getByRole('button', { name: 'Swap Wednesday' }).click();

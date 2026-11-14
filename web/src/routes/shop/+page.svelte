@@ -285,6 +285,8 @@
 		display: flex;
 		flex-direction: column;
 		background: var(--page);
+		/* Room under the floating chat launcher, so it never covers the last controls. */
+		padding-bottom: 96px;
 	}
 	.inner {
 		width: 100%;

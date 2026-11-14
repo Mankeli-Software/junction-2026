@@ -4,7 +4,7 @@
  * changed the quote, the page reloads its view as after an edit with its own controls.
  */
 import { expect, test } from '@playwright/test';
-import { sse } from './support/fake-chat';
+import { card, sse } from './support/fake-chat';
 
 function token(scenario: string): string {
 	return `fx-${scenario}-${Math.random().toString(36).slice(2, 10)}`;
@@ -22,6 +22,9 @@ test('asks for a change in words, reloads the view, and Confirm stays the page b
 				['tool', { name: 'update_quote', status: 'started' }],
 				['tool', { name: 'update_quote', status: 'done' }],
 				['text', { delta: 'Done, it is 150 portions now.' }],
+				// Text only here: a domain card is not drawn, a Notice is.
+				card('qc', { component: 'QuoteCard', quoteId: 'q-new' }),
+				card('nt', { component: 'Notice', text: 'Check the order above.' }),
 				['done', { quote_id: 'q-new' }]
 			])
 		});
@@ -37,6 +40,8 @@ test('asks for a change in words, reloads the view, and Confirm stays the page b
 	await page.keyboard.press('Enter');
 	await expect(ask.getByTestId('chat-agent')).toHaveText(/150 portions now/);
 	await reload;
+	await expect(ask.getByText('Check the order above.')).toBeVisible();
+	await expect(ask.getByTestId('quote-card')).toHaveCount(0);
 	expect(bodies[0]).toEqual({ conversation_id: null, message: 'Make it 150 portions', action: null, attachment_draft_id: null });
 
 	// The chat has no photo button and nothing that confirms; the page's Confirm is still there.

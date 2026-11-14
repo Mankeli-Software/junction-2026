@@ -25,8 +25,8 @@
 		lang: Lang;
 		/** The camera button, the photo hint and the upload. */
 		photos?: boolean;
-		/** Shown before the first message. */
-		empty?: Snippet<[(text: string) => void]>;
+		/** Shown before the first message: gets `ask(text)` and `pickPhoto()`. */
+		empty?: Snippet<[(text: string) => void, () => void]>;
 		inputId?: string;
 		/** The text field, for the panel to move focus into. */
 		input?: HTMLInputElement | null;
@@ -76,7 +76,7 @@
 <div class="chat">
 	<div class="list" bind:this={list} data-testid="chat-messages" aria-live="polite" aria-relevant="additions">
 		{#if !session.started && empty}
-			{@render empty(ask)}
+			{@render empty(ask, () => fileInput?.click())}
 		{/if}
 		{#each session.messages as message (message.id)}
 			{#if message.kind === 'buyer'}
@@ -229,7 +229,7 @@
 	}
 	.photo {
 		align-self: flex-end;
-		width: min(230px, 75%);
+		width: min(200px, 65%);
 		display: flex;
 		flex-direction: column;
 		gap: 6px;
@@ -237,7 +237,7 @@
 	.photo img {
 		display: block;
 		width: 100%;
-		max-height: 230px;
+		max-height: 160px;
 		object-fit: cover;
 		border-radius: 14px 4px 14px 14px;
 		border: 1px solid #e6dfc9;
@@ -250,6 +250,9 @@
 	.surface {
 		align-self: stretch;
 		min-width: 0;
+	}
+	.surface:empty {
+		display: none;
 	}
 	.hint {
 		margin: 0;
@@ -310,7 +313,8 @@
 		background: var(--card);
 	}
 	.text:focus-visible {
-		outline: 2px solid var(--petrol);
-		outline-offset: 1px;
+		outline: none;
+		border: 2px solid var(--petrol);
+		padding: 0 15px;
 	}
 </style>

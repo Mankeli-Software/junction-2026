@@ -27,9 +27,10 @@
 		lang: () => lang,
 		onDone: (result) => void reload(result)
 	});
-	// The data source is fixed for the panel's life.
+	// The data source is fixed for the panel's life. Text only: no domain cards here,
+	// the page itself shows the order (Juho, 2026-11-14).
 	// svelte-ignore state_referenced_locally
-	setChatContext({ store: session.store, data, lang: () => lang, revision: () => session.revision });
+	setChatContext({ store: session.store, data, lang: () => lang, revision: () => session.revision, domainCards: false });
 	onDestroy(() => session.dispose());
 
 	let open = $state(false);
@@ -107,7 +108,7 @@
 		transform: rotate(180deg);
 	}
 	.body {
-		height: 420px;
+		max-height: 460px;
 		display: flex;
 		flex-direction: column;
 		border-top: 1px solid var(--border);

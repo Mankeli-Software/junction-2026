@@ -38,10 +38,11 @@ const strings = {
 		fi: 'Hei, olen S.I.MO, tekoälyavustaja. Kerro mitä keittiösi tarvitsee, tai lähetä minulle kuva reseptistä.'
 	},
 	examples: { en: 'Try one of these', fi: 'Kokeile näitä' },
-	example1: { en: '1,000 L lactose-free milk by Monday', fi: '1 000 l laktoositonta maitoa maanantaiksi' },
+	examplePhoto: { en: 'Order from a recipe photo', fi: 'Tilaa reseptikuvasta' },
+	example1: { en: '1 000 l lactose-free milk by Monday', fi: '1 000 l laktoositonta maitoa maanantaiksi' },
 	example2: {
-		en: 'Plan a milk-free lunch menu for next week, 80 people',
-		fi: 'Suunnittele maidoton lounaslista ensi viikolle, 80 henkeä'
+		en: 'Plan a lunch menu for next week, 80 people',
+		fi: 'Suunnittele lounaslista ensi viikolle, 80 henkeä'
 	},
 	example3: { en: 'My usual order', fi: 'Tavallinen tilaukseni' },
 
