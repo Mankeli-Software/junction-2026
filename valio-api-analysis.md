@@ -103,7 +103,7 @@ Coverage notes:
 | Cutoff and delivery days per product | One static `closingTime`, no delivery calendar, no date dependence | Do not build T14, T15, T19 on this field until clarified; our own delivery calendar in policy config |
 | Shelf life | Not provided | Drop stage 4 shelf life check and T20, or mock |
 | `pack_size`, `sell_unit`, `unit_volume_l` | `units[]`, `unitConversions`, names | Build a normalising adapter with `UNIT_UNKNOWN` fail-closed |
-| `allergens` list and `allergen_data_complete` | GS1 `AllergenTypeCode` codes with CONTAINS / MAY_CONTAIN / FREE_FROM / UNDECLARED | Use `data/gs1_allergen_codes.csv`; completeness = group present |
+| `allergens` list and `allergen_data_complete` | GS1 `AllergenTypeCode` codes with CONTAINS / MAY_CONTAIN / FREE_FROM / UNDECLARED | Use `data/gs1_allergen_codes.csv`; a product with no allergen listing is flagged `ALLERGEN_NO_LISTING` and not blocked |
 | `carbon_g_per_unit` | Group average per kg | Derive from weight, soft only |
 | Season table | None | Our own table, soft only |
 | Quotes and order placement | None | Entirely ours |
@@ -112,7 +112,7 @@ Coverage notes:
 ## 8. Answers to the issue's open questions
 
 - Customer-specific prices and order history per customer: no. Mocked by us.
-- Allergen and diet fields: yes, coded with the GS1 AllergenTypeCode vocabulary and fairly complete (17,535 of 17,546). Mapping in `data/gs1_allergen_codes.csv`.
+- Allergen and diet fields: yes, coded with the GS1 AllergenTypeCode vocabulary, but **not complete**: 30% of food products have no allergen information at all (see section 13). Mapping in `data/gs1_allergen_codes.csv`.
 - Origin, carbon, season: origin yes, carbon group average only, season no.
 - Stock, shelf life, cutoff, delivery days: stock partial, shelf life none, cutoff one static field, delivery days none.
 - Quotes and expiry: not supported, ours.
@@ -187,6 +187,8 @@ This one query already covers unbounded stock, partial stock (Arla 51 ST vs 1,00
 ### Allergen codes: GS1 AllergenTypeCode
 The allergen codes are the GS1 `AllergenTypeCode` values (https://ref.gs1.org/voc/AllergenTypeCode, official labels from the GS1 Web Vocabulary). All 45 codes that occur in the product data exist there. The full table is `data/gs1_allergen_codes.csv`, with the GS1 label and URI, our mapping to the 14 allergens of EU regulation 1169/2011, and how often each code appears as `CONTAINS`, `MAY_CONTAIN`, `FREE_FROM` and `UNDECLARED`.
 
+The table also has Finnish names for voice use (`name_fi` as nominative, `name_fi_partitive` for sentences such as "Tuote sisältää maitoa", and `voice_note_fi` for pronunciation hints and traps such as `AN` meaning tree nuts and not peanut, or `X99` not being a warning). The four containment values with Finnish phrases and spoken templates are in `data/allergen_containment_levels.csv`. The Finnish names are our translation, not an official GS1 translation, and `NP` (pod fruits) is a guess to be checked.
+
 Things the official list changes or confirms (an earlier inference of mine had `NC` wrong):
 
 - `AW` is cereals containing gluten (wheat, barley, rye, oats and hybrids), `UW` is wheat only, `NR` rye, `GB` barley, `GO` oats, `GS` spelt, `GK` kamut. A gluten-free rule should look at all of them.
@@ -195,7 +197,7 @@ Things the official list changes or confirms (an earlier inference of mine had `
 - `NC` is **cocoa**, not a nut. `NM` corn, `NE` peas, `NW` carrots, `NK` coriander, `BF` beef, `CM` chicken, `PO` pork, `NP` pod fruits, `BP` linalool (a fragrance allergen).
 - `UN` is generic shellfish. Treat as crustaceans and molluscs.
 - `X99` means "contains none of the obligatory allergens". **It is not an allergen.** It appears 121 times as `CONTAINS`, which must not trigger a block.
-- `UNDECLARED` is not in GS1's three containment levels but occurs in the data (14 to 24 products per code). Unknown means unsafe under our fail-closed rule.
+- `UNDECLARED` is Synkka's "selvittämätön" (undetermined). It is not in GS1's three containment levels but occurs in the data (14 to 24 products per code). It means the same as no listing: flag and proceed (decided, see issue #6).
 
 `temperatureCondition` (inferred from `minTemperature` / `maxTemperature` and labels): 8 = ambient (about 18-22 °C), 7 = frozen (-18 to -25 °C), 1-4 = chilled (1: 0-3, 2: 2-4, 3: 2-6, 4: 5-8 °C), 5, 6 and 9 are rare special classes. This is the only way to approximate "fresh". Category codes have no clean legend (top categories mix many unrelated brands), so mandate categories need our own mapping from keywords or specific codes.
 
@@ -252,3 +254,26 @@ Also note for the demo: the demo "today" in the issue's test cases (Fri 2026-11-
 
 ### Open question for the mentors (question 1 above, in short)
 Is `closingTime` meant to make a product unorderable once it has passed, and is `availableDate` computed from the real clock or fixed for the whole event? If it is computed, what is the delivery calendar?
+
+## 13. Allergen data completeness and how Synkka records allergens
+
+Source for the recording rules: GS1 Finland, "GS1 Synkka: Elintarvikkeen allergeenien tallentaminen" (https://gs1.fi/fi/asiakastuki/synkka/gs1-synkka-elintarvikkeen-allergeenien-tallentaminen). Finnish containment terms there: "sisältää", "saattaa sisältää", "ei sisällä", and "selvittämätön" (undetermined, which is our `UNDECLARED`). The 14 mandatory allergens in Finnish law are gluten cereals (wheat, rye, barley, oats), fish, crustaceans, molluscs, egg, nuts (including almond), sesame seeds, peanut, soy, milk, celery, mustard, lupin, and sulphur dioxide and sulphites (over 10 mg/kg or litre). Our Finnish names follow these wordings.
+
+### Many products have no allergen information at all
+The `allergen` and `nonAllergen` groups exist for nearly every product but are often **empty**. Counted over the full product file, using our category groups:
+
+| Set | Products | No allergen information |
+|---|---|---|
+| Food (all groups except non_food) | 13,546 | **4,108 (30%)** |
+| Non-food | 4,000 | 3,991 (expected) |
+
+Share of food products with no allergen information, by group: produce 79%, beverages 51%, dry goods 35%, meat 35%, sauces 33%, fats and oils 29%, fish 26%, frozen 22%, snacks and sweets 17%, dairy alternatives 14%, ready meals 14%, dairy 8%, eggs 3%, bakery 3%. Of the 4,108 food products with empty groups, 635 have an ingredient list and 2,959 have nutrition data.
+
+Synkka's marker "Allergeenitiedot annettu = Kyllä" (id 4008, meaning allergen information was provided even though there are no allergens) is **not present** in the data. So we cannot tell "has no allergens" from "nobody filled this in".
+
+**Decision (team, 2026-11-14): allergens are checked per product, from the product's own listing. We do not infer allergens, or their absence, from the category.** A low share of listings for produce and beverages is accepted as a property of the data. **Decision (team, 2026-11-14): a product with no listing is not blocked. The engine says so (`ALLERGEN_NO_LISTING`) and the buyer is told before confirming.** Listed `CONTAINS` and `MAY_CONTAIN` for an excluded allergen still block. This replaces the earlier "fail closed" idea for allergen data. The notice applies only to customers with an allergen or diet exclusion and is given once per order, at the end (after all lines are added, before confirmation), listing every product without a listing. Having a listing is not a ranking factor for substitutes. Remaining details are in issue #6.
+
+### The data does not follow the recording rules consistently
+- Rule: for nuts record both the category (`AN`) and the specific nut. In the data 116 of 391 products with a specific nut as `CONTAINS` lack `AN` as `CONTAINS`.
+- Rule: gluten-containing cereals always get `AW` plus the specific cereal, but gluten-free oats or wheat are recorded **without** `AW`. In the data 212 of 569 products with oats as `CONTAINS` have no `AW`. So oats do not imply gluten, and "gluten-free" cannot be derived from the absence of `AW`. Use the `GLUTEN FREE_FROM` claim and `AW` together.
+- Rule: fish is recorded as general fish whatever the species, but the data also has species codes (`ABD` tuna, `ADQ` pollock). Use `AF` for the rule and the species codes for detail.

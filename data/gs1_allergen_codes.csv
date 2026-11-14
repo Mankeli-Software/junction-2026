@@ -1,46 +1,46 @@
-code,gs1_label,gs1_uri,eu_1169_2011_group,contains,may_contain,free_from,undeclared,note
-BC,Celery and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-BC,celery,135,166,4560,23,
-AC,Crustaceans and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AC,crustaceans,51,43,4632,24,
-AE,Eggs and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AE,eggs,1317,574,4026,19,
-ABD,Tuna and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-ABD,fish,5,2,0,0,
-ADQ,Pollock and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-ADQ,fish,3,0,0,0,
-AF,Fish and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AF,fish,476,49,4518,21,
-AW,Cereals and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AW,gluten cereals,2794,300,3580,19,
-GB,Barley and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GB,gluten cereals,393,231,641,3,
-GK,Kamut and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GK,gluten cereals,0,7,288,0,
-GO,Oats and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GO,gluten cereals,569,288,558,0,
-GS,Spelt and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GS,gluten cereals,12,33,700,0,
-NR,Rye and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NR,gluten cereals,431,300,552,0,
-UW,Wheat and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-UW,gluten cereals,2550,348,512,1,
-NL,Lupine and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NL,lupin,5,116,4629,24,
-AM,Milk and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AM,milk,3160,728,3586,14,
-ML,Lactose,https://ref.gs1.org/voc/AllergenTypeCode-ML,milk (lactose),449,78,1094,0,"Lactose. Needed for lactose-free rules, together with the LACTOSE claim."
-UM,Molluscs and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-UM,molluscs,19,47,4651,23,
-BM,Mustard and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-BM,mustard,467,400,4270,23,
-AP,Peanuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AP,peanuts,73,437,4501,22,
-AS,Sesame Seeds and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AS,sesame,162,594,4353,22,
-AY,Soybean and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AY,soybeans,1104,954,3927,19,
-AU,Sulfur Dioxide and Sulfits,https://ref.gs1.org/voc/AllergenTypeCode-AU,sulphites,267,65,4563,22,
-AN,Tree nuts (Nuts) and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AN,tree nuts,289,1225,4225,24,
-SA,Almonds and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SA,tree nuts,204,727,587,0,
-SC,Cashews and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SC,tree nuts,58,268,685,0,
-SH,Hazelnuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SH,tree nuts,138,658,554,0,
-SM,Macadamia Nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SM,tree nuts,5,172,272,0,
-SP,Pecan Nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SP,tree nuts,10,280,272,0,
-SR,Brazil Nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SR,tree nuts,3,168,272,0,
-ST,Pistachios and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-ST,tree nuts,34,356,630,0,
-SW,Walnuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SW,tree nuts,18,332,633,0,
-BF,Beef and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-BF,,18,0,2,0,"Beef (meat, not in EU 14)."
-BP,Linalool,https://ref.gs1.org/voc/AllergenTypeCode-BP,,6,0,0,0,"Linalool, a fragrance allergen. Not food allergen group."
-CM,Chicken Meat and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-CM,,19,0,0,0,Chicken meat (not in EU 14).
-NC,Cocoa and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NC,,37,0,49,0,Cocoa (not in EU 14).
-NE,Peas and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NE,,38,0,46,0,Peas (not in EU 14).
-NK,Coriander and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NK,,18,0,47,0,Coriander (not in EU 14).
-NM,Corn and Its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NM,,89,5,45,0,Corn (not in EU 14).
-NP,Pod Fruits and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NP,,4,3,0,0,Pod fruits (not in EU 14).
-NW,Carrots and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NW,,33,0,47,0,Carrots (not in EU 14).
-PN,Pine nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-PN,,1,1,2,0,"Pine nuts. Not an EU tree nut, but often relevant for nut-free kitchens. Policy decision."
-PO,Pork and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-PO,,9,0,2,0,Pork (not in EU 14).
-SO,Coconuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SO,,16,1,3,0,Coconut. Not an EU tree nut. Policy decision.
-UN,Shellfish and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-UN,,0,0,9,0,"Generic shellfish (crustaceans, molluscs, echinoderms). Treat as crustaceans and molluscs."
-X99,Does not contain declaration obligatory allergens,https://ref.gs1.org/voc/AllergenTypeCode-X99,,121,0,74,0,Declaration that NO obligatory allergens are present. Not an allergen. Do not treat CONTAINS on this code as a hazard.
+code,gs1_label,gs1_uri,eu_1169_2011_group,contains,may_contain,free_from,undeclared,note,name_fi,name_fi_partitive,voice_note_fi
+BC,Celery and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-BC,celery,135,166,4560,23,,selleri,selleriä,
+AC,Crustaceans and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AC,crustaceans,51,43,4632,24,,äyriäiset,äyriäisiä,
+AE,Eggs and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AE,eggs,1317,574,4026,19,,kananmuna,kananmunaa,
+ABD,Tuna and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-ABD,fish,5,2,0,0,,tonnikala,tonnikalaa,
+ADQ,Pollock and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-ADQ,fish,3,0,0,0,,seiti,seitiä,
+AF,Fish and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AF,fish,476,49,4518,21,,kala,kalaa,
+AW,Cereals and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AW,gluten cereals,2794,300,3580,19,,gluteenia sisältävät viljat,gluteenia sisältäviä viljoja,"Kattaa vehnän, rukiin, ohran, kauran ja niiden risteymät. Gluteenittomaksi merkityllä kaurassa tai vehnässä tätä koodia ei käytetä."
+GB,Barley and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GB,gluten cereals,393,231,641,3,,ohra,ohraa,
+GK,Kamut and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GK,gluten cereals,0,7,288,0,,kamut-vehnä,kamut-vehnää,Ääntämisvihje puheentuottoon: kamut.
+GO,Oats and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GO,gluten cereals,569,288,558,0,,kaura,kauraa,Kaura ei aina tarkoita gluteenia: gluteeniton kaura on merkitty ilman koodia AW. Gluteenittomuus tarkistetaan väitteestä ja koodista AW.
+GS,Spelt and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-GS,gluten cereals,12,33,700,0,,speltti,speltiä,
+NR,Rye and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NR,gluten cereals,431,300,552,0,,ruis,ruista,
+UW,Wheat and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-UW,gluten cereals,2550,348,512,1,,vehnä,vehnää,
+NL,Lupine and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NL,lupin,5,116,4629,24,,lupiini,lupiinia,
+AM,Milk and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AM,milk,3160,728,3586,14,,maito,maitoa,
+ML,Lactose,https://ref.gs1.org/voc/AllergenTypeCode-ML,milk (lactose),449,78,1094,0,"Lactose. Needed for lactose-free rules, together with the LACTOSE claim.",laktoosi,laktoosia,Laktoosittomuus tarkistetaan myös LACTOSE-väitteestä.
+UM,Molluscs and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-UM,molluscs,19,47,4651,23,,nilviäiset,nilviäisiä,
+BM,Mustard and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-BM,mustard,467,400,4270,23,,sinappi,sinappia,
+AP,Peanuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AP,peanuts,73,437,4501,22,,maapähkinä,maapähkinää,
+AS,Sesame Seeds and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AS,sesame,162,594,4353,22,,seesaminsiemenet,seesaminsiemeniä,
+AY,Soybean and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AY,soybeans,1104,954,3927,19,,soija,soijaa,
+AU,Sulfur Dioxide and Sulfits,https://ref.gs1.org/voc/AllergenTypeCode-AU,sulphites,267,65,4563,22,,rikkidioksidi ja sulfiitit,rikkidioksidia ja sulfiitteja,
+AN,Tree nuts (Nuts) and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-AN,tree nuts,289,1225,4225,24,,pähkinät,pähkinöitä,"Tarkoittaa puussa kasvavia pähkinöitä, ei maapähkinää. Ääneen voi sanoa ""pähkinöitä, ei maapähkinää"". Tietoa ei ole aina tallennettu johdonmukaisesti: osalla tuotteista on vain tarkka pähkinä, esimerkiksi manteli."
+SA,Almonds and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SA,tree nuts,204,727,587,0,,manteli,mantelia,
+SC,Cashews and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SC,tree nuts,58,268,685,0,,cashewpähkinä,cashewpähkinää,Ääntämisvihje puheentuottoon: kešu.
+SH,Hazelnuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SH,tree nuts,138,658,554,0,,hasselpähkinä,hasselpähkinää,
+SM,Macadamia Nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SM,tree nuts,5,172,272,0,,macadamiapähkinä,macadamiapähkinää,Ääntämisvihje puheentuottoon: makadamia.
+SP,Pecan Nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SP,tree nuts,10,280,272,0,,pekaanipähkinä,pekaanipähkinää,
+SR,Brazil Nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SR,tree nuts,3,168,272,0,,parapähkinä,parapähkinää,
+ST,Pistachios and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-ST,tree nuts,34,356,630,0,,pistaasipähkinä,pistaasipähkinää,
+SW,Walnuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SW,tree nuts,18,332,633,0,,saksanpähkinä,saksanpähkinää,
+BF,Beef and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-BF,,18,0,2,0,"Beef (meat, not in EU 14).",naudanliha,naudanlihaa,
+BP,Linalool,https://ref.gs1.org/voc/AllergenTypeCode-BP,,6,0,0,0,"Linalool, a fragrance allergen. Not food allergen group.",linalooli,linaloolia,"Tuoksuaine, ei ruoka-allergeeni."
+CM,Chicken Meat and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-CM,,19,0,0,0,Chicken meat (not in EU 14).,kananliha,kananlihaa,
+NC,Cocoa and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NC,,37,0,49,0,Cocoa (not in EU 14).,kaakao,kaakaota,
+NE,Peas and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NE,,38,0,46,0,Peas (not in EU 14).,herne,hernettä,
+NK,Coriander and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NK,,18,0,47,0,Coriander (not in EU 14).,korianteri,korianteria,
+NM,Corn and Its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NM,,89,5,45,0,Corn (not in EU 14).,maissi,maissia,
+NP,Pod Fruits and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NP,,4,3,0,0,Pod fruits (not in EU 14).,palkohedelmät,palkohedelmiä,"GS1:n ""pod fruits"". Suomennos on arvio, tarkistettava."
+NW,Carrots and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-NW,,33,0,47,0,Carrots (not in EU 14).,porkkana,porkkanaa,
+PN,Pine nuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-PN,,1,1,2,0,"Pine nuts. Not an EU tree nut, but often relevant for nut-free kitchens. Policy decision.",pinjansiemen,pinjansiemeniä,
+PO,Pork and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-PO,,9,0,2,0,Pork (not in EU 14).,sianliha,sianlihaa,
+SO,Coconuts and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-SO,,16,1,3,0,Coconut. Not an EU tree nut. Policy decision.,kookos,kookosta,
+UN,Shellfish and its derivatives,https://ref.gs1.org/voc/AllergenTypeCode-UN,,0,0,9,0,"Generic shellfish (crustaceans, molluscs, echinoderms). Treat as crustaceans and molluscs.",äyriäiset ja nilviäiset,äyriäisiä ja nilviäisiä,"Yleiskoodi, joka kattaa kaikki kuorelliset vesieläimet."
+X99,Does not contain declaration obligatory allergens,https://ref.gs1.org/voc/AllergenTypeCode-X99,,121,0,74,0,Declaration that NO obligatory allergens are present. Not an allergen. Do not treat CONTAINS on this code as a hazard.,ei pakollisia allergeeneja,,"Ei allergeeni. Tarkoittaa, ettei tuote sisällä pakollisia allergeeneja. Ei saa lukea varoituksena."

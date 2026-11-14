@@ -1,0 +1,6 @@
+value,meaning_en,phrase_fi,spoken_template_fi,treated_as
+CONTAINS,Intentionally included in the product,sisältää,Tuote sisältää {partitiivi}.,unsafe for an excluded allergen
+MAY_CONTAIN,May be present due to shared production,saattaa sisältää,Tuote saattaa sisältää {partitiivi}.,unsafe for an excluded allergen (policy: blocks)
+FREE_FROM,Free from the substance,ei sisällä,Tuote ei sisällä {partitiivi}.,safe
+UNDECLARED,"Synkka value ""Selvittämätön"" (undetermined)",selvittämätön,"Tuotteelle ei ole ilmoitettu allergeenitietoja, joten en voi vahvistaa, ettei se sisällä {partitiivi}.",no listing: say so and proceed
+NO_LISTING,Product has no allergen listing at all (empty groups),allergeenitietoja ei ole ilmoitettu,"Huomio: seuraaville tuotteille ei ole ilmoitettu allergeenitietoja: {tuotteet}. En voi vahvistaa, ettei ne sisällä {partitiivi}.",no listing: say so once at the end of the order and proceed
