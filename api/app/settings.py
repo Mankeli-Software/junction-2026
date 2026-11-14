@@ -103,6 +103,20 @@ class Settings(BaseSettings):
     # off: text-only search.
     search_vectors: Literal["live", "cache", "off"] = "live"
 
+    # The phone call's voice relay (/voice/ws, #52). The model is on the v1beta API only
+    # (spikes/gemini-live). The voice is Aoede until #67 picks one; the filler clips in
+    # app/interfaces/voice/clips/ are made per voice (`python -m app.interfaces.voice.clips`).
+    voice_model: str = "gemini-3.8-live"
+    voice_name: str = "Aoede"
+    # Silence after which Gemini's voice activity detection ends the caller's turn. Empty
+    # leaves Gemini's default (about 1 s in the spike).
+    voice_silence_ms: int | None = 600
+    # A tool call still running after this long gets the spoken filler line.
+    voice_filler_after_s: float = 1.0
+    # Where the relay reaches our own MCP server. In-process on the API's own port, which
+    # MCP_ALLOWED_HOSTS lets through.
+    voice_mcp_url: str = "http://localhost:8000/mcp"
+
     sms_twilio_enabled: bool = False
     # Comma-separated phone numbers in E.164 form that may get a real SMS.
     sms_allowlist: str = ""
