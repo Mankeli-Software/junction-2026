@@ -163,7 +163,9 @@ def test_checklist_rules_are_present():
     assert "Mention at most one alternative" in text
     assert "Say this notice only once per order" in text
     assert "Never say the order is placed" in text
-    assert "Call `request_confirmation` only after a clear yes" in text
+    assert "Call `request_confirmation` only in your next turn" in text
+    assert "after the caller has said a clear yes" in text
+    assert "Never answer your own question" in text
     assert "can't be overridden" in text and "Say so and move on" in text
     assert "Keep the brand and the pack size" in text
     assert "Use the base form where it is natural" in text
