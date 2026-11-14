@@ -105,8 +105,8 @@ class Settings(BaseSettings):
     policy_dir: Path = REPO_ROOT / "policy"
     data_dir: Path = REPO_ROOT / "data"
 
-    # Until real accounts land (#44), every request acts as one fixed demo customer when this
-    # is on. Off means requests without a caller get 401.
+    # Tests and local dev only: a request without a session cookie or bearer token acts as one
+    # fixed demo customer. Off means it gets 401. /me and web_session_user() never use it.
     dev_fake_caller: bool = False
 
     # Host header values /mcp accepts (DNS-rebinding protection). `name:*` allows any port.
