@@ -2,10 +2,6 @@
  * Types for the public dashboard API (#49, `technical-plan.md` §9.5), taken from the
  * generated contract (`src/lib/generated/openapi.ts`, from `api/app/schemas/dashboard.py`).
  * Regenerate it as `web/README.md` says after the schemas change.
- *
- * The stream's event bodies are not in the OpenAPI document, so they are written out here
- * from the generated parts, as `OrderUpdated`, `StepEvent` and `TranscriptEvent` in
- * `api/app/schemas/dashboard.py`.
  */
 import type { components } from '../generated/openapi';
 
@@ -67,23 +63,13 @@ export type AuditEvent = Schemas['AuditEvent'];
 export type VerifyResponse = Schemas['VerifyResult'];
 
 // SSE /api/v1/public/stream
-/** The card with its company, so a new card can be placed, and the fresh totals. */
-export interface OrderUpdated {
-	company: CompanyRef;
-	order: OrderCard;
-	/** The API always sends them; optional in its schema. */
-	totals?: Totals | null;
-}
-
-export interface StepEvent {
-	session_id: string;
-	step: Step;
-}
-
-export interface TranscriptEvent {
-	session_id: string;
-	line: TranscriptLine;
-}
+/**
+ * The card with its company, so a new card can be placed, and the fresh totals. The API
+ * always sends `totals`; they are optional in its schema.
+ */
+export type OrderUpdated = Schemas['OrderUpdated'];
+export type StepEvent = Schemas['StepEvent'];
+export type TranscriptEvent = Schemas['TranscriptEvent'];
 
 /**
  * One stream event. `id` is the `status_events` id; one id can carry a `step`, a
