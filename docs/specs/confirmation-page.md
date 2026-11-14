@@ -17,7 +17,7 @@ The page must make three things obvious:
 ## 2. Access: the link is the key
 
 - **No login, no user accounts.** Whoever holds the link can open the page. The link is the second factor: it goes only to the account that made the order (vision section 6).
-- The link carries a random single-use token (128 bits or more, stored hashed), bound to the quote, its hash and the recipient. It expires with the quote. **For the event, quotes do not expire** (decided 2026-11-14): visitors can confirm whenever they get to it. Expiry is one config value (`quote_ttl`, off for the event, for example 30 minutes in production), so the expired state below exists in the code but is not reached in the demo.
+- The link carries a random single-use token (256 random bits, stored as SHA-256, as in `technical-plan.md` §8.2), bound to the quote, its hash and the recipient. It expires with the quote. **For the event, quotes do not expire** (decided 2026-11-14): visitors can confirm whenever they get to it. Expiry is one config value (`quote_ttl`, off for the event, for example 30 minutes in production), so the expired state below exists in the code but is not reached in the demo.
 - The page is server-rendered from engine data only. Nothing from the agent or from product free text is trusted; all text is escaped.
 - No agent can open, read or act on the page. Confirm and Cancel exist only here (vision section 8).
 - The page shows the company name, never the full phone number.
