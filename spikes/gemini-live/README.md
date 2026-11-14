@@ -7,7 +7,7 @@ This is throwaway spike code, kept so the checks can be rerun (for example with 
 ## Setup
 
 - Python via [`uv`](https://docs.astral.sh/uv/). Dependencies are in `pyproject.toml`; `uv run` installs them on first use.
-- An AI Studio API key in `GEMINI_API_KEY`, or in `~/.config/junction-2026/gemini.env` as a line `GEMINI_API_KEY=...`. The scripts never print the key. Don't commit it.
+- An AI Studio API key. The scripts take the first non-empty `GEMINI_API_KEY` from: the environment variable; a `.env` in this folder or any parent (normally the repo root's git-ignored `.env`, see `.env.example`; from a worktree under `.claude/worktrees/` the walk reaches the main checkout's `.env`); `~/.config/junction-2026/gemini.env`. The scripts never print the key. Don't commit it.
 - Everything the scripts write goes to `audio/`, `out/` and `recordings/`, which are git-ignored. **Never commit recordings of a real voice.**
 
 ## Steps

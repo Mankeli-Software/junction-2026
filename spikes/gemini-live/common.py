@@ -28,22 +28,38 @@ OUT_RATE = 24_000  # Live API output: 16-bit little-endian mono PCM
 # --- API key -----------------------------------------------------------------
 
 
+def _key_from_file(path: Path) -> str:
+    """The GEMINI_API_KEY value in a dotenv-style file, or "" if absent or empty."""
+    if not path.is_file():
+        return ""
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line.startswith("export "):
+            line = line[len("export ") :]
+        if line.startswith("GEMINI_API_KEY="):
+            return line.split("=", 1)[1].strip().strip("'\"")
+    return ""
+
+
 def load_api_key() -> str:
-    """GEMINI_API_KEY from the environment, else from ~/.config/junction-2026/gemini.env.
+    """Find GEMINI_API_KEY, skipping empty values, in this order:
+
+    1. the GEMINI_API_KEY environment variable;
+    2. a .env file in this folder or any parent (the repo root's git-ignored .env;
+       from a worktree under .claude/worktrees/ the walk reaches the main checkout's);
+    3. ~/.config/junction-2026/gemini.env.
 
     The key is never printed. Exits with a clear message when it is missing.
     """
     key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not key and KEY_FILE.is_file():
-        for line in KEY_FILE.read_text().splitlines():
-            line = line.strip()
-            if line.startswith("export "):
-                line = line[len("export ") :]
-            if line.startswith("GEMINI_API_KEY="):
-                key = line.split("=", 1)[1].strip().strip("'\"")
-                break
+    for directory in (HERE, *HERE.parents):
+        if key:
+            break
+        key = _key_from_file(directory / ".env")
     if not key:
-        sys.exit(f"No GEMINI_API_KEY in the environment or in {KEY_FILE}.")
+        key = _key_from_file(KEY_FILE)
+    if not key:
+        sys.exit(f"No GEMINI_API_KEY in the environment, in a .env above {HERE} or in {KEY_FILE}.")
     return key
 
 
