@@ -328,7 +328,8 @@ async def _mark_opened(
         return
     confirmation.opened_at = now
     session = await sessions.quote_session(db, quote, now=now)
-    if session.state == SessionState.awaiting_confirmation:
+    # After a failed SMS too: the buyer opened the link from the demo phone's inbox (#46).
+    if session.state in (SessionState.awaiting_confirmation, SessionState.sms_failed):
         sessions.set_state(session, SessionState.link_opened, now)
     await db.flush()
     await _record(

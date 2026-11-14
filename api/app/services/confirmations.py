@@ -8,7 +8,8 @@ no recipient argument (vision §6).
   stored with the confirmation. The link travels in the inbox message, and nowhere else:
   never in a return value, a log line, an audit or dashboard event or the public stream.
 - Every message lands in the user's simulated phone inbox (`sms_messages`, path `inbox`).
-  Twilio (path `twilio`, behind `SMS_TWILIO_ENABLED` and `SMS_ALLOWLIST`) comes later.
+  A real SMS goes out too (path `twilio`) only with Twilio enabled, for an allowlisted
+  number, within the per-number limit, and only after the commit (`app.services.sms`).
 - On the phone channel the message is `held` until the call ends: the voice relay (#52)
   calls `release_held_messages()` on hang-up, a dropped call or the time limit. A phone
   request that only finishes after the call has ended delivers at once (#88). Every other
@@ -36,7 +37,7 @@ from app.schemas import ConfirmationRequestResponse, Localized, QuoteResponse
 from app.schemas.common import Lang
 from app.settings import get_settings
 
-from . import audit
+from . import audit, sms
 from .caller import Caller, Channel
 from .dashboard.stream import Broadcaster, StreamEvent
 from .errors import StateError
@@ -137,6 +138,9 @@ async def request_confirmation(
     )
     db.add(message)
     await db.flush()
+    twilio_message = await sms.add_twilio_message(
+        db, confirmation, body=body, text=text, link=link, held=held, now=now
+    )
     if not held:
         _publish_after_commit(db, message)
         if caller.channel in HELD_CHANNELS:
@@ -145,16 +149,18 @@ async def request_confirmation(
             quote_row = await db.get_one(Quote, uuid.UUID(quote.quote_id))
             await record_inbox_delivered(db, quote_row.session_id, quote_row.id)
     log.info(
-        "Confirmation %s for quote %s: inbox message %s %s",
+        "Confirmation %s for quote %s: inbox message %s %s, SMS %s",
         confirmation.id,
         quote.quote_id,
         message.id,
         message.status,
+        twilio_message.status if twilio_message else "off",
     )
     return ConfirmationRequestResponse(
         sent_to_masked=mask_phone(user.phone_e164),
-        # Twilio is off for now (#46's Twilio items): `held` until the call ends, else `off`.
-        delivery_status="held" if held else "off",
+        # `held` until the call ends. Otherwise `sent` when an SMS is on its way (it goes
+        # after the commit, so a refusal shows later as `sms_failed`), else `off`.
+        delivery_status="held" if held else ("sent" if twilio_message else "off"),
         inbox=True,
     )
 
@@ -211,8 +217,9 @@ async def record_inbox_delivered(
 async def release_held_messages(
     db: AsyncSession, user_id: uuid.UUID, *, now: datetime | None = None
 ) -> list[str]:
-    """Deliver the user's held messages to their inbox. For the voice relay (#52) at the
-    end of a call: hang-up, a dropped call or the time limit. Not an agent tool.
+    """Deliver the user's held messages to their inbox, and send their held SMS once `db`
+    commits. For the voice relay (#52) at the end of a call: hang-up, a dropped call or the
+    time limit. Not an agent tool.
 
     Returns the quote ids whose links were delivered, empty when nothing was held. Safe to
     call more than once.
@@ -236,6 +243,7 @@ async def release_held_messages(
         message.delivered_at = now
         _publish_after_commit(db, message)
     await db.flush()
+    await sms.release_held(db, user_id)
     if rows:
         log.info("Released %d held inbox message(s) for user %s", len(rows), user_id)
     return [quote_id for _, quote_id in rows]
