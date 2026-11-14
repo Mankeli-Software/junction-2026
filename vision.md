@@ -27,7 +27,7 @@ How this maps to the judging criteria:
 
 1. **Deterministic engine, no LLM inside.** Same input and policy version give the same decision and quote hash.
 2. **Agents propose, the engine decides, a human confirms.** No agent tool can confirm an order.
-3. **Fail closed.** Missing allergen data, unknown unit, unknown product: stop or ask. `MAY_CONTAIN` blocks.
+3. **Fail closed** on unknown unit and unknown product: stop or ask. A listed `CONTAINS` or `MAY_CONTAIN` for an excluded allergen blocks. A product with no allergen information for it (no listing at all, or `UNDECLARED`) is flagged to the buyer once per order, not blocked.
 4. **Never a dead end.** Every "no" comes with a next step: a substitute, another date or a callback request.
 5. **Fixed price means fixed.** A signed quote is honoured until it expires.
 6. **Explain everything.** Every decision carries reason codes and ready-to-speak text in Finnish and English, built from templates.
@@ -91,7 +91,7 @@ This is the heart of the guardrail story, and it is deliberately simple.
 |---|---|
 | Which product best matches the request, among deliverable and allergen-safe ones | Confirming the order (always) |
 | Ranking by price, stock certainty, history, origin | Choosing between ambiguous matches |
-| Rounding up to whole sales units when the overage is small (at most one unit and 2%) | Larger rounding, or a packaging word that could mean two sizes |
+| Rounding up to whole sales units when the overage is small (at most one unit and 2%) | Larger rounding (the buyer is offered an exact-fit product as the alternative, see section 10), or a packaging word that could mean two sizes |
 | Swapping to the same product in another pack or a curated substitute, if no allergen is added and the price is within the limit | Any other substitute, brand change, added allergen or price jump |
 | Scaling a recipe and subtracting nothing it was not told about | Splitting an order on partial stock |
 
@@ -99,7 +99,7 @@ This is the heart of the guardrail story, and it is deliberately simple.
 
 ### The confirmation link and page
 
-- The SMS goes to the confirmation person configured on the customer account, or to the caller's own registered number if none is configured. An agent can never choose or change the recipient.
+- The SMS goes to the identified person's own registered number. An agent can never choose or change the recipient. (In production an account could name a separate confirmation person. We do not build that.)
 - The link carries a random single-use token (128 bits or more, stored hashed), bound to the quote, its hash and the recipient. It expires with the quote (default 30 minutes).
 - The page is server-rendered from engine data only. It shows lines, quantities in sales units and in the unit the buyer asked for, delivery date, gross total and a readable trace of why each product was chosen.
 - **Odd things are shown first, in plain words.** Each one must be acknowledged before Confirm is enabled. Examples:
@@ -107,6 +107,7 @@ This is the heart of the guardrail story, and it is deliberately simple.
   - "This is a substitute for X. It also contains soy."
   - "Rounded up from 1,000 L to 1,002 L (334 cases)."
   - "Stock is not confirmed for this product."
+  - "No allergen information is listed for these products: ..." (one notice for the whole order)
   - "You have not ordered this product before."
   - "Same order was placed 20 minutes ago."
   - "Pack size was read from the product name."
@@ -119,12 +120,13 @@ Sanity checks ("does this make sense?") come from the customer's order history: 
 
 ## 7. Recipes
 
-Recipes are needed for the "need, recipe, order" and milk-free menu scenarios, and they are what makes this more than product search.
+Recipes are needed for the "need, recipe, order" scenario and for adapting a menu to any allergen or diet (milk-free is only one example). They are what makes this more than product search.
 
-- The recipes are already in the repo: `data/valio-recipes.json` holds 2,091 recipes scraped once from the Minun Aimo portal (name, default portions, ingredients with per-portion amounts, diet tags such as lactose-free and milk-free, nutrition). We load them into our own database. No live scraping during a request.
+- The recipes are already in the repo: `data/valio-recipes.json` holds 2,091 recipes scraped once from the Minun Aimo portal (name, default portions, ingredients with per-portion amounts, diet tags such as lactose-free and milk-free, nutrition). No live scraping during a request. Juho owns the scraping and the linking to product ids.
+- Storage is one Postgres instance with two kinds of data: normal tables for product data, and a vector index (pgvector) for recipes and other similarity search. We add more vector indexes if we need a different kind of comparison or other data than recipes.
 - `data/recipe-product-map.json` links the 266 branded recipe products to Aimo product codes with pack sizes. About a quarter of ingredient rows (5,456 of 21,650) carry such a product link. The rest are generic names ("kypsää perunasuikaletta") and go through normal product resolution.
-- The MCP exposes all of them: search recipes by ingredient, diet, occasion or a free description, and get a recipe scaled to a portion count. With 2,091 recipes, search needs proper retrieval (a text and embedding index over names, descriptions, ingredients and tags), not only keyword match. Retrieval only finds recipes. It never takes part in an order decision.
-- A recipe becomes order lines in two steps. The agent (LLM) may propose and adapt recipes. The engine does the arithmetic: scale, convert to sales units, apply the kitchen's allergen and diet rules strictly, and resolve each ingredient to a product. "Milk-free" is a hard filter on every ingredient and every substitute.
+- The MCP exposes all of them: search recipes by ingredient, diet, occasion or a free description, and get a recipe scaled to a portion count. With 2,091 recipes, search needs proper retrieval (text plus the vector index over names, descriptions, ingredients and tags), not only keyword match. Retrieval only finds recipes. It never takes part in an order decision.
+- A recipe becomes order lines in two steps. The agent (LLM) may propose and adapt recipes. The engine does the arithmetic: scale, convert to sales units, apply the kitchen's allergen and diet rules strictly, and resolve each ingredient to a product. Every excluded allergen or diet rule, whichever it is, is a hard filter on every ingredient and every substitute.
 - An ingredient that cannot be resolved safely is returned as a clarification, not guessed.
 
 - The recipe's own diet tags are a hint for search only. Safety is always decided from the allergen data of the products actually chosen.
@@ -196,7 +198,13 @@ Our own rules on top:
 - Product search runs locally on the static product file loaded into Postgres. Price and availability are called only for a shortlist and cached for about five minutes.
 - Sales unit comes from the availability response and is cross-checked against `units[]` and the price ratio. Disagreement means `UNIT_UNKNOWN`.
 - Quotes are gross (VAT included), in integer cents, decimal arithmetic. Deposits are not added. Payment is by invoice and out of scope.
-- Allergen and diet filters use the coded classifications with our approved mapping. The same filter applies to every substitute.
+- Allergen codes in the product file are the GS1 `AllergenTypeCode` vocabulary. We use the mapping in `data/gs1_allergen_codes.csv` (code, GS1 label, the matching EU 1169/2011 allergen). The same filter applies to every substitute.
+  - Allergens are checked per product, from its own listing only. We never infer allergens, or their absence, from the category.
+  - About 30% of food products have no allergen listing at all, and some list an allergen as `UNDECLARED`. Both are orderable but flagged: the buyer gets one notice per order, after all lines are added and before confirmation, and the confirmation page lists them as flagged items. Having a listing or not is not a ranking factor.
+  - "Nut-free" is a set of codes, not one: `AN` plus the specific nuts (`SA`, `SH`, `SW`, `SC`, `SP`, `SM`, `SR`, `ST`). Whether pine nut, coconut and peanut count, and whether lactose (`ML`) counts for milk-free, is decided in issue #6.
+  - `X99` means no obligatory allergens are present. It never triggers a block.
+  - Lactose-free uses code `ML` together with the `LACTOSE` free-from claim.
+- **Food waste.** Rounding up is allowed, but when it would leave a real surplus the engine also looks for a similar product that fits the needed amount exactly and offers it. Example for a 10 L need: "12 L of Valio (4 x 3 L) or 10 L of another milk?"
 - Availability is rechecked at confirmation. If it got worse the quote is void and a new one is offered.
 - The engine can run against the live API or a recorded snapshot, with a switch.
 - Customers, kitchen profiles (allergen and diet exclusions), phone numbers and order history are mocked by us. No real people.
@@ -220,16 +228,16 @@ What we actually implement, and what we only point to. We say which is which in 
 | Human sign-off | SMS link bound to the quote hash | Same pattern as OpenID CIBA: out-of-band approval of an exact payload |
 | Trust in claims | Quote signed with a published key (JWS), each claim labelled: stock verified or unverified, price from API, origin from product data | Verifiable credentials for quotes and origin claims |
 | Order output | Order record in our database | Peppol BIS Ordering 3.0 (UBL) export into Aimo's ordering systems |
-| Product data | Synkka-based product file, GTINs, coded allergens | Live GS1 product data feed, EU 1169/2011 allergen list as the legend |
+| Product data | Synkka-based product file, GTINs, allergens as GS1 AllergenTypeCode mapped to the 14 EU 1169/2011 allergens | Live GS1 product data feed |
 | Audit | Hash-chained events | OpenTelemetry traces |
 
 Payment standards (x402 and similar) do not fit invoice-based B2B wholesale and are out of scope.
 
 ## 13. Scope
 
-**Must work (P0):** engine core (resolve, allergen filter, availability and dates, units, price, quote), MCP server, SMS link and confirmation page with flags and editing, order record, phone demo, live dashboard, audit events.
+**Must work (P0):** engine core (resolve, allergen filter, availability and dates, units, price, quote), a basic substitution ladder that always returns something, MCP server, WebMCP on the mock webshop, SMS link and confirmation page with flags and editing, order record, phone demo, live dashboard, audit events.
 
-**Should work (P1):** substitution ladder, sanity checks from history, recipes through the MCP, WebMCP on the mock webshop, chat connector with login.
+**Should work (P1):** better substitution ranking (hand-tuned profiles, exact-fit options), sanity checks from history, recipes through the MCP, chat connector with login.
 
 **Stretch:** an A2UI agent embedded in the mock Aimo page and on the confirmation page so the buyer can ask for changes in words, Peppol order export, payment, carbon and reliability ranking, discovery documents.
 
@@ -242,11 +250,12 @@ Payment standards (x402 and similar) do not fit invoice-based B2B wholesale and 
 - Chat and other channels are back in scope. The demo is not voice only.
 - The confirmation page is editable and shows the decision trace.
 - Recipes are in scope through the MCP.
+- Missing allergen data no longer blocks. A product with no allergen listing is flagged once per order (T23 changes).
 - Availability of 999999 or more is "unknown but orderable", including for Stock products (issue #5 treated the Stock sentinel as confirmed unlimited).
 
 ### Decided on 2026-11-14
 
-1. No organisation model in the demo we build, to keep it simple. The only account setting is the confirmation person.
+1. The organisation model is dropped completely. In what we build, the confirmation link goes to the identified person's own number. A separate confirmation person per account is a production option only.
 2. Flagged items need an explicit acknowledgement on the page before Confirm is enabled.
 3. OpenAI clients use WebMCP. For connectors we build the Claude connector first, then an OpenAI connector or similar.
 4. All recipes are searchable, not a hand-picked set.
