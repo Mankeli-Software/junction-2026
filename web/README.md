@@ -16,6 +16,8 @@ pnpm test:e2e                             # Playwright: builds the app and runs 
 
 The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`). They need no API, database or Gemini. Chromium gets a fake microphone that plays a speech-like sound (`tests/support/fake-voice.ts`), so the call works headless.
 
+A real call can be screenshotted too, against the real voice relay (#52) and Gemini Live: run FastAPI with Postgres, a catalogue and `GEMINI_API_KEY`, run `DEMO_SOURCE=api CONFIRMATION_SOURCE=api pnpm dev`, write the caller's side with `scripts/voice_smoke_test.py --browser-wav <file>`, then run `SCREENSHOTS=1 VOICE_LIVE_AUDIO=<file> VOICE_LIVE_BASE_URL=http://localhost:5173 pnpm exec playwright test -c playwright.voice-live.config.ts --project phone`. It opens one Gemini Live session per project and saves to `docs/screenshots/phone-live/`.
+
 The confirmation page can also be tested against the real FastAPI endpoints (#47): migrate a database, start the API with `VALIO_SOURCE=snapshot` and `DEV_FAKE_CALLER=false`, then run `E2E_API_URL=http://localhost:8000 pnpm exec playwright test tests/confirmation-api.spec.ts`. Each test makes its own order through the API and takes the link from the account's inbox. Without `E2E_API_URL` that spec is skipped. The same setup runs the dashboard against the API: `E2E_API_URL=http://localhost:8000 pnpm exec playwright test tests/dashboard-api.spec.ts --project=laptop`. It opens the overview, makes an order through the API, waits for its card to arrive and to turn confirmed over the stream, then checks the summary, the full flow and the chain check in the browser. Without `E2E_API_URL`, `tests/dashboard.spec.ts` runs the same pages on the mock instead.
 
 ## Settings
