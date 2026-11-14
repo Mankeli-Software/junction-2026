@@ -6,6 +6,7 @@ values come from there.
 """
 
 import os
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -118,6 +119,10 @@ class Settings(BaseSettings):
     policy_dir: Path = REPO_ROOT / "policy"
     data_dir: Path = REPO_ROOT / "data"
 
+    # The public dashboard (#49) shows and counts only sessions started at or after this
+    # (ISO 8601 with an offset, the real clock). Unset shows every session.
+    event_start: datetime | None = None
+
     # Tests and local dev only: a request without a session cookie or bearer token acts as one
     # fixed demo customer. Off means it gets 401. /me and web_session_user() never use it.
     dev_fake_caller: bool = False
@@ -148,6 +153,18 @@ class Settings(BaseSettings):
     @classmethod
     def _use_psycopg_driver(cls, value: str) -> str:
         return psycopg_url(value)
+
+    @field_validator("event_start", mode="before")
+    @classmethod
+    def _empty_means_unset(cls, value: Any) -> Any:
+        return None if value == "" else value
+
+    @field_validator("event_start")
+    @classmethod
+    def _aware(cls, value: datetime | None) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            raise ValueError("EVENT_START needs a UTC offset, for example +02:00")
+        return value
 
     @property
     def migrations_url(self) -> str:
