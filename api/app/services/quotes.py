@@ -7,7 +7,6 @@ import hashlib
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from decimal import Decimal
 
 from app import engine
 from app.schemas import (
@@ -23,26 +22,15 @@ from app.schemas import (
     QuoteResponse,
     QuoteStatus,
     RequestConfirmationRequest,
-    RuleSet,
     UpdateQuoteRequest,
 )
 from app.services import catalog, customers
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
+from app.services.policy import get_rule_set
 
 # The business clock of the demo (technical-plan.md §4.1): cutoffs and delivery dates.
 BUSINESS_NOW = datetime.fromisoformat("2026-11-12T09:00:00+02:00")
-
-RULES = RuleSet(
-    version="stub-1",
-    quote_ttl_seconds=None,
-    enforce_closing_time=True,
-    unverified_stock_threshold=999999,
-    round_up_max_units=1,
-    round_up_max_ratio=Decimal("0.02"),
-    duplicate_window_seconds=7200,
-    substitute_max_price_increase_ratio=Decimal("0.10"),
-)
 
 # A quote can be replaced by an edit until it is confirmed, cancelled or expired.
 _EDITABLE = {QuoteStatus.ready, QuoteStatus.pending_confirmation}
@@ -73,9 +61,10 @@ def _new_quote(
             lines=lines,
             kitchen=KitchenProfile(exclusions=caller.exclusions),
             history=HistorySummary(usual_items=customers.usual_items(caller), recent_lines=[]),
+            candidates=catalog.candidates(lines),
             products=catalog.records(),
             offers=catalog.offers(),
-            rules=RULES,
+            rules=get_rule_set(),
             business_now=BUSINESS_NOW,
             issued_at=datetime.now(UTC),
             lang=caller.lang,

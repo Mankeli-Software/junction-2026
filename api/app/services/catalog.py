@@ -6,6 +6,8 @@ from functools import cache
 from pydantic import BaseModel
 
 from app.schemas import (
+    Claim,
+    LineRequest,
     Localized,
     Offer,
     ProductHit,
@@ -84,15 +86,36 @@ def _hit(product: _FixtureProduct) -> ProductHit:
     )
 
 
-def search_products(caller: Caller, request: SearchProductsRequest) -> SearchProductsResponse:
+def _matching(q: str, claims: list[Claim], category: str | None) -> list[_FixtureProduct]:
     """Case-insensitive substring match on the names, then the claim and category filters."""
-    q = request.q.casefold()
+    q = q.casefold()
     hits = [
         p
         for p in _products()
         if q in p.record.name.fi.casefold() or q in p.record.name.en.casefold()
     ]
-    hits = [p for p in hits if set(request.claims) <= set(p.record.claims)]
-    if request.category is not None:
-        hits = [p for p in hits if p.record.category == request.category]
+    hits = [p for p in hits if set(claims) <= set(p.record.claims)]
+    if category is not None:
+        hits = [p for p in hits if p.record.category == category]
+    return hits
+
+
+def search_products(caller: Caller, request: SearchProductsRequest) -> SearchProductsResponse:
+    hits = _matching(request.q, request.claims, request.category)
     return SearchProductsResponse(results=[_hit(p) for p in hits[: request.limit]])
+
+
+def candidates(lines: list[LineRequest]) -> dict[str, list[str]]:
+    """Candidate product ids per line, for `EngineInput.candidates` (#45 replaces this).
+
+    A named product is its own candidate; otherwise the fixture search on the line's
+    words, or every fixture product when the words match nothing.
+    """
+    result: dict[str, list[str]] = {}
+    for line in lines:
+        if line.product_id is not None:
+            result[line.line_id] = [line.product_id]
+            continue
+        hits = _matching(line.text or "", line.claims, line.category) or list(_products())
+        result[line.line_id] = [p.record.product_id for p in hits]
+    return result

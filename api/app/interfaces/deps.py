@@ -17,7 +17,7 @@ DEV_CALLER = Caller(
     company_id="dev-hassu-hauki",
     company_name="Hassu Hauki Oy",
     phone_masked="+358 40 *** **12",
-    exclusions=[Exclusion.milk_free],
+    exclusions=[Exclusion.lactose_free],
     lang="fi",
     channel="web",
 )

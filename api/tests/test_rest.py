@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services.policy import get_rule_set
 
 client = TestClient(app)
 
@@ -23,7 +24,7 @@ class TestWithCaller:
         assert quote["status"] == "ready"
         assert quote["version"] == 1
         assert quote["parent_quote_id"] is None
-        assert quote["rules_version"] == "stub-1"
+        assert quote["rules_ref"] == get_rule_set().ref
         assert quote["lines"][0]["product_id"] == "464306"
 
     def test_update_quote_makes_version_2_and_voids_the_old_one(self):
@@ -63,10 +64,11 @@ class TestWithCaller:
 
         assert client.post(url).status_code == 409
 
-    def test_request_confirmation_on_a_clarification_is_a_conflict(self):
-        response = client.post("/api/v1/quotes", json={"lines": [{**LINE, "text": "unclear"}]})
+    def test_request_confirmation_on_a_quote_that_is_not_ready_is_a_conflict(self):
+        # Milk can't be converted to kilos, so the engine rejects the line.
+        response = client.post("/api/v1/quotes", json={"lines": [{**LINE, "unit": "kg"}]})
         quote = response.json()
-        assert quote["decision"] == "needs_clarification"
+        assert quote["decision"] == "rejected"
 
         url = f"/api/v1/quotes/{quote['quote_id']}/confirmation-request"
         assert client.post(url).status_code == 409
@@ -101,7 +103,7 @@ class TestWithCaller:
         context = client.get("/api/v1/customer-context").json()
 
         assert context["company_name"] == "Hassu Hauki Oy"
-        assert context["exclusions"][0]["key"] == "milk_free"
+        assert context["exclusions"][0]["key"] == "lactose_free"
         assert [i["product_id"] for i in context["usual_items"]] == ["464306", "475797"]
 
     def test_recipes(self):
