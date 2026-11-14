@@ -91,6 +91,10 @@ class TextKey(StrEnum):
     """Sentences that aren't tied to one reason code (policy/messages.yaml `texts`)."""
 
     SUMMARY_READY = "SUMMARY_READY"
+    SUMMARY_LINE = "SUMMARY_LINE"
+    SUMMARY_ALTERNATIVE = "SUMMARY_ALTERNATIVE"
+    SUMMARY_MORE = "SUMMARY_MORE"
+    SUMMARY_TOTAL = "SUMMARY_TOTAL"
     SUMMARY_NOTES = "SUMMARY_NOTES"
     SUMMARY_REJECTED = "SUMMARY_REJECTED"
     CHOSEN_CHEAPEST = "CHOSEN_CHEAPEST"

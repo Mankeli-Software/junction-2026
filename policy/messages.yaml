@@ -194,6 +194,20 @@ texts:
   SUMMARY_READY:
     fi: "Tarjous on valmis. Toimitus {dates}, tuotteita {count}, yhteensä {total}."
     en: "The quote is ready. Delivery {dates}, products: {count}, total {total}."
+  # One per priced line: the top pick (vision §5). Only the first few lines are named.
+  SUMMARY_LINE:
+    fi: "{product}, {quantity} {unit}, {total}."
+    en: "{product}, {quantity} {unit}, {total}."
+  # The line's best alternative, spoken only when the order has one line.
+  SUMMARY_ALTERNATIVE:
+    fi: "Vaihtoehtona {product}, {total}."
+    en: "Alternatively {product}, {total}."
+  SUMMARY_MORE:
+    fi: "Muita tuotteita: {count}."
+    en: "More products: {count}."
+  SUMMARY_TOTAL:
+    fi: "Toimitus {dates}, yhteensä {total}."
+    en: "Delivery {dates}, total {total}."
   SUMMARY_NOTES:
     fi: "Tarkistettavia kohtia vahvistussivulla: {notes}."
     en: "Notes to check on the confirmation page: {notes}."
