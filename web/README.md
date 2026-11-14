@@ -1,25 +1,27 @@
 # web
 
-SvelteKit app with `adapter-node`: phone page, webshop, confirmation page (`/c/[token]`) and dashboard (`technical-plan.md` §11).
+SvelteKit app with `adapter-node`: start page (`/`), demo phone (`/phone`), webshop, confirmation page (`/c/[token]`) and dashboard (`technical-plan.md` §11).
 
 ```sh
 pnpm install
-pnpm dev                                  # http://localhost:5173
+pnpm dev                                  # http://localhost:5173, with the fixtures and the mock voice relay
 pnpm check                                # svelte-check
 pnpm build                                # node build in build/
 pnpm test                                 # Vitest unit tests
+pnpm serve:mock                           # the build, plus the mock voice relay on /voice/ws
 pnpm exec playwright install chromium     # once, for the end-to-end tests
 pnpm test:e2e                             # Playwright: builds the app and runs it against the fixtures
 ```
 
-The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`). They need no API or database.
+The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`). They need no API, database or Gemini. Chromium gets a fake microphone that plays a speech-like sound (`tests/support/fake-voice.ts`), so the call works headless.
 
 ## Settings
 
 | Variable | Values | Default |
 |---|---|---|
 | `CONFIRMATION_SOURCE` | `fixture`: an in-memory stand-in for the engine. `api`: the FastAPI endpoints in `technical-plan.md` §9.4 | `fixture` in `pnpm dev`, `api` in a build. Compose sets `api`; set `fixture` to opt in |
-| `API_BASE_URL` | Where FastAPI runs, used with `CONFIRMATION_SOURCE=api` | `http://localhost:8000`. Compose sets `http://api:8000` |
+| `DEMO_SOURCE` | `fixture`: in-memory demo accounts and inbox, and the mock voice relay. `api`: the FastAPI endpoints in `technical-plan.md` §9.2 and the real relay (§9.3) | `fixture`, until #44, #46 and #52 land |
+| `API_BASE_URL` | Where FastAPI runs, used with either setting on `api` | `http://localhost:8000`. Compose sets `http://api:8000` |
 
 The server reads them from its process environment, for example `CONFIRMATION_SOURCE=api pnpm dev`. Neither `pnpm dev` nor the Compose `web` service reads the root `.env` yet, so the lines in `.env.example` document the defaults rather than set them.
 
@@ -27,11 +29,21 @@ The server reads them from its process environment, for example `CONFIRMATION_SO
 
 | Route | What it is |
 |---|---|
-| `/` | Placeholder for the demo start page |
+| `/` | The demo start page (`docs/design` 00 and 01) |
+| `/phone` | The demo phone: set up, Contacts with S.I.MO, call, call ended and the inbox (`docs/specs/call-screen.md`, `docs/design` 10 to 14). On a computer it shows inside a phone frame |
 | `/c/[token]` | The confirmation page (`docs/specs/confirmation-page.md`) |
 | `/dashboard` | The live order dashboard (`docs/specs/dashboard.md`, #50) |
+| `/api/v1/demo/accounts`, `/api/v1/me`, `/api/v1/private/inbox`, `/api/v1/private/inbox/stream` | The fixture for `technical-plan.md` §9.2 with `DEMO_SOURCE=fixture`; passed through to FastAPI with `api` |
 
-The other pages (start, call screen, webshop) are not built yet.
+The webshop is not built yet.
+
+### The demo phone with the fixtures
+
+The browser always calls the same-origin paths of `technical-plan.md` §9.2 and §9.3, so switching to the real backend is just `DEMO_SOURCE=api`. On the VM, Caddy sends `/api/*` and `/voice/*` to FastAPI and these SvelteKit routes are never reached; locally, they pass the request through to `API_BASE_URL`, and `pnpm dev` proxies `/voice/ws` there.
+
+With `DEMO_SOURCE=fixture`, `/voice/ws` is the mock relay in `src/lib/server/demo/relay.ts`, attached to Vite's server by `vite.config.ts` and to the build by `mock/serve.ts` (plain `node build` has no `/voice/ws`). It speaks the §9.3 protocol: it plays a speech-like hum for each scripted S.I.MO turn and sends captions for both sides. It doesn't understand speech: each time the caller says something, the next scripted line becomes their caption. The caller agrees to the link on their second line, and hanging up after that drops a message with a `/c/fx-ready-<id>` link into the inbox. Talking over S.I.MO sends `interrupted`.
+
+Fixture test numbers (the national part): ending in `0429` hits the demo limit, `7001` reports an SMS sent, `7002` an SMS that failed.
 
 ### Fixture tokens
 
@@ -50,10 +62,11 @@ For example http://localhost:5173/c/fx-ready-mine. The fixture keeps its state i
 
 ## Screenshots
 
-`tests/screenshots.spec.ts` saves the screenshots in `docs/screenshots/confirmation-page/`. It is skipped in normal test runs. Regenerate them with:
+`tests/screenshots.spec.ts` and `tests/phone-screenshots.spec.ts` save screenshots in `docs/screenshots/confirmation-page/` and `docs/screenshots/phone/`. They are skipped in normal test runs. Regenerate them with:
 
 ```sh
 SCREENSHOTS=1 pnpm exec playwright test screenshots --project=phone
+SCREENSHOTS=1 pnpm exec playwright test phone-screenshots
 ```
 
 ## Dashboard on mock data
