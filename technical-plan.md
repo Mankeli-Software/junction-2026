@@ -181,7 +181,7 @@ Then for the whole order: one notice that lists every product without allergen i
 
 ### 4.3 Rules as data (`policy/`)
 
-- `policy.yaml`: version, confirmation `always`, quote lifetime (`quote_ttl`: off for the event, for example 30 minutes in production), maximum call length (*proposed* 10 minutes, the spec leaves it to the backend), cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (10% more expensive), call language (`auto`, `fi` or `en`, default `auto`).
+- `policy.yaml`: version, confirmation `always`, quote lifetime (`quote_ttl`: off for the event, for example 30 minutes in production), maximum call length (`max_call_seconds`: 600, so 10 minutes, decided 2026-11-14; the spec leaves it to the backend), cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (10% more expensive), call language (`auto`, `fi` or `en`, default `auto`).
 - `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Its keys are the kitchen choices on the call page: milk-free, lactose-free, gluten-free, nut-free, egg-free, fish-free and vegan (`docs/specs/call-screen.md` §2.2). Lactose-free and vegan also need claim rules (the `LACTOSE` free-from claim, the `VEGAN` claim), not only allergen codes. Nut-free also blocks peanut (`AP`) and pine nut (`PN`), but not coconut (`SO`) (decided in #60).
 - `messages.yaml`: one Finnish and one English template per reason code and flag. Uses `data/allergen_containment_levels.csv` and the partitive allergen names for Finnish sentences.
 - `unit_codes.csv`: display names for unit codes in Finnish and English.
@@ -223,7 +223,7 @@ Deterministic, no model at request time:
 
 1. Hard filters first: requested claims from `product_claims` (lactose-free is the `LACTOSE FREE_FROM` claim, never the name; analysis §11), category if given.
 2. Text match on product names in Finnish and English, the category names in both languages and a short synonym list (`milk` → `maito`), using `websearch_to_tsquery` in the `finnish` and `english` configs. The Finnish Snowball stemmer handles common inflections. Trigram similarity catches typos and transcription errors.
-3. Order by score, then product id. The top 20 (*proposed*) become the shortlist for price and availability.
+3. Order by score, then product id. The top 20 for each line become the shortlist for price and availability (decided 2026-11-14, `SEARCH_LIMIT` in `api/app/services/quotes.py`), with at most 100 product ids per quote.
 
 If tests show that this misses too often, a vector index on product names is the next step (vision §7 allows more indexes). It would only add candidates, so the engine's choice stays deterministic.
 
@@ -242,7 +242,7 @@ If tests show that this misses too often, a vector index on product names is the
 
 - `httpx.AsyncClient` with `X-API-Key` from `VALIO_API_KEY` and `User-Agent: curl/8.4.0` (Cloudflare blocks Python's default).
 - One batched call per endpoint per shortlist. Price and availability run in parallel.
-- A token bucket at 5 requests per second (*proposed*, below our reading of a roughly 10 per second burst limit). On 429: wait 30 seconds, retry once.
+- A token bucket at 5 requests per second (decided 2026-11-14, `TokenBucket` in `api/app/adapters/valio.py`), below our reading of a roughly 10 per second burst limit. On 429: wait 30 seconds, retry once.
 - Cache in Postgres for 300 seconds, keyed by endpoint, product id and requested date.
 - `VALIO_SOURCE=live | record | snapshot`. `record` calls live and stores every response. `snapshot` reads only stored responses, and a missing one is logged loudly. Snapshots live in `data/snapshots/` (no key inside, safe to commit).
 - Normalisation at the edge: prices as exact decimals (totals become cents in the engine), sentinels to "unverified", empty schedule to "not available", the sales-unit cross-check from section 4.2.
@@ -287,10 +287,10 @@ sequenceDiagram
 - **Relay**: `google-genai` `client.aio.live.connect`, one asyncio task per direction. Sessions are held in memory, which is why the API runs as one process (section 10).
 - **Only after a yes** (decided 2026-11-14): the agent asks whether to send the confirmation link and calls `request_confirmation` only after the visitor clearly agrees. On the phone channel the service holds the message until the call ends. The relay's hang-up handler then releases it (an internal call, not an MCP tool), also when the call drops. If the visitor never agreed, nothing is sent, and the dashboard shows that the call ended without a confirmation request.
 - **Tool bridge**: at call start the relay lists the MCP tools and turns their JSON Schemas into Gemini function declarations. It authenticates to MCP as the identified caller with a short-lived token from our own auth server, so MCP treats the phone like any other client (vision §2: no client is special).
-- **Model and platform**: a 3.x Live model through the Gemini API (AI Studio key), not Vertex AI. Finnish is listed only for the 3.x audio models, and the Vertex "Configure language and voice" page does not list it. `gemini-3.8-live` is the candidate. Google's docs list synchronous and asynchronous function calling for it, and asynchronous calls let the agent keep talking while `build_quote` runs. Pick after the spike in M0.
-- **Finnish** (researched 2026-11-14): Finnish (`fi`) is in Google's table of additional languages for 3.x audio models, not in the base 24 that every audio model supports. The native audio models detect the language themselves and take no `language_code`. By default the agent follows the caller. The `call_language` setting can force Finnish or English, which becomes one line in the system prompt ("Always respond in Finnish"). Any of the 30 HD voices should work. Quality is not tested: recognition of product names and Finnish compound words may be weaker than for the major languages. Two existing parts of the design soften this: search tolerates typos (trigram), and the confirmation page shows what we understood next to what we added, so a misheard word is easy to spot (vision §6).
+- **Model and platform**: a 3.x Live model through the Gemini API (AI Studio key, API version `v1beta`), not Vertex AI. Finnish is listed only for the 3.x audio models, and the Vertex "Configure language and voice" page does not list it. Decided 2026-11-14 after the spike (#51): `gemini-3.8-live`, with the voice **Achird**, chosen by listening in #67 (`voice_model` and `voice_name` in `api/app/settings.py`). Google's docs list synchronous and asynchronous function calling for it, but in the spike asynchronous calls did not make the agent keep talking while `build_quote` ran. The relay plays a short spoken filler line instead when a tool call takes longer than about 1 second (`spikes/gemini-live/README.md`).
+- **Finnish** (researched 2026-11-14): Finnish (`fi`) is in Google's table of additional languages for 3.x audio models, not in the base 24 that every audio model supports. The native audio models detect the language themselves and take no `language_code`. By default the agent follows the caller. The `call_language` setting can force Finnish or English, which becomes one line in the system prompt ("Always respond in Finnish"). Quality was measured in #51 (TTS audio) and #67 (a real voice): without a `custom_vocabulary`, real speech breaks product names, and with one, 63 of 66 key terms came through. So the relay always passes about 100 terms from the catalogue (brands and long compound words, `voice_calls.custom_vocabulary`). Recognition can still be weaker than for the major languages, and background noise makes it worse. Two existing parts of the design soften this: search tolerates typos (trigram), and the confirmation page shows what we understood next to what we added, so a misheard word is easy to spot (vision §6).
 - **System prompt** (ours, shared with the webshop chat): the agent is S.I.MO, greets the caller by company name and says it is an AI helper. Collect all lines, then one `build_quote`. One clarification per turn. Speak the top pick and at most one alternative (vision §5). Give the no-allergen-listing notice once, at the end. Never say the order is placed. Ask whether to send the confirmation link, call `request_confirmation` only after a clear yes, and say the link comes to the phone after hanging up. When a decision cannot be overridden, say so and move on.
-- **Ending the call**: the visitor hangs up, or the agent ends the call once the order is ready (`docs/specs/call-screen.md` §2.3). For that, the relay gives Gemini one local function, `end_call`, next to the MCP tools. It is not an MCP tool. *Proposed*: a maximum call length of 10 minutes, with the agent warning a minute before.
+- **Ending the call**: the visitor hangs up, or the agent ends the call once the order is ready (`docs/specs/call-screen.md` §2.3). For that, the relay gives Gemini one local function, `end_call`, next to the MCP tools. It is not an MCP tool. Decided 2026-11-14: a call lasts at most 10 minutes (`max_call_seconds` 600 in `policy.yaml`). At 9:00 the relay tells S.I.MO that one minute is left, and at 10:00 it ends the call (`ended_by` time limit).
 - **Call screen** (`docs/specs/call-screen.md`, `docs/design` screens 10 to 14): phone-app flow (set up, Contacts, call, ended), phone on speaker with live captions for both sides, timer, mute, speaker, hang-up. Screen Wake Lock keeps the call alive. No proximity sensor (vision §9).
 
 ### 7.2 Webshop: WebMCP (P0) and chat panel (stretch)
@@ -430,11 +430,11 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 | Browser → server | `hangup` | none |
 | Server → browser | `ready` | none (Gemini session open) |
 | Server → browser | `interrupted` | none (flush playback, section 7.1) |
-| Server → browser | `agent_state` | `state` (`listening`, `thinking`, `working` or `speaking`), `tool` (the tool name while `working`, otherwise null). *Proposed (#54)*; see below |
+| Server → browser | `agent_state` | `state` (`listening`, `thinking`, `working` or `speaking`), `tool` (the tool name while `working`, otherwise null). See below |
 | Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
 | Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `delivery_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone) |
 
-`agent_state` (*proposed, #54*) drives the call screen's activity indicator (`docs/specs/call-screen.md` §2.3). The relay sends it only when the state changes:
+`agent_state` (decided 2026-11-14 in #54, sent by the relay in `api/app/interfaces/voice/relay.py`) drives the call screen's activity indicator (`docs/specs/call-screen.md` §2.3). The relay sends it only when the state changes:
 
 - `listening`: S.I.MO waits for the caller. Sent at call start after `ready`, after each agent turn (Gemini `generation_complete`), and after `interrupted`.
 - `thinking`: the caller's utterance has ended (the final input transcript, or the end of the user's turn) and S.I.MO hasn't spoken or called a tool yet; about 1 s in the spike (#51). Sent again after a tool result goes back to Gemini, until audio starts.
@@ -447,27 +447,27 @@ The browser works without it: with a relay that never sends `agent_state`, it in
 
 ### 9.4 Confirmation page (web only)
 
-The token is in the path. `GET` never uses it up. The confirmation page (#55) is built against these endpoints with an in-memory fixture (`CONFIRMATION_SOURCE=fixture`) until #47 implements them. Its types are in `web/src/lib/confirmation/types.ts` and its client in `web/src/lib/server/confirmation/api.ts`; keep those and #47 in step. Shapes the backend hasn't decided yet are marked *proposed (#47)*.
+The token is in the path. `GET` never uses it up. #47 built these endpoints (`api/app/interfaces/rest/confirmations.py`) with the shapes below, which are decided as of 2026-11-14 (`api/app/schemas/confirmation.py`). The confirmation page (#55) mirrors them in `web/src/lib/confirmation/types.ts`, with its client in `web/src/lib/server/confirmation/api.ts`; keep the three in step. `CONFIRMATION_SOURCE=fixture` still runs the page against an in-memory fixture.
 
 | Method and path | Request → response | Screens |
 |---|---|---|
 | `GET /api/v1/confirmations/{token}` | → the confirmation view below; 404 for an unknown token | `20-confirm-check` to `22-confirm-received` |
-| `POST …/{token}/acknowledgements` | `{quote_hash, flag_key, option_id?}`. `option_id` is the buyer's pick for a `choose` flag. An option that changes the order makes a new quote, with the flag acknowledged on it (*proposed (#47)*) | "Got it", "Keep 24 l / Exactly 20 l" |
-| `POST …/{token}/edits` | `{quote_hash, op: set_quantity \| remove \| choose_alternative, line_id, quantity?, alternative_id?}` → a new quote; 409 if the hash is stale; 422 if the edit is not possible | Stepper, remove, alternatives |
+| `POST …/{token}/acknowledgements` | `{quote_hash, flag_key, option_id?}` → 204. `option_id` is the buyer's pick for a `choose` flag. An option that changes the order makes a new quote, with the flag acknowledged on it | "Got it", "Keep 24 l / Exactly 20 l" |
+| `POST …/{token}/edits` | `{quote_hash, op: set_quantity \| remove \| choose_alternative, line_id, quantity?, alternative_id?}` → 204, and the confirmation points to a new quote; 409 if the hash is stale; 422 if the edit is not possible | Stepper, remove, alternatives |
 | `POST …/{token}/confirm` | `{quote_hash}` → `{order_number, confirmed_at}`; 409 if availability got worse (the quote is replaced and the view shows the new one); 422 if a flag isn't acknowledged; 410 if expired (production only) | Confirm |
-| `POST …/{token}/cancel` | `{quote_hash}` | Cancel |
+| `POST …/{token}/cancel` | `{quote_hash}` → 204 | Cancel |
 
-The confirmation view (*proposed (#47)*) wraps the contract models in `api/app/schemas/` (`QuoteLine`, `Flag`, `NotOrdered`, `GroupSubtotal`, `DeliverySummary`) with the page state and the buyer's acknowledgements:
+The confirmation view (`ConfirmationView`) wraps the contract models in `api/app/schemas/` (`QuoteLine`, `Flag`, `NotOrdered`, `GroupSubtotal`, `DeliverySummary`) with the page state and the buyer's acknowledgements:
 
 - `state`: `ready`, `requote_needed`, `confirmed`, `cancelled`, `expired` or `invalid`, the page states in `docs/specs/confirmation-page.md` §3.
 - `lang`, `expires_at` (null while expiry is off), `company{name}`, `session{channel, started_at}`, `exclusions[{key, label}]`.
 - `quote{quote_id, version, quote_hash, total_cents, delivery}`, with `delivery` a `DeliverySummary`.
 - `lines[]` (`QuoteLine`, each with its `group` and `asked`), `groups[]` (`GroupSubtotal`) and `not_ordered[]` (`NotOrdered`).
-- `flags[]`: each contract `Flag` plus `requires_ack` (the code's `ack` setting in `policy/messages.yaml`; `choose` flags always need one), `acknowledged_at`, `current_option_id` (for `choose`: the option the current quote already reflects) and `is_new` (new, or its text changed, since the buyer last saw the quote).
+- `flags[]`: each contract `Flag` plus `requires_ack` (the code's `ack` setting in `policy/messages.yaml`; `choose` flags always need one), `acknowledged_at`, `current_option_id` (for `choose`: the option the current quote already reflects) and `is_new` (new, or its text changed, since the buyer first saw the order, and not yet acknowledged).
 - `change`: what changed compared with the previous quote after an edit or a requote (`reason`, `previous_total_cents`, `line_ids`, `text`), or null.
 - `order`: once confirmed, `{order_number, confirmed_at, acknowledged[{flag_key, code, at}]}`, or null.
 
-The page uses post, redirect, get: after every successful `POST` it loads the view again with `GET`, so it doesn't need the `POST` response bodies. A refused action returns its status with `{detail: {text, line_id?}}`, where `text` is in Finnish and English (*proposed (#47)*), and the page shows that text.
+The page uses post, redirect, get: after every successful `POST` it loads the view again with `GET`, so it doesn't need the `POST` response bodies. A refused action returns its status with `{detail: {text, line_id?}}`, where `text` is in Finnish and English (`ConfirmationErrorDetail`), and the page shows that text.
 
 Edits use the same service as `update_quote`, and acknowledgements carry over by `flag_key` (section 8.3). After confirming, the `GET` keeps working read-only as the receipt until the end of the event (§7 of that spec).
 
@@ -492,7 +492,7 @@ Edits use the same service as `update_quote`, and acknowledgements carry over by
 - Each event has a link within its session as well as its place in the global chain (section 8.5), so one order's chain can be verified on its own. `order_index` is the event's number within the order ("#1 to #31" in the design), shown next to the global `seq`.
 - Session states and event types follow `docs/specs/dashboard.md` §4 and §5.
 - The client name ("Claude", "ChatGPT") comes from the OAuth client registration. A WebMCP call can't tell which agent is calling, so it shows as "browser agent".
-- *Proposed*: an MCP or WebMCP session counts as active for 10 minutes after its last tool call, since it has no hang-up.
+- An MCP or WebMCP session counts as active for 10 minutes after its last tool call, since it has no hang-up. After that the dashboard shows it as abandoned, and the next tool call starts a new session (decided 2026-11-14, `IDLE_TIMEOUT` in `api/app/services/sessions.py`).
 
 ### 9.6 Webshop chat (stretch)
 
@@ -556,15 +556,16 @@ Why a VM and not Container Apps or Web Apps (asked in review, decided 2026-11-14
 1. VM in the same region as the database server, Ubuntu LTS. The database runs elsewhere, so 2 vCPU and 8 GB is enough (for example D2s v5). Open ports 80 and 443 only.
 2. Allow the VM's IP (or VNet) in the database server's firewall.
 3. A DNS name: the Azure public IP's DNS label, or a short team domain. A short domain fits better in an SMS.
-4. Install Docker. Secrets live in Azure Key Vault, with no `.env` on the VM (decided): `VALIO_API_KEY`, `GEMINI_API_KEY`, Twilio credentials, JWS private key, `DATABASE_URL` with `sslmode=require`, session secret, `SMS_TWILIO_ENABLED`, `SMS_ALLOWLIST`. *Proposed* mechanism:
+4. Install Docker. Secrets live in Azure Key Vault, with no `.env` on the VM (decided): `VALIO_API_KEY`, `GEMINI_API_KEY`, Twilio credentials, JWS private key, `DATABASE_URL` with `sslmode=require`, session secret, `SMS_TWILIO_ENABLED`, `SMS_ALLOWLIST`. The mechanism (decided 2026-11-14, `KeyVaultSettingsSource` in `api/app/settings.py`):
    - The VM gets a system-assigned managed identity with the "Key Vault Secrets User" role on the vault.
    - FastAPI loads the secrets at startup with `azure-identity` and `azure-keyvault-secrets`, so no secret is written to the VM's disk. Changing the flag or the allowlist takes effect after an API restart.
-   - Key Vault secret names allow only letters, digits and dashes, so `VALIO_API_KEY` is stored as `valio-api-key`, and so on.
+   - Key Vault secret names allow only letters, digits and dashes, so `VALIO_API_KEY` is stored as `valio-api-key`, and so on. The one exception: `MIGRATION_DATABASE_URL` is `database-admin-url`. A secret that doesn't exist is skipped, and the setting keeps its default.
+   - `KEY_VAULT_URL` turns it on. It is in `deploy/vm.env` with the VM's other non-secret settings. Environment variables and `.env` win over Key Vault, so a value can be overridden. Without `KEY_VAULT_URL` a laptop never calls Azure.
 5. Compose runs `caddy`, `api` (uvicorn, one worker) and `web` (SvelteKit node build). No database service and no volume.
 6. Deploy with `git pull && docker compose up -d --build`. Automate with a GitHub Action over SSH if time allows.
 7. Caddy routes `/api/*`, `/mcp`, `/.well-known/*`, the OAuth routes and `/voice/*` to FastAPI, and everything else to SvelteKit. Everything is same-origin, so cookies stay simple.
 
-Laptops run the same Compose file plus a development override (`deploy/docker-compose.dev.yml`, *proposed*) that adds a `db` service from the `pgvector/pgvector` image with a volume. The FastAPI and SvelteKit dev servers can also run directly against that container. Laptops read their settings from a local `.env` at the repository root, which is never committed (only `.env.example` is). The same settings loader reads either `.env` (development) or Key Vault (production).
+Laptops run the same Compose file plus a development override (`deploy/docker-compose.dev.yml`, decided 2026-11-14) that adds a `db` service from the `pgvector/pgvector` image with a volume. The FastAPI and SvelteKit dev servers can also run directly against that container. Laptops read their settings from a local `.env` at the repository root, which is never committed (only `.env.example` is). The same settings loader reads either `.env` (development) or Key Vault (production).
 
 Production path: the database and Key Vault parts are already in place. Only Azure Container Apps is still pitch-only.
 
