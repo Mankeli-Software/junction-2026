@@ -66,7 +66,8 @@ def load_api_key() -> str:
 def make_client():
     from google import genai
 
-    return genai.Client(api_key=load_api_key())
+    # v1beta: with the SDK's default (v1) the Live and TTS models are not even listed.
+    return genai.Client(api_key=load_api_key(), http_options={"api_version": "v1beta"})
 
 
 # --- Phrases -----------------------------------------------------------------

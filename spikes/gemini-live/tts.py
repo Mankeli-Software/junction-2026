@@ -78,17 +78,22 @@ def main() -> None:
 
     client = make_client()
     phrases = [p for p in load_phrases(include_extra=True) if not args.only or p.id in args.only]
+    use_interactions = True
     for p in phrases:
         out = OUT_DIR / f"{p.id}.wav"
         if out.exists() and not args.force:
             print(f"{p.id}: exists, skipping")
             continue
-        try:
-            raw = synth_interactions(client, args.model, p.text, args.voice, args.style)
-            path = "interactions"
-        except Exception as exc:  # noqa: BLE001 - fall back and report which path worked
-            print(f"{p.id}: interactions TTS failed ({type(exc).__name__}: {exc}); trying generate_content",
-                  file=sys.stderr)
+        raw = None
+        if use_interactions:
+            try:
+                raw = synth_interactions(client, args.model, p.text, args.voice, args.style)
+                path = "interactions"
+            except Exception as exc:  # noqa: BLE001 - fall back once, then stick with generate_content
+                print(f"{p.id}: interactions TTS failed ({type(exc).__name__}: {exc}); using generate_content",
+                      file=sys.stderr)
+                use_interactions = False
+        if raw is None:
             raw = synth_generate_content(client, args.model, p.text, args.voice, args.style)
             path = "generate_content"
         samples, rate = decode_audio(raw)

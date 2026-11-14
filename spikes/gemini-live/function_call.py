@@ -53,6 +53,7 @@ async def main_async(args) -> None:
         non_blocking = mode == "async"
         config = live_config(
             voice=args.voice,
+            vocab=not args.no_vocab,
             tools=[build_quote_declaration(non_blocking=non_blocking)],
             extra_instruction=INSTRUCTION[mode],
         )
@@ -102,7 +103,7 @@ async def main_async(args) -> None:
             await asyncio.sleep(1.0)
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    meta = {"model": args.model, "delay_s": args.delay, "scheduling": args.scheduling, "time": stamp}
+    meta = {"model": args.model, "delay_s": args.delay, "scheduling": args.scheduling, "vocab": not args.no_vocab, "time": stamp}
     (out_dir / "results.json").write_text(json.dumps({"meta": meta, "rows": report}, ensure_ascii=False, indent=2))
     print(f"Saved to {out_dir.relative_to(HERE)}")
 
@@ -116,6 +117,7 @@ def main() -> None:
     ap.add_argument("--delay", type=float, default=3.0, help="seconds before the stub result is sent")
     ap.add_argument("--scheduling", default="WHEN_IDLE", choices=["INTERRUPT", "WHEN_IDLE", "SILENT"])
     ap.add_argument("--voice", default=None)
+    ap.add_argument("--no-vocab", action="store_true", help="turn off custom_vocabulary (on by default)")
     asyncio.run(main_async(ap.parse_args()))
 
 
