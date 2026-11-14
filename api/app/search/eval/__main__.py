@@ -23,7 +23,7 @@ from app.search import search as search_module
 from app.search import search_products
 from app.search.eval.scenarios import SCENARIO_DIR, Scenario, load_all
 
-SETS = ("core", "noisy", "recipes", "negative")
+SETS = ("core", "noisy", "recipes", "negative", "categories", "specific", "vague")
 BASELINE = SCENARIO_DIR / "baseline.json"
 TOP = 20
 
@@ -144,9 +144,8 @@ async def run(sets: list[str], save: bool, misses: int, show_expected: bool) -> 
             print(f"  broken: {k}")
         for k in fixed[:15]:
             print(f"  fixed:  {k}")
-        core_broke = [
-            k for k in broke if not k.startswith(("product:", "ingredient:")) and "~" not in k
-        ]
+        core_ids = {o.scenario.id for o in by_set.get("core", [])}
+        core_broke = [k for k in broke if k in core_ids]
         if core_broke:
             print(f"! core regressions: {core_broke}")
     if save:

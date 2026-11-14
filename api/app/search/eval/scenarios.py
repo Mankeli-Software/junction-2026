@@ -10,7 +10,7 @@ English names, resolved against the loaded catalogue.
 import json
 import random
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
@@ -23,7 +23,7 @@ from sqlalchemy.types import Text
 
 from app.schemas.common import Claim
 from app.search.search import CLAIM_IDS
-from app.search.text import fold
+from app.search.text import fold, modifiers
 from app.settings import REPO_ROOT
 
 SCENARIO_DIR = REPO_ROOT / "api" / "tests" / "search_scenarios"
@@ -226,6 +226,154 @@ def recipe_set() -> list[Scenario]:
     return list(seen.values())
 
 
+# Catalogue-wide sets: every category, so a change that helps milk but breaks cleaning
+# products shows up. Sampling is seeded, so the sets are the same on every run.
+
+_SPLIT_NAME = re.compile(r",\s*|\s+(?:ja|and|sekä|&)\s+|\s*/\s*")
+_FILLER = {"muut", "other", "myös", "also", "etc"}
+SAMPLES_PER_CATEGORY = 3
+MIN_CATEGORY_PRODUCTS = 3
+
+
+def _word_set(s: str) -> set[str]:
+    return set(re.findall(r"[a-z0-9]+", fold(s)))
+
+
+async def category_set(conn: AsyncConnection) -> list[Scenario]:
+    """Each part of each category name ("viinerit", "kakut") as a query. Typical: the
+    products of every category whose name has that part, since several can."""
+    rows = (
+        await conn.execute(
+            text(
+                """
+                SELECT c.id, c.name_fi, c.name_en FROM categories c
+                WHERE (SELECT count(*) FROM products p WHERE p.category_id = c.id) >= :n
+                ORDER BY c.id
+                """
+            ),
+            {"n": MIN_CATEGORY_PRODUCTS},
+        )
+    ).all()
+    names = [(cid, fi, en) for cid, fi, en in rows]
+    # A single word found in many category names ("fresh", "dry") names no kind.
+    word_spread = Counter(w for _, fi, en in names for w in _word_set(fi) | _word_set(en))
+    out: dict[str, Scenario] = {}
+    for cid, fi, en in names:
+        for lang, name in (("fi", fi), ("en", en)):
+            for part in _SPLIT_NAME.split(re.sub(r"\([^)]*\)?|\)", " ", name.lower())):
+                part = part.strip(" .")
+                if part.endswith("-"):  # "Sini- ja punahomejuustot": "sini-" is half a word
+                    continue
+                words = [w for w in part.split() if fold(w) not in _FILLER]
+                part = " ".join(words).strip(" -.")
+                if len(part) < 4 or fold(part) in out:
+                    continue
+                if len(words) == 1 and word_spread[fold(part)] >= 5:
+                    continue
+                wanted = _word_set(part)
+                cats = [c for c, f, e in names if wanted <= _word_set(f if lang == "fi" else e)]
+                out[fold(part)] = Scenario(
+                    f"category:{cid}:{lang}:{fold(part)}",
+                    "categories",
+                    part,
+                    selectors={"typical": Selector(categories=tuple(cats or [cid]))},
+                )
+    return list(out.values())
+
+
+async def _sampled_products(conn: AsyncConnection) -> list[tuple[str, str, str | None, str]]:
+    rows = (
+        await conn.execute(text("SELECT id, name_fi, brand, category_id FROM products ORDER BY id"))
+    ).all()
+    by_category: dict[str, list[tuple[str, str, str | None, str]]] = defaultdict(list)
+    for r in rows:
+        by_category[r.category_id].append((r.id, r.name_fi, r.brand, r.category_id))
+    out = []
+    for cid in sorted(by_category):
+        products = by_category[cid]
+        if len(products) < MIN_CATEGORY_PRODUCTS:
+            continue
+        rng = random.Random(f"products:{cid}")
+        out += rng.sample(products, min(SAMPLES_PER_CATEGORY, len(products)))
+    return out
+
+
+def _clean_name(name: str, brand: str | None) -> list[str]:
+    """The name as a buyer would say it: no brand, amounts, pack counts or symbols."""
+    brand_words = _word_set(brand or "")
+    words = []
+    for w in re.findall(r"[a-zåäöéü][a-zåäöéü-]*", name.lower()):
+        w = w.strip("-")
+        if len(w) >= 2 and fold(w) not in brand_words and w not in {"x", "kpl", "pss", "ltk"}:
+            words.append(w)
+    return words
+
+
+async def specific_set(conn: AsyncConnection) -> list[Scenario]:
+    """A sampled product's name without brand and amounts. Typical: products whose cleaned
+    name is the same (the same product in other pack sizes)."""
+    rows = (await conn.execute(text("SELECT id, name_fi, brand FROM products"))).all()
+    by_clean: dict[str, list[str]] = defaultdict(list)
+    for r in rows:
+        by_clean[" ".join(_clean_name(r.name_fi, r.brand))].append(r.id)
+    out = []
+    for pid, name, brand, _ in await _sampled_products(conn):
+        words = _clean_name(name, brand)
+        if len(words) < 1:
+            continue
+        q = " ".join(words)
+        out.append(
+            Scenario(
+                f"specific:{pid}",
+                "specific",
+                q,
+                selectors={"typical": Selector(tuple(by_clean[q]))},
+            )
+        )
+    return out
+
+
+MIN_HEAD_SPECIFICITY = 0.3
+MIN_HEAD_PRODUCTS = 3
+
+
+async def vague_set(conn: AsyncConnection) -> list[Scenario]:
+    """A sampled product cut to its main word: the word of its name most specific to its
+    category (most of the products with that word sit there), so attributes such as
+    "laktoositon" or "original" are not mistaken for a kind. Typical: products of the
+    category with that word; acceptable: the whole category."""
+    rows = (await conn.execute(text("SELECT name_fi, brand, category_id FROM products"))).all()
+    per_word: dict[str, Counter[str]] = defaultdict(Counter)
+    for r in rows:
+        for w in set(_clean_name(r.name_fi, r.brand)):
+            per_word[fold(w)][r.category_id] += 1
+    mods = modifiers()
+    out: dict[str, Scenario] = {}
+    for pid, name, brand, cid in await _sampled_products(conn):
+        best: tuple[float, int, str] | None = None
+        for w in _clean_name(name, brand):
+            counts = per_word[fold(w)]
+            total = sum(counts.values())
+            if len(w) < 4 or total < MIN_HEAD_PRODUCTS or any(m in fold(w) for m in mods):
+                continue
+            key = (counts[cid] / total, len(w), w)
+            if best is None or key > best:
+                best = key
+        if best is None or best[0] < MIN_HEAD_SPECIFICITY or fold(best[2]) in out:
+            continue
+        head = best[2]
+        out[fold(head)] = Scenario(
+            f"vague:{pid}:{fold(head)}",
+            "vague",
+            head,
+            selectors={
+                "typical": Selector(categories=(cid,), name=re.escape(head)),
+                "acceptable": Selector(categories=(cid,)),
+            },
+        )
+    return list(out.values())
+
+
 async def load_all(conn: AsyncConnection, names: list[str]) -> list[Scenario]:
     core = load_set("core")
     out: list[Scenario] = []
@@ -236,6 +384,12 @@ async def load_all(conn: AsyncConnection, names: list[str]) -> list[Scenario]:
             out += await noisy_set(conn, core)
         elif name == "recipes":
             out += recipe_set()
+        elif name == "categories":
+            out += await category_set(conn)
+        elif name == "specific":
+            out += await specific_set(conn)
+        elif name == "vague":
+            out += await vague_set(conn)
         else:
             out += load_set(name)
     return await resolve(conn, out)
