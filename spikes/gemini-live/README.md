@@ -224,6 +224,9 @@ uv run prompt_calls.py --audio --only fi_milk     # caller turns spoken (TTS, ca
 uv run prompt_calls.py --recheck out/prompt_calls/<time>   # score a saved run again, no API calls
 uv run prompt_calls.py --dry-run                  # print the prompt and the declarations
 uv run prompt_calls.py --mcp-descriptions         # the MCP server's tool descriptions instead of the vision lines
+uv run prompt_calls.py --audio --vocab --audio-dir recordings/jesse --only switch_en_fi switch_fi_en
+                                                  # language switch (#85): the relay's vocabulary, real-voice openings
+uv run prompt_calls.py --lang-codes fi-FI en-US   # a language_codes hint on the input transcription
 ```
 
 The script imports from `../../api`. That is why `pydantic`, `pydantic-settings` and `pyyaml` are in this folder's `pyproject.toml`.
@@ -236,6 +239,8 @@ The script imports from `../../api`. That is why `pydantic`, `pydantic-settings`
 | `en_order` | phone | English caller on a Finnish account: 200 l milk, "my usual butter", "what would that come to?" (the price trigger), "where does the link go?" (not a yes), then "yes, please send it" | Replies in English, the usual item's product id, the price as a trigger, no link before the yes |
 | `fi_clarify` | phone | Finnish: 50 l "maitoa" for tomorrow, "ei muuta", "kevytmaitoa", "kyllä kiitos" | The engine's `needs_clarification`: one question with at most two options, then `update_quote` with the chosen `product_id` |
 | `chat_reject` | web_chat | Finnish: milk and Oltermanni cheese for Friday; the cheese is rejected; "joo, ilman juustoa", "lähetä vahvistus" | Written style, a rejection said and moved on from, `update_quote` without the line, the chat link wording |
+| `switch_en_fi` | phone | English opening (`en01`), then Finnish from the second line on (`p04`), "ei muuta, siinä kaikki", "joo, lähetä se" | Each reply in the caller's current language; in audio runs, each caption in the language spoken with no stray S.I.MO (#85) |
+| `switch_fi_en` | phone | Finnish opening (`p01`), then "Sorry, can we go on in English?" and English to the end | The same, the other way round |
 
 The automatic checks are simple on purpose: substring and word-list checks on the transcript, plus tool names, turn numbers and arguments. I also read every transcript. In the question check, "2 = read by hand" turned out to be one question across two sentences each time ("Mitä maitoa tarkoitat? Valio Arki kevytmaitoa vai täysmaitoa?").
 
@@ -327,3 +332,22 @@ Every run used `--mcp-descriptions` and the Achird voice. Seconds are S.I.MO's s
 - The greeting comes in the account language before the caller speaks, so an English caller on a Finnish account hears Finnish first. That follows `call-screen.md` §2.3.
 - The stub prices every line as milk, so the English call's read-back sometimes said both lines were milk. That comes from the stub, not the prompt.
 - Text mode shows 4 to 7 s per turn because `turn_complete` arrives when the reply would have finished playing (#51 Surprises), not because the model is slow.
+
+## Language switch (#85, 2026-11-14)
+
+On a real call through the relay, a caller who started in English and went on in Finnish got the caption "S.I.MO" instead of what they said, and the call lost its thread. The two `switch_*` calls check this. Every run used `--audio --mcp-descriptions --audio-dir recordings/jesse`: the opening lines (`en01`, `p04`, `p01`) are Jesse's #67 recordings, the rest is TTS. `--vocab` sends the relay's vocabulary: `BASE_VOCABULARY` from `api/app/services/voice_calls.py` plus the #51 product terms in place of the catalogue's. 9 Live sessions.
+
+| Run | Vocabulary | Prompt | `switch_en_fi` | `switch_fi_en` |
+|---|---|---|---|---|
+| 1 | relay, with "S.I.MO" | .9 | "two cases" heard as "to get some", so S.I.MO asked for a quantity and never quoted; it ended by saying `<call:end_call/>` as text instead of calling it | "That's all, thanks" heard as "Tässä on. Kiitos.", answered in Finnish |
+| 2 | relay, without "S.I.MO" | .9 | Captions right; quoted only at the "joo" turn | "That's all" heard as "Tässä on. Thanks.", answered in English |
+| 3 | as 2, plus `--lang-codes fi-FI en-US` | .9 | "Ei muuta" heard as "Ääri muuta"; otherwise passed | "Tässä on. Thanks." again |
+| 4 | none | .9 | not run | Every caption right, but the English "Yes, please send it" got the link sentence in Finnish |
+| 5 | as 2 | .10 | Passed every check | Every check but the caption: "Tässä on. Thanks." |
+
+- **"S.I.MO" never showed up in a caption here**, in any caller turn of the 9 calls; 2 of the calls had "S.I.MO" in the vocabulary. The real-call caption still points at the vocabulary: a recogniser doesn't write the dotted spelling "S.I.MO" for speech on its own, only as a boosted term it falls back on when unsure. Callers have no reason to say the agent's name, so the relay no longer sends it.
+- **The model acts on what the recogniser heard.** In run 1 the misheard "to get some" made S.I.MO ask how many, and the Finnish caption "Tässä on. Kiitos." got a Finnish reply. This matches #51 (the vocabulary fixed what the model understood, not only the caption) and the "Ja, vad heter du?" caption that S.I.MO answered with its name. A bad caption is bad context, not only a bad line on the screen.
+- **The Finnish vocabulary pulls short English lines towards Finnish.** "That's all" after a Finnish opening became "Tässä on" in all 4 runs with the vocabulary and came through right in the one run without. The vocabulary can't go: #51 showed real speech needs it for product names. Live takes the transcription config once per session, so the relay can't swap vocabularies when the caller switches.
+- **A `language_codes` hint (`fi-FI`, `en-US`) didn't help** (run 3), so the relay still sends none and leaves detection automatic.
+- **Prompt .10.** In run 4 the English yes got the link sentence in the account's Finnish. The language section now says to stay in the language of the caller's latest turn until they switch again, also for the quote, the link and the goodbye. Run 5 passed every language check.
+- Every result above comes from one run, and the TTS lines are cleaner than a real caller's.
