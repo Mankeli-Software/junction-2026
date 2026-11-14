@@ -73,7 +73,7 @@ def test_guess_language():
 
 def test_the_filler_clips_exist_for_the_default_voice():
     for lang in filler.TEXT:
-        pcm = filler.clip("Aoede", lang)
+        pcm = filler.clip("Achird", lang)
         assert pcm is not None
         assert 0.5 < len(pcm) / 2 / filler.RATE < 2.5
     assert filler.clip("NoSuchVoice", "fi") is None

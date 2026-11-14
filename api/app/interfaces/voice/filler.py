@@ -12,7 +12,7 @@ in the language of the caller's last caption, shown as an S.I.MO caption and wri
 Make the clips for a new voice (needs GEMINI_API_KEY; a few TTS requests, no Live
 session):
 
-    uv run python -m app.interfaces.voice.filler --voice Aoede
+    uv run python -m app.interfaces.voice.filler --voice Achird
 """
 
 import argparse

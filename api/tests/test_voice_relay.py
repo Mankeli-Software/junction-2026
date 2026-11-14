@@ -169,7 +169,7 @@ def test_the_session_greets_first_with_the_tools_vocabulary_and_voice(call):
     assert config.input_audio_transcription.custom_vocabulary == ["S.I.MO", "Valio", "vispikerma"]
     assert config.output_audio_transcription is not None
     voice = config.speech_config.voice_config.prebuilt_voice_config.voice_name
-    assert voice == get_settings().voice_name == "Aoede"
+    assert voice == get_settings().voice_name == "Achird"
     assert "Hassu Hauki Oy" in config.system_instruction
     names = [d.name for d in config.tools[0].function_declarations]
     assert names == ["build_quote", "request_confirmation", "get_customer_context", END_CALL]
@@ -276,7 +276,7 @@ def test_a_tool_call_goes_through_mcp_with_working_and_the_filler(call, monkeypa
         "text": filler.TEXT["fi"],
         "final": True,
     }
-    clip = filler.clip("Aoede", "fi")
+    clip = filler.clip("Achird", "fi")
     assert clip and sock.audio - audio_before >= len(clip) // relay.CHUNK_BYTES
     assert tools.calls == [("build_quote", {"lines": [{"text": "jauheliha"}]})]
     [response] = live.tool_responses
