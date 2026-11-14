@@ -11,3 +11,7 @@ class NotFoundError(ServiceError):
 
 class StateError(ServiceError):
     """The quote is in a state that doesn't allow the action (REST 409)."""
+
+
+class InvalidRequestError(ServiceError):
+    """The arguments are well-formed but can't be used, e.g. an unknown diet tag (REST 422)."""

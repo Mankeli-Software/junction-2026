@@ -33,7 +33,7 @@ from app.schemas import (
 )
 from app.services import catalog, customers, quotes, recipes
 from app.services.caller import Caller
-from app.services.errors import NotFoundError, StateError
+from app.services.errors import InvalidRequestError, NotFoundError, StateError
 
 router = APIRouter(tags=["tools"])
 
@@ -121,6 +121,11 @@ async def _conflict(request: Request, error: Exception) -> JSONResponse:
     return JSONResponse({"detail": str(error)}, status_code=409)
 
 
+async def _invalid(request: Request, error: Exception) -> JSONResponse:
+    return JSONResponse({"detail": str(error)}, status_code=422)
+
+
 def add_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(NotFoundError, _not_found)
+    app.add_exception_handler(InvalidRequestError, _invalid)
     app.add_exception_handler(StateError, _conflict)
