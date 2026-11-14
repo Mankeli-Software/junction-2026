@@ -416,8 +416,12 @@ async def test_a_named_product_brings_its_curated_substitutes(db, caller):
     )
 
     quote = await stored(db, response.quote_id)
-    # 464201 is 464306's curated substitute in the product file.
-    assert quote.engine_input["candidates"]["l1"] == ["464306", "464201"]
+    candidates = quote.engine_input["candidates"]["l1"]
+    # 464201 is 464306's curated substitute in the product file; after it come other milks
+    # in the same category, for other packs and exact fits (#39, #42).
+    assert candidates[:2] == ["464306", "464201"]
+    assert {"464440", "464119", "464073"} <= set(candidates[2:])
+    assert quote.engine_input["substitutes"]["l1"] == candidates[1:]
 
 
 # --- Real search and substitute candidates (#30) ----------------------------------------

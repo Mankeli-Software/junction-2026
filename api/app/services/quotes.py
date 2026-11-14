@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import engine
 from app.adapters import valio
 from app.engine.filters import CLAIMS, UNSAFE
+from app.engine.units import without_size
 from app.models import KitchenProfile as KitchenProfileRow
 from app.models import Order, OrderSession, Quote
 from app.models import QuoteLine as QuoteLineRow
@@ -66,6 +67,9 @@ SEARCH_LIMIT = 20
 SUBSTITUTES_OF_TOP = 5
 # From each category in data/category_substitutes.csv, this many alternatives (#78).
 MAPPED_SUBSTITUTES = 5
+# For a named product, this many hits in its category, searched by its name without the
+# pack size: other packs and exact-fit alternatives for the engine (#39, #42).
+NAMED_ALTERNATIVES = 5
 
 # A quote can be replaced by an edit until it is confirmed, cancelled or expired. Answering
 # a clarification, or changing a rejected line, is an edit too.
@@ -493,10 +497,17 @@ async def _ranked_candidates(
                         if all(w in f"{item.name.fi} {item.name.en}".lower() for w in words)
                     }
                 )
-            subs = [
-                sub for record in await catalog.get_products(db, ids)
-                for sub in record.substitutions
-            ]  # fmt: skip
+            records = await catalog.get_products(db, ids)
+            subs = [sub for record in records for sub in record.substitutions]
+            for record in records:
+                similar = await catalog.search_candidates(
+                    db,
+                    without_size(record.name.fi),
+                    line.claims,
+                    record.category,
+                    limit=NAMED_ALTERNATIVES,
+                )
+                subs += [hit.product_id for hit in similar]
         else:
             hits = await catalog.search_candidates(
                 db, line.text, line.claims, line.category, limit=SEARCH_LIMIT
