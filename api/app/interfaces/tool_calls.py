@@ -79,17 +79,19 @@ async def _run(
 ) -> BaseModel:
     error: ServiceError | None = None
     async with get_sessionmaker()() as db, db.begin():
-        if _is_dev_caller(caller):
-            await dev_caller.ensure_rows(db, caller)
+        await ensure_caller_rows(db, caller)
         quote_id = arguments.get("quote_id")
         session = await sessions.session_for_tool(db, caller, quote_id)
-        named_quote = await _known_quote(db, session.id, quote_id)
-        with telemetry.bound(session_id=session.id, quote_id=named_quote):
+        # Kept apart: a savepoint rolled back on a ServiceError expires the session row when
+        # the service touched it, and reloading it here would need IO outside the loop.
+        session_id = session.id
+        named_quote = await _known_quote(db, session_id, quote_id)
+        with telemetry.bound(session_id=session_id, quote_id=named_quote):
             await audit.record(
                 db,
                 type="tool_called",
                 actor="agent",
-                session_id=session.id,
+                session_id=session_id,
                 quote_id=named_quote,
                 payload={"tool": name, "arguments": arguments},
                 text=Localized(fi=f"Agentti kutsui: {name}", en=f"The agent called {name}"),
@@ -112,7 +114,7 @@ async def _run(
                 db,
                 type="tool_returned",
                 actor="service",
-                session_id=session.id,
+                session_id=session_id,
                 quote_id=returned_quote,
                 payload=payload,
                 text=text,
@@ -177,6 +179,13 @@ async def _known_quote(
         return None
     found = await db.get(Quote, quote_uuid)
     return quote_uuid if found is not None and found.session_id == session_id else None
+
+
+async def ensure_caller_rows(db: AsyncSession, caller: Caller) -> None:
+    """The demo customer's rows, when the caller is the dev caller; for routes outside
+    `run_tool` that write rows owned by the caller."""
+    if _is_dev_caller(caller):
+        await dev_caller.ensure_rows(db, caller)
 
 
 def _is_dev_caller(caller: Caller) -> bool:
