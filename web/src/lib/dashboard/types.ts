@@ -255,7 +255,9 @@ export interface Step {
 	seq: number;
 	/** Number within the order ("#1" to "#31"). */
 	order_index: number;
-	/** ISO 8601 with offset, exactly as hashed. */
+	session_id: string;
+	quote_id: string | null;
+	/** Exactly as hashed: UTC, six fractional digits and `Z` (`docs/audit-chain.md`). */
 	at: string;
 	actor: Actor;
 	type: string;
@@ -276,10 +278,8 @@ export interface TranscriptLine {
 
 /** A full redacted event, as `/events` returns it. Payload shapes depend on `type`. */
 export interface AuditEvent extends Step {
-	session_id: string;
 	channel: Channel;
 	identity_masked: string | null;
-	quote_id: string | null;
 	payload: Record<string, unknown>;
 }
 

@@ -62,8 +62,9 @@ function findCard(sessionId: string): { company: CompanyRef; order: OrderCard } 
 }
 
 function toStep(event: AuditEvent): Step {
-	const { seq, order_index, at, actor, type, text, payload_hash, prev_hash, session_prev_hash, hash } = event;
-	return { seq, order_index, at, actor, type, text, payload_hash, prev_hash, session_prev_hash, hash };
+	const { seq, order_index, session_id, quote_id, at, actor, type, text, payload_hash, prev_hash, session_prev_hash, hash } =
+		event;
+	return { seq, order_index, session_id, quote_id, at, actor, type, text, payload_hash, prev_hash, session_prev_hash, hash };
 }
 
 // A short chain for every other card, so each one opens and verifies.
