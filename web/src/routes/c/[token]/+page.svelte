@@ -13,6 +13,7 @@
 	import OrderHeader from '#lib/confirmation/components/OrderHeader.svelte';
 	import Receipt from '#lib/confirmation/components/Receipt.svelte';
 	import TopBar from '#lib/confirmation/components/TopBar.svelte';
+	import ConfirmationChat from '#lib/chat/ConfirmationChat.svelte';
 	import { money } from '#lib/confirmation/format.js';
 	import { ui } from '#lib/confirmation/forms.svelte.js';
 	import { t } from '#lib/confirmation/i18n.js';
@@ -115,6 +116,10 @@
 				</p>
 			{/if}
 		</section>
+
+		{#key page.params.token}
+			<ConfirmationChat token={page.params.token ?? ''} {lang} />
+		{/key}
 
 		<div class="spacer"></div>
 		<ConfirmBar {view} {lang} {url} askCancel={data.askCancel} />
