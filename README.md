@@ -127,19 +127,19 @@ The `production` branch deploys, not `main`. The VM (`simo.mankeli.co`) runs wha
 | Folder | What is in it |
 |---|---|
 | `api/` | FastAPI app (Python 3.12, `uv`): the engine, services, adapters, the shared contract in `app/schemas/`, database models, loaders, Alembic migrations and tests |
-| `web/` | SvelteKit app: the start page, call screen and simulated phone, confirmation page, dashboard, webshop, and the connector login pages |
+| `web/` | SvelteKit app: the start page, call screen and simulated phone, confirmation page, dashboard, webshop with its chat panel, and the connector login pages |
 | `policy/` | The engine's rules as versioned data: allergen rules, policy values, message templates in Finnish and English, unit names |
-| `data/` | Data files: Valio recipes and their product links, category names, allergen codes, the demo kitchens' order history, category substitutes and Valio snapshots. The product file is downloaded here and not committed |
+| `data/` | Data files: Valio recipes, their product links and their committed vectors, product image URLs, category names, the webshop's section names, allergen codes, the demo kitchens' order history, category substitutes and Valio snapshots. The product file is downloaded here and not committed |
 | `deploy/` | Docker Compose files, the Caddyfile and the VM's non-secret settings |
-| `docs/` | UI specs (`specs/`), the design export (`design/`), screenshots and issue plans |
+| `docs/` | UI specs (`specs/`), the design export (`design/`), screenshots, issue plans (`plans/`) and the audit chain format |
 | `spikes/` | Throwaway experiments, for now the Gemini Live spike and its results |
-| `scripts/` | One-off tools: design export, recipe-to-product mapping, an availability date check, the webshop's product pick, hand-out accounts, the audit chain check and a voice smoke test |
+| `scripts/` | One-off tools: design export, recipe-to-product mapping, the product image crawl, an availability date check, the webshop's product pick, hand-out accounts, the audit chain check, and voice and chat smoke tests |
 
 ## Read more
 
 - [`vision.md`](vision.md): what we build and why. The source of truth.
 - [`technical-plan.md`](technical-plan.md): how we build it: architecture, build-or-buy choices, endpoints, hosting and milestones.
-- [`docs/specs/`](docs/specs/README.md): what each demo screen does (call screen, confirmation page, dashboard, webshop chat).
+- [`docs/specs/`](docs/specs/README.md): what each demo screen does (call screen, confirmation page, dashboard, webshop chat and its A2UI cards).
 - [`docs/design/`](docs/design/README.md): how the screens look, with exported screens and the link to the design canvas.
 - [`valio-api-analysis.md`](valio-api-analysis.md): findings about the Valio mock API and its data.
 - [GitHub issues](https://github.com/Mankeli-Software/junction-2026/issues): the work, with the overview, owners and order of work in [#63](https://github.com/Mankeli-Software/junction-2026/issues/63). Issues #1 to #21 describe an earlier model and are superseded.
