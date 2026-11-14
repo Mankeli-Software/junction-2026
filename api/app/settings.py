@@ -127,6 +127,10 @@ class Settings(BaseSettings):
 
     session_secret: str = ""
 
+    # Azure Application Insights (app.observability). Empty: nothing is sent. Key Vault
+    # secret `applicationinsights-connection-string` on the VM.
+    applicationinsights_connection_string: str = ""
+
     # Ed25519 private key that signs quotes, as PKCS#8 PEM (#40); `\n` may stand for line
     # breaks. Key Vault secret `quote-signing-key`. Unset in dev: a key per process. Prod
     # refuses to start without it. Generate with `openssl genpkey -algorithm ed25519`.

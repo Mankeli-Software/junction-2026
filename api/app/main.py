@@ -20,6 +20,7 @@ from app.interfaces.rest import jwks as rest_jwks
 from app.interfaces.rest import oauth as rest_oauth
 from app.interfaces.rest import tools as rest_tools
 from app.interfaces.voice import routes as voice_routes
+from app.observability import setup_observability
 from app.services.dashboard.feed import start_feed
 from app.services.dashboard.stream import get_broadcaster
 from app.services.signing import signing_key
@@ -48,6 +49,8 @@ class McpSlashMiddleware:
             scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
         await self.app(scope, receive, send)
 
+
+setup_observability()  # before the app exists, so the FastAPI instrumentation applies
 
 app = FastAPI(
     title="S.I.MO ordering API",
