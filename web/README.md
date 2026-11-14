@@ -16,7 +16,7 @@ pnpm test:e2e                             # Playwright: builds the app and runs 
 
 The end-to-end tests run on a phone and a laptop profile (`playwright.config.ts`). They need no API, database or Gemini. Chromium gets a fake microphone that plays a speech-like sound (`tests/support/fake-voice.ts`), so the call works headless.
 
-The confirmation page can also be tested against the real FastAPI endpoints (#47): migrate a database, start the API with `VALIO_SOURCE=snapshot` and `DEV_FAKE_CALLER=false`, then run `E2E_API_URL=http://localhost:8000 pnpm exec playwright test tests/confirmation-api.spec.ts`. Each test makes its own order through the API and takes the link from the account's inbox. Without `E2E_API_URL` that spec is skipped.
+The confirmation page can also be tested against the real FastAPI endpoints (#47): migrate a database, start the API with `VALIO_SOURCE=snapshot` and `DEV_FAKE_CALLER=false`, then run `E2E_API_URL=http://localhost:8000 pnpm exec playwright test tests/confirmation-api.spec.ts`. Each test makes its own order through the API and takes the link from the account's inbox. Without `E2E_API_URL` that spec is skipped. The same setup runs the dashboard against the API: `E2E_API_URL=http://localhost:8000 pnpm exec playwright test tests/dashboard-api.spec.ts --project=laptop`. It opens the overview, makes an order through the API, waits for its card to arrive and to turn confirmed over the stream, then checks the summary, the full flow and the chain check in the browser. Without `E2E_API_URL`, `tests/dashboard.spec.ts` runs the same pages on the mock instead.
 
 ## Settings
 
@@ -25,6 +25,8 @@ The confirmation page can also be tested against the real FastAPI endpoints (#47
 | `CONFIRMATION_SOURCE` | `fixture`: an in-memory stand-in for the engine. `api`: the FastAPI endpoints in `technical-plan.md` §9.4 | `fixture` in `pnpm dev`, `api` in a build. Compose sets `api`; set `fixture` to opt in |
 | `DEMO_SOURCE` | `fixture`: in-memory demo accounts and inbox, and the mock voice relay. `api`: the FastAPI endpoints in `technical-plan.md` §9.2 and the real relay (§9.3) | `fixture` in `pnpm dev`, `api` in a build. Compose sets `api`; `pnpm serve:mock` sets `fixture` |
 | `API_BASE_URL` | Where FastAPI runs, used with either setting on `api` | `http://localhost:8000`. Compose sets `http://api:8000` |
+| `API_INTERNAL_URL` | Where the dashboard's server-side loads and its local passthrough of `/api/v1/public` reach FastAPI | `API_BASE_URL`, then `http://localhost:8000` |
+| `PUBLIC_DASHBOARD_MOCK` | `1`: the dashboard serves its fixtures and replays fake live events, with no API | unset |
 | `SHOP_LANG` | The webshop's default language. `auto`: Finnish when the browser's most preferred language (`Accept-Language`) is `fi` or `fi-*`, English for anything else. `fi` or `en`: always that language. The EN/FI toggle (`?lang=fi`, `?lang=en`) works with every value | `auto` |
 
 The server reads them from its process environment, for example `CONFIRMATION_SOURCE=api pnpm dev`. Neither `pnpm dev` nor the Compose `web` service reads the root `.env` yet, so the lines in `.env.example` document the defaults rather than set them.
@@ -37,6 +39,7 @@ The server reads them from its process environment, for example `CONFIRMATION_SO
 | `/phone` | The demo phone: set up, Contacts with S.I.MO, call, call ended and the inbox (`docs/specs/call-screen.md`, `docs/design` 10 to 14). On a computer it shows inside a phone frame |
 | `/c/[token]` | The confirmation page (`docs/specs/confirmation-page.md`) |
 | `/dashboard` | The live order dashboard (`docs/specs/dashboard.md`, #50) |
+| `/api/v1/public/...` | The public dashboard API (#49), passed through to FastAPI at `API_INTERNAL_URL` when Caddy is not in front. 503 with `PUBLIC_DASHBOARD_MOCK=1` |
 | `/shop` | The webshop with the WebMCP tools (#56): our own page in the Aimo webshop's style, twelve Valio products, the phone's number entry |
 | `/login`, `/signup` | Connector login and sign-up (#48): email and password, the phone step for a hand-out account, then `?next=` (a path on this site) or `/phone?inbox=1` |
 | `/connect?request=<id>` | The connector consent step (#48): "Allow Claude to order for <company>?". FastAPI's `/oauth/authorize` sends the browser here; without a session it goes to `/login?next=...` first |
@@ -95,6 +98,10 @@ SCREENSHOTS=1 pnpm exec playwright test phone-screenshots
 SCREENSHOTS=1 pnpm exec playwright test shop-screenshots
 ```
 
-## Dashboard on mock data
+## Dashboard
 
-The dashboard (`/dashboard`, #50) without the API: `PUBLIC_DASHBOARD_MOCK=1 pnpm dev`, then open http://localhost:5173/dashboard. It serves the fixtures in `src/lib/dashboard/fixtures/` and replays fake live events. `/dashboard/s_2611_0042_tampered/audit` shows a broken chain. Without the flag the server-side loads call FastAPI at `API_INTERNAL_URL` (default `http://localhost:8000`, `http://api:8000` inside Compose). After changing the hash format in `src/lib/dashboard/hash.ts`, regenerate the fixtures with `pnpm fixtures`.
+The dashboard (`/dashboard`, #50) reads the public API (#49, `/api/v1/public`): the server-side loads call FastAPI at `API_INTERNAL_URL`, and the browser reads the live stream and "Download JSON" from the same origin. On the VM, Caddy sends those to FastAPI; locally, `src/routes/api/v1/public/[...path]` passes them through, the stream included. So against a local API: `pnpm dev`, then open http://localhost:5173/dashboard.
+
+The types come from the generated contract (`src/lib/dashboard/types.ts`). The stream is read with `fetch` (`src/lib/dashboard/sse.ts`) rather than `EventSource`: one event id can carry a step, a transcript line and a card update, so after a drop the page resumes from the id before the latest one and merges what comes twice. The audit page recomputes `payload_hash` from the raw `text_fi` and `text_en` of `/events` (`docs/audit-chain.md`); the summary checks the chain from `/steps` alone. What the API leaves empty for now shows as not available: `signature_valid: null` as "Quote not signed yet", `ranked: []` as a short note under the ranking rule.
+
+Without the API: `PUBLIC_DASHBOARD_MOCK=1 pnpm dev`. It serves the fixtures in `src/lib/dashboard/fixtures/` and replays fake live events in the API's shapes. `/dashboard/s_2611_0042_tampered/audit` shows a broken chain. After changing the hash format in `src/lib/dashboard/hash.ts`, regenerate the fixtures with `pnpm fixtures`. `fixtures/recorded/` holds responses and a stream recorded from the real API for one webshop order, which the unit tests check the helpers and the mock's shapes against.
