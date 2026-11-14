@@ -2,7 +2,6 @@
 
 import io
 import json
-import random
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,6 +11,7 @@ from app.main import app
 from app.services import recipe_reading
 from app.services.recipe_reading import ReadingError
 from app.settings import get_settings
+from tests.phones import new_number
 
 NOTEBOOK = {
     "dish": "Karjalanpiirakat",
@@ -169,7 +169,7 @@ def signed_in() -> TestClient:
     response = client.post(
         "/api/v1/demo/accounts",
         json={
-            "phone_e164": f"+35840{random.randrange(10**6, 10**7)}",
+            "phone_e164": new_number(),
             "exclusions": [],
             "lang": "fi",
         },

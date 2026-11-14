@@ -4,7 +4,6 @@ tools and routes.
 The `to_lines` tests need no database; the rest need DATABASE_URL.
 """
 
-import random
 import uuid
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -41,6 +40,7 @@ from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
 from app.services.policy import get_rule_set
 from tests.conftest import write_audit
+from tests.phones import new_number
 
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
 DAY = date(2026, 11, 16)  # the snapshot's offers are recorded for this day
@@ -191,9 +191,7 @@ async def caller(db: AsyncSession) -> Caller:
 
 
 async def other_caller(db: AsyncSession, exclusions: list[Exclusion] = ()) -> Caller:
-    account = await accounts.create_demo_account(
-        db, f"+35840{random.randrange(10**6, 10**7)}", exclusions, "en"
-    )
+    account = await accounts.create_demo_account(db, new_number(), exclusions, "en")
     return Caller(
         user_id=account.user_id,
         company_id=account.company_id,
