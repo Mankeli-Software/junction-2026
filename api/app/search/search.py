@@ -146,6 +146,16 @@ _NEAREST = text(
     LIMIT :n
     """
 )
+# With a category filter the neighbours come from that category only: "maito" searched in
+# plant-based drinks (#78) needs the nearest oat drinks, not the nearest milks.
+_NEAREST_IN_CATEGORY = text(
+    """
+    SELECT e.product_id FROM product_embeddings e JOIN products p ON p.id = e.product_id
+    WHERE p.category_id = :category
+    ORDER BY e.embedding <=> CAST(:qv AS vector), e.product_id
+    LIMIT :n
+    """
+)
 _VECTOR_SIMS = text(
     """
     SELECT product_id, 1 - (embedding <=> CAST(:qv AS vector)) FROM product_embeddings
@@ -309,9 +319,15 @@ async def search_products(
     claims: Sequence[Claim] = (),
     category: str | None = None,
     limit: int = MAX_LIMIT,
+    semantic: bool = False,
 ) -> list[SearchHit]:
     """Search the catalogue. Neutral about the kitchen: only the given claims and category
-    filter (§7.1). An empty query with filters returns the filtered set by product id."""
+    filter (§7.1). An empty query with filters returns the filtered set by product id.
+
+    semantic ranks by meaning only (vector, category, modifiers), ignoring word matches. For
+    substitute searches (#78): "maito" searched in plant drinks describes the original kind,
+    and its exact word would favour "kookosmaito". Without a query vector it falls back to
+    word matching."""
     # Once the claim is a filter, its words in the text only match noise ("free").
     ignore = frozenset(w for c in claims for w in CLAIM_WORDS[c])
     vocabulary = await _vocabulary(db) if SPELLING else None
@@ -340,7 +356,10 @@ async def search_products(
     params: dict[str, object] = {"fts": query.fts, "words": words, "pool": POOL_SIZE}
     params |= {f"w{i}": words[i] for i in paths}
     if query_vector is not None:
-        nearest = await db.scalars(_NEAREST, {"qv": query_vector, "n": VECTOR_CANDIDATES})
+        nearest = await db.scalars(
+            _NEAREST if category is None else _NEAREST_IN_CATEGORY,
+            {"qv": query_vector, "n": VECTOR_CANDIDATES, "category": category},
+        )
         params["vector_ids"] = list(nearest.all())
     if claims:
         params["claims"] = sorted({CLAIM_IDS[c] for c in claims})
@@ -366,10 +385,11 @@ async def search_products(
 
     category_terms = await _category_terms(db, query, brands)
     use_terms = CATEGORY_TERM_COVERAGE > 0
+    w_coverage, w_fts = (0.0, 0.0) if semantic and query_vector is not None else (W_COVERAGE, W_FTS)
     base = {
-        c.product_id: W_COVERAGE
+        c.product_id: w_coverage
         * _coverage(query, c, category_terms.get(c.category_id) if use_terms else None)
-        + W_FTS * c.fts
+        + w_fts * c.fts
         for c in candidates
     }
     by_base = sorted(candidates, key=lambda c: (-round(base[c.product_id], 4), c.product_id))

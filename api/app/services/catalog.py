@@ -55,13 +55,16 @@ async def search_candidates(
     claims: Sequence[Claim],
     category: str | None,
     limit: int = 20,
+    semantic: bool = False,
 ) -> list[ProductRecord]:
     """Product records for one line, in the search's order (score, then product id).
 
     No words with a claim or category gives that filtered set by product id; no words and
-    no filter gives nothing.
+    no filter gives nothing. semantic ranks by meaning only (substitute searches, #78).
     """
-    hits = await search(db, q or "", claims=claims, category=category, limit=limit)
+    hits = await search(
+        db, q or "", claims=claims, category=category, limit=limit, semantic=semantic
+    )
     return await get_products(db, [hit.product_id for hit in hits])
 
 

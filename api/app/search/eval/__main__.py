@@ -24,7 +24,7 @@ from app.search import search_products
 from app.search.embeddings import ensure_query_embeddings
 from app.search.eval.scenarios import SCENARIO_DIR, Scenario, load_all
 
-SETS = ("core", "noisy", "recipes", "negative", "categories", "specific", "vague")
+SETS = ("core", "noisy", "recipes", "negative", "categories", "specific", "vague", "substitutes")
 BASELINE = SCENARIO_DIR / "baseline.json"
 TOP = 20
 
@@ -87,7 +87,9 @@ async def run(sets: list[str], save: bool, misses: int, show_expected: bool) -> 
         outcomes = []
         for s in scenarios:
             start = time.perf_counter()
-            hits = await search_products(conn, s.q, claims=s.claims, category=s.category, limit=TOP)
+            hits = await search_products(
+                conn, s.q, claims=s.claims, category=s.category, limit=TOP, semantic=s.semantic
+            )
             await conn.rollback()  # end the transaction that set the trigram threshold
             outcomes.append(
                 Outcome(s, [h.product_id for h in hits], (time.perf_counter() - start) * 1000)

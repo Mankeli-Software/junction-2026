@@ -62,6 +62,7 @@ class Scenario:
     category: str | None = None
     selectors: dict[str, Selector] = field(default_factory=dict)
     note: str | None = None
+    semantic: bool = False  # rank by meaning only, as substitute searches do (#78)
     # Filled by resolve(): product ids per grade.
     expected: dict[str, frozenset[str]] = field(default_factory=dict)
 
@@ -80,6 +81,7 @@ def load_set(name: str) -> list[Scenario]:
                 category=item.get("category"),
                 selectors=selectors,
                 note=item.get("note"),
+                semantic=item.get("semantic", name == "substitutes"),
             )
         )
     return out

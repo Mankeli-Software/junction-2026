@@ -446,7 +446,7 @@ async def test_a_lactose_free_kitchen_gets_a_lactose_free_milk(db, caller):
     assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == []
 
 
-async def test_a_milk_free_kitchen_asking_for_milk_gets_a_rejection_with_a_next_step(db):
+async def test_a_milk_free_kitchen_asking_for_milk_without_an_offer_gets_a_rejection(db):
     milk_free = await other_caller(db, [Exclusion.milk_free])
 
     response = await quotes.build_quote(db, milk_free, build(), now=T0)
@@ -457,9 +457,30 @@ async def test_a_milk_free_kitchen_asking_for_milk_gets_a_rejection_with_a_next_
     assert rejection.reason_code == "ALLERGEN_CONFLICT"
     assert rejection.next_step.en
     quote = await stored(db, response.quote_id)
-    # Every hit lists milk, and so does every other product in the milk category, so no
-    # substitute gets past the hint.
-    assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == []
+    # Every milk lists milk, so the plant drink comes from the category map (milk ->
+    # plant-based drinks, #78); it has no recorded offer here, so the line stays rejected.
+    assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == ["460825"]
+
+
+async def test_a_milk_free_kitchen_gets_a_plant_drink_from_the_category_map(db, monkeypatch):
+    # No curated pair: the oat drink comes from data/category_substitutes.csv (#78).
+    real_offers = valio.get_offers
+
+    async def get_offers(ids, needed_by):
+        # The oat drink has no recorded offer; it borrows the milk's.
+        offers = {o.product_id: o for o in await real_offers(sorted({*ids, "464306"}), needed_by)}
+        offers["460825"] = offers["464306"].model_copy(update={"product_id": "460825"})
+        return [offers[i] for i in ids]
+
+    monkeypatch.setattr(valio, "get_offers", get_offers)
+    milk_free = await other_caller(db, [Exclusion.milk_free])
+
+    response = await quotes.build_quote(db, milk_free, build(), now=T0)
+
+    quote = await stored(db, response.quote_id)
+    assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == ["460825"]
+    assert response.decision == Decision.ready
+    assert response.lines[0].product_id == "460825"
 
 
 async def test_a_milk_free_kitchen_gets_a_curated_oat_drink_for_milk(db, monkeypatch):

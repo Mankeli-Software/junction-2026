@@ -1,0 +1,48 @@
+from_category,to_category,note
+10400,10402,milk and sour milk drinks -> plant-based drinks
+10401,10406,cream -> plant-based cooking cream
+10411,10413,viili -> plant-based yoghurt
+10412,10413,yoghurt -> plant-based yoghurt
+10419,10418,"other sour milk products (kermaviili, smetana) -> plant-based cooking products"
+10419,10406,other sour milk products -> plant-based cooking cream
+10430,10413,quark -> plant-based yoghurt and snacks
+10431,10413,puddings and snacks -> plant-based yoghurt and snacks
+10600,10641,block cheese -> plant-based cheese
+10602,10641,sliced cheese -> plant-based cheese
+10603,10641,grated cheese -> plant-based cheese
+10630,10641,goat and sheep cheese -> plant-based cheese
+10631,10641,white mould cheese -> plant-based cheese
+10632,10641,blue cheese -> plant-based cheese
+10633,10641,processed cheese -> plant-based cheese
+10635,10641,cream cheese -> plant-based cheese
+10636,10641,feta and salad cheese -> plant-based cheese
+10637,10641,mozzarella -> plant-based cheese
+10639,10641,halloumi and grill cheese -> plant-based cheese
+10640,10641,other cheese -> plant-based cheese
+10500,10515,butter -> margarine tubs and blocks
+10500,10518,butter -> baking margarine
+10500,10517,butter -> liquid margarine and cooking fats
+10501,10516,portion butter -> portion margarine
+17200,17306,sausages -> plant protein products
+17201,17306,frankfurters -> plant protein products
+17202,17306,bacon -> plant protein products
+17203,17306,ham and cold cuts -> plant protein products
+17204,17306,chicken and turkey cold cuts -> plant protein products
+17205,17306,cold cut sausages -> plant protein products
+17206,17306,salami -> plant protein products
+17209,17306,cooked strips and cubes -> plant protein products
+17209,41754,cooked strips and cubes -> frozen plant protein products
+17210,17306,other cooked meat -> plant protein products
+18710,17306,pork -> plant protein products
+18710,41754,pork -> frozen plant protein products
+18720,17306,beef and veal -> plant protein products
+18720,41754,beef and veal -> frozen plant protein products
+18750,17306,chicken and turkey -> plant protein products
+18750,41754,chicken and turkey -> frozen plant protein products
+18760,17306,mince -> plant protein products
+18760,41754,mince -> frozen plant protein products
+18761,17306,other whole meat products -> plant protein products
+41701,41754,frozen pork -> frozen plant protein products
+41702,41754,frozen beef and veal -> frozen plant protein products
+41705,41753,frozen meat ready meals -> frozen vegetarian ready meals
+41710,41754,frozen chicken and turkey -> frozen plant protein products

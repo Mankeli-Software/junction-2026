@@ -1,0 +1,80 @@
+# Substitute searches (#78): the buyer's words searched in a category from
+# data/category_substitutes.csv, as the quote service does when every hit is blocked for the
+# kitchen. Typical: the plain alternative a kitchen would accept for what it asked.
+
+- id: sub-milk-plant-drink
+  q: maito
+  category: "10402"
+  typical: {name: "(kaura|soija|manteli|herne|riisi)juoma|oat drink|ikaffe|imat|oatly.*(1 ?l|1l)", not: "suklaa|choco|kaakao|caramel|kinuski|proteiini|protein|välipala|vanilja|mansikka|kookos"}
+  wrong_kind: {name: "kookos|coconut|suklaa|choco|kaakao|caramel|proteiini|protein"}
+
+- id: sub-lactose-free-milk-plant-drink
+  q: laktoositon kevytmaito
+  category: "10402"
+  typical: {name: "(kaura|soija|manteli|herne|riisi)juoma|oat drink", not: "suklaa|choco|kaakao|caramel|kinuski|proteiini|protein|välipala|vanilja|mansikka|kookos"}
+  wrong_kind: {name: "kookos|coconut|suklaa|choco|kaakao|caramel|proteiini|protein"}
+
+- id: sub-cooking-cream
+  q: ruokakerma
+  category: "10406"
+  typical: {name: "ruoka|ruoanlaitto|cooking|imat|soijavalmiste", not: "kookos|coconut|vispi|vaahto|whip|kuohu|jauhe"}
+  wrong_kind: {name: "kookos|coconut|kermajauhe"}
+
+- id: sub-whipping-cream
+  q: kuohukerma
+  category: "10406"
+  typical: {name: "vispi|vaahto|whip|kuohu", not: "kookos|coconut|spray"}
+  wrong_kind: {name: "kookos|coconut|kermajauhe|ruoka"}
+
+- id: sub-yoghurt
+  q: maustamaton jogurtti
+  category: "10413"
+  typical: {name: "maustamaton|natural|plain|havregurt", not: "mansikka|banaani|persikka|passion|mustikka|vadelma|kirsikka|vanilja|suklaa|kinuski|kookos"}
+  wrong_kind: {name: "vanukas|dessert|suklaa|kinuski|välipalakaurajuoma"}
+
+- id: sub-grated-cheese
+  q: juustoraaste
+  category: "10641"
+  typical: {name: "grated|raaste"}
+  wrong_kind: {name: "levite|spread|mascarpone"}
+
+- id: sub-sliced-cheese
+  q: juustoviipale
+  category: "10641"
+  typical: {name: "slices|viipale"}
+  wrong_kind: {name: "levite|spread|mascarpone|grated|raaste"}
+
+- id: sub-creme-fraiche
+  q: ranskankerma
+  category: "10418"
+  typical: {name: "fraiche|fraîche"}
+
+- id: sub-butter-margarine
+  q: voi
+  category: "10515"
+  note: Which spreads are milk-free is the engine's call (Oivariini contains butter), not search's.
+  typical: {name: "margariini|kasvirasvalevite|levite|rasvaseos|oivariini"}
+
+- id: sub-mince-plant
+  q: naudan jauheliha
+  category: "17306"
+  typical: {name: "jauhis|murska|rouhe|mince|härkis"}
+  wrong_kind: {name: "varras|curry"}
+
+- id: sub-mince-plant-frozen
+  q: naudan jauheliha
+  category: "41754"
+  typical: {name: "jauhis|murska|rouhe|mince|mureke|bolognese|härkis", not: "pihvi|burger|pyörykkä|balls|nakki|bratwurst"}
+  wrong_kind: {name: "pihvi|burger|pyörykät|balls|nakki|bratwurst"}
+
+- id: sub-chicken-strips-plant
+  q: broilerin suikale
+  category: "17306"
+  typical: {name: "suikale|lastu|strips|pala|chunk|nyhtö"}
+  wrong_kind: {name: "varras|tofu"}
+
+- id: sub-frankfurters-plant
+  q: nakit
+  category: "41754"
+  typical: {name: "nakki|makkara|bratwurst|sausage"}
+  wrong_kind: {name: "pihvi|burger|pyörykät"}

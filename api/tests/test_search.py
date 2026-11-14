@@ -16,6 +16,7 @@ from app.loaders.product_file import read_allergen_codes, read_categories
 from app.schemas.common import Claim
 from app.search import search_products
 from app.search.spelling import Vocabulary
+from app.search.substitutes import category_substitutes
 from app.search.text import parse_query, unasked_modifiers
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -148,3 +149,10 @@ def test_spelling_prefers_an_inflected_known_word_to_a_split():
     query = parse_query("kaurahiutaleet", vocabulary=vocabulary)
     assert [t.word for t in query.terms] == ["kaurahiutaleet"]
     assert "kaurahiutale" in query.terms[0].alternatives
+
+
+def test_every_category_in_the_substitute_map_exists():
+    known = {c["id"] for c in read_categories(CATEGORY_FILE)}
+    mapped = category_substitutes()
+    assert mapped["10400"][0] == "10402"  # milk -> plant-based drinks
+    assert {c for k, vs in mapped.items() for c in (k, *vs)} <= known

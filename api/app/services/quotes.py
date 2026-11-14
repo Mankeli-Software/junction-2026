@@ -49,6 +49,7 @@ from app.schemas import (
     UpdateQuoteRequest,
     UsualItem,
 )
+from app.search.substitutes import category_substitutes
 from app.services import audit, catalog, confirmations, customers, sessions, signing
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
@@ -63,6 +64,8 @@ SEARCH_LIMIT = 20
 # When every search hit may be blocked, the curated substitutes of this many top hits are
 # added as candidates.
 SUBSTITUTES_OF_TOP = 5
+# From each category in data/category_substitutes.csv, this many alternatives (#78).
+MAPPED_SUBSTITUTES = 5
 
 # A quote can be replaced by an edit until it is confirmed, cancelled or expired. Answering
 # a clarification, or changing a rejected line, is an edit too.
@@ -467,8 +470,9 @@ async def _ranked_candidates(
     A named product or "my usual" brings its curated substitutes. A text line is its search
     hits; only when every hit may be blocked by the kitchen (`may_be_blocked`) are the
     substitute candidates added after them (docs/plans/30-product-search.md §7.2): the
-    curated substitutes of the top hits, then a second search in the top hit's category
-    with the line's claims and no words (that category's products by product id).
+    curated substitutes of the top hits, then the best few by meaning in the categories
+    mapped from the top hit's category (data/category_substitutes.csv, #78), then a second
+    search in the top hit's category with the line's claims and no words.
     Substitutes that may be blocked themselves are left out, so they don't use up the cap.
     """
     ranked: dict[str, list[str]] = {}
@@ -498,14 +502,38 @@ async def _ranked_candidates(
             subs = []
             if hits and all(may_be_blocked(hit, exclusions, rules) for hit in hits):
                 curated = [s for hit in hits[:SUBSTITUTES_OF_TOP] for s in hit.substitutions]
+                # Alternatives in other categories (#78): "maito" searched by meaning in
+                # plant-based drinks. Only the best few, so the engine's price ranking can't
+                # prefer a cheap wrong kind (vegan meatballs for "nakit").
+                # Without a query vector ("maito" matches no word in a plant-drink name),
+                # the category's products by product id, like the same-category step.
+                mapped = []
+                for to_category in category_substitutes().get(hits[0].category, ()):
+                    found = await catalog.search_candidates(
+                        db,
+                        line.text,
+                        line.claims,
+                        to_category,
+                        limit=MAPPED_SUBSTITUTES,
+                        semantic=True,
+                    )
+                    mapped += found or await catalog.search_candidates(
+                        db, None, line.claims, to_category, limit=MAPPED_SUBSTITUTES
+                    )
                 same_category = await catalog.search_candidates(
                     db, None, line.claims, hits[0].category, limit=SEARCH_LIMIT
                 )
                 records = {r.product_id: r for r in await catalog.get_products(db, curated)}
-                records.update({r.product_id: r for r in same_category})
+                records.update({r.product_id: r for r in [*mapped, *same_category]})
                 subs = [
                     i
-                    for i in _unique([*curated, *(r.product_id for r in same_category)])
+                    for i in _unique(
+                        [
+                            *curated,
+                            *(r.product_id for r in mapped),
+                            *(r.product_id for r in same_category),
+                        ]
+                    )
                     if i in records and not may_be_blocked(records[i], exclusions, rules)
                 ]
         unique = _unique([*ids, *subs])
