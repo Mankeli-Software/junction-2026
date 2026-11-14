@@ -5,6 +5,7 @@
     uv run prompt_calls.py --audio --only fi_milk   # caller turns spoken with Gemini TTS
     uv run prompt_calls.py --dry-run                # print the prompt and declarations only
     uv run prompt_calls.py --mcp-descriptions       # the MCP server's tool descriptions
+    uv run prompt_calls.py --audio --vocab --only switch_en_fi switch_fi_en   # language switch (#85)
 
 The system prompt is `build_system_prompt` from `api/app/agent/prompt.py`. The function
 declarations are the contract's request models (`api/app/schemas/tools.py`) turned into
@@ -27,6 +28,7 @@ checklist per call) and results.json (transcripts, tool calls and arguments).
 from __future__ import annotations
 
 import argparse
+import ast
 import asyncio
 import copy
 import json
@@ -42,13 +44,26 @@ from typing import Any
 import numpy as np
 from google.genai import types
 
-from common import HERE, IN_RATE, LIVE_MODEL, OUT_RATE, TTS_MODEL, make_client, read_wav, resample, trim_silence, write_wav
+from common import (
+    HERE,
+    IN_RATE,
+    LIVE_MODEL,
+    OUT_RATE,
+    PHRASES_FILE,
+    TTS_MODEL,
+    make_client,
+    read_wav,
+    resample,
+    trim_silence,
+    write_wav,
+)
 
 API_DIR = HERE.parents[1] / "api"
 sys.path.insert(0, str(API_DIR))
 
 from app.agent import AGENT_TOOLS, CALL_CONNECTED, END_CALL, PROMPT_VERSION, build_system_prompt  # noqa: E402
 from app.interfaces.mcp import descriptions as mcp_descriptions  # noqa: E402
+from app.interfaces.voice.text import guess_language  # noqa: E402
 from app.schemas import (  # noqa: E402
     BuildQuoteRequest,
     ConfirmationRequestResponse,
@@ -105,8 +120,13 @@ DESCRIPTIONS = {
     "update_quote": "Answer a clarification or change lines. Takes the full new line list and returns a new quote.",
     "request_confirmation": "Sends the confirmation link for a quote to the account's own phone. No recipient argument.",
     "get_order_status": "Pending confirmation, confirmed, cancelled or expired.",
+    "propose_recipe": "Turn a recipe photo the buyer showed into a draft to confirm.",
+    "confirm_recipe": "Confirm a recipe draft after the buyer says it is right.",
     END_CALL: "Hang up the call.",
 }
+# The relay's `NOT_ON_PHONE` (api/app/interfaces/voice/bridge.py, which needs `mcp`): a recipe
+# photo can't be shown on a call (#80).
+NOT_ON_PHONE = frozenset({"propose_recipe", "confirm_recipe"})
 DESCRIPTIONS_SOURCE = "vision §8"
 
 
@@ -146,6 +166,8 @@ def inline_refs(schema: dict[str, Any]) -> dict[str, Any]:
 def declarations(channel: str) -> list[types.FunctionDeclaration]:
     decls = []
     for name, model in AGENT_TOOLS.items():
+        if channel == "phone" and name in NOT_ON_PHONE:
+            continue
         schema = inline_refs(model.model_json_schema()) if model else {"type": "object", "properties": {}}
         decls.append(types.FunctionDeclaration(name=name, description=DESCRIPTIONS[name], parameters_json_schema=schema))
     if channel == "phone":
@@ -171,6 +193,11 @@ class Scenario:
     expected_lines: int
     call_language: str = "auto"
     reply_lang: str = "fi"  # the language every reply after the first caller turn should be in
+    # With a switch, the caller speaks the other language before this caller turn and
+    # `reply_lang` from it on; each reply should follow (#85). 0 means no switch.
+    switch_turn: int = 0
+    # Caller turns (1-based) spoken from a recording in --audio-dir instead of TTS.
+    recordings: dict[int, str] = field(default_factory=dict)
     unclear_first: bool = False  # the first quote takes the stub's "unclear" path
     reject_words: tuple[str, ...] = ()  # lines whose text has one of these take the "reject" path
     no_listing: bool = False  # add an ALLERGEN_NO_LISTING flag to ready quotes
@@ -245,7 +272,75 @@ SCENARIOS = [
         expected_lines=2,
         reject_words=("oltermanni", "juusto"),
     ),
+    # #85: the caller switches language without announcing it. The first lines are the #51
+    # phrases en01, p04 and p01, so --audio-dir recordings/jesse can speak them in a real voice.
+    Scenario(
+        id="switch_en_fi",
+        title="Language switch: English opening, then Finnish",
+        channel="phone",
+        turns=[
+            "Hi, I'd like two cases of Valio Eila lactose-free light milk drink, delivered on Thursday.",
+            "Lisää tilaukseen viisi kahden kilon purkkia laktoositonta kermaviiliä.",
+            "Ei muuta, siinä kaikki.",
+            "Joo, lähetä se.",
+        ],
+        quote_turn=3,
+        yes_turn=4,
+        expected_lines=2,
+        reply_lang="fi",
+        switch_turn=2,
+        recordings={1: "en01", 2: "p04"},
+        no_listing=True,
+        closing="Kiitos, hei hei.",
+    ),
+    Scenario(
+        id="switch_fi_en",
+        title="Language switch: Finnish opening, then English",
+        channel="phone",
+        turns=[
+            "Hei, tilaisin kaksi laatikkoa Valio Eila laktoositonta kevytmaitojuomaa, toimitus torstaiksi.",
+            "Sorry, can we go on in English? Add five two-kilo tubs of lactose-free sour cream.",
+            "That's all, thanks.",
+            "Yes, please send it.",
+        ],
+        quote_turn=3,
+        yes_turn=4,
+        expected_lines=2,
+        reply_lang="en",
+        switch_turn=2,
+        recordings={1: "p01"},
+        no_listing=True,
+        closing="Thanks, bye.",
+    ),
 ]
+
+
+def caller_lang(scenario: Scenario, index: int) -> str:
+    """The language the caller speaks in caller turn `index` (1-based)."""
+    if scenario.switch_turn and index < scenario.switch_turn:
+        return "en" if scenario.reply_lang == "fi" else "fi"
+    return scenario.reply_lang
+
+
+# --- The relay's transcription vocabulary ------------------------------------------------
+
+
+def relay_vocabulary() -> list[str]:
+    """What the relay sends as `custom_vocabulary` (#52), without a database: its
+    `BASE_VOCABULARY`, read from api/app/services/voice_calls.py (the spike has no
+    SQLAlchemy to import it), then the #51 product terms in place of the catalogue's
+    brands and compound words. At most 100 terms, like the relay."""
+    source = (API_DIR / "app" / "services" / "voice_calls.py").read_text(encoding="utf-8")
+    base: list[str] = []
+    for node in ast.parse(source).body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", "") == "BASE_VOCABULARY" for t in node.targets):
+            base = list(ast.literal_eval(node.value))
+    catalogue = json.loads(PHRASES_FILE.read_text(encoding="utf-8"))["custom_vocabulary"]
+    terms: list[str] = []
+    for term in [*base, *catalogue]:
+        if term.lower() not in {t.lower() for t in terms}:
+            terms.append(term)
+    return terms[:100]
 
 
 # --- The stub service --------------------------------------------------------------
@@ -499,13 +594,18 @@ async def send_audio(call: LiveCall, samples: np.ndarray, timeout_s: float, chun
         await asyncio.sleep(chunk_ms / 1000)
 
 
-def caller_audio(client, scenario: Scenario) -> list[np.ndarray]:
-    """The caller turns spoken by Gemini TTS, cached in audio/prompt_calls/<id>/."""
+def caller_audio(client, scenario: Scenario, audio_dir: Path | None = None) -> list[np.ndarray]:
+    """The caller turns spoken by Gemini TTS, cached in audio/prompt_calls/<id>/. With
+    `audio_dir`, the turns in `scenario.recordings` come from <audio_dir>/<id>.wav."""
     from tts import decode_audio, synth_interactions
 
     folder = HERE / "audio" / "prompt_calls" / scenario.id
     out = []
     for i, text in enumerate([*scenario.turns, scenario.closing], 1):
+        if audio_dir is not None and i in scenario.recordings:
+            samples, rate = read_wav(audio_dir / f"{scenario.recordings[i]}.wav")
+            out.append(trim_silence(resample(samples, rate, IN_RATE), IN_RATE))
+            continue
         path = folder / f"{i:02d}.wav"
         if not path.exists():
             raw = synth_interactions(client, TTS_MODEL, text, CALLER_VOICE, "a busy kitchen manager on the phone")
@@ -516,15 +616,27 @@ def caller_audio(client, scenario: Scenario) -> list[np.ndarray]:
     return out
 
 
-async def run_phone(client, scenario: Scenario, today: date, audio: bool, out_dir: Path) -> CallResult:
-    mode = "audio" if audio else "text"
+async def run_phone(
+    client,
+    scenario: Scenario,
+    today: date,
+    audio: bool,
+    out_dir: Path,
+    vocabulary: list[str] | None = None,
+    audio_dir: Path | None = None,
+    language_codes: list[str] | None = None,
+) -> CallResult:
+    mode = ("audio" if audio else "text") + ("-real" if audio and audio_dir else "") + ("-vocab" if vocabulary else "")
+    mode += "-lang" if language_codes else ""
     result = CallResult(scenario=scenario.id, mode=mode, model=LIVE_MODEL)
     service = StubService(scenario, today)
-    speech = caller_audio(client, scenario) if audio else []
+    speech = caller_audio(client, scenario, audio_dir) if audio else []
     config = types.LiveConnectConfig(
         response_modalities=[types.Modality.AUDIO],
         system_instruction=build_system_prompt(CONTEXT, "phone", scenario.call_language, today=today),
-        input_audio_transcription=types.AudioTranscriptionConfig(),
+        input_audio_transcription=types.AudioTranscriptionConfig(
+            custom_vocabulary=vocabulary or None, language_codes=language_codes or None
+        ),
         output_audio_transcription=types.AudioTranscriptionConfig(),
         speech_config=types.SpeechConfig(
             voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=VOICE))
@@ -554,7 +666,8 @@ async def run_phone(client, scenario: Scenario, today: date, audio: bool, out_di
                     else:
                         await session.send_realtime_input(text=text)
                         await call.wait_turn(60)
-                    print(f"  [{i}] caller: {text}\n      agent: {call.turn.agent.strip()}")
+                    heard = f"\n      heard: {call.turn.heard.strip()}" if call.turn.heard else ""
+                    print(f"  [{i}] caller: {text}{heard}\n      agent: {call.turn.agent.strip()}")
                     for c in call.turn.tool_calls:
                         print(f"      tool: {c['name']} {json.dumps(c['args'], ensure_ascii=False)}")
             finally:
@@ -746,12 +859,31 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
     bad = [w for w in FORBIDDEN_CHANNELS if w in all_text]
     rows.append(("Never promises email or SMS", not bad, ", ".join(bad)))
     later = [t for t in agent_turns if t.index >= 1]
-    if scenario.reply_lang == "en":
+    if scenario.switch_turn:
+        # #85: each reply in the language of the caller turn it answers.
+        wrong = [
+            t.index
+            for t in later
+            if word_share(t.agent, FI_WORDS if caller_lang(scenario, t.index) == "en" else EN_WORDS) >= 0.05
+        ]
+        rows.append(("Each reply in the caller's current language (switch)", not wrong, f"wrong language at turns {wrong}"))
+    elif scenario.reply_lang == "en":
         worst = max((word_share(t.agent, FI_WORDS) for t in later), default=0.0)
         rows.append(("Replies in English after the caller speaks English", worst < 0.05, f"max Finnish word share {worst:.2f}"))
     else:
         worst = max((word_share(t.agent, EN_WORDS) for t in later), default=0.0)
         rows.append(("Replies in Finnish", worst < 0.05, f"max English word share {worst:.2f}"))
+    heard = [t for t in result.turns if t.index >= 1 and t.heard.strip()]
+    if heard:
+        # Audio runs: the caption is in the language spoken and holds no S.I.MO the caller
+        # didn't say (#85: an English-to-Finnish switch was captioned "S.I.MO").
+        bad = [
+            t.index
+            for t in heard
+            if guess_language(t.heard) not in (None, caller_lang(scenario, t.index))
+            or ("simo" in re.sub(r"[.\s]", "", t.heard.lower()) and "simo" not in t.caller.lower())
+        ]
+        rows.append(("Captions in the language spoken, no stray S.I.MO", not bad, f"turns {bad}"))
     if scenario.channel == "phone":
         listy = [t.index for t in agent_turns if re.search(r"^\s*[-*\d]+[.)]?\s", t.agent, re.M) or "**" in t.agent]
         rows.append(("Spoken style: no lists or markdown", not listy, f"turns {listy}"))
@@ -863,15 +995,17 @@ async def main_async(args) -> None:
             for d in declarations(channel):
                 print(d.name, d.description, json.dumps(d.parameters_json_schema)[:300])
         return
+    vocabulary = relay_vocabulary() if args.vocab else None
+    audio_dir = Path(args.audio_dir).resolve() if args.audio_dir else None
     client = make_client()
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S") + ("-audio" if args.audio else "")
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S") + ("-audio" if args.audio else "") + ("-vocab" if args.vocab else "")
     out_dir = OUT_DIR / stamp
     results = []
     try:
         for s in scenarios:
             print(f"{s.id}: {s.title}")
             if s.channel == "phone":
-                results.append((s, await run_phone(client, s, today, args.audio, out_dir)))
+                results.append((s, await run_phone(client, s, today, args.audio, out_dir, vocabulary, audio_dir, args.lang_codes)))
             else:
                 results.append((s, run_chat(client, s, today)))
             await asyncio.sleep(1.0)
@@ -885,6 +1019,9 @@ def main() -> None:
     ap.add_argument("--only", nargs="*", help=f"scenario ids: {', '.join(s.id for s in SCENARIOS)}")
     ap.add_argument("--audio", action="store_true", help="speak the caller turns with TTS (phone scenarios)")
     ap.add_argument("--today", help="business date, YYYY-MM-DD (default: today)")
+    ap.add_argument("--vocab", action="store_true", help="send the relay's custom_vocabulary with the input transcription")
+    ap.add_argument("--lang-codes", nargs="*", help="language_codes hint for the input transcription, e.g. fi-FI en-US")
+    ap.add_argument("--audio-dir", help="with --audio: speak a scenario's `recordings` turns from DIR/<id>.wav (recordings/jesse)")
     ap.add_argument("--recheck", metavar="DIR", help="score a saved run in DIR again, call nothing")
     ap.add_argument("--dry-run", action="store_true", help="print the prompt and declarations, call nothing")
     ap.add_argument(
