@@ -32,6 +32,7 @@ def engine_input(*lines: LineRequest) -> EngineInput:
         lines=list(lines) or [line()],
         kitchen=KitchenProfile(exclusions=[]),
         history=HistorySummary(usual_items=[], recent_lines=[]),
+        candidates={},
         products=[],
         offers=[],
         rules=RULES,

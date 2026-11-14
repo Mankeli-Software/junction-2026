@@ -43,6 +43,8 @@ from .quote import (
     TraceRemoval,
 )
 from .rules import (
+    REJECTING_CODES,
+    REMOVAL_CODES,
     TEMPLATE_FIELDS,
     AllergenName,
     ClaimException,
@@ -56,6 +58,7 @@ from .rules import (
     Rounding,
     RuleSet,
     Substitution,
+    TextKey,
     UnitName,
 )
 from .tools import (
@@ -80,6 +83,9 @@ from .tools import (
 )
 
 __all__ = [
+    "TextKey",
+    "REMOVAL_CODES",
+    "REJECTING_CODES",
     "AllergenName",
     "ClaimException",
     "ClaimRule",

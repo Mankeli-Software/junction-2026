@@ -17,6 +17,8 @@ import yaml
 from pydantic import ValidationError
 
 from app.schemas import (
+    REJECTING_CODES,
+    REMOVAL_CODES,
     TEMPLATE_FIELDS,
     AllergenName,
     Containment,
@@ -27,6 +29,7 @@ from app.schemas import (
     Policy,
     ReasonCode,
     RuleSet,
+    TextKey,
     UnitName,
 )
 from app.schemas.engine import MAX_LINES, MAX_QUANTITY, MAX_TEXT_LENGTH
@@ -87,6 +90,7 @@ def _build(raw: dict[str, bytes], problems: list[str]) -> RuleSet:
     kitchen = _kitchen(_yaml(raw["policy/allergen_rules.yaml"]), allergens, problems)
     messages_doc = _yaml(raw["policy/messages.yaml"])
     messages = _messages(messages_doc.get("codes") or {}, problems)
+    texts = _texts(messages_doc.get("texts") or {}, problems)
     containment = _containment(
         raw["data/allergen_containment_levels.csv"],
         messages_doc.get("containment_en") or {},
@@ -100,6 +104,7 @@ def _build(raw: dict[str, bytes], problems: list[str]) -> RuleSet:
         policy=policy,
         kitchen=kitchen,
         messages=messages,
+        texts=texts,
         containment=containment,
         units=units,
         allergens=allergens,
@@ -166,12 +171,37 @@ def _messages(doc: dict[str, Any], problems: list[str]) -> dict[ReasonCode, Mess
             problems.append(f"{key}: a flag must say whether the buyer acknowledges it (ack)")
         if message.kind == "reason" and message.ack is not None:
             problems.append(f"{key}: only flags take ack")
-        for lang in ("fi", "en"):
-            unknown = _placeholders(getattr(message, lang)) - TEMPLATE_FIELDS
-            if unknown:
-                problems.append(f"{key} ({lang}): unknown placeholder {sorted(unknown)}")
-        messages[ReasonCode(key)] = message
+        code = ReasonCode(key)
+        if code in REMOVAL_CODES and message.short is None:
+            problems.append(f"{key}: removes candidates, so it needs a short trace label")
+        if code in REJECTING_CODES and message.next is None:
+            problems.append(f"{key}: can reject a line, so it needs a next step")
+        templates = [(lang, getattr(message, lang)) for lang in ("fi", "en")]
+        for part in ("short", "next"):
+            if (text := getattr(message, part)) is not None:
+                templates += [(f"{part} fi", text.fi), (f"{part} en", text.en)]
+        _check_placeholders(key, templates, problems)
+        messages[code] = message
     return messages
+
+
+def _texts(doc: dict[str, Any], problems: list[str]) -> dict[TextKey, Localized]:
+    _same_keys("messages.yaml texts", set(doc), {k.value for k in TextKey}, problems)
+    texts: dict[TextKey, Localized] = {}
+    for key, body in doc.items():
+        if key not in TextKey.__members__.values():
+            continue
+        text = Localized.model_validate(body)
+        _check_placeholders(key, [("fi", text.fi), ("en", text.en)], problems)
+        texts[TextKey(key)] = text
+    return texts
+
+
+def _check_placeholders(key: str, templates: list[tuple[str, str]], problems: list[str]) -> None:
+    for where, template in templates:
+        unknown = _placeholders(template) - TEMPLATE_FIELDS
+        if unknown:
+            problems.append(f"{key} ({where}): unknown placeholder {sorted(unknown)}")
 
 
 def _containment(

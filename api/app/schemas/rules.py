@@ -79,8 +79,46 @@ TEMPLATE_FIELDS = frozenset(
         "choice",
         "substitute",
         "percent",
+        "count",
+        "total",
+        "notes",
+        "dates",
     }
 )
+
+
+class TextKey(StrEnum):
+    """Sentences that aren't tied to one reason code (policy/messages.yaml `texts`)."""
+
+    SUMMARY_READY = "SUMMARY_READY"
+    SUMMARY_NOTES = "SUMMARY_NOTES"
+    SUMMARY_REJECTED = "SUMMARY_REJECTED"
+    CHOSEN_CHEAPEST = "CHOSEN_CHEAPEST"
+    RANKING_RULE = "RANKING_RULE"
+
+
+# Codes that remove a candidate during filtering. Each needs a short trace label.
+REMOVAL_CODES = frozenset(
+    {
+        ReasonCode.DIET_CLAIM_MISSING,
+        ReasonCode.ALLERGEN_CONFLICT,
+        ReasonCode.OFFER_UNAVAILABLE,
+        ReasonCode.UNAVAILABLE,
+        ReasonCode.PAST_CLOSING_TIME,
+        ReasonCode.DELIVERY_DATE_UNREACHABLE,
+        ReasonCode.UNIT_UNKNOWN,
+        ReasonCode.UNIT_CONVERSION_UNKNOWN,
+        ReasonCode.PARTIAL_STOCK,
+        ReasonCode.PRICE_NOT_VALID,
+    }
+)
+
+# Codes that can reject a line. Each needs a next step for the buyer.
+REJECTING_CODES = (REMOVAL_CODES - {ReasonCode.OFFER_UNAVAILABLE}) | {
+    ReasonCode.INPUT_INVALID,
+    ReasonCode.PRODUCT_NOT_FOUND,
+    ReasonCode.CALLBACK_REQUESTED,
+}
 
 
 class _Frozen(StrictModel):
@@ -149,6 +187,8 @@ class Message(_Frozen):
     ack: bool | None = None
     fi: str = Field(min_length=1)
     en: str = Field(min_length=1)
+    short: Localized | None = None  # trace label, e.g. "arrive too late"
+    next: Localized | None = None  # next step when this code rejects a line
 
 
 class UnitName(_Frozen):
@@ -176,6 +216,7 @@ class RuleSet(_Frozen):
     policy: Policy
     kitchen: dict[Exclusion, KitchenRule]
     messages: dict[ReasonCode, Message]
+    texts: dict[TextKey, Localized]
     containment: dict[Containment, Localized]
     units: dict[str, UnitName]
     allergens: dict[str, AllergenName]

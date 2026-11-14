@@ -165,3 +165,24 @@ def test_the_rule_set_survives_a_json_round_trip():
     rules = load_rule_set(POLICY_DIR, DATA_DIR)
 
     assert RuleSet.model_validate_json(rules.model_dump_json()) == rules
+
+
+def test_a_rejecting_code_needs_a_next_step(dirs):
+    policy, data = dirs
+    edit_yaml(policy / "messages.yaml", lambda d: d["codes"]["UNAVAILABLE"].pop("next"))
+
+    assert "UNAVAILABLE: can reject a line, so it needs a next step" in problems_of(policy, data)
+
+
+def test_a_removal_code_needs_a_trace_label(dirs):
+    policy, data = dirs
+    edit_yaml(policy / "messages.yaml", lambda d: d["codes"]["PARTIAL_STOCK"].pop("short"))
+
+    assert "PARTIAL_STOCK: removes candidates" in problems_of(policy, data)
+
+
+def test_every_summary_text_is_required(dirs):
+    policy, data = dirs
+    edit_yaml(policy / "messages.yaml", lambda d: d["texts"].pop("SUMMARY_READY"))
+
+    assert "messages.yaml texts: missing SUMMARY_READY" in problems_of(policy, data)

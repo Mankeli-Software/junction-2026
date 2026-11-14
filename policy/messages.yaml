@@ -4,6 +4,8 @@
 #
 #   kind: reason  explains a line or decision; flag: shown on the confirmation page
 #   ack:  the buyer must tick the flag before Confirm is enabled (vision §13)
+#   short: trace label for a candidate removed for this reason ("arrive too late")
+#   next: next step offered when this reason rejects a line
 #
 # Placeholders:
 #   {product}            product name             {quantity} {unit}  amount and unit name
@@ -14,6 +16,7 @@
 #   {choice}             kitchen choice label from allergen_rules.yaml
 #   {products}           list of product names    {substitute}       replacement product name
 #   {available}          quantity in stock        {percent}          price difference
+#   {count} {total} {notes} {dates}              order summary: lines, euros, flags to check, delivery
 #
 # A test fails if a code the engine emits has no entry here, or an entry has no code.
 
@@ -32,10 +35,12 @@ codes:
     kind: reason
     fi: "Tilausta ei voitu käsitellä, koska siinä oli virheellisiä tietoja."
     en: "The order could not be processed because some of its details were invalid."
+    next: {fi: "Kerro tuote, määrä ja toivottu toimituspäivä uudelleen.", en: "Please tell me the product, quantity and delivery date again."}
   PRODUCT_NOT_FOUND:
     kind: reason
     fi: "En löytänyt tuotetta tuotenumerolla {product}."
     en: "I couldn't find a product with the number {product}."
+    next: {fi: "Voin etsiä tuotetta nimellä.", en: "I can search for the product by name instead."}
   NO_MATCH:
     kind: reason
     fi: "En löytänyt tuotetta, joka vastaisi pyyntöä {product}. Voitko kuvailla sen toisin?"
@@ -54,10 +59,14 @@ codes:
     kind: reason
     fi: "Tuote {product} {containment_fi} {allergen_fi}, joten se ei sovi keittiöönne ({choice})."
     en: "{product} {containment_en} {allergen}, so it doesn't suit your {choice} kitchen."
+    short: {fi: "sisältävät allergeenia", en: "contain an excluded allergen"}
+    next: {fi: "Voin etsiä sopivan tuotteen tilalle.", en: "I can look for a suitable product instead."}
   DIET_CLAIM_MISSING:
     kind: reason
     fi: "Tuotetta {product} ei ole merkitty sopivaksi keittiöönne ({choice}), joten en voi valita sitä."
     en: "{product} is not labelled as suitable for a {choice} kitchen, so I can't choose it."
+    short: {fi: "ei sovi ruokavalioon", en: "do not fit the diet"}
+    next: {fi: "Voin etsiä sopivan tuotteen tilalle.", en: "I can look for a suitable product instead."}
   ALLERGEN_NO_LISTING:
     kind: flag
     ack: true
@@ -69,18 +78,26 @@ codes:
     kind: reason
     fi: "Tuote {product} ei ole tällä hetkellä saatavilla."
     en: "{product} is not available right now."
+    short: {fi: "ei saatavilla", en: "not available"}
+    next: {fi: "Valio Aimon asiakaspalvelu voi ottaa teihin yhteyttä tuotteesta.", en: "Valio Aimo customer service can contact you about it."}
   DELIVERY_DATE_UNREACHABLE:
     kind: reason
     fi: "Tuotetta {product} ei saada perille {date} mennessä."
     en: "{product} can't be delivered by {date}."
+    short: {fi: "ehtivät liian myöhään", en: "arrive too late"}
+    next: {fi: "Voin tarjota myöhempää toimituspäivää.", en: "I can offer a later delivery date."}
   PAST_CLOSING_TIME:
     kind: reason
     fi: "Tilausaika toimitukselle {date} on jo päättynyt tuotteen {product} osalta."
     en: "The order cutoff for delivery on {date} has passed for {product}."
+    short: {fi: "tilausaika päättynyt", en: "order cutoff passed"}
+    next: {fi: "Voin tarjota myöhempää toimituspäivää.", en: "I can offer a later delivery date."}
   PARTIAL_STOCK:
     kind: reason
     fi: "Tuotetta {product} on saatavilla vain {available} {unit}. Haluatko jakaa tilauksen toiseen tuotteeseen?"
     en: "Only {available} {unit} of {product} is available. Would you like to split the order with another product?"
+    short: {fi: "saldo ei riitä", en: "not enough stock"}
+    next: {fi: "Voin tilata saatavilla olevan määrän tai etsiä toisen tuotteen.", en: "I can order the available amount or look for another product."}
   AVAILABILITY_UNVERIFIED:
     kind: flag
     ack: true
@@ -90,20 +107,27 @@ codes:
     kind: reason
     fi: "En saanut juuri nyt tarkistettua tuotteen {product} hintaa tai saatavuutta. Yritetäänkö uudelleen?"
     en: "I couldn't check the price or stock for {product} just now. Shall I try again?"
+    short: {fi: "hintaa tai saldoa ei saatu", en: "price or stock not available"}
   PRICE_NOT_VALID:
     kind: reason
     fi: "Tuotteen {product} hinta ei ole voimassa toimituspäivänä {date}."
     en: "The price for {product} is not valid on the delivery date {date}."
+    short: {fi: "hinta ei voimassa", en: "price not valid"}
+    next: {fi: "Voin tarjota toista toimituspäivää.", en: "I can offer another delivery date."}
 
   # --- Units and rounding ---
   UNIT_UNKNOWN:
     kind: reason
     fi: "Tuotteen {product} myyntiyksikkö on epäselvä, joten en voi tarjota sitä."
     en: "The sales unit for {product} is unclear, so I can't quote it."
+    short: {fi: "myyntiyksikkö epäselvä", en: "unclear sales unit"}
+    next: {fi: "Valio Aimon asiakaspalvelu voi ottaa teihin yhteyttä tuotteesta.", en: "Valio Aimo customer service can contact you about it."}
   UNIT_CONVERSION_UNKNOWN:
     kind: reason
     fi: "En osaa muuntaa määrää {quantity} {unit} tuotteelle {product}. Montako myyntiyksikköä tarvitset?"
     en: "I can't convert {quantity} {unit} for {product}. How many sales units do you need?"
+    short: {fi: "määrää ei voi muuntaa", en: "quantity cannot be converted"}
+    next: {fi: "Kerro määrä myyntiyksikköinä, niin yritän uudelleen.", en: "Tell me the amount in sales units and I will try again."}
   PACKAGING_AMBIGUOUS:
     kind: reason
     fi: "Pakkaus voi tarkoittaa tuotteella {product} useampaa kokoa. Kuinka paljon tarvitset kiloina, litroina tai kappaleina?"
@@ -146,6 +170,7 @@ codes:
     kind: reason
     fi: "En löytänyt sopivaa korvaavaa tuotetta tuotteelle {product}. Valio Aimon asiakaspalvelu ottaa teihin yhteyttä."
     en: "I couldn't find a suitable substitute for {product}. Valio Aimo customer service will contact you."
+    next: {fi: "Asiakaspalvelu ottaa teihin yhteyttä.", en: "Customer service will contact you."}
 
   # --- Sanity checks (P1, never blocking) ---
   QUANTITY_UNUSUAL:
@@ -163,3 +188,21 @@ codes:
     ack: true
     fi: "Ette ole tilanneet tuotetta {product} aiemmin."
     en: "You haven't ordered {product} before."
+
+# Sentences that belong to no single code. The agent speaks the summary (#36).
+texts:
+  SUMMARY_READY:
+    fi: "Tarjous on valmis: {count} tuotetta, yhteensä {total}, toimitus {dates}."
+    en: "The quote is ready: {count} products, total {total}, delivery {dates}."
+  SUMMARY_NOTES:
+    fi: "Vahvistussivulla on {notes} kohtaa tarkistettavana."
+    en: "There are {notes} notes to check on the confirmation page."
+  SUMMARY_REJECTED:
+    fi: "En valitettavasti voi tilata mitään pyytämistänne tuotteista."
+    en: "Unfortunately I can't order any of the products you asked for."
+  CHOSEN_CHEAPEST:
+    fi: "Edullisin vaihtoehto, joka ehtii perille {date} mennessä."
+    en: "The lowest-priced option that arrives by {date}."
+  RANKING_RULE:
+    fi: "edullisin kokonaishinta, sitten varmistettu saldo"
+    en: "lowest total price, then verified stock"

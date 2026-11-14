@@ -87,6 +87,9 @@ class ProductAllergen(StrictModel):
 
 
 class UnitConversion(StrictModel):
+    """One `from_unit` is `factor` `to_unit`s, e.g. KI = 10 ST, ST = 1 L, ST = 0.5 KG.
+    Unit codes are upper case; volume is `L` and weight `KG`."""
+
     from_unit: str
     to_unit: str
     factor: JsonDecimal
@@ -132,6 +135,9 @@ class EngineInput(StrictModel):
     lines: list[LineRequest] = Field(min_length=1, max_length=MAX_LINES)
     kitchen: KitchenProfile
     history: HistorySummary
+    # Search results per line, best first (#36). Ids refer to `products`; the quote
+    # service fills it, so the engine never searches.
+    candidates: dict[str, list[str]]
     products: list[ProductRecord]
     offers: list[Offer]
     rules: RuleSet
