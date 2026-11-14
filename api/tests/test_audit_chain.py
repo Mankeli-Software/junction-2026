@@ -1,6 +1,7 @@
 """The audit chain's hash format against the shared vectors (docs/audit-chain.md)."""
 
 import hashlib
+import importlib.util
 import json
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
@@ -151,3 +152,30 @@ def test_tampering_another_field_breaks_the_hash():
     result = check_events(events)
     assert (result.first_bad_seq, result.reason) == (3, "hash")
 
+
+def _script():
+    path = Path(__file__).resolve().parents[2] / "scripts" / "verify_audit_chain.py"
+    spec = importlib.util.spec_from_file_location("verify_audit_chain", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_script_checks_a_downloaded_file(tmp_path: Path):
+    script = _script()
+    events = VECTORS["events"]
+    good = tmp_path / "good.json"
+    good.write_text(json.dumps(events))
+    assert script.check_file(good).ok
+
+    # Only the session's events, as the dashboard's download gives them.
+    session = tmp_path / "session.json"
+    session.write_text(json.dumps(events[1:]))
+    assert script.check_file(session).ok
+
+    tampered = [dict(e) for e in events]
+    tampered[2]["payload"] = {**tampered[2]["payload"], "total_cents": 1}
+    bad = tmp_path / "bad.json"
+    bad.write_text(json.dumps(tampered))
+    result = script.check_file(bad)
+    assert (result.ok, result.first_bad_seq) == (False, 3)
