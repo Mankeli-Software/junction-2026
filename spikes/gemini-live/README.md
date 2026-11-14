@@ -175,3 +175,92 @@ The opposite direction failed once: an English caller (en01, transcribed perfect
 - **When to call `build_quote`:** be explicit. In one of three blocking sessions the agent kept collecting lines instead of calling.
 - **Pack size:** give `build_quote` lines a pack-size field (for example `pack_size: "2 dl"`), or tell the model to keep the pack size in `product_query`. Today it is sometimes dropped, which loses the difference between a 2 dl and a 1 l cream.
 - **Inflected Finnish:** expect `product_query` and `unit` in inflected forms ("laktoositonta kevytmaitojuomaa", "litraa", "sankoa"). Search and unit mapping must handle them, or the prompt must ask for base forms.
+
+## Prompt calls (#53, 2026-11-14)
+
+`prompt_calls.py` runs scripted calls against the real S.I.MO system prompt (`api/app/agent/prompt.py`). It checks the #53 checklist before the relay (#52) and the MCP server (#43) exist.
+
+- **Prompt and tools.** The system prompt comes from `build_system_prompt(context, channel, today=...)` for a demo account: Hassu Hauki Oy, a lactose-free kitchen with usual butter. The function declarations are the contract's request models (`api/app/schemas/tools.py`, listed in `AGENT_TOOLS`), turned into JSON Schema with the `$ref`s inlined. On the phone the relay's local `end_call` is added. Each tool description is one line from vision §8; the real descriptions will come from the MCP server.
+- **Tool answers.** The stub engine (`api/app/engine/stub.py`) answers `build_quote` and `update_quote`, wrapped as a `QuoteResponse` without the trace. The harness forces the stub's paths per call:
+  - the first quote in the clarification call takes the "unclear" path;
+  - a cheese line in the chat call takes the "reject" path;
+  - the Finnish and English calls get an `ALLERGEN_NO_LISTING` flag.
+
+  `request_confirmation` gets a fake `ConfirmationRequestResponse` (`held` on the phone). Arguments are checked against the contract models, so a bad argument goes back to the model as an error, as MCP would return it.
+- **Phone calls** run on `gemini-3.8-live` (`v1beta`, voice Aoede), one Live session per call.
+  - The relay's first turn, `[call connected]`, goes as realtime text, so S.I.MO greets first.
+  - Caller turns go as realtime text. With `--audio` they are Gemini TTS speech (voice Achird), paced in real time with trailing silence.
+  - The next caller turn waits for `turn_complete`, after any tool response has been answered.
+- **The chat call** runs on `gemini-3.8-flash` with `generate_content` and manual function calling, as the webshop chat would. It opens no Live session.
+- **Output.** Each run writes `out/prompt_calls/<time>/results.md` (a checklist table and the transcript for each call) and `results.json`. Each Live session it opens is logged in `out/prompt_calls/sessions.log`. A 429 stops the run.
+
+```sh
+uv run prompt_calls.py                            # all four calls, caller turns as text
+uv run prompt_calls.py --only fi_clarify          # one call
+uv run prompt_calls.py --audio --only fi_milk     # caller turns spoken (TTS, cached in audio/prompt_calls/)
+uv run prompt_calls.py --recheck out/prompt_calls/<time>   # score a saved run again, no API calls
+uv run prompt_calls.py --dry-run                  # print the prompt and the declarations
+```
+
+The script imports from `../../api`. That is why `pydantic`, `pydantic-settings` and `pyyaml` are in this folder's `pyproject.toml`.
+
+### The calls
+
+| id | Channel | Caller | What it checks |
+|---|---|---|---|
+| `fi_milk` | phone | Finnish: 100 l Arki-kevytmaito for Monday, then 20 one-litre cartons for Tuesday, "siinä kaikki", "joo, lähetä se" | Greeting, two lines collected, the `build_quote` trigger, pack size, allergen notice, link after a yes, how the link arrives, `end_call` |
+| `en_order` | phone | English caller on a Finnish account: 200 l milk, "my usual butter", "what would that come to?" (the price trigger), "where does the link go?" (not a yes), then "yes, please send it" | Replies in English, the usual item's product id, the price as a trigger, no link before the yes |
+| `fi_clarify` | phone | Finnish: 50 l "maitoa" for tomorrow, "ei muuta", "kevytmaitoa", "kyllä kiitos" | The engine's `needs_clarification`: one question with at most two options, then `update_quote` with the chosen `product_id` |
+| `chat_reject` | web_chat | Finnish: milk and Oltermanni cheese for Friday; the cheese is rejected; "joo, ilman juustoa", "lähetä vahvistus" | Written style, a rejection said and moved on from, `update_quote` without the line, the chat link wording |
+
+The automatic checks are simple on purpose: substring and word-list checks on the transcript, plus tool names, turn numbers and arguments. I also read every transcript. In the question check, "2 = read by hand" turned out to be one question across two sentences each time ("Mitä maitoa tarkoitat? Valio Arki kevytmaitoa vai täysmaitoa?").
+
+### Results
+
+23 Live sessions in total (8 rounds of phone calls and 1 audio run), plus 8 chat calls on the text model. Every run is under `out/prompt_calls/` (git-ignored). The table lists what the checks and the reading found for each prompt version.
+
+| Round | Prompt | Calls | Failures, and the fix in the next version |
+|---|---|---|---|
+| 1 | .1 | fi_milk | Made up `product_id` "400812" for both milk lines. Fix: never make up an id. |
+| 2 | .2 | all 4 | fi_milk: reused the usual butter's id for the milk and gave no `package_word` for "purkki". en_order: asked "Is that all?" and called `build_quote` without waiting. Fix: `product_id` only for a usual item or a picked option; always set `package_word`; wait after "anything else?"; say goodbye and hang up right after the link. |
+| 3 | .3 | all 4 | None. |
+| 4 | .3 | all 4 | en_order: on "what would that come to?" it read back the quote and asked "Shall I send the confirmation link?", **then sent the link and hung up without waiting for an answer**. Fix: end the turn after any question, and call `request_confirmation` only in the next turn, after the caller's yes. |
+| 5 | .4 | all 4 | fi_clarify: asked "which milk?" itself, called `search_products` and quoted with the id the caller picked, so the engine's clarification never ran. Fix: don't ask the caller to choose between products; the engine asks. |
+| 6 | .5 | all 4 | None. The chat call offered to "leave a callback request", which no tool does. Fix: don't promise what no tool does. |
+| 7 | .6 | all 4 | fi_milk: "kaksikymmentä litran purkkia" became `text` "Arki-kevytmaito", so the 1 l pack size was lost. Fix: a size on a package word goes into `text`, with an example on another product. |
+| 8 | .7 | all 4 | None. |
+| audio | .7 | fi_milk | None (see below). |
+
+**Final round (prompt `2026-11-14.7`) against the #53 checklist:**
+
+| Checklist item | fi_milk | en_order | fi_clarify | chat_reject |
+|---|---|---|---|---|
+| Greets by company name, says it is S.I.MO, an AI helper | pass | pass (in Finnish, before the caller spoke) | pass | pass |
+| All lines collected, then one `build_quote` at the trigger | pass ("siinä kaikki") | pass (asked for the price) | pass ("ei muuta") | pass |
+| One clarification per turn, at most two options | pass | pass | pass | pass |
+| Top pick, at most one alternative | pass | pass | pass | pass |
+| No-allergen-listing notice once, at the end of the read-back | pass | pass | n/a (no flag) | n/a (no flag) |
+| Never says the order is placed | pass | pass | pass | pass ("Tilaus on valmis vahvistettavaksi") |
+| Asks about the link, `request_confirmation` only after a clear yes | pass | pass ("where does the link go?" got an answer, no link) | pass | pass |
+| Link comes to the phone after hanging up (phone) or to the phone (chat); no email or SMS | pass | pass | pass | pass |
+| A decision that can't be overridden: said, moved on | n/a | n/a | n/a | pass (the cheese, then `update_quote` without it) |
+| Answers in the caller's language | pass | pass (English from the first English turn) | pass | pass |
+| Pack size in `text`, base forms | pass ("Valio Arki kevytmaito 1 l", "purkki") | pass | pass | pass |
+| Spoken style on the phone, written style in the chat | pass | pass | pass | pass (a short list of lines in the first reply) |
+| `end_call` after the link is agreed | pass | pass | pass | n/a |
+
+Only the unit tests cover the `call_language` line (`fi`, `en`); no call forced a language.
+
+**Audio run** (`--audio --only fi_milk`, prompt .7). It passed every check.
+- Live's input caption got the first three turns right but misheard the last: "Joo, lähetä se." became "Ja, vad heter du?" (Swedish for "yes, what's your name?").
+- The agent answered "Nimeni on S.I.MO", then sent the link and hung up. The model took a yes from the audio itself, which was right here, but the caption shows how easily a short Finnish answer is misheard.
+- The run passed no `custom_vocabulary`; the relay should pass one (see the #51 results).
+- This time the agent left out the goodbye before `end_call`.
+
+### What stays open
+
+- **The link sent without an answer (round 4) is the worst failure seen.** It happened once in 23 sessions and not again after the fix, but a prompt can't rule it out. The relay (#52) or the service should guard against it: refuse `request_confirmation` unless the buyer has spoken since the latest quote, and return an error the model can pass on ("I'll wait for your answer").
+- The model sometimes adds "1 l" to a line where the caller gave no pack size ("Arki-kevytmaitoa" became "Valio Arki kevytmaito 1 l"); here "samaa maitoa" in the next line made that more likely. The engine should treat a pack size in `text` as a preference, not a hard filter.
+- The greeting comes in the account language before the caller speaks, so an English caller on a Finnish account hears Finnish first. That follows `call-screen.md` §2.3.
+- The stub prices every line as milk, so the English call's read-back sometimes said both lines were milk. That comes from the stub, not the prompt.
+- Text mode shows 4 to 7 s per turn because `turn_complete` arrives when the reply would have finished playing (#51 Surprises), not because the model is slow.
