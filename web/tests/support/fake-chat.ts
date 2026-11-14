@@ -212,6 +212,8 @@ export interface FakeChat {
 	uploads: number[];
 	/** The quote `GET /api/v1/quotes/current` answers with, or null for 404. */
 	current: { value: Record<string, unknown> | null };
+	/** What `GET /api/v1/chat/sent/latest` answers: waiting on the phone by default. */
+	sent: { value: Record<string, unknown> };
 }
 
 /**
@@ -223,7 +225,14 @@ export async function fakeChat(
 	script: (body: ChatBody, fake: FakeChat) => Sse,
 	data: { quotes?: Record<string, unknown>[]; menu?: () => unknown; draft?: () => unknown } = {}
 ): Promise<FakeChat> {
-	const fake: FakeChat = { bodies: [], uploads: [], current: { value: null } };
+	const fake: FakeChat = {
+		bodies: [],
+		uploads: [],
+		current: { value: null },
+		sent: {
+			value: { sent_to_masked: '+358 40 *** **12', delivery_status: 'off', inbox: true, status: 'waiting', order_number: null }
+		}
+	};
 	await stubImages(page);
 	const quotes = new Map((data.quotes ?? []).map((q) => [q.quote_id as string, q]));
 
@@ -247,9 +256,7 @@ export async function fakeChat(
 		if (found) await route.fulfill({ json: found });
 		else await route.fulfill({ status: 404, json: { detail: 'Not found' } });
 	});
-	await page.route('**/api/v1/chat/sent/latest', (route) =>
-		route.fulfill({ json: { sent_to_masked: '+358 40 *** **12', delivery_status: 'off', inbox: true } })
-	);
+	await page.route('**/api/v1/chat/sent/latest', (route) => route.fulfill({ json: fake.sent.value }));
 	await page.route('**/api/v1/chat/menus/*', (route) => route.fulfill({ json: data.menu?.() ?? menu() }));
 	// Later routes win in Playwright, so the general draft route goes first.
 	await page.route(/\/api\/v1\/recipe-drafts\/[^/]+$/, (route) =>

@@ -1090,6 +1090,14 @@ export interface components {
             delivery_status: "held" | "sent" | "failed" | "off";
             /** Inbox */
             inbox: boolean;
+            /**
+             * Status
+             * @default waiting
+             * @enum {string}
+             */
+            status: "waiting" | "confirmed" | "cancelled" | "expired" | "replaced";
+            /** Order Number */
+            order_number?: string | null;
         };
         /** ChooseAlternativeEdit */
         ChooseAlternativeEdit: {

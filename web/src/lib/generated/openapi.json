@@ -2805,6 +2805,29 @@
 					"inbox": {
 						"type": "boolean",
 						"title": "Inbox"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"waiting",
+							"confirmed",
+							"cancelled",
+							"expired",
+							"replaced"
+						],
+						"title": "Status",
+						"default": "waiting"
+					},
+					"order_number": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Order Number"
 					}
 				},
 				"type": "object",

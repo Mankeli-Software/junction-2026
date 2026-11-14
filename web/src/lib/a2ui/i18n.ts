@@ -150,6 +150,10 @@ const strings = {
 		fi: 'Avaa se tässä selaimessa ja vahvista. Mitään ei ole vielä tilattu.'
 	},
 	openPhone: { en: 'Open the demo phone', fi: 'Avaa demopuhelin' },
+	sentConfirmedTitle: { en: 'Confirmed on your phone', fi: 'Vahvistettu puhelimessasi' },
+	sentConfirmedOrder: { en: 'Order {number}', fi: 'Tilaus {number}' },
+	sentCancelledTitle: { en: 'Cancelled on your phone', fi: 'Peruttu puhelimessasi' },
+	sentCancelledText: { en: 'Nothing was ordered.', fi: 'Mitään ei tilattu.' },
 	alsoSms: { en: 'Also sent by SMS to {number}', fi: 'Lähetetty myös tekstiviestinä numeroon {number}' }
 } satisfies Record<string, Record<Lang, string>>;
 

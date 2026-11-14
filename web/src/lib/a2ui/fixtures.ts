@@ -380,7 +380,16 @@ export const fixtureMenu: ChatMenu = {
 	]
 };
 
-export const fixtureSent: SentLatest = { sent_to_masked: '+358 40 *** **12', delivery_status: 'sent', inbox: true };
+export const fixtureSent: SentLatest = {
+	sent_to_masked: '+358 40 *** **12',
+	delivery_status: 'sent',
+	inbox: true,
+	status: 'waiting',
+	order_number: null
+};
+
+/** After the buyer confirmed on the phone. */
+export const fixtureSentConfirmed: SentLatest = { ...fixtureSent, status: 'confirmed', order_number: 'D-1042' };
 
 // --- The ChatData ---------------------------------------------------------------------
 

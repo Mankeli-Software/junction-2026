@@ -107,6 +107,16 @@ test('order by text: quote card, send to my phone, sent notice, and never the li
 	// The only link in the panel is the phone page.
 	expect(await panel(page).locator('a').evaluateAll((links) => links.map((a) => a.getAttribute('href')))).toEqual(['/phone']);
 	await expect(panel(page).getByRole('button', { name: /confirmation page/i })).toHaveCount(0);
+
+	// Confirmed on the phone: back in the shop, the notice says so, with the order number
+	// and without the phone link.
+	fake.sent.value = { ...fake.sent.value, status: 'confirmed', order_number: 'D-1042' };
+	await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+	const notice = panel(page).getByTestId('sent-notice');
+	await expect(notice).toContainText('Confirmed on your phone');
+	await expect(notice.getByTestId('sent-order')).toHaveText('Order D-1042');
+	await expect(notice).not.toContainText('Nothing is ordered yet');
+	await expect(panel(page).getByRole('link', { name: 'Open the demo phone' })).toHaveCount(0);
 });
 
 test('weekly menu: swap a day, build the order', async ({ page }) => {
