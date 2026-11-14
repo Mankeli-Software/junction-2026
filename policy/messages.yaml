@@ -70,8 +70,8 @@ codes:
   ALLERGEN_NO_LISTING:
     kind: flag
     ack: true
-    fi: "Huomio: seuraaville tuotteille ei ole ilmoitettu allergeenitietoja: {products}. En voi vahvistaa, etteivät ne sisällä {allergen_fi}."
-    en: "Note: these products have no allergen information: {products}. I can't confirm they are free from {allergen}."
+    fi: "Huomio: seuraavien tuotteiden allergeenitiedot puuttuvat tai ovat puutteelliset: {products}. En voi vahvistaa, että ne sopivat keittiöönne ({choice})."
+    en: "Note: these products have missing or incomplete allergen information: {products}. I can't confirm they suit your {choice} kitchen."
 
   # --- Availability and dates ---
   UNAVAILABLE:

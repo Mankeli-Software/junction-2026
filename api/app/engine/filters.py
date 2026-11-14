@@ -113,6 +113,23 @@ def _kitchen(c: Candidate, ctx: Context) -> Removal | None:
     return None
 
 
+def allergens_unknown(product: ProductRecord, exclusions: list[Exclusion], rules: RuleSet) -> bool:
+    """True when the kitchen has an exclusion and the product's allergens can't be checked:
+    no listing at all, or `UNDECLARED` for a code one of the exclusions looks at.
+    Such a product stays orderable; the order gets one notice (vision §10)."""
+    if not exclusions:
+        return False
+    if not product.allergen_listing:
+        return True
+    relevant: set[str] = set()
+    for exclusion in exclusions:
+        rule = rules.kitchen[exclusion]
+        relevant.update(rule.block)
+        if rule.block_unless_claim:
+            relevant.update(rule.block_unless_claim.codes)
+    return any(a.containment == "UNDECLARED" and a.code in relevant for a in product.allergens)
+
+
 def _allergen_fields(
     product: ProductRecord, code: str, containment: str, label: Localized, rules: RuleSet
 ) -> dict[str, Field]:

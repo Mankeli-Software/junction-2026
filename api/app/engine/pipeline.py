@@ -32,7 +32,7 @@ from app.schemas import (
 )
 
 from . import text, units
-from .filters import Candidate, Context, Removal, check
+from .filters import Candidate, Context, Removal, allergens_unknown, check
 
 # Order of the filter steps (§4.2), so the trace lists removals in pipeline order.
 STEP_ORDER = [
@@ -57,6 +57,7 @@ SPOKEN_LINES = 3  # lines named in the spoken summary; the rest are counted
 class LineResult:
     line: QuoteLine | None = None
     flags: list[Flag] = field(default_factory=list)
+    allergens_unknown: bool = False  # goes into the order's ALLERGEN_NO_LISTING notice
     clarification: Clarification | None = None
     rejection: Rejection | None = None
 
@@ -130,7 +131,9 @@ def _line(
             )
 
     ranked = _rank(survivors, data)
-    return _priced(line, ranked, _trace(len(ids), removals, len(survivors), rules), rules)
+    result = _priced(line, ranked, _trace(len(ids), removals, len(survivors), rules), rules)
+    result.allergens_unknown = allergens_unknown(ranked[0].product, ctx.exclusions, rules)
+    return result
 
 
 def _valid(line: LineRequest, data: EngineInput) -> bool:
@@ -264,6 +267,27 @@ def _flag(code: ReasonCode, line: LineRequest, product: ProductRecord, rules: Ru
     )
 
 
+def _no_listing_flag(lines: list[QuoteLine], data: EngineInput) -> Flag:
+    """One notice per order for every product whose allergens can't be checked (vision §10)."""
+    labels = [data.rules.kitchen[e].label for e in sorted(data.kitchen.exclusions)]
+    return Flag(
+        flag_key=ReasonCode.ALLERGEN_NO_LISTING.value,
+        code=ReasonCode.ALLERGEN_NO_LISTING,
+        line_ids=[line.line_id for line in lines],
+        kind="acknowledge",
+        text=text.message(
+            data.rules,
+            ReasonCode.ALLERGEN_NO_LISTING,
+            products=_listed(*(line.name for line in lines)),
+            choice=_listed(*labels),
+        ),
+    )
+
+
+def _listed(*items: Localized) -> Localized:
+    return Localized(fi=", ".join(i.fi for i in items), en=", ".join(i.en for i in items))
+
+
 def _alternative(c: Candidate) -> Alternative:
     assert c.amount is not None
     return Alternative(
@@ -320,6 +344,9 @@ def _order(results: list[LineResult], data: EngineInput) -> EngineOutput:
     rules = data.rules
     lines = [r.line for r in results if r.line is not None]
     flags = [f for r in results for f in r.flags]
+    unknown = [r.line for r in results if r.line is not None and r.allergens_unknown]
+    if unknown:
+        flags.append(_no_listing_flag(unknown, data))
     rejections = [r.rejection for r in results if r.rejection is not None]
     clarification = next((r.clarification for r in results if r.clarification), None)
     total = sum(line.line_total_cents for line in lines)

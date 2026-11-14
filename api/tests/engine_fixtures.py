@@ -55,7 +55,7 @@ def product(
         units=units,
         unit_conversions=conversions,
         allergens=[ProductAllergen(code=c, containment=k) for c, k in allergens],
-        allergen_listing=True,
+        allergen_listing=bool(allergens),
         claims=list(claims),
         origin="FI",
         image_url=None,
