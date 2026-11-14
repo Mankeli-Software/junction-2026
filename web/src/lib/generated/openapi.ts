@@ -1425,7 +1425,10 @@ export interface components {
          * @enum {string}
          */
         QuoteStatus: "ready" | "needs_clarification" | "rejected" | "pending_confirmation" | "confirmed" | "cancelled" | "expired" | "void";
-        /** RankedCandidate */
+        /**
+         * RankedCandidate
+         * @description One candidate that passed every check, in ranking order (`rank` 1 is the best).
+         */
         RankedCandidate: {
             /** Rank */
             rank: number;
@@ -1742,6 +1745,11 @@ export interface components {
             /** Left */
             left: number;
             ranking_rule: components["schemas"]["Localized"];
+            /**
+             * Ranked
+             * @default []
+             */
+            ranked: components["schemas"]["RankedCandidate"][];
         };
         /** TraceRemoval */
         TraceRemoval: {
@@ -1750,6 +1758,11 @@ export interface components {
             /** Count */
             count: number;
             text: components["schemas"]["Localized"];
+            /**
+             * Products
+             * @default []
+             */
+            products: components["schemas"]["RemovedProduct"][];
         };
         /** TranscriptEvent */
         TranscriptEvent: {

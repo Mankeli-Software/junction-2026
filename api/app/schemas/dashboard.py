@@ -14,7 +14,7 @@ from enum import StrEnum
 from typing import Any, Literal
 
 from .common import Exclusion, JsonDecimal, Lang, Localized, StockStatus, StrictModel
-from .quote import AskedLine, NotOrdered
+from .quote import AskedLine, NotOrdered, RankedCandidate, RemovedProduct
 
 
 class Channel(StrEnum):
@@ -128,11 +128,6 @@ class OverviewResponse(StrictModel):
 # GET /api/v1/public/orders/{session_id}
 
 
-class RemovedProduct(StrictModel):
-    product_id: str
-    name: Localized
-
-
 class SummaryTraceRemoval(StrictModel):
     """`TraceRemoval` plus the products the filter removed."""
 
@@ -140,15 +135,6 @@ class SummaryTraceRemoval(StrictModel):
     count: int
     text: Localized
     products: list[RemovedProduct] = []  # Assumed
-
-
-class RankedCandidate(StrictModel):
-    rank: int
-    product_id: str
-    name: Localized
-    price_per_base_unit: JsonDecimal | None
-    stock_status: StockStatus
-    chosen: bool
 
 
 class SummaryTrace(StrictModel):

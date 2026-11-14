@@ -16,10 +16,27 @@ class AskedLine(StrictModel):
     needed_by: date
 
 
+class RemovedProduct(StrictModel):
+    product_id: str
+    name: Localized
+
+
 class TraceRemoval(StrictModel):
     reason_code: str
     count: int
     text: Localized
+    products: list[RemovedProduct] = []  # the candidates this check removed
+
+
+class RankedCandidate(StrictModel):
+    """One candidate that passed every check, in ranking order (`rank` 1 is the best)."""
+
+    rank: int
+    product_id: str
+    name: Localized
+    price_per_base_unit: JsonDecimal | None
+    stock_status: StockStatus
+    chosen: bool
 
 
 class Trace(StrictModel):
@@ -32,6 +49,7 @@ class Trace(StrictModel):
     removed: list[TraceRemoval]
     left: int
     ranking_rule: Localized
+    ranked: list[RankedCandidate] = []
 
 
 class Alternative(StrictModel):

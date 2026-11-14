@@ -142,6 +142,10 @@ class EngineInput(StrictModel):
     # Search results per line, best first (#36). Ids refer to `products`; the quote
     # service fills it, so the engine never searches.
     candidates: dict[str, list[str]]
+    # The substitute candidates among `candidates`, per line (#39): curated pairs and
+    # alternatives the quote service added after the search hits. They are only used
+    # when the line can't be filled from the other candidates.
+    substitutes: dict[str, list[str]] = {}
     products: list[ProductRecord]
     offers: list[Offer]
     rules: RuleSet

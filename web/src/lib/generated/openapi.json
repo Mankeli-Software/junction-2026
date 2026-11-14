@@ -4010,7 +4010,8 @@
 					"stock_status",
 					"chosen"
 				],
-				"title": "RankedCandidate"
+				"title": "RankedCandidate",
+				"description": "One candidate that passed every check, in ranking order (`rank` 1 is the best)."
 			},
 			"Recipe": {
 				"properties": {
@@ -4834,6 +4835,14 @@
 					},
 					"ranking_rule": {
 						"$ref": "#/components/schemas/Localized"
+					},
+					"ranked": {
+						"items": {
+							"$ref": "#/components/schemas/RankedCandidate"
+						},
+						"type": "array",
+						"title": "Ranked",
+						"default": []
 					}
 				},
 				"additionalProperties": false,
@@ -4859,6 +4868,14 @@
 					},
 					"text": {
 						"$ref": "#/components/schemas/Localized"
+					},
+					"products": {
+						"items": {
+							"$ref": "#/components/schemas/RemovedProduct"
+						},
+						"type": "array",
+						"title": "Products",
+						"default": []
 					}
 				},
 				"additionalProperties": false,
