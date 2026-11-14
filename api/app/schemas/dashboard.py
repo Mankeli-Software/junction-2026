@@ -134,7 +134,7 @@ class SummaryTraceRemoval(StrictModel):
     reason_code: str
     count: int
     text: Localized
-    products: list[RemovedProduct] = []  # Assumed
+    products: list[RemovedProduct] = []  # the candidates this check removed (#39)
 
 
 class SummaryTrace(StrictModel):
@@ -144,7 +144,7 @@ class SummaryTrace(StrictModel):
     removed: list[SummaryTraceRemoval]
     left: int
     ranking_rule: Localized
-    ranked: list[RankedCandidate] = []  # Assumed field name
+    ranked: list[RankedCandidate] = []  # best first, from the engine (#39)
 
 
 class SummaryLine(StrictModel):
