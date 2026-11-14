@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "valio-recipes.schema.json",
+  "title": "Valio Aimo recipes export",
+  "description": "Recipes scraped from the Minun Aimo portal (minunaimo.valioaimo.fi/reseptit). Products and taxonomies are normalised into top-level maps; recipes reference them by id / value string.",
+  "type": "object",
+  "required": ["meta", "taxonomies", "filters", "products", "recipes"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["source", "scrapedAt", "recipeCount", "productCount", "notes"],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "type": "string", "format": "uri" },
+        "scrapedAt": { "type": "string", "format": "date-time" },
+        "recipeCount": { "type": "integer", "minimum": 0 },
+        "productCount": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "string" }
+      }
+    },
+    "taxonomies": {
+      "description": "Lookup of every taxonomy value used by recipes. Key is the value string, e.g. \"erityisruokavaliot=laktoositon\".",
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/taxonomyValue" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["group", "title"],
+        "additionalProperties": false,
+        "properties": {
+          "group": { "$ref": "#/$defs/taxonomyGroup" },
+          "title": { "type": "string", "description": "Human-readable Finnish label." }
+        }
+      }
+    },
+    "filters": {
+      "description": "Raw response of the portal's /api/recipes/filters endpoint (filter UI definition).",
+      "type": "object",
+      "required": ["sorting", "filters"],
+      "additionalProperties": false,
+      "properties": {
+        "sorting": {
+          "type": "object",
+          "required": ["key", "items"],
+          "additionalProperties": false,
+          "properties": {
+            "key": { "type": "string" },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["title", "value"],
+                "additionalProperties": false,
+                "properties": {
+                  "title": { "type": "string" },
+                  "value": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title", "key", "items"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "key": { "type": "string", "description": "Prefix of taxonomy value strings, e.g. \"keittiotyyppi\"." },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["title", "value"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "title": { "type": "string" },
+                    "value": { "type": "string", "description": "Suffix of taxonomy value strings, e.g. \"ammattikeittiot\"." }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "products": {
+      "description": "Valio products referenced by recipes. Key is the product id as a string (same ids as the mock product data).",
+      "type": "object",
+      "propertyNames": { "pattern": "^[0-9]+$" },
+      "additionalProperties": { "$ref": "#/$defs/product" }
+    },
+    "recipes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/recipe" }
+    }
+  },
+  "$defs": {
+    "taxonomyGroup": {
+      "type": "string",
+      "enum": ["kitchenType", "occasion", "dishType", "diet", "bakery", "mainIngredient", "festivity", "method"]
+    },
+    "taxonomyValue": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+=[a-z0-9-]+$",
+      "description": "\"<filter key>=<item value>\", e.g. \"ruokalaji=paaruoat\"."
+    },
+    "image": {
+      "type": "object",
+      "required": ["alt", "sizes"],
+      "additionalProperties": false,
+      "properties": {
+        "alt": { "type": "string" },
+        "sizes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["url", "width", "height"],
+            "additionalProperties": false,
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "width": { "type": "integer" },
+              "height": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": ["id", "name", "url", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "description": { "type": ["string", "null"] }
+      }
+    },
+    "ingredient": {
+      "type": "object",
+      "required": ["id", "name", "portionFormat", "suffix", "defaultPortionAmounts", "singlePortionAmounts", "productId"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "integer", "description": "Ingredient id in the portal CMS (not unique per recipe line across recipes)." },
+        "name": { "type": "string", "description": "Ingredient text as written in the recipe (Finnish, partitive form)." },
+        "portionFormat": {
+          "type": ["string", "null"],
+          "description": "printf-style amount template; in practice always \"%s\\u00a0kg\" (non-breaking space). null when the ingredient has no amount (e.g. salt to taste)."
+        },
+        "suffix": { "type": ["string", "null"], "description": "Trailing note, e.g. \", maun mukaan\"." },
+        "defaultPortionAmounts": {
+          "type": "array",
+          "items": { "type": "number" },
+          "maxItems": 1,
+          "description": "Amount in kg for the recipe's defaultPortions. Empty when no amount."
+        },
+        "singlePortionAmounts": {
+          "type": "array",
+          "items": { "type": "number" },
+          "maxItems": 1,
+          "description": "Amount in kg for one portion. Empty when no amount."
+        },
+        "productId": { "type": ["integer", "null"], "description": "Key into top-level products, or null if not a linked Valio product." }
+      }
+    },
+    "instruction": {
+      "type": "object",
+      "required": ["id", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "images": { "type": "array", "items": { "$ref": "#/$defs/image" } }
+      }
+    },
+    "nutrient": {
+      "type": "object",
+      "required": ["label", "value", "unit"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string" },
+        "value": { "type": "number" },
+        "unit": { "type": "string" }
+      }
+    },
+    "recipe": {
+      "type": "object",
+      "required": [
+        "id", "slug", "url", "name", "description", "isNew", "isInhouse", "isRestricted", "hasSydanmerkki",
+        "difficulty", "defaultPortions", "defaultPortionWeight", "portionUnit", "author", "image", "taxonomies",
+        "ingredientSegments", "instructionSegments", "tips", "nutritionPortion", "nutrition",
+        "relatedProductIds", "relatedRecipeIds"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "integer" },
+        "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "url": { "type": "string", "format": "uri" },
+        "name": { "type": "string" },
+        "description": { "type": ["string", "null"] },
+        "isNew": { "type": "boolean" },
+        "isInhouse": { "type": "boolean", "description": "Made by the Valio Aimo test kitchen (false = partner recipe)." },
+        "isRestricted": { "type": "boolean" },
+        "hasSydanmerkki": { "type": "boolean", "description": "Carries the Finnish Heart Symbol (Sydänmerkki)." },
+        "difficulty": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "defaultPortions": { "type": "integer", "description": "Number of portions the default amounts make." },
+        "defaultPortionWeight": { "type": "integer", "description": "Portion weight in grams." },
+        "portionUnit": { "type": "string", "description": "Free-text unit for defaultPortions, mostly \"annosta\" or \"kpl\"." },
+        "author": {
+          "type": ["object", "null"],
+          "required": ["name", "avatarUrl"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "avatarUrl": { "type": "string", "format": "uri" }
+          }
+        },
+        "image": { "$ref": "#/$defs/image" },
+        "taxonomies": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/taxonomyGroup" },
+          "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/taxonomyValue" } }
+        },
+        "ingredientSegments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["title", "ingredients"],
+            "additionalProperties": false,
+            "properties": {
+              "title": { "type": ["string", "null"], "description": "Section heading, e.g. \"Taikina\"; null for an untitled section." },
+              "ingredients": { "type": "array", "items": { "$ref": "#/$defs/ingredient" } }
+            }
+          }
+        },
+        "instructionSegments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["title", "instructions"],
+            "additionalProperties": false,
+            "properties": {
+              "title": { "type": ["string", "null"] },
+              "instructions": { "type": "array", "items": { "$ref": "#/$defs/instruction" } }
+            }
+          }
+        },
+        "tips": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "required": ["id", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "nutritionPortion": { "type": "string", "description": "Basis for nutrition values; always \"100 g\"." },
+        "nutrition": {
+          "type": "object",
+          "required": ["energyKcal", "protein", "carbohydrate", "fat", "saturatedFat", "fibre", "salt", "calcium", "vitaminD"],
+          "additionalProperties": false,
+          "properties": {
+            "energyKcal": { "$ref": "#/$defs/nutrient" },
+            "protein": { "$ref": "#/$defs/nutrient" },
+            "carbohydrate": { "$ref": "#/$defs/nutrient" },
+            "fat": { "$ref": "#/$defs/nutrient" },
+            "saturatedFat": { "$ref": "#/$defs/nutrient" },
+            "fibre": { "$ref": "#/$defs/nutrient" },
+            "salt": { "$ref": "#/$defs/nutrient" },
+            "calcium": { "$ref": "#/$defs/nutrient" },
+            "vitaminD": { "$ref": "#/$defs/nutrient" }
+          }
+        },
+        "relatedProductIds": { "type": "array", "items": { "type": "integer" }, "description": "Keys into top-level products." },
+        "relatedRecipeIds": { "type": "array", "items": { "type": "integer" }, "description": "Ids of other recipes in recipes[]." }
+      }
+    }
+  }
+}
