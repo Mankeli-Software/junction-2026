@@ -322,7 +322,9 @@ class PhoneCall:
     state: str = "connecting"
     spoke: bool = False  # S.I.MO has spoken since the caller's last line
     audio_s: float = 0.0
-    inbox_during_call: list[dict[str, Any]] | None = None  # read after request_confirmation
+    play_until: float = 0.0  # when a phone would have played all the audio sent so far
+    # The inbox as read right after request_confirmation came back, during the call.
+    inbox_during_call: list[dict[str, Any]] | None = None
 
     @property
     def closed(self) -> bool:
@@ -366,7 +368,7 @@ async def play_call(visitor: Visitor, script: CallerScript) -> PhoneCall:
     headers = {"Cookie": visitor.cookie_header(), "User-Agent": USER_AGENT, **run.stamps()}
     call = PhoneCall()
     async with websockets.connect(url, additional_headers=headers, max_size=None) as ws:
-        receiver = asyncio.create_task(_receive(ws, call))
+        receiver = asyncio.create_task(_receive(ws, call, visitor))
         try:
             await _play(ws, call, visitor, script)
             if call.ended is None and not call.closed:
@@ -377,22 +379,35 @@ async def play_call(visitor: Visitor, script: CallerScript) -> PhoneCall:
     return call
 
 
-async def _receive(ws: Any, call: PhoneCall) -> None:
+async def _receive(ws: Any, call: PhoneCall, visitor: Visitor) -> None:
+    async def read_inbox() -> None:
+        call.inbox_during_call = await visitor.inbox()
+
+    checks: list[asyncio.Task[None]] = []
     try:
         async for message in ws:
             if isinstance(message, bytes):
-                call.audio_s += len(message) / 2 / OUT_RATE
+                seconds = len(message) / 2 / OUT_RATE
+                call.audio_s += seconds
+                call.play_until = max(call.play_until, time.monotonic()) + seconds
                 continue
             call.texts.append(message)
             data = json.loads(message)
             kind = data["type"]
             if kind == "agent_state":
+                # request_confirmation has just come back: the link is held until the call
+                # ends, so the inbox must still be empty. Read it now, while the call is on.
+                came_back = call.states and call.states[-1] == ("working", "request_confirmation")
+                if came_back and data["tool"] != "request_confirmation" and not checks:
+                    checks.append(asyncio.create_task(read_inbox()))
                 call.state = data["state"]
                 call.states.append((data["state"], data["tool"]))
                 if data["state"] == "working":
                     call.tools.append(data["tool"])
                 if data["state"] == "speaking":
                     call.spoke = True
+            elif kind == "interrupted":
+                call.play_until = time.monotonic()
             elif kind == "transcript" and data["final"] and data["text"]:
                 call.transcript.append((data["who"], data["text"]))
                 if data["who"] == "agent":
@@ -403,6 +418,7 @@ async def _receive(ws: Any, call: PhoneCall) -> None:
     except websockets.ConnectionClosed:
         pass
     finally:
+        await asyncio.gather(*checks, return_exceptions=True)
         call.gone.set()
 
 
@@ -410,9 +426,11 @@ async def _agent_turn_done(call: PhoneCall, wait_s: float = TURN_TIMEOUT_S) -> b
     """Waits until S.I.MO has spoken and is listening again. False when it never did."""
     deadline = time.monotonic() + wait_s
     while time.monotonic() < deadline and not call.closed:
-        if call.spoke and call.state == "listening":
+        # Gemini makes speech faster than it plays. A caller answers when S.I.MO has
+        # finished talking, so wait out the audio: a line typed earlier interrupts it.
+        if call.spoke and call.state == "listening" and time.monotonic() > call.play_until:
             await asyncio.sleep(0.5)  # a caption or a second tool call may still follow
-            if call.state == "listening":
+            if call.state == "listening" and time.monotonic() > call.play_until:
                 return True
         await asyncio.sleep(0.05)
     return False
@@ -430,8 +448,6 @@ async def _play(ws: Any, call: PhoneCall, visitor: Visitor, script: CallerScript
         if call.closed:
             return
         if call.link_requested():
-            # The link is held until the call ends: the inbox must still be empty.
-            call.inbox_during_call = await visitor.inbox()
             # S.I.MO should say goodbye and hang up by itself.
             try:
                 await asyncio.wait_for(call.gone.wait(), HANG_UP_WAIT_S)

@@ -140,35 +140,47 @@ async def test_the_demo_script_over_mcp(run, beats):
                     "a delivery for today went through without another date or a next step"
                 )
 
-            # The order that is confirmed at the end: ten times a usual item.
-            quoted = {line["product_id"] for line in quotes.get("usual", {}).get("lines", [])}
-            item = next(
-                (i for i in context.get("usual_items", []) if i["product_id"] in quoted), None
+            # The order that is confirmed at the end: ten times a usual item. Items whose
+            # stock is confirmed come first; one that runs out at ten times is skipped.
+            usual_lines = sorted(
+                quotes.get("usual", {}).get("lines", []),
+                key=lambda line: line["stock_status"] != "verified",
             )
+            by_id = {i["product_id"]: i for i in context.get("usual_items", [])}
+            items = [
+                by_id[line["product_id"]] for line in usual_lines if line["product_id"] in by_id
+            ]
+            item = None
 
             with beats("unusual"):
-                assert item, "no usual item could be quoted in the `usual` beat"
-                line = usual_line(item, monday, "x1", times=10)
-                quote = quotes["order"] = await agent.call("build_quote", lines=[line])
-                print(describe_quote(quote))
-                assert quote["decision"] == "ready"
-                assert "QUANTITY_UNUSUAL" in {flag["code"] for flag in quote["flags"]}
+                assert items, "no usual item could be quoted in the `usual` beat"
+                for candidate in items[:4]:
+                    line = usual_line(candidate, monday, "x1", times=10)
+                    quote = await agent.call("build_quote", lines=[line])
+                    print(describe_quote(quote))
+                    if quote["decision"] == "ready":
+                        item, quotes["order"] = candidate, quote
+                        break
+                assert item, "ten times a usual item was never a ready quote"
+                assert "QUANTITY_UNUSUAL" in {flag["code"] for flag in quotes["order"]["flags"]}
 
             with beats("update"):
-                assert "order" in quotes, "no quote to update"
+                assert item, "no quote to update"
                 first = quotes["order"]
-                line = usual_line(item, monday, "x1", times=11)
+                line = usual_line(item, monday, "x1", times=9)
                 quote = await agent.call("update_quote", quote_id=first["quote_id"], lines=[line])
+                quotes["order"] = quote  # the old one is void now, whatever this one says
                 print(describe_quote(quote))
                 assert quote["version"] == first["version"] + 1
                 assert quote["parent_quote_id"] == first["quote_id"]
                 assert quote["decision"] == "ready"
-                quotes["order"] = quote
                 old = await agent.call("get_order_status", quote_id=first["quote_id"])
                 assert old["replaced_by_quote_id"] == quote["quote_id"], old
 
             with beats("confirm"):
-                assert "order" in quotes, "no quote to confirm"
+                assert quotes.get("order", {}).get("decision") == "ready", (
+                    "no ready quote to confirm"
+                )
                 quote = quotes["order"]
                 sent = await agent.call("request_confirmation", quote_id=quote["quote_id"])
                 print(f"  sent to {sent['sent_to_masked']}: {sent['delivery_status']}")

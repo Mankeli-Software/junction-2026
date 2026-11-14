@@ -86,10 +86,11 @@ async def test_a_milk_free_kitchen_asking_for_milk_never_gets_a_milk_product(run
 
     check_the_call_itself(call)
     assert "build_quote" in call.tools
-    if quote:
-        assert not dairy_lines(quote), f"milk products: {dairy_lines(quote)}"
-    # Never a dead end: a substitute was quoted, or S.I.MO said what happens next.
-    assert (quote and quote["lines"]) or len(call.said_by("agent")) >= 2
+    # The catalogue has oat drinks, so the call must end with one quoted, not at a dead end.
+    assert quote and quote["lines"], "the call ended without a quoted substitute"
+    assert not dairy_lines(quote), f"milk products: {dairy_lines(quote)}"
+    assert quote["decision"] == "ready", quote["decision"]
+    assert call.link_requested(), "S.I.MO never got to sending the link"
 
 
 @pytest.mark.parametrize("lang", LANGS)
