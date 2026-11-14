@@ -129,9 +129,9 @@
 	color: #3f5a00;
 }
 .a2-pill {
-	min-height: 42px;
-	padding: 0 14px;
-	border-radius: 21px;
+	min-height: 44px;
+	padding: 0 16px;
+	border-radius: 22px;
 	border: 2px solid var(--petrol);
 	background: var(--card);
 	color: var(--petrol);

@@ -8,7 +8,7 @@
 	import { buttonAction } from './actions';
 	import { chatContext } from './context';
 	import { t } from './i18n';
-	import { SIMO_COMPONENTS } from './protocol';
+	import { LAYOUT_COMPONENTS, SIMO_COMPONENTS } from './protocol';
 	import { ids, int, str } from './resolve';
 	import type { Surface } from './surfaces.svelte';
 	import './cards.css';
@@ -22,7 +22,7 @@
 	const KNOWN = new Set<string>(SIMO_COMPONENTS);
 
 	let { surface, id, depth }: { surface: Surface; id: string; depth: number } = $props();
-	const { store, lang } = chatContext();
+	const { store, lang, domainCards } = chatContext();
 	const c = $derived(surface.components[id]);
 	const action = $derived(c?.component === 'Button' ? buttonAction(c.action) : null);
 	/** The Button pressed on this surface: quick answers are one tap, then all go read-only. */
@@ -40,7 +40,7 @@
 	}
 </script>
 
-{#if c && depth <= MAX_DEPTH}
+{#if c && depth <= MAX_DEPTH && (domainCards !== false || LAYOUT_COMPONENTS.includes(c.component))}
 	{#if c.component === 'Column' || c.component === 'Row'}
 		<div class={c.component === 'Row' ? 'row' : 'column'}>
 			{#each ids(c.children) as child, i (`${child}-${i}`)}

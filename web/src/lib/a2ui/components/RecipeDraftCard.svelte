@@ -339,14 +339,16 @@
 						{@const preview = scaled(parsed ?? null, servings, portions)}
 						{@const name = row.text.trim() || t(L, 'newIngredient')}
 						<li class="row" class:low={unsure} data-testid="ingredient-row" data-low={unsure}>
-							<input
-								type="checkbox"
-								class="tick"
-								bind:checked={row.order}
-								disabled={!editable}
-								aria-label={t(L, 'orderRow', { name })}
-								onchange={() => (row.edited = true)}
-							/>
+							<label class="tickbox">
+								<input
+									type="checkbox"
+									class="tick"
+									bind:checked={row.order}
+									disabled={!editable}
+									aria-label={t(L, 'orderRow', { name })}
+									onchange={() => (row.edited = true)}
+								/>
+							</label>
 							<div class="cells">
 								<input
 									id="{uid}-text-{row.key}"
@@ -536,12 +538,23 @@
 		background: var(--yellow-note);
 		border-color: #f1e3a0;
 	}
+	/* A 44 px tap area around the 20 px box. */
+	.tickbox {
+		width: 44px;
+		height: 44px;
+		margin: -1px -12px 0 -12px;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
 	.tick {
 		width: 20px;
 		height: 20px;
-		margin: 11px 0 0;
-		flex-shrink: 0;
+		margin: 0;
 		accent-color: var(--petrol);
+		cursor: pointer;
 	}
 	.cells {
 		flex-grow: 1;
@@ -567,11 +580,11 @@
 		font-size: 13px;
 	}
 	.del {
-		width: 36px;
-		height: 36px;
-		margin-top: 3px;
+		width: 44px;
+		height: 44px;
+		margin: -1px -8px 0 -4px;
 		flex-shrink: 0;
-		border-radius: 18px;
+		border-radius: 22px;
 		border: 0;
 		background: transparent;
 		display: flex;

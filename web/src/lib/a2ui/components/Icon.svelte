@@ -13,7 +13,8 @@
 		| 'warn'
 		| 'chevron'
 		| 'none'
-		| 'plate';
+		| 'plate'
+		| 'swap';
 </script>
 
 <script lang="ts">
@@ -63,6 +64,8 @@
 		<circle cx="12" cy="12" r="9" /><path d="M8 12h8" />
 	{:else if name === 'plate'}
 		<circle cx="12" cy="13" r="8" /><path d="M4 13h16" />
+	{:else if name === 'swap'}
+		<path d="M5 8h13l-3-3M19 16H6l3 3" />
 	{/if}
 </svg>
 

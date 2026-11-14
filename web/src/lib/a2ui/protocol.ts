@@ -23,6 +23,9 @@ export const SIMO_COMPONENTS = [
 	'SentNotice'
 ] as const;
 
+/** The layout components: only the model's own words, no engine data. */
+export const LAYOUT_COMPONENTS: readonly string[] = ['Column', 'Row', 'Text', 'Notice', 'Button'];
+
 export type A2uiVersion = 'v0.9' | 'v0.9.1';
 
 /** One entry of a surface's flat component list. Exactly one has `id: "root"`. */

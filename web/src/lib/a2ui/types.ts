@@ -1,9 +1,6 @@
 /**
- * Engine data the cards load by id (docs/specs/a2ui.md §3), from the generated
- * OpenAPI types (`pnpm gen:api-types`). The two chat endpoints of
- * docs/plans/57-a2ui-chat.md §3 (`/chat/menus/{id}`, `/chat/sent/latest`) are typed
- * here by hand until they are in `openapi.json`: swap `ChatMenu` and `SentLatest`
- * for `components['schemas'][...]` then.
+ * Engine data the cards load by id (docs/specs/a2ui.md §3), all from the generated
+ * OpenAPI types (`pnpm gen:api-types`).
  */
 import type { components } from '#lib/generated/openapi.js';
 
@@ -24,34 +21,15 @@ export type ConfirmDraft = Schemas['ConfirmRecipeBody'];
 export type RecipeSource = RecipeDraft['source'];
 export type DraftStatus = RecipeDraft['status'];
 
-export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri';
-
-/** One day of a menu `show_menu` stored (`GET /api/v1/chat/menus/{menuId}`). */
-export interface MenuDay {
-	day: Weekday;
-	recipe_id: string;
-	name: string;
-	image_url: string | null;
-	portions: number;
-	/** Ingredients with a product link, when the server counts them. */
-	linked_count?: number | null;
-	ingredient_count?: number | null;
-}
-
-export interface ChatMenu {
-	menu_id: string;
-	days: MenuDay[];
-}
-
+/** A menu `show_menu` stored (`GET /api/v1/chat/menus/{menuId}`). */
+export type ChatMenu = Schemas['ChatMenu'];
+export type MenuDay = Schemas['ChatMenuDay'];
+export type Weekday = MenuDay['day'];
 /**
- * The latest confirmation request of this chat (`GET /api/v1/chat/sent/latest`),
- * shaped like `ConfirmationRequestResponse`. Never the link itself.
+ * The latest confirmation request of this chat (`GET /api/v1/chat/sent/latest`, 404
+ * when nothing was sent). Never the link itself.
  */
-export interface SentLatest {
-	sent_to_masked: string | null;
-	delivery_status: 'held' | 'sent' | 'failed' | 'off';
-	inbox: boolean;
-}
+export type SentLatest = Schemas['ChatSentLatest'];
 
 /**
  * Where the cards get their data: the REST API (`apiData`) or fixtures

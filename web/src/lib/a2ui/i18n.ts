@@ -102,10 +102,11 @@ const strings = {
 
 	// MenuWeek (UI-06)
 	weeklyMenu: { en: 'Weekly menu', fi: 'Viikon ruokalista' },
-	menuTitle: { en: 'Your menu', fi: 'Ruokalistasi' },
-	dayDish: { en: '{day}: {name}', fi: '{day}: {name}' },
+	menuTitle: { en: 'Your week', fi: 'Viikkosi' },
+	portionsEach: { en: '{n} portions each', fi: '{n} annosta kukin' },
+	linkedShort: { en: '{linked} of {total} we can order', fi: '{linked}/{total} tilattavissa' },
+	swapping: { en: 'Asked for another', fi: 'Pyydetty toista' },
 	swapDay: { en: 'Swap {day}', fi: 'Vaihda {day}' },
-	swapDayAsked: { en: 'You asked S.I.MO to swap {day}.', fi: 'Pyysit S.I.MO:a vaihtamaan päivän {day}.' },
 	buildMenu: { en: 'Build order from this menu', fi: 'Tee tilaus tästä listasta' },
 	menuBuilt: { en: 'S.I.MO is building the order from this menu.', fi: 'S.I.MO tekee tilauksen tästä listasta.' },
 	noDays: { en: 'This menu has no days yet.', fi: 'Tällä listalla ei ole vielä päiviä.' },
@@ -124,8 +125,8 @@ const strings = {
 	oneThing: { en: '1 thing to check on your phone', fi: '1 asia tarkistettavana puhelimessa' },
 	nThings: { en: '{n} things to check on your phone', fi: '{n} asiaa tarkistettavana puhelimessa' },
 	checkOnPhone: {
-		en: 'You check these on your phone before you confirm.',
-		fi: 'Tarkistat nämä puhelimessa ennen vahvistamista.'
+		en: 'You tick these on the confirmation page before you confirm.',
+		fi: 'Kuittaat nämä vahvistussivulla ennen vahvistamista.'
 	},
 	sendToPhone: { en: 'Send to my phone', fi: 'Lähetä puhelimeeni' },
 	sendAsked: { en: 'Sending to your phone', fi: 'Lähetetään puhelimeesi' },
@@ -143,8 +144,8 @@ const strings = {
 	// SentNotice (UI-05)
 	sentTitle: { en: 'Sent to your demo phone', fi: 'Lähetetty demopuhelimeesi' },
 	sentText: {
-		en: 'Sent. Open the demo phone in this browser to confirm. Nothing is ordered yet.',
-		fi: 'Lähetetty. Avaa demopuhelin tässä selaimessa ja vahvista. Mitään ei ole vielä tilattu.'
+		en: 'Open it in this browser to confirm. Nothing is ordered yet.',
+		fi: 'Avaa se tässä selaimessa ja vahvista. Mitään ei ole vielä tilattu.'
 	},
 	alsoSms: { en: 'Also sent by SMS to {number}', fi: 'Lähetetty myös tekstiviestinä numeroon {number}' }
 } satisfies Record<string, Record<Lang, string>>;

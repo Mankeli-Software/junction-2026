@@ -11,6 +11,11 @@ export interface ChatContext {
 	 * data can change on the server (the quote, the sent notice) load it again quietly.
 	 */
 	revision?: () => number;
+	/**
+	 * Optional, default true. False draws only the layout components (Text, Notice,
+	 * Button and their Column and Row): the confirmation page's chat is text only.
+	 */
+	domainCards?: boolean;
 }
 
 const KEY = Symbol('a2ui-chat');

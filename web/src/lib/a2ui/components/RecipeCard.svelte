@@ -39,11 +39,6 @@
 	const recipe = $derived(loaded.value);
 	const acted = $derived(store.actedOn(surfaceId, componentId));
 	const linked = $derived(recipe ? recipe.ingredients.filter((i) => i.product_id).length : 0);
-	/** Diet tags are not in `Recipe` today (only in `RecipeHit`); shown when the API sends them. */
-	const dietTags = $derived.by(() => {
-		const tags = (recipe as (Recipe & { diet_tags?: unknown }) | null)?.diet_tags;
-		return Array.isArray(tags) ? tags.filter((x): x is string => typeof x === 'string').slice(0, 6) : [];
-	});
 	const summary = $derived.by(() => {
 		if (!recipe) return '';
 		const names = recipe.ingredients.map((i) => i.name);
@@ -74,9 +69,6 @@
 					<span class="chosen"><Icon name="check" size={15} stroke="#3f5a00" weight={2.6} />{t(L, 'usingThis', { n: recipe.portions })}</span>
 				{:else}
 					<span class="a2-cap">{t(L, 'portionsLinked', { n: recipe.portions, linked, total: recipe.ingredients.length })}</span>
-					{#if dietTags.length}
-						<span class="tags">{#each dietTags as tag (tag)}<span class="a2-tag soft">{tag}</span>{/each}</span>
-					{/if}
 				{/if}
 			</div>
 		</div>
@@ -133,11 +125,6 @@
 		font-size: 14px;
 		font-weight: 700;
 		color: #3f5a00;
-	}
-	.tags {
-		display: flex;
-		gap: 6px;
-		flex-wrap: wrap;
 	}
 	.summary {
 		font-size: 14px;

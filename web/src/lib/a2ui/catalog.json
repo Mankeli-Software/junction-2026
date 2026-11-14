@@ -43,7 +43,7 @@
 		},
 		{
 			"name": "QuoteCard",
-			"description": "A quote from build_quote or update_quote: what the buyer asked next to what was added, totals, delivery, flags, any clarification question and any line that can't be added. The page loads the quote by id and shows the engine's prices. Actions back to you: clarification_answered {quoteId, lineId, productId}: call update_quote with that product; rejection_next_step {quoteId, lineId}: act on that line's next step; send_for_confirmation {quoteId}: call request_confirmation.",
+			"description": "A quote from build_quote or update_quote: what the buyer asked next to what was added, totals, delivery, flags, any clarification question and any line that can't be added. The page loads the quote by id and shows the engine's prices. Actions back to you: clarification_answered {quoteId, lineId, productId, label}: call update_quote with that product (label is the answer as the buyer saw it); rejection_next_step {quoteId, lineId}: act on that line's next step; send_for_confirmation {quoteId}: call request_confirmation.",
 			"props": "quoteId: string (required, from the latest quote)."
 		},
 		{

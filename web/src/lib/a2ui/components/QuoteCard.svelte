@@ -75,10 +75,11 @@
 			: t(L, 'deliveryRangeVat', { from: date(earliest, L), to: date(latest, L) });
 	}
 
-	function answer(lineId: string, productId: string) {
+	/** `label` is the engine's own text for the answer, so the chat can echo it as the buyer's turn. */
+	function answer(lineId: string, productId: string, label: string) {
 		if (!quote || answered) return;
 		store.markActed(surfaceId, `${componentId}#answer`, productId);
-		store.emit(surfaceId, componentId, 'clarification_answered', { quoteId: quote.quote_id, lineId, productId });
+		store.emit(surfaceId, componentId, 'clarification_answered', { quoteId: quote.quote_id, lineId, productId, label });
 	}
 
 	function nextStep(lineId: string) {
@@ -133,7 +134,7 @@
 								class:chosen
 								aria-pressed={chosen}
 								disabled={Boolean(answered) || quote.status !== 'needs_clarification'}
-								onclick={() => answer(c.line_id, option.product_id)}
+								onclick={() => answer(c.line_id, option.product_id, option.label[L])}
 							>
 								<span class="opt-label">{#if chosen}<Icon name="check" stroke="#fff" weight={2.6} />{/if}{option.label[L]}</span>
 								<b>{money(option.line_total_cents)}</b>
@@ -261,7 +262,7 @@
 		font-weight: 700;
 		text-decoration: underline;
 		cursor: pointer;
-		min-height: 32px;
+		min-height: 44px;
 	}
 	.block {
 		display: flex;
@@ -389,7 +390,7 @@
 		display: flex;
 		gap: 8px;
 		align-items: center;
-		min-height: 32px;
+		min-height: 44px;
 		padding: 0;
 		border: 0;
 		background: none;
