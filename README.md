@@ -7,14 +7,14 @@ S.I.MO is a deterministic ordering engine behind one MCP server. Any buyer agent
 Three clients sit on top of the same tools, to show that no client is special:
 
 - **Phone**: a call with S.I.MO in the browser, on Gemini Live voice, with live captions. This is the main stage demo.
-- **Webshop**: a copy of the Aimo webshop page that registers the tools through WebMCP, so a browser agent can order there.
+- **Webshop**: a static page of our own in the Aimo webshop's style that registers the tools through WebMCP, so a browser agent can order there.
 - **Chat connector**: Claude, ChatGPT or any MCP client connects to the MCP server directly.
 
 No agent tool can confirm an order. The only place to confirm is the page behind the link. Every step goes into a hash-chained audit log and shows up live on a public dashboard.
 
 ## Try it
 
-The demo runs at **https://simo.mankeli.co**. It is being deployed: today it shows a placeholder page and the API health check (`/api/v1/health`). The demo screens appear there as they are released.
+The demo runs at **https://simo.mankeli.co**. The start page leads to the call, the webshop, the live dashboard and the connector setup.
 
 No real order is ever placed. In the demo, the confirmation link lands in a simulated phone inbox on the call page. Real SMS sits behind a flag that is off by default.
 
@@ -22,14 +22,23 @@ No real order is ever placed. In the demo, the confirmation link lands in a simu
 
 Built on `main` so far:
 
-- The shared contract: Pydantic models for the seven agent tools and the engine, with a stub engine that returns a fixed quote (`api/app/schemas/`, `api/app/engine/`).
+- The shared contract: Pydantic models for the eight agent tools and the engine (`api/app/schemas/`).
+- The engine pipeline: resolve, allergen and diet filter, availability and dates, units and rounding, ranking, substitution, price, sanity checks and the decision (`api/app/engine/`).
 - The rules as data (`policy/`) and their loader.
-- The catalogue tables and the loader for Valio's product file.
-- The FastAPI app with a health endpoint, Alembic migrations, Docker Compose, Caddy, Key Vault settings and CI.
-- The confirmation page `/c/[token]`, running against an in-memory fixture until its backend lands. Screenshots are in `docs/screenshots/confirmation-page/`.
-- The Gemini Live spike: Finnish recognition, latency and function calls (`spikes/gemini-live/`).
+- The catalogue tables, the loader for Valio's product file, and product search with full-text, trigram and name vectors.
+- The Valio API adapter with its rate limit, cache and snapshot mode.
+- Demo companies, accounts and their seeded order history.
+- The MCP server and the REST API, the quote service, quote hashes and JWS signatures, and the hash-chained audit log.
+- The confirmation request with the simulated phone inbox, the confirmation endpoints and the order record.
+- The confirmation page `/c/[token]`. Screenshots are in `docs/screenshots/confirmation-page/`.
+- The voice relay on Gemini Live, the S.I.MO system prompt, the start page, the call screen and the simulated phone.
+- The public dashboard, its API and its live stream.
+- The webshop page with the WebMCP tools.
+- OAuth for the Claude and OpenAI connectors.
+- The FastAPI app, Alembic migrations, Docker Compose, Caddy, Key Vault settings, CI and the deployment on the VM.
+- The Gemini Live spike: Finnish recognition, latency, function calls and a real voice (`spikes/gemini-live/`).
 
-Planned, and tracked in the issues: the engine pipeline, product search, the Valio API adapter, the MCP server and REST API, the audit log, the confirmation backend, the voice relay and call screen, the dashboard, the WebMCP webshop and the chat connectors.
+Still open, and tracked in the issues: real SMS through Twilio, recipes beyond the two fixture recipes, product images, the webshop chat panel (stretch), the ChatGPT desktop browser check of the webshop, and the stage rehearsal.
 
 ## Architecture
 
@@ -95,13 +104,13 @@ Never commit `.env` or any API key.
 | Folder | What is in it |
 |---|---|
 | `api/` | FastAPI app (Python 3.12, `uv`): the engine, services, adapters, the shared contract in `app/schemas/`, database models, loaders, Alembic migrations and tests |
-| `web/` | SvelteKit app: the confirmation page now, later the start page, call screen, dashboard and webshop |
+| `web/` | SvelteKit app: the start page, call screen and simulated phone, confirmation page, dashboard, webshop, and the connector login pages |
 | `policy/` | The engine's rules as versioned data: allergen rules, policy values, message templates in Finnish and English, unit names |
-| `data/` | Data files: Valio recipes and their product links, category names, allergen codes. The product file is downloaded here and not committed |
+| `data/` | Data files: Valio recipes and their product links, category names, allergen codes, the demo kitchens' order history, category substitutes and Valio snapshots. The product file is downloaded here and not committed |
 | `deploy/` | Docker Compose files, the Caddyfile and the VM's non-secret settings |
 | `docs/` | UI specs (`specs/`), the design export (`design/`), screenshots and issue plans |
 | `spikes/` | Throwaway experiments, for now the Gemini Live spike and its results |
-| `scripts/` | One-off tools: design export, recipe-to-product mapping, an availability date check |
+| `scripts/` | One-off tools: design export, recipe-to-product mapping, an availability date check, the webshop's product pick, hand-out accounts, the audit chain check and a voice smoke test |
 
 ## Read more
 
