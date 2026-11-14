@@ -18,7 +18,7 @@ Taken on 2026-11-14, in addition to vision.md:
 | Connector login | Our own OAuth 2.1 authorization server, built on the MCP Python SDK's auth routes, with our own email and password page |
 | Recipe embeddings | Gemini embeddings, stored in pgvector |
 | Clock | A business clock frozen at Thu 2026-11-12 09:00 for cutoffs and delivery dates. The real clock for the duplicate check, audit timestamps and quote expiry when it is on |
-| SMS after a call | When the call ends, the voice relay calls `request_confirmation` for the call's latest ready quote |
+| SMS after a call | Sent only if the visitor agreed. The agent calls `request_confirmation` once the visitor says yes during the call. The message is held and goes out when the call ends, also if the call drops. Without agreement nothing is sent (decided 2026-11-14, same as `docs/specs/call-screen.md`) |
 | Secrets | Azure Key Vault in production, with no `.env` on the VM. A local `.env` only on laptops for development (section 10.2) |
 
 Taken from the UI specs in `docs/specs/` (2026-11-14). The specs README says they win over vision.md until vision.md is updated:
@@ -273,8 +273,9 @@ sequenceDiagram
         R->>G: Tool response
         R-->>P: Agent audio (PCM 24 kHz)
     end
+    Note over R,M: Visitor agrees: request_confirmation, message held
     V->>P: Hangs up
-    R->>M: request_confirmation for the call's latest ready quote
+    R->>M: Call ended: release the held message
     M-->>P: Message with link in the simulated phone
     opt Twilio flag on and number on the allowlist
         M->>T: Send link to the account's number
@@ -284,11 +285,11 @@ sequenceDiagram
 
 - **Browser**: `getUserMedia`, an `AudioWorklet` that downsamples to 16 kHz 16-bit mono, binary WebSocket frames. Playback through a second worklet. When Gemini reports an interruption, the playback buffer is flushed so the caller can talk over the agent.
 - **Relay**: `google-genai` `client.aio.live.connect`, one asyncio task per direction. Sessions are held in memory, which is why the API runs as one process (section 10).
-- **After hang-up** (decided 2026-11-14): when the call ends, the relay calls `request_confirmation` for the call's latest ready quote. If there is no ready quote, no SMS goes out and the dashboard shows that the call ended without one. The agent never has to remember to send the link.
+- **Only after a yes** (decided 2026-11-14): the agent asks whether to send the confirmation link and calls `request_confirmation` only after the visitor clearly agrees. On the phone channel the service holds the message until the call ends. The relay's hang-up handler then releases it (an internal call, not an MCP tool), also when the call drops. If the visitor never agreed, nothing is sent, and the dashboard shows that the call ended without a confirmation request.
 - **Tool bridge**: at call start the relay lists the MCP tools and turns their JSON Schemas into Gemini function declarations. It authenticates to MCP as the identified caller with a short-lived token from our own auth server, so MCP treats the phone like any other client (vision §2: no client is special).
 - **Model and platform**: a 3.x Live model through the Gemini API (AI Studio key), not Vertex AI. Finnish is listed only for the 3.x audio models, and the Vertex "Configure language and voice" page does not list it. `gemini-3.8-live` is the candidate. Google's docs list synchronous and asynchronous function calling for it, and asynchronous calls let the agent keep talking while `build_quote` runs. Pick after the spike in M0.
 - **Finnish** (researched 2026-11-14): Finnish (`fi`) is in Google's table of additional languages for 3.x audio models, not in the base 24 that every audio model supports. The native audio models detect the language themselves and take no `language_code`. By default the agent follows the caller. The `call_language` setting can force Finnish or English, which becomes one line in the system prompt ("Always respond in Finnish"). Any of the 30 HD voices should work. Quality is not tested: recognition of product names and Finnish compound words may be weaker than for the major languages. Two existing parts of the design soften this: search tolerates typos (trigram), and the confirmation page shows what we understood next to what we added, so a misheard word is easy to spot (vision §6).
-- **System prompt** (ours, shared with the webshop chat): the agent is S.I.MO, greets the caller by company name and says it is an AI helper. Collect all lines, then one `build_quote`. One clarification per turn. Speak the top pick and at most one alternative (vision §5). Give the no-allergen-listing notice once, at the end. Never say the order is placed. Say the link comes to the phone after hanging up. When a decision cannot be overridden, say so and move on.
+- **System prompt** (ours, shared with the webshop chat): the agent is S.I.MO, greets the caller by company name and says it is an AI helper. Collect all lines, then one `build_quote`. One clarification per turn. Speak the top pick and at most one alternative (vision §5). Give the no-allergen-listing notice once, at the end. Never say the order is placed. Ask whether to send the confirmation link, call `request_confirmation` only after a clear yes, and say the link comes to the phone after hanging up. When a decision cannot be overridden, say so and move on.
 - **Ending the call**: the visitor hangs up, or the agent ends the call once the order is ready (`docs/specs/call-screen.md` §2.3). For that, the relay gives Gemini one local function, `end_call`, next to the MCP tools. It is not an MCP tool. *Proposed*: a maximum call length of 10 minutes, with the agent warning a minute before.
 - **Call screen** (`docs/specs/call-screen.md`, `docs/design` screens 10 to 14): phone-app flow (set up, Contacts, call, ended), phone on speaker with live captions for both sides, timer, mute, speaker, hang-up. Screen Wake Lock keeps the call alive. No proximity sensor (vision §9).
 
@@ -429,7 +430,7 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 | Server → browser | `ready` | none (Gemini session open) |
 | Server → browser | `interrupted` | none (flush playback, section 7.1) |
 | Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
-| Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` without a quote), `inbox` (true when the message is in the simulated phone) |
+| Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone) |
 
 `ended` arrives before the socket closes and covers the no-quote and SMS-failed cases. The link itself never travels on this socket: the simulated phone reads it from the inbox endpoint (section 9.2). Live captions need Gemini Live's input and output transcription turned on. Transcripts become `buyer_said` and `agent_said` audit events (`docs/specs/README.md`), with private payloads (section 9.5). They never enter the engine input (vision §5). Because the chain hashes over `payload_hash` (section 8.5), the text can be deleted after the event without breaking the chain.
 
@@ -516,7 +517,7 @@ These decisions were made after the specs were written, so the specs need an upd
 | Dashboard access | No login, everything public, including the conversation (`dashboard.md` §2, §3.3, §8; `call-screen.md` §2.1 notice) | General data public, conversation and contact details private behind the number-entry login (section 9.5) |
 | SMS | Twilio always sends (`call-screen.md` §2.4, §3; `confirmation-page.md` §2) | Every message goes to the simulated phone inbox. Twilio sits behind a flag that is off by default, for allowlisted numbers only (section 8.2). The per-number SMS limit in `call-screen.md` §6 then only matters for allowlisted numbers |
 | Link in the webshop chat | "Open confirmation page" card in the chat (`webshop-chat.md` §2, §4.4) | The inbox shows on the phone page only, because a browser agent works inside the shop page (vision §8). Webshop visitors read the link on the phone page in the same browser (*proposed*) |
-| When the SMS goes after a call | The agent calls `request_confirmation` once the visitor agrees, and the message waits for the end of the call (`call-screen.md` §2.4, §3; the example in `dashboard.md` §3.3) | The relay calls `request_confirmation` at hang-up for the call's latest ready quote (section 7.1). **This one needs a single answer**: should a ready quote the visitor never agreed to still be sent at hang-up? |
+
 
 ## 10. Hosting on Azure
 
@@ -634,8 +635,6 @@ The first review settled every other open question (section 1). These three get 
 1. **Nut-free set.** Whether pine nut (`PN`), coconut (`SO`) and peanut (`AP`) count as nuts. Vision §10 left this to old issue #6, which is not a source.
 2. **Demo order history.** The seeded order history a new demo company gets, so "my usual" works (vision §13, still open). The kitchen profile is chosen by the visitor (`docs/specs/call-screen.md` §2.2).
 3. **Operator login.** How Aimo operators log in to see every company's private data (vision §11). The public and private split and the buyers' login are decided (sections 9.2 and 9.5).
-
-Also open: the SMS timing question at the end of section 9.8.
 
 Input we are waiting for: the product image file (`code`, `name`, `img`).
 
