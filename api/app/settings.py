@@ -135,9 +135,19 @@ class Settings(BaseSettings):
     # 503 "chat not configured". Never given a default here.
     chat_model: str = ""
 
+    # Real SMS through Twilio (#46, technical-plan.md §8.2): only when the flag is on, all
+    # three Twilio settings are set (`twilio_enabled`) and the number is on the allowlist.
     sms_twilio_enabled: bool = False
-    # Comma-separated phone numbers in E.164 form that may get a real SMS.
+    # Comma-separated phone numbers in E.164 form that may get a real SMS. Real numbers, so
+    # Key Vault only (`sms-allowlist`), never the repo.
     sms_allowlist: str = ""
+    # Key Vault secrets `twilio-account-sid`, `twilio-auth-token` and `twilio-from-number`.
+    # The auth token also checks the signature of Twilio's status callbacks.
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    # The sender: a Twilio number in E.164 form (or an alphanumeric sender id, where the
+    # country and the account allow one).
+    twilio_from_number: str = ""
 
     session_secret: str = ""
 
@@ -223,6 +233,13 @@ class Settings(BaseSettings):
     @property
     def sms_allowlist_numbers(self) -> frozenset[str]:
         return frozenset(n.strip() for n in self.sms_allowlist.split(",") if n.strip())
+
+    @property
+    def twilio_enabled(self) -> bool:
+        """Real SMS is on: the flag, and every Twilio setting it needs to send."""
+        return self.sms_twilio_enabled and all(
+            (self.twilio_account_sid, self.twilio_auth_token, self.twilio_from_number)
+        )
 
 
 @lru_cache
