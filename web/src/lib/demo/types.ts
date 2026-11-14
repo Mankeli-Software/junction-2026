@@ -108,6 +108,8 @@ export interface EndedMessage {
 	total_cents: number | null;
 	delivery_status: DeliveryStatus;
 	inbox: boolean;
+	/** A link was still being sent when the call ended; it may still reach the inbox (#88). */
+	link_pending: boolean;
 }
 
 /**

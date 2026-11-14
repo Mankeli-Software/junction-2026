@@ -157,6 +157,8 @@ class Call:
         self.last_audio_at = 0.0
         self.last_filler_at = -FILLER_GAP_S
         self.ending = False
+        # A request_confirmation still running when the call ended: its link may arrive later.
+        self.link_pending = False
 
     # --- Running the call ---------------------------------------------------------------
 
@@ -241,7 +243,8 @@ class Call:
         # delivers its link at once (#88, `confirmations.call_in_progress`).
         running = [task for name, task in self.pending.values() if name == REQUEST_CONFIRMATION]
         if running:
-            await asyncio.wait(running, timeout=PENDING_TOOLS_S)
+            _, still_running = await asyncio.wait(running, timeout=PENDING_TOOLS_S)
+            self.link_pending = bool(still_running)
         # Let the log task finish its write, so no transcript line is cut off.
         await self._log_flushed()
         await self._cancel_tasks()
@@ -324,6 +327,8 @@ class Call:
                 # Twilio is off for now (#46), so a delivered link is `off`.
                 "delivery_status": "off" if released else "none",
                 "inbox": released,
+                # The call screen keeps waiting for the link instead of saying no order.
+                "link_pending": self.link_pending and not released,
                 # Public on the dashboard already; the live tests read the call back by it.
                 "session_id": str(self.start.session_id),
             }

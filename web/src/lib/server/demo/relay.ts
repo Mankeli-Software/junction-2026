@@ -271,7 +271,8 @@ function runCall(ws: WebSocket, sessionId: string | null, sendStates: boolean): 
 			quote_id: delivery?.quoteId ?? null,
 			total_cents: delivery?.totalCents ?? null,
 			delivery_status: delivery?.deliveryStatus ?? 'none',
-			inbox: delivery !== null
+			inbox: delivery !== null,
+			link_pending: false
 		});
 		if (ws.readyState === ws.OPEN) ws.close(1000, 'Call ended');
 	}

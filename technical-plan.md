@@ -439,7 +439,7 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 | Server → browser | `interrupted` | none (flush playback, section 7.1) |
 | Server → browser | `agent_state` | `state` (`listening`, `thinking`, `working` or `speaking`), `tool` (the tool name while `working`, otherwise null). See below |
 | Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
-| Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `delivery_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone) |
+| Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `delivery_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone), `link_pending` (true when a `request_confirmation` was still running at the end, so its link may still reach the inbox; #88) |
 
 `agent_state` (decided 2026-11-14 in #54, sent by the relay in `api/app/interfaces/voice/relay.py`) drives the call screen's activity indicator (`docs/specs/call-screen.md` §2.3). The relay sends it only when the state changes:
 

@@ -524,8 +524,10 @@ def test_hang_up_releases_the_link_and_never_sends_it(call):
         "total_cents",
         "delivery_status",
         "inbox",
+        "link_pending",
         "session_id",
     }
+    assert ended["link_pending"] is False
     assert ended["session_id"] == str(fx.SESSION_ID)
     assert service.ended[0]["ended_by"] == "visitor"
     assert all(fx.LINK_LIKE not in text and fx.TOKEN not in text for text in sock.raw_texts)
@@ -540,6 +542,24 @@ def test_a_call_without_a_yes_ends_with_nothing_sent(call):
         ended = sock.hang_up()
     assert ended["inbox"] is False and ended["delivery_status"] == "none"
     assert ended["quote_id"] is None and ended["total_cents"] is None
+    assert ended["link_pending"] is False
+
+
+def test_a_link_still_on_its_way_at_hang_up_is_pending(call, monkeypatch):
+    # #88: the relay stops waiting for a slow request_confirmation, whose link the
+    # server then delivers after the call; the call screen keeps waiting for it.
+    live, tools, _ = call
+    monkeypatch.setattr(relay, "PENDING_TOOLS_S", 0.1)
+    with connect() as ws:
+        sock = Socket(ws)
+        greet(live, sock)
+        live.push(fx.heard("Kyllä."))
+        tools.delay = 5.0
+        live.push(fx.tool_call("request_confirmation", {"quote_id": "q-1"}))
+        live.wait_for(lambda: len(tools.calls) == 1)
+        ended = sock.hang_up()
+    assert ended["inbox"] is False and ended["delivery_status"] == "none"
+    assert ended["link_pending"] is True
 
 
 def test_a_dropped_socket_still_releases(call):

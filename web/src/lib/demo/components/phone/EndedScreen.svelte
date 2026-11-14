@@ -31,6 +31,8 @@
 		oncontacts: () => void;
 	} = $props();
 
+	const LINK_PENDING_MS = 15_000;
+
 	// A tap meant for hang-up can still be on its way when this screen appears.
 	let armed = $state(false);
 	$effect(() => {
@@ -40,7 +42,17 @@
 
 	const ended = $derived(call.ended);
 	const length = $derived(duration(ended?.duration_s ?? call.elapsed(Date.now())));
-	const expectQuote = $derived(message !== null || ended?.inbox === true);
+
+	// A link still being sent at hang-up reaches the inbox a moment later (#88). Wait for
+	// it, but not forever: the server may have dropped it with the call.
+	let pendingGaveUp = $state(false);
+	$effect(() => {
+		if (!ended?.link_pending) return;
+		const timer = setTimeout(() => (pendingGaveUp = true), LINK_PENDING_MS);
+		return () => clearTimeout(timer);
+	});
+	const linkPending = $derived(ended?.link_pending === true && !pendingGaveUp);
+	const expectQuote = $derived(message !== null || ended?.inbox === true || linkPending);
 	const title = $derived(
 		ended?.total_cents != null ? t(lang, 'notifTitle', { total: money(ended.total_cents) }) : t(lang, 'notifTitlePlain')
 	);
