@@ -98,6 +98,10 @@ class Settings(BaseSettings):
 
     session_secret: str = ""
 
+    # Rule files (technical-plan.md §4.3). The container mounts them read-only.
+    policy_dir: Path = REPO_ROOT / "policy"
+    data_dir: Path = REPO_ROOT / "data"
+
     @classmethod
     def settings_customise_sources(
         cls,

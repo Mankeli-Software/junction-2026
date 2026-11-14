@@ -17,6 +17,15 @@
 #
 # A test fails if a code the engine emits has no entry here, or an entry has no code.
 
+# English containment phrases for {containment_en}. The Finnish ones ({containment_fi})
+# are phrase_fi in data/allergen_containment_levels.csv.
+containment_en:
+  CONTAINS: contains
+  MAY_CONTAIN: may contain
+  FREE_FROM: is free from
+  UNDECLARED: has undetermined allergen information for
+  NO_LISTING: has no allergen information for
+
 codes:
   # --- Validate and resolve ---
   INPUT_INVALID:

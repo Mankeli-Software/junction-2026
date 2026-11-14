@@ -1,0 +1,206 @@
+"""Load and validate the engine rule set from `policy/` and `data/` (#35).
+
+The engine is pure, so this is the only place that reads the rule files. A rule
+set that fails any check is refused as a whole: the API must not start on rules
+that are half right.
+"""
+
+import csv
+import hashlib
+import io
+import string
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+import yaml
+from pydantic import ValidationError
+
+from app.engine.codes import TEMPLATE_FIELDS, Containment, KitchenChoice, ReasonCode
+from app.engine.rules import (
+    AllergenName,
+    ContainmentPhrase,
+    KitchenRule,
+    Message,
+    Policy,
+    RuleSet,
+    UnitName,
+)
+from app.settings import get_settings
+
+POLICY_FILES = ("policy.yaml", "allergen_rules.yaml", "messages.yaml", "unit_codes.csv")
+DATA_FILES = ("gs1_allergen_codes.csv", "allergen_containment_levels.csv")
+
+# "No obligatory allergens present". Never a hazard, so it may not be blocked on.
+NOT_AN_ALLERGEN = "X99"
+
+
+class PolicyError(ValueError):
+    """The rule files are missing, malformed or inconsistent."""
+
+    def __init__(self, problems: list[str]):
+        self.problems = problems
+        super().__init__("Invalid rule set:\n" + "\n".join(f"- {p}" for p in problems))
+
+
+def load_rule_set(policy_dir: Path, data_dir: Path) -> RuleSet:
+    sources = {f"policy/{n}": policy_dir / n for n in POLICY_FILES} | {
+        f"data/{n}": data_dir / n for n in DATA_FILES
+    }
+    missing = [name for name, path in sources.items() if not path.is_file()]
+    if missing:
+        raise PolicyError([f"missing file {name}" for name in missing])
+    raw = {name: path.read_bytes() for name, path in sources.items()}
+
+    problems: list[str] = []
+    try:
+        rule_set = _build(raw, problems)
+    except (yaml.YAMLError, ValidationError, KeyError, TypeError, ValueError) as exc:
+        raise PolicyError([*problems, str(exc)]) from exc
+    if problems:
+        raise PolicyError(problems)
+    return rule_set
+
+
+@lru_cache
+def get_rule_set() -> RuleSet:
+    """The rule set the running API uses, loaded once per process."""
+    settings = get_settings()
+    return load_rule_set(settings.policy_dir, settings.data_dir)
+
+
+def content_hash(raw: dict[str, bytes]) -> str:
+    digest = hashlib.sha256()
+    for name in sorted(raw):
+        digest.update(name.encode() + b"\0" + raw[name] + b"\0")
+    return digest.hexdigest()
+
+
+def _build(raw: dict[str, bytes], problems: list[str]) -> RuleSet:
+    policy = Policy.model_validate(_yaml(raw["policy/policy.yaml"]))
+    allergens = _allergens(raw["data/gs1_allergen_codes.csv"])
+    kitchen = _kitchen(_yaml(raw["policy/allergen_rules.yaml"]), allergens, problems)
+    messages_doc = _yaml(raw["policy/messages.yaml"])
+    messages = _messages(messages_doc.get("codes") or {}, problems)
+    containment = _containment(
+        raw["data/allergen_containment_levels.csv"],
+        messages_doc.get("containment_en") or {},
+        problems,
+    )
+    units = _units(raw["policy/unit_codes.csv"], problems)
+
+    return RuleSet(
+        version=policy.version,
+        content_hash=content_hash(raw),
+        policy=policy,
+        kitchen=kitchen,
+        messages=messages,
+        containment=containment,
+        units=units,
+        allergens=allergens,
+    )
+
+
+def _yaml(data: bytes) -> dict[str, Any]:
+    doc = yaml.safe_load(data)
+    if not isinstance(doc, dict):
+        raise ValueError("a policy YAML file is not a mapping")
+    return doc
+
+
+def _csv(data: bytes) -> list[dict[str, str]]:
+    return list(csv.DictReader(io.StringIO(data.decode("utf-8"))))
+
+
+def _allergens(data: bytes) -> dict[str, AllergenName]:
+    return {
+        row["code"]: AllergenName(
+            gs1_label=row["gs1_label"],
+            eu_group=row["eu_1169_2011_group"] or None,
+            name_fi=row["name_fi"],
+            name_fi_partitive=row["name_fi_partitive"] or None,
+        )
+        for row in _csv(data)
+    }
+
+
+def _kitchen(
+    doc: dict[str, Any], allergens: dict[str, AllergenName], problems: list[str]
+) -> dict[KitchenChoice, KitchenRule]:
+    choices = doc.get("choices") or {}
+    _same_keys(
+        "allergen_rules.yaml choices", set(choices), {c.value for c in KitchenChoice}, problems
+    )
+
+    kitchen: dict[KitchenChoice, KitchenRule] = {}
+    for key, body in choices.items():
+        if key not in KitchenChoice.__members__.values():
+            continue
+        rule = KitchenRule.model_validate(body)
+        codes = list(rule.block)
+        if rule.block_unless_claim:
+            codes += rule.block_unless_claim.codes
+        for code in codes:
+            if code == NOT_AN_ALLERGEN:
+                problems.append(f"{key}: {NOT_AN_ALLERGEN} is not an allergen and must not block")
+            elif code not in allergens:
+                problems.append(f"{key}: unknown allergen code {code}")
+        if not codes and not rule.require_claim:
+            problems.append(f"{key}: blocks nothing")
+        kitchen[KitchenChoice(key)] = rule
+    return kitchen
+
+
+def _messages(doc: dict[str, Any], problems: list[str]) -> dict[ReasonCode, Message]:
+    _same_keys("messages.yaml codes", set(doc), {c.value for c in ReasonCode}, problems)
+
+    messages: dict[ReasonCode, Message] = {}
+    for key, body in doc.items():
+        if key not in ReasonCode.__members__.values():
+            continue
+        message = Message.model_validate(body)
+        if message.kind == "flag" and message.ack is None:
+            problems.append(f"{key}: a flag must say whether the buyer acknowledges it (ack)")
+        if message.kind == "reason" and message.ack is not None:
+            problems.append(f"{key}: only flags take ack")
+        for lang in ("fi", "en"):
+            unknown = _placeholders(getattr(message, lang)) - TEMPLATE_FIELDS
+            if unknown:
+                problems.append(f"{key} ({lang}): unknown placeholder {sorted(unknown)}")
+        messages[ReasonCode(key)] = message
+    return messages
+
+
+def _containment(
+    data: bytes, english: dict[str, str], problems: list[str]
+) -> dict[Containment, ContainmentPhrase]:
+    finnish = {row["value"]: row["phrase_fi"] for row in _csv(data)}
+    expected = {c.value for c in Containment}
+    _same_keys("allergen_containment_levels.csv", set(finnish), expected, problems)
+    _same_keys("messages.yaml containment_en", set(english), expected, problems)
+    return {
+        level: ContainmentPhrase(fi=finnish[level], en=english[level])
+        for level in Containment
+        if level in finnish and level in english
+    }
+
+
+def _units(data: bytes, problems: list[str]) -> dict[str, UnitName]:
+    units: dict[str, UnitName] = {}
+    for row in _csv(data):
+        code = row.pop("code")
+        if code in units:
+            problems.append(f"unit_codes.csv: duplicate code {code}")
+        units[code] = UnitName.model_validate(row)
+    return units
+
+
+def _placeholders(template: str) -> set[str]:
+    return {field for _, field, _, _ in string.Formatter().parse(template) if field is not None}
+
+
+def _same_keys(where: str, found: set[str], expected: set[str], problems: list[str]) -> None:
+    for key in sorted(expected - found):
+        problems.append(f"{where}: missing {key}")
+    for key in sorted(found - expected):
+        problems.append(f"{where}: unknown {key}")
