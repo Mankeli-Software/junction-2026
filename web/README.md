@@ -7,6 +7,7 @@ pnpm install
 pnpm dev                                  # http://localhost:5173
 pnpm check                                # svelte-check
 pnpm build                                # node build in build/
+pnpm test                                 # Vitest unit tests
 pnpm exec playwright install chromium     # once, for the end-to-end tests
 pnpm test:e2e                             # Playwright: builds the app and runs it against the fixtures
 ```
@@ -28,8 +29,9 @@ The server reads them from its process environment, for example `CONFIRMATION_SO
 |---|---|
 | `/` | Placeholder for the demo start page |
 | `/c/[token]` | The confirmation page (`docs/specs/confirmation-page.md`) |
+| `/dashboard` | The live order dashboard (`docs/specs/dashboard.md`, #50) |
 
-The other pages (start, call screen, dashboard, webshop) are not built yet.
+The other pages (start, call screen, webshop) are not built yet.
 
 ### Fixture tokens
 
@@ -53,3 +55,7 @@ For example http://localhost:5173/c/fx-ready-mine. The fixture keeps its state i
 ```sh
 SCREENSHOTS=1 pnpm exec playwright test screenshots --project=phone
 ```
+
+## Dashboard on mock data
+
+The dashboard (`/dashboard`, #50) without the API: `PUBLIC_DASHBOARD_MOCK=1 pnpm dev`, then open http://localhost:5173/dashboard. It serves the fixtures in `src/lib/dashboard/fixtures/` and replays fake live events. `/dashboard/s_2611_0042_tampered/audit` shows a broken chain. Without the flag the server-side loads call FastAPI at `API_INTERNAL_URL` (default `http://localhost:8000`, `http://api:8000` inside Compose). After changing the hash format in `src/lib/dashboard/hash.ts`, regenerate the fixtures with `pnpm fixtures`.
