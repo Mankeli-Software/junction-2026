@@ -1,0 +1,200 @@
+{
+	"business_now": "2026-11-12T09:00:00+02:00",
+	"totals": {
+		"active": 2,
+		"waiting": 2,
+		"confirmed": 9,
+		"attention": 1,
+		"confirmed_cents": 421000,
+		"by_channel": { "phone": 6, "web_chat": 3, "webmcp": 3, "mcp": 2 }
+	},
+	"companies": [
+		{
+			"name": "Hassu Hauki Oy",
+			"exclusions": ["milk_free", "nut_free"],
+			"orders": [
+				{
+					"session_id": "s_2611_0043",
+					"order_number": null,
+					"channel": "phone",
+					"client": "phone",
+					"identity_masked": "+358 40 *** **12",
+					"state": "in_conversation",
+					"state_since": "2026-11-12T10:41:02+02:00",
+					"title": {
+						"en": "5 kg ground beef by Monday, and more",
+						"fi": "5 kg jauhelihaa maanantaiksi, ja muuta"
+					},
+					"step_text": { "en": "Checking stock for 6 products", "fi": "Tarkistetaan saldo 6 tuotteelle" },
+					"line_count": 2,
+					"total_cents": null,
+					"flags": [],
+					"next_step": null,
+					"delivery_date": "2026-11-16"
+				},
+				{
+					"session_id": "s_2611_0042",
+					"order_number": "D-1042",
+					"channel": "phone",
+					"client": "phone",
+					"identity_masked": "+358 40 *** **12",
+					"state": "confirmed",
+					"state_since": "2026-11-12T10:04:12+02:00",
+					"title": {
+						"en": "5 kg ground beef, by Monday + 2 more",
+						"fi": "5 kg jauhelihaa maanantaiksi + 2 muuta"
+					},
+					"step_text": null,
+					"line_count": 3,
+					"total_cents": 12840,
+					"flags": [
+						{ "code": "rounded_up", "short": { "en": "rounded up", "fi": "pyöristetty" } },
+						{ "code": "stock_unverified", "short": { "en": "stock not confirmed", "fi": "saldo vahvistamatta" } },
+						{ "code": "no_allergen_info", "short": { "en": "no allergen info", "fi": "ei allergeenitietoa" } }
+					],
+					"next_step": null,
+					"delivery_date": "2026-11-16"
+				},
+				{
+					"session_id": "s_2611_0039",
+					"order_number": "D-1039",
+					"channel": "web_chat",
+					"client": "web chat",
+					"identity_masked": "+358 40 *** **12",
+					"state": "confirmed",
+					"state_since": "2026-11-12T09:12:30+02:00",
+					"title": { "en": "My usual oat drink, 12 l", "fi": "Tavallinen kaurajuoma, 12 l" },
+					"step_text": null,
+					"line_count": 1,
+					"total_cents": 2580,
+					"flags": [],
+					"next_step": null,
+					"delivery_date": "2026-11-16"
+				}
+			]
+		},
+		{
+			"name": "Kaalikääryle Oy",
+			"exclusions": ["gluten_free"],
+			"orders": [
+				{
+					"session_id": "s_2611_0044",
+					"order_number": null,
+					"channel": "webmcp",
+					"client": "browser agent",
+					"identity_masked": null,
+					"state": "in_conversation",
+					"state_since": "2026-11-12T10:40:00+02:00",
+					"title": {
+						"en": "40 kg peeled potatoes and 12 l cream, by Monday",
+						"fi": "40 kg kuorittuja perunoita ja 12 l kermaa maanantaiksi"
+					},
+					"step_text": {
+						"en": "Outside OpenAI agent on the webshop page",
+						"fi": "Ulkopuolinen OpenAI-agentti verkkokaupan sivulla"
+					},
+					"line_count": 2,
+					"total_cents": null,
+					"flags": [],
+					"next_step": null,
+					"delivery_date": "2026-11-16"
+				}
+			]
+		},
+		{
+			"name": "Lihapulla ja Pojat Oy",
+			"exclusions": [],
+			"orders": [
+				{
+					"session_id": "s_2611_0040",
+					"order_number": null,
+					"channel": "phone",
+					"client": "phone",
+					"identity_masked": "+358 50 *** **87",
+					"state": "awaiting_confirmation",
+					"state_since": "2026-11-12T10:39:00+02:00",
+					"title": {
+						"en": "1,000 l lactose-free milk by Monday",
+						"fi": "1 000 l laktoositonta maitoa maanantaiksi"
+					},
+					"step_text": null,
+					"line_count": 1,
+					"total_cents": 115000,
+					"flags": [
+						{ "code": "stock_unverified", "short": { "en": "stock not confirmed", "fi": "saldo vahvistamatta" } },
+						{ "code": "new_product", "short": { "en": "new product", "fi": "uusi tuote" } }
+					],
+					"next_step": null,
+					"delivery_date": "2026-11-16"
+				}
+			]
+		},
+		{
+			"name": "Pannukakku Paja Oy",
+			"exclusions": ["milk_free"],
+			"orders": [
+				{
+					"session_id": "s_2611_0036",
+					"order_number": "D-1036",
+					"channel": "web_chat",
+					"client": "web chat",
+					"identity_masked": "+358 44 *** **03",
+					"state": "confirmed",
+					"state_since": "2026-11-12T08:51:10+02:00",
+					"title": {
+						"en": "Milk-free lunch menu, Mon to Fri, 80 people",
+						"fi": "Maidoton lounaslista, ma–pe, 80 henkeä"
+					},
+					"step_text": null,
+					"line_count": 14,
+					"recipe_count": 5,
+					"total_cents": 61230,
+					"flags": [],
+					"next_step": null,
+					"delivery_date": "2026-11-16"
+				},
+				{
+					"session_id": "s_2611_0041",
+					"order_number": null,
+					"channel": "webmcp",
+					"client": "browser agent",
+					"identity_masked": "+358 44 *** **03",
+					"state": "awaiting_confirmation",
+					"state_since": "2026-11-12T10:35:00+02:00",
+					"title": { "en": "Oat cream 1 l, 30 pcs", "fi": "Kaurakerma 1 l, 30 kpl" },
+					"step_text": null,
+					"line_count": 1,
+					"total_cents": 7470,
+					"flags": [],
+					"next_step": null,
+					"delivery_date": "2026-11-16"
+				}
+			]
+		},
+		{
+			"name": "Sienimetsä Oy",
+			"exclusions": ["gluten_free"],
+			"orders": [
+				{
+					"session_id": "s_2611_0038",
+					"order_number": null,
+					"channel": "mcp",
+					"client": "Claude",
+					"identity_masked": "s***@example.com",
+					"state": "sms_failed",
+					"state_since": "2026-11-12T10:20:00+02:00",
+					"title": { "en": "My usual butter, 20 kg", "fi": "Tavallinen voi, 20 kg" },
+					"step_text": null,
+					"line_count": 1,
+					"total_cents": 18800,
+					"flags": [],
+					"next_step": {
+						"en": "Next: the agent offers to resend the link",
+						"fi": "Seuraavaksi: agentti tarjoaa linkin uudelleen"
+					},
+					"delivery_date": "2026-11-16"
+				}
+			]
+		}
+	]
+}

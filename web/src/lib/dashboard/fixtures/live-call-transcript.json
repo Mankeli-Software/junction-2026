@@ -1,0 +1,20 @@
+[
+	{
+		"at": "2026-11-12T10:41:09+02:00",
+		"who": "buyer",
+		"text": "Five kilos of ground beef for Monday, and a few other things.",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:41:16+02:00",
+		"who": "agent",
+		"text": "Beef mince 10 %, two 2.5 kg packs for Monday. What else?",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:41:24+02:00",
+		"who": "buyer",
+		"text": "Two kilos of butter, the lactose-free one.",
+		"lang": "en"
+	}
+]

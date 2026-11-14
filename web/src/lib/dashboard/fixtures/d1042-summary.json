@@ -1,0 +1,201 @@
+{
+	"session_id": "s_2611_0042",
+	"order_number": "D-1042",
+	"company": { "name": "Hassu Hauki Oy", "exclusions": ["milk_free", "nut_free"] },
+	"channel": "phone",
+	"client": "phone",
+	"identity_masked": "+358 40 *** **12",
+	"state": "confirmed",
+	"state_since": "2026-11-12T10:04:12+02:00",
+	"status_line": {
+		"en": "by the buyer, after checking 3 flags",
+		"fi": "ostajan toimesta, 3 huomion tarkistamisen jälkeen"
+	},
+	"delivery_date": "2026-11-16",
+	"total_cents": 12840,
+	"agent": { "name": { "en": "Gemini voice agent", "fi": "Gemini-puheagentti" }, "prompt_version": "v7" },
+	"quote": {
+		"id": "q_7f3a",
+		"version": 1,
+		"hash": "b51c0e6a2f1d9c7e4a3b8f20d6e1c9a75f3e2b8d4c6a1f09e7d3b5c2a8f4e610"
+	},
+	"signature_valid": true,
+	"requests": [
+		{
+			"request_id": "r1",
+			"asked": { "text": "ground beef", "quantity": 5, "unit": "kg", "package_word": null, "needed_by": "2026-11-16" },
+			"asked_text": { "en": "5 kg ground beef, by Monday", "fi": "5 kg jauhelihaa maanantaiksi" },
+			"group": null,
+			"not_ordered": [],
+			"lines": [
+				{
+					"line_id": "l1",
+					"product_id": "801922",
+					"name": { "en": "Beef mince 10 % 2,5 kg", "fi": "Naudan jauheliha 10 % 2,5 kg" },
+					"image_url": null,
+					"sales_unit": "pcs",
+					"sales_unit_label": { "en": "pcs", "fi": "kpl" },
+					"quantity_sales_units": 2,
+					"quantity_in_asked_unit": 5,
+					"unit_price_gross": 20.95,
+					"price_per_base_unit": 8.38,
+					"base_unit": "kg",
+					"line_total_cents": 4190,
+					"delivery_date": "2026-11-16",
+					"stock_status": "verified",
+					"reason_text": { "en": "Cheapest mince that arrives Monday", "fi": "Halvin jauheliha, joka ehtii maanantaiksi" },
+					"trace": {
+						"found": 14,
+						"left": 5,
+						"ranking_rule": { "en": "Ranked by price", "fi": "Hinnan mukaan" },
+						"removed": [
+							{
+								"reason_code": "arrives_late",
+								"count": 4,
+								"text": { "en": "arrive after Monday", "fi": "saapuu maanantain jälkeen" },
+								"products": [
+									{ "product_id": "806330", "name": { "en": "Lamb mince 1 kg", "fi": "Lampaan jauheliha 1 kg" } },
+									{ "product_id": "806402", "name": { "en": "Game mince 500 g", "fi": "Riistajauheliha 500 g" } },
+									{ "product_id": "801977", "name": { "en": "Beef mince 5 % 5 kg", "fi": "Naudan jauheliha 5 % 5 kg" } },
+									{ "product_id": "802018", "name": { "en": "Veal mince 1 kg", "fi": "Vasikan jauheliha 1 kg" } }
+								]
+							},
+							{
+								"reason_code": "out_of_stock",
+								"count": 3,
+								"text": { "en": "out of stock", "fi": "loppu varastosta" },
+								"products": [
+									{ "product_id": "801933", "name": { "en": "Beef mince 15 % 2 kg", "fi": "Naudan jauheliha 15 % 2 kg" } },
+									{ "product_id": "802115", "name": { "en": "Pork and beef mince 1 kg", "fi": "Sika-nauta jauheliha 1 kg" } },
+									{ "product_id": "806511", "name": { "en": "Organic beef mince 400 g", "fi": "Luomu naudan jauheliha 400 g" } }
+								]
+							},
+							{
+								"reason_code": "contains_allergen",
+								"count": 2,
+								"text": { "en": "contain milk (AM, CONTAINS)", "fi": "sisältää maitoa (AM, CONTAINS)" },
+								"products": [
+									{ "product_id": "803440", "name": { "en": "Meatball mix 2 kg", "fi": "Lihapullamassa 2 kg" } },
+									{ "product_id": "803452", "name": { "en": "Burger patty mince 2 kg", "fi": "Pihvimassa 2 kg" } }
+								]
+							}
+						],
+						"ranked": [
+							{ "rank": 1, "product_id": "801922", "name": { "en": "Beef mince 10 % 2,5 kg", "fi": "Naudan jauheliha 10 % 2,5 kg" }, "price_per_base_unit": 8.38, "stock_status": "verified", "chosen": true },
+							{ "rank": 2, "product_id": "801455", "name": { "en": "Finnish beef mince 17 % 1 kg", "fi": "Kotimainen naudan jauheliha 17 % 1 kg" }, "price_per_base_unit": 9.9, "stock_status": "verified", "chosen": false },
+							{ "rank": 3, "product_id": "802310", "name": { "en": "Beef and pork mince 2 kg", "fi": "Nauta-sika jauheliha 2 kg" }, "price_per_base_unit": 10.2, "stock_status": "verified", "chosen": false },
+							{ "rank": 4, "product_id": "806121", "name": { "en": "Organic beef mince 2 kg", "fi": "Luomu naudan jauheliha 2 kg" }, "price_per_base_unit": 13.45, "stock_status": "unverified", "chosen": false },
+							{ "rank": 5, "product_id": "801907", "name": { "en": "Beef mince 7 % 400 g", "fi": "Naudan jauheliha 7 % 400 g" }, "price_per_base_unit": 14.7, "stock_status": "verified", "chosen": false }
+						]
+					}
+				}
+			]
+		},
+		{
+			"request_id": "r2",
+			"asked": { "text": "my usual oat drink", "quantity": 20, "unit": "l", "package_word": null, "needed_by": "2026-11-16" },
+			"asked_text": { "en": "My usual oat drink, 20 l", "fi": "Tavallinen kaurajuoma, 20 l" },
+			"group": null,
+			"not_ordered": [],
+			"lines": [
+				{
+					"line_id": "l2",
+					"product_id": "465120",
+					"name": { "en": "Oat drink 1 l", "fi": "Kaurajuoma 1 l" },
+					"image_url": null,
+					"sales_unit": "case",
+					"sales_unit_label": { "en": "cases", "fi": "ltk" },
+					"quantity_sales_units": 2,
+					"quantity_in_asked_unit": 24,
+					"unit_price_gross": 25.8,
+					"price_per_base_unit": 2.15,
+					"base_unit": "l",
+					"line_total_cents": 5160,
+					"delivery_date": "2026-11-16",
+					"stock_status": "verified",
+					"reason_text": { "en": "The one this kitchen usually orders", "fi": "Tämän keittiön tavallinen tuote" },
+					"trace": {
+						"found": 6,
+						"left": 3,
+						"ranking_rule": { "en": "Ranked by order history", "fi": "Tilaushistorian mukaan" },
+						"removed": [
+							{ "reason_code": "out_of_stock", "count": 2, "text": { "en": "out of stock", "fi": "loppu varastosta" } },
+							{ "reason_code": "arrives_late", "count": 1, "text": { "en": "arrive after Monday", "fi": "saapuu maanantain jälkeen" } }
+						],
+						"ranked": [
+							{ "rank": 1, "product_id": "465120", "name": { "en": "Oat drink 1 l", "fi": "Kaurajuoma 1 l" }, "price_per_base_unit": 2.15, "stock_status": "verified", "chosen": true },
+							{ "rank": 2, "product_id": "465301", "name": { "en": "Barista oat drink 1 l", "fi": "Barista-kaurajuoma 1 l" }, "price_per_base_unit": 2.45, "stock_status": "verified", "chosen": false },
+							{ "rank": 3, "product_id": "465330", "name": { "en": "Organic oat drink 1 l", "fi": "Luomu kaurajuoma 1 l" }, "price_per_base_unit": 2.9, "stock_status": "verified", "chosen": false }
+						]
+					}
+				}
+			]
+		},
+		{
+			"request_id": "r3",
+			"asked": { "text": "rapeseed oil", "quantity": 10, "unit": "l", "package_word": null, "needed_by": "2026-11-16" },
+			"asked_text": { "en": "10 l rapeseed oil", "fi": "10 l rypsiöljyä" },
+			"group": null,
+			"not_ordered": [],
+			"lines": [
+				{
+					"line_id": "l3",
+					"product_id": "412877",
+					"name": { "en": "Rapeseed oil 5 l", "fi": "Rypsiöljy 5 l" },
+					"image_url": null,
+					"sales_unit": "pcs",
+					"sales_unit_label": { "en": "pcs", "fi": "kpl" },
+					"quantity_sales_units": 2,
+					"quantity_in_asked_unit": 10,
+					"unit_price_gross": 17.45,
+					"price_per_base_unit": 3.49,
+					"base_unit": "l",
+					"line_total_cents": 3490,
+					"delivery_date": "2026-11-16",
+					"stock_status": "unverified",
+					"reason_text": { "en": "Cheapest nut-free oil that arrives Monday", "fi": "Halvin pähkinätön öljy, joka ehtii maanantaiksi" },
+					"trace": {
+						"found": 9,
+						"left": 5,
+						"ranking_rule": { "en": "Ranked by price", "fi": "Hinnan mukaan" },
+						"removed": [
+							{ "reason_code": "out_of_stock", "count": 2, "text": { "en": "out of stock", "fi": "loppu varastosta" } },
+							{ "reason_code": "arrives_late", "count": 1, "text": { "en": "arrive after Monday", "fi": "saapuu maanantain jälkeen" } },
+							{ "reason_code": "contains_allergen", "count": 1, "text": { "en": "may contain nuts (MPÄ, MAY_CONTAIN)", "fi": "voi sisältää pähkinöitä (MPÄ, MAY_CONTAIN)" } }
+						],
+						"ranked": [
+							{ "rank": 1, "product_id": "412877", "name": { "en": "Rapeseed oil 5 l", "fi": "Rypsiöljy 5 l" }, "price_per_base_unit": 3.49, "stock_status": "unverified", "chosen": true },
+							{ "rank": 2, "product_id": "412802", "name": { "en": "Rapeseed oil 1 l", "fi": "Rypsiöljy 1 l" }, "price_per_base_unit": 3.95, "stock_status": "verified", "chosen": false },
+							{ "rank": 3, "product_id": "412950", "name": { "en": "Cold-pressed rapeseed oil 3 l", "fi": "Kylmäpuristettu rypsiöljy 3 l" }, "price_per_base_unit": 6.3, "stock_status": "verified", "chosen": false },
+							{ "rank": 4, "product_id": "413011", "name": { "en": "Frying oil 10 l", "fi": "Paistoöljy 10 l" }, "price_per_base_unit": 3.12, "stock_status": "unavailable", "chosen": false },
+							{ "rank": 5, "product_id": "412811", "name": { "en": "Rapeseed oil 0,9 l", "fi": "Rypsiöljy 0,9 l" }, "price_per_base_unit": 4.2, "stock_status": "verified", "chosen": false }
+						]
+					}
+				}
+			]
+		}
+	],
+	"flags": [
+		{
+			"flag_key": "rounded_up:l2",
+			"code": "rounded_up",
+			"text": { "en": "Rounded up 20 l → 24 l", "fi": "Pyöristetty ylös 20 l → 24 l" },
+			"detail": { "en": "Kept 24 l over the exact-fit option", "fi": "Valitsi 24 l tarkan määrän sijaan" },
+			"acknowledged_at": "2026-11-12T10:04:01+02:00"
+		},
+		{
+			"flag_key": "stock_unverified:l3",
+			"code": "stock_unverified",
+			"text": { "en": "Stock not confirmed", "fi": "Saldoa ei vahvistettu" },
+			"detail": { "en": "Rapeseed oil 5 l", "fi": "Rypsiöljy 5 l" },
+			"acknowledged_at": "2026-11-12T10:03:58+02:00"
+		},
+		{
+			"flag_key": "no_allergen_info:l3",
+			"code": "no_allergen_info",
+			"text": { "en": "No allergen info listed", "fi": "Allergeenitietoja ei ole" },
+			"detail": { "en": "Rapeseed oil 5 l", "fi": "Rypsiöljy 5 l" },
+			"acknowledged_at": "2026-11-12T10:04:05+02:00"
+		}
+	]
+}

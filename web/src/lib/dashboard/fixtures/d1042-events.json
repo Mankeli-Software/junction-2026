@@ -1,0 +1,881 @@
+[
+	{
+		"seq": 1201,
+		"order_index": 1,
+		"at": "2026-11-12T10:02:14+02:00",
+		"actor": "relay",
+		"type": "session_started",
+		"text": {
+			"en": "Call started. Caller identified as Hassu Hauki Oy (returning). Kitchen avoids milk and nuts.",
+			"fi": "Puhelu alkoi. Soittaja tunnistettiin: Hassu Hauki Oy (palaava). Keittiö välttää maitoa ja pähkinöitä."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"channel": "phone",
+			"company": "Hassu Hauki Oy",
+			"returning": true,
+			"exclusions": [
+				"milk_free",
+				"nut_free"
+			],
+			"identity_masked": "+358 40 *** **12",
+			"agent": "gemini-voice",
+			"prompt_version": "v7"
+		},
+		"payload_hash": "6205520290ad953d2b0f7df5da42d441c7d33936136017c6ee4f5282e8a8fdbc",
+		"prev_hash": "52422481c81f83dc6558d5904581e01da962ff54cc659254796e0f36958e0a18",
+		"session_prev_hash": null,
+		"hash": "7a4095c49dadc0fcc36bf968507c1a440fb4371a1eb698a74386f594652b924c"
+	},
+	{
+		"seq": 1202,
+		"order_index": 2,
+		"at": "2026-11-12T10:02:20+02:00",
+		"actor": "buyer",
+		"type": "buyer_said",
+		"text": {
+			"en": "\"I need five kilos of ground beef for tomorrow.\"",
+			"fi": "\"I need five kilos of ground beef for tomorrow.\""
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"text": "I need five kilos of ground beef for tomorrow.",
+			"lang": "en",
+			"transcript": true
+		},
+		"payload_hash": "1889d389154ebb770091ccdb76ec9c7d0c0b4dd385bb6b0ef5f03d03837d99ff",
+		"prev_hash": "7a4095c49dadc0fcc36bf968507c1a440fb4371a1eb698a74386f594652b924c",
+		"session_prev_hash": "7a4095c49dadc0fcc36bf968507c1a440fb4371a1eb698a74386f594652b924c",
+		"hash": "277f57d5cf19811f65e12954bbcccb06d19558abd1b5888f72ae7ecb03e17229"
+	},
+	{
+		"seq": 1203,
+		"order_index": 3,
+		"at": "2026-11-12T10:02:24+02:00",
+		"actor": "mcp",
+		"type": "tool_called",
+		"text": {
+			"en": "build_quote, 1 line: ground beef, 5 kg, needed by Sun 15 Nov",
+			"fi": "build_quote, 1 rivi: jauheliha, 5 kg, tarvitaan su 15.11."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"call_id": "call_1",
+			"tool": "build_quote",
+			"summary": {
+				"en": "1 line: ground beef, 5 kg, needed by Sun 15 Nov",
+				"fi": "1 rivi: jauheliha, 5 kg, tarvitaan su 15.11."
+			},
+			"args": {
+				"lines": [
+					{
+						"text": "ground beef",
+						"quantity": 5,
+						"unit": "kg",
+						"needed_by": "2026-11-15"
+					}
+				]
+			}
+		},
+		"payload_hash": "e86f3478fa882fb93bdac57bb2c43ffab6e4d694d627b1b720bcea74da570361",
+		"prev_hash": "277f57d5cf19811f65e12954bbcccb06d19558abd1b5888f72ae7ecb03e17229",
+		"session_prev_hash": "277f57d5cf19811f65e12954bbcccb06d19558abd1b5888f72ae7ecb03e17229",
+		"hash": "3aa31bb80b46d6cbfd31aec811e0d42d10d00bf289db0d92438c7b7b83e39d1a"
+	},
+	{
+		"seq": 1204,
+		"order_index": 4,
+		"at": "2026-11-12T10:02:24+02:00",
+		"actor": "engine",
+		"type": "clarification_asked",
+		"text": {
+			"en": "Sunday is not a delivery day. Earliest is Mon 16 Nov.",
+			"fi": "Sunnuntai ei ole toimituspäivä. Aikaisintaan ma 16.11."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_id": "l1",
+			"reason_code": "not_delivery_day",
+			"earliest": "2026-11-16"
+		},
+		"payload_hash": "a4c8fead970e1a6d9c5d8890538c06548e2b39f4aa11f4ab3cc58083ffa32397",
+		"prev_hash": "3aa31bb80b46d6cbfd31aec811e0d42d10d00bf289db0d92438c7b7b83e39d1a",
+		"session_prev_hash": "3aa31bb80b46d6cbfd31aec811e0d42d10d00bf289db0d92438c7b7b83e39d1a",
+		"hash": "265a89c154bc4796782fc390ed0984a612426537720ca7679346080a352543e0"
+	},
+	{
+		"seq": 1205,
+		"order_index": 5,
+		"at": "2026-11-12T10:02:24+02:00",
+		"actor": "mcp",
+		"type": "tool_returned",
+		"text": {
+			"en": "needs_clarification",
+			"fi": "needs_clarification"
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"call_id": "call_1",
+			"tool": "build_quote",
+			"result": {
+				"decision": "needs_clarification",
+				"quote_id": "q_7f3a",
+				"question_en": "Sunday is not a delivery day. Is Monday 16 Nov fine?"
+			}
+		},
+		"payload_hash": "09a159b92faa03658d7fc5eb0f6d7014c946e46a99b9cae7daec7ae9698d4395",
+		"prev_hash": "265a89c154bc4796782fc390ed0984a612426537720ca7679346080a352543e0",
+		"session_prev_hash": "265a89c154bc4796782fc390ed0984a612426537720ca7679346080a352543e0",
+		"hash": "ee1b7c537b1c065d23f7f52b67bc103fcf7c1533a11eec839f5b4d8613ad55b1"
+	},
+	{
+		"seq": 1206,
+		"order_index": 6,
+		"at": "2026-11-12T10:02:27+02:00",
+		"actor": "agent",
+		"type": "agent_said",
+		"text": {
+			"en": "\"Tomorrow is Sunday. The earliest delivery is Monday. Is Monday fine?\"",
+			"fi": "\"Tomorrow is Sunday. The earliest delivery is Monday. Is Monday fine?\""
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"text": "Tomorrow is Sunday. The earliest delivery is Monday. Is Monday fine?",
+			"lang": "en",
+			"transcript": true
+		},
+		"payload_hash": "431ce0b15828c10cf349f2be44645299c55dc92baab91004c0fa4ef298595387",
+		"prev_hash": "ee1b7c537b1c065d23f7f52b67bc103fcf7c1533a11eec839f5b4d8613ad55b1",
+		"session_prev_hash": "ee1b7c537b1c065d23f7f52b67bc103fcf7c1533a11eec839f5b4d8613ad55b1",
+		"hash": "b9ce3d50f62bdef78c7277ceca304f8aa96d8ed2060d04f1e7dcec85ff240903"
+	},
+	{
+		"seq": 1207,
+		"order_index": 7,
+		"at": "2026-11-12T10:02:33+02:00",
+		"actor": "buyer",
+		"type": "buyer_said",
+		"text": {
+			"en": "\"Yes, Monday works.\"",
+			"fi": "\"Yes, Monday works.\""
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"text": "Yes, Monday works.",
+			"lang": "en",
+			"transcript": true
+		},
+		"payload_hash": "b90a67041c5981a19d3ebb2af451c8a6d3a97448264eceaa99a778473be05adf",
+		"prev_hash": "b9ce3d50f62bdef78c7277ceca304f8aa96d8ed2060d04f1e7dcec85ff240903",
+		"session_prev_hash": "b9ce3d50f62bdef78c7277ceca304f8aa96d8ed2060d04f1e7dcec85ff240903",
+		"hash": "8e563d60f504484f81b1170744001e96fc9d98f30a8e3237905f9d2ac13bcacb"
+	},
+	{
+		"seq": 1210,
+		"order_index": 8,
+		"at": "2026-11-12T10:02:34+02:00",
+		"actor": "mcp",
+		"type": "tool_called",
+		"text": {
+			"en": "update_quote, needed by Mon 16 Nov",
+			"fi": "update_quote, tarvitaan ma 16.11."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"call_id": "call_2",
+			"tool": "update_quote",
+			"summary": {
+				"en": "needed by Mon 16 Nov",
+				"fi": "tarvitaan ma 16.11."
+			},
+			"args": {
+				"quote_id": "q_7f3a",
+				"answer": {
+					"needed_by": "2026-11-16"
+				}
+			}
+		},
+		"payload_hash": "c42cd7e5b61a5cf91f311cf2264a45916a2e40897b65634191c493e679b87d8a",
+		"prev_hash": "2117c21a812e60a589690bfde649b0e0cf5be7cd1946d4b43b3f3b4ba7d0b2bc",
+		"session_prev_hash": "8e563d60f504484f81b1170744001e96fc9d98f30a8e3237905f9d2ac13bcacb",
+		"hash": "8a0c549182d3dd03e1a9cd664e953e0db1253be3a96ce1f77d92375563453efd"
+	},
+	{
+		"seq": 1211,
+		"order_index": 9,
+		"at": "2026-11-12T10:02:35+02:00",
+		"actor": "engine",
+		"type": "products_searched",
+		"text": {
+			"en": "Searched 17 546 products, 14 mince products match.",
+			"fi": "Haettiin 17 546 tuotteesta, 14 jauhelihatuotetta sopii."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_id": "l1",
+			"searched": 17546,
+			"matched": 14
+		},
+		"payload_hash": "84513b6a4fa260754b5cba292671953833ef7f8461c1484008048ac88da80928",
+		"prev_hash": "8a0c549182d3dd03e1a9cd664e953e0db1253be3a96ce1f77d92375563453efd",
+		"session_prev_hash": "8a0c549182d3dd03e1a9cd664e953e0db1253be3a96ce1f77d92375563453efd",
+		"hash": "8f757a11ff51e7aecbf86151356c5bb11c3883f45c5758a42bf25b17eab46583"
+	},
+	{
+		"seq": 1212,
+		"order_index": 10,
+		"at": "2026-11-12T10:02:35+02:00",
+		"actor": "engine",
+		"type": "candidates_filtered",
+		"text": {
+			"en": "Removed 9: 4 arrive late, 3 out of stock, 2 contain milk.",
+			"fi": "Poistettiin 9: 4 myöhässä, 3 loppu varastosta, 2 sisältää maitoa."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_id": "l1",
+			"removed": {
+				"arrives_late": 4,
+				"out_of_stock": 3,
+				"contains_allergen": 2
+			},
+			"left": 5
+		},
+		"payload_hash": "a3556781ae2d414d527029148a2039b659f25ed3f9f9e23b65d369817d0cab71",
+		"prev_hash": "8f757a11ff51e7aecbf86151356c5bb11c3883f45c5758a42bf25b17eab46583",
+		"session_prev_hash": "8f757a11ff51e7aecbf86151356c5bb11c3883f45c5758a42bf25b17eab46583",
+		"hash": "f41d7e4c5aa7b0270fdbf8d6e5bf7184940d7dc6e335121332c101a45d45d49e"
+	},
+	{
+		"seq": 1213,
+		"order_index": 11,
+		"at": "2026-11-12T10:02:35+02:00",
+		"actor": "engine",
+		"type": "availability_checked",
+		"text": {
+			"en": "Checked price and stock for 5 products.",
+			"fi": "Tarkistettiin hinta ja saldo 5 tuotteelle."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"product_ids": [
+				"801922",
+				"801455",
+				"802310",
+				"806121",
+				"801907"
+			],
+			"source": "snapshot"
+		},
+		"payload_hash": "a74ec2a3cb8f1764374f7cba980bb209ef62005ca19e2a465b01a668ca05dc1a",
+		"prev_hash": "f41d7e4c5aa7b0270fdbf8d6e5bf7184940d7dc6e335121332c101a45d45d49e",
+		"session_prev_hash": "f41d7e4c5aa7b0270fdbf8d6e5bf7184940d7dc6e335121332c101a45d45d49e",
+		"hash": "805657457cfa7b5bafebd7d02914e1abbb4b48bfdea19f1d91bc9e188d0042d7"
+	},
+	{
+		"seq": 1214,
+		"order_index": 12,
+		"at": "2026-11-12T10:02:36+02:00",
+		"actor": "engine",
+		"type": "line_resolved",
+		"text": {
+			"en": "Chose Beef mince 10 % 2,5 kg, 2 pcs = 5 kg, 41.90 €. Cheapest of 5 safe products that arrive Monday.",
+			"fi": "Valittiin Naudan jauheliha 10 % 2,5 kg, 2 kpl = 5 kg, 41,90 €. Halvin 5 sopivasta tuotteesta, jotka ehtivät maanantaiksi."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_id": "l1",
+			"product_id": "801922",
+			"quantity_sales_units": 2,
+			"line_total_cents": 4190,
+			"reason_codes": [
+				"cheapest"
+			]
+		},
+		"payload_hash": "e005edf7c84bd9ca4952c4368cd0625ea4babfdd240b396c0285f6ba948c44c9",
+		"prev_hash": "805657457cfa7b5bafebd7d02914e1abbb4b48bfdea19f1d91bc9e188d0042d7",
+		"session_prev_hash": "805657457cfa7b5bafebd7d02914e1abbb4b48bfdea19f1d91bc9e188d0042d7",
+		"hash": "753ffeca304c2d6abdcb379a2165585ad64bd82f437cb01bb0196e59cfac236b"
+	},
+	{
+		"seq": 1215,
+		"order_index": 13,
+		"at": "2026-11-12T10:02:36+02:00",
+		"actor": "mcp",
+		"type": "tool_returned",
+		"text": {
+			"en": "ready",
+			"fi": "ready"
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"call_id": "call_2",
+			"tool": "update_quote",
+			"result": {
+				"decision": "ready",
+				"quote_id": "q_7f3a",
+				"lines": 1,
+				"total_cents": 4190,
+				"say_en": "I found beef mince 10 %, two 2.5 kg packs, 41.90 euros, arriving Monday."
+			}
+		},
+		"payload_hash": "2ea883dd701c7113e56c9fea682dc91a0169e6589d98faea68343eb61ade9b70",
+		"prev_hash": "753ffeca304c2d6abdcb379a2165585ad64bd82f437cb01bb0196e59cfac236b",
+		"session_prev_hash": "753ffeca304c2d6abdcb379a2165585ad64bd82f437cb01bb0196e59cfac236b",
+		"hash": "516433a0d7292661d5551d36742f7b1b811132be7a8ac9d8ffe377bfc9d04dbe"
+	},
+	{
+		"seq": 1216,
+		"order_index": 14,
+		"at": "2026-11-12T10:02:38+02:00",
+		"actor": "agent",
+		"type": "agent_said",
+		"text": {
+			"en": "\"I found beef mince 10 %, two 2.5 kg packs, 41.90 euros, arriving Monday. Anything else?\"",
+			"fi": "\"I found beef mince 10 %, two 2.5 kg packs, 41.90 euros, arriving Monday. Anything else?\""
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"text": "I found beef mince 10 %, two 2.5 kg packs, 41.90 euros, arriving Monday. Anything else?",
+			"lang": "en",
+			"transcript": true
+		},
+		"payload_hash": "43da8ac3ffc49784224f3de34d03d076d1a3c608beaa94e8e7c5e8562741c41a",
+		"prev_hash": "516433a0d7292661d5551d36742f7b1b811132be7a8ac9d8ffe377bfc9d04dbe",
+		"session_prev_hash": "516433a0d7292661d5551d36742f7b1b811132be7a8ac9d8ffe377bfc9d04dbe",
+		"hash": "5736d32599571ee2a520ddaa303b14b1fee36c9d29353d605d53ec2f995f9155"
+	},
+	{
+		"seq": 1219,
+		"order_index": 15,
+		"at": "2026-11-12T10:02:49+02:00",
+		"actor": "buyer",
+		"type": "buyer_said",
+		"text": {
+			"en": "\"Yes, my usual oat drink, twenty litres. And ten litres of rapeseed oil.\"",
+			"fi": "\"Yes, my usual oat drink, twenty litres. And ten litres of rapeseed oil.\""
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"text": "Yes, my usual oat drink, twenty litres. And ten litres of rapeseed oil.",
+			"lang": "en",
+			"transcript": true
+		},
+		"payload_hash": "1019c01d046fc5cf9f1e4ac4c9ad3d6a2e9b526952b68099ef9225210965da50",
+		"prev_hash": "34d0ec8f4257b08dc1528d2d4c4adb2a6dfe07d87e4dbf56389386a4a571af9a",
+		"session_prev_hash": "5736d32599571ee2a520ddaa303b14b1fee36c9d29353d605d53ec2f995f9155",
+		"hash": "cd75858161eb1e2d3a03ac2d2238d8c358b36d3f9cbfefcce35b32922650e019"
+	},
+	{
+		"seq": 1220,
+		"order_index": 16,
+		"at": "2026-11-12T10:02:51+02:00",
+		"actor": "mcp",
+		"type": "tool_called",
+		"text": {
+			"en": "update_quote, add 2 lines: usual oat drink 20 l, rapeseed oil 10 l",
+			"fi": "update_quote, 2 riviä lisää: tavallinen kaurajuoma 20 l, rypsiöljy 10 l"
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"call_id": "call_3",
+			"tool": "update_quote",
+			"summary": {
+				"en": "add 2 lines: usual oat drink 20 l, rapeseed oil 10 l",
+				"fi": "2 riviä lisää: tavallinen kaurajuoma 20 l, rypsiöljy 10 l"
+			},
+			"args": {
+				"quote_id": "q_7f3a",
+				"add_lines": [
+					{
+						"text": "my usual oat drink",
+						"quantity": 20,
+						"unit": "l",
+						"needed_by": "2026-11-16"
+					},
+					{
+						"text": "rapeseed oil",
+						"quantity": 10,
+						"unit": "l",
+						"needed_by": "2026-11-16"
+					}
+				]
+			}
+		},
+		"payload_hash": "93da919d721e633578c47dc622888507efc88286415ecf50304f9ccfdb453726",
+		"prev_hash": "cd75858161eb1e2d3a03ac2d2238d8c358b36d3f9cbfefcce35b32922650e019",
+		"session_prev_hash": "cd75858161eb1e2d3a03ac2d2238d8c358b36d3f9cbfefcce35b32922650e019",
+		"hash": "5c76e9bcfcf4fb05955712f19b724da92e3d72be8721243095ab10c333b65221"
+	},
+	{
+		"seq": 1221,
+		"order_index": 17,
+		"at": "2026-11-12T10:02:52+02:00",
+		"actor": "engine",
+		"type": "products_searched",
+		"text": {
+			"en": "Searched 17 546 products: 6 oat drinks and 9 rapeseed oils match.",
+			"fi": "Haettiin 17 546 tuotteesta: 6 kaurajuomaa ja 9 rypsiöljyä sopii."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_ids": [
+				"l2",
+				"l3"
+			],
+			"searched": 17546,
+			"matched": {
+				"l2": 6,
+				"l3": 9
+			}
+		},
+		"payload_hash": "77b144ac4579dd4ab82d21c2fe2483a3279bebcf083976566ca78f463ab9e5a3",
+		"prev_hash": "5c76e9bcfcf4fb05955712f19b724da92e3d72be8721243095ab10c333b65221",
+		"session_prev_hash": "5c76e9bcfcf4fb05955712f19b724da92e3d72be8721243095ab10c333b65221",
+		"hash": "be02d11531fb43dd85a951718721ccacdaa9d0b9be725a981637ef1e23a2f294"
+	},
+	{
+		"seq": 1222,
+		"order_index": 18,
+		"at": "2026-11-12T10:02:52+02:00",
+		"actor": "engine",
+		"type": "candidates_filtered",
+		"text": {
+			"en": "Removed 7: 4 out of stock, 2 arrive late, 1 may contain nuts.",
+			"fi": "Poistettiin 7: 4 loppu varastosta, 2 myöhässä, 1 voi sisältää pähkinöitä."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_ids": [
+				"l2",
+				"l3"
+			],
+			"removed": {
+				"out_of_stock": 4,
+				"arrives_late": 2,
+				"contains_allergen": 1
+			},
+			"left": 8
+		},
+		"payload_hash": "c38b555b07a2a12940058af498f759ce5ba46531b79f9932331f34ed0ffb149f",
+		"prev_hash": "be02d11531fb43dd85a951718721ccacdaa9d0b9be725a981637ef1e23a2f294",
+		"session_prev_hash": "be02d11531fb43dd85a951718721ccacdaa9d0b9be725a981637ef1e23a2f294",
+		"hash": "476414baa6f1b93478c40ccac95961161b584fb1799955b8d31a864fd4bb7b77"
+	},
+	{
+		"seq": 1223,
+		"order_index": 19,
+		"at": "2026-11-12T10:02:53+02:00",
+		"actor": "engine",
+		"type": "line_resolved",
+		"text": {
+			"en": "Chose Oat drink 1 l, 2 cases = 24 l, 51.60 €. The one this kitchen usually orders, rounded up from 20 l.",
+			"fi": "Valittiin Kaurajuoma 1 l, 2 ltk = 24 l, 51,60 €. Keittiön tavallinen tuote, pyöristetty ylös 20 litrasta."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_id": "l2",
+			"product_id": "465120",
+			"quantity_sales_units": 2,
+			"line_total_cents": 5160,
+			"reason_codes": [
+				"usual",
+				"rounded_up"
+			]
+		},
+		"payload_hash": "33bc2f99e1ded9b247d04de7551981a1d76d9344bf7cfc0fa3a04e4adaa43836",
+		"prev_hash": "476414baa6f1b93478c40ccac95961161b584fb1799955b8d31a864fd4bb7b77",
+		"session_prev_hash": "476414baa6f1b93478c40ccac95961161b584fb1799955b8d31a864fd4bb7b77",
+		"hash": "52bafa1b8a022ff077cab0cc8feaa744fb9882b228fc9a04d3bb1cb32bbbe13d"
+	},
+	{
+		"seq": 1224,
+		"order_index": 20,
+		"at": "2026-11-12T10:02:53+02:00",
+		"actor": "engine",
+		"type": "line_resolved",
+		"text": {
+			"en": "Chose Rapeseed oil 5 l, 2 pcs = 10 l, 34.90 €. Cheapest nut-free oil that arrives Monday.",
+			"fi": "Valittiin Rypsiöljy 5 l, 2 kpl = 10 l, 34,90 €. Halvin pähkinätön öljy, joka ehtii maanantaiksi."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"line_id": "l3",
+			"product_id": "412877",
+			"quantity_sales_units": 2,
+			"line_total_cents": 3490,
+			"reason_codes": [
+				"cheapest"
+			]
+		},
+		"payload_hash": "a79e09178acf5cdabcacaabf92387d7704531b6d3dd270a35cb3a0a48cf83675",
+		"prev_hash": "52bafa1b8a022ff077cab0cc8feaa744fb9882b228fc9a04d3bb1cb32bbbe13d",
+		"session_prev_hash": "52bafa1b8a022ff077cab0cc8feaa744fb9882b228fc9a04d3bb1cb32bbbe13d",
+		"hash": "898c55174d2f0df8c92ae7e5c290b3ae7a24c04327436468785299b0a9d823b3"
+	},
+	{
+		"seq": 1225,
+		"order_index": 21,
+		"at": "2026-11-12T10:02:54+02:00",
+		"actor": "engine",
+		"type": "quote_built",
+		"text": {
+			"en": "Quote v1 ready: 3 lines, 128.40 € incl. VAT, 3 flags.",
+			"fi": "Tarjous v1 valmis: 3 riviä, 128,40 € sis. ALV, 3 huomiota."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"quote_id": "q_7f3a",
+			"version": 1,
+			"lines": 3,
+			"total_cents": 12840,
+			"flags": [
+				"rounded_up",
+				"stock_unverified",
+				"no_allergen_info"
+			],
+			"quote_hash": "b51c0e6a2f1d9c7e4a3b8f20d6e1c9a75f3e2b8d4c6a1f09e7d3b5c2a8f4e610"
+		},
+		"payload_hash": "fb95270b1b1915613354efa198ae7ec601d48192cc21b4bdcf69a0b51756a144",
+		"prev_hash": "898c55174d2f0df8c92ae7e5c290b3ae7a24c04327436468785299b0a9d823b3",
+		"session_prev_hash": "898c55174d2f0df8c92ae7e5c290b3ae7a24c04327436468785299b0a9d823b3",
+		"hash": "c3d5fd5591d6b231bc8e785c2ffec7bc153a50dd1f6db2bdaaf8433afcc426c2"
+	},
+	{
+		"seq": 1226,
+		"order_index": 22,
+		"at": "2026-11-12T10:02:54+02:00",
+		"actor": "mcp",
+		"type": "tool_returned",
+		"text": {
+			"en": "ready",
+			"fi": "ready"
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"call_id": "call_3",
+			"tool": "update_quote",
+			"result": {
+				"decision": "ready",
+				"quote_id": "q_7f3a",
+				"version": 1,
+				"lines": 3,
+				"total_cents": 12840,
+				"flags": 3,
+				"say_en": "Oat drink comes in cases of 12, so that is 24 litres. Rapeseed oil, two 5 litre cans."
+			}
+		},
+		"payload_hash": "298b434c6ceb5ea5e99f47c881acd747ce3fd24236eff3b2c7870afb37350583",
+		"prev_hash": "c3d5fd5591d6b231bc8e785c2ffec7bc153a50dd1f6db2bdaaf8433afcc426c2",
+		"session_prev_hash": "c3d5fd5591d6b231bc8e785c2ffec7bc153a50dd1f6db2bdaaf8433afcc426c2",
+		"hash": "5a394ed22d817d5b33c0d4f8d51a46592baf995c6b51ec2eaf7403404bcfd389"
+	},
+	{
+		"seq": 1227,
+		"order_index": 23,
+		"at": "2026-11-12T10:03:02+02:00",
+		"actor": "agent",
+		"type": "agent_said",
+		"text": {
+			"en": "\"Oat drink comes in cases of 12, so that is 24 litres. Rapeseed oil, two 5 litre cans. All together 128.40 euros, arriving Monday. Shall I send it to your phone for confirmation?\"",
+			"fi": "\"Oat drink comes in cases of 12, so that is 24 litres. Rapeseed oil, two 5 litre cans. All together 128.40 euros, arriving Monday. Shall I send it to your phone for confirmation?\""
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"text": "Oat drink comes in cases of 12, so that is 24 litres. Rapeseed oil, two 5 litre cans. All together 128.40 euros, arriving Monday. Shall I send it to your phone for confirmation?",
+			"lang": "en",
+			"transcript": true
+		},
+		"payload_hash": "7be8d5260ad470891355c4345b621e30c4f8c7fcf1ebfbf45e12266d13b966b5",
+		"prev_hash": "5a394ed22d817d5b33c0d4f8d51a46592baf995c6b51ec2eaf7403404bcfd389",
+		"session_prev_hash": "5a394ed22d817d5b33c0d4f8d51a46592baf995c6b51ec2eaf7403404bcfd389",
+		"hash": "2b7508a24a868523b8c0fae3639553a93785ea48be4a8d71bf4d36e5dd1bcd90"
+	},
+	{
+		"seq": 1228,
+		"order_index": 24,
+		"at": "2026-11-12T10:03:29+02:00",
+		"actor": "buyer",
+		"type": "buyer_said",
+		"text": {
+			"en": "\"Yes, send it.\"",
+			"fi": "\"Yes, send it.\""
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"text": "Yes, send it.",
+			"lang": "en",
+			"transcript": true
+		},
+		"payload_hash": "b22435e1cf1d505d738bdd5e8c2ee23f69b340f00184f82e75e964222ea7e1ea",
+		"prev_hash": "2b7508a24a868523b8c0fae3639553a93785ea48be4a8d71bf4d36e5dd1bcd90",
+		"session_prev_hash": "2b7508a24a868523b8c0fae3639553a93785ea48be4a8d71bf4d36e5dd1bcd90",
+		"hash": "152bb8df64f5271c4eb88495384feb284373f4b62b05786a3e377f63e695cd00"
+	},
+	{
+		"seq": 1231,
+		"order_index": 25,
+		"at": "2026-11-12T10:03:31+02:00",
+		"actor": "mcp",
+		"type": "tool_called",
+		"text": {
+			"en": "request_confirmation, quote q_7f3a v1, no recipient argument",
+			"fi": "request_confirmation, tarjous q_7f3a v1, ei vastaanottaja-argumenttia"
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"call_id": "call_4",
+			"tool": "request_confirmation",
+			"summary": {
+				"en": "quote q_7f3a v1, no recipient argument",
+				"fi": "tarjous q_7f3a v1, ei vastaanottaja-argumenttia"
+			},
+			"args": {
+				"quote_id": "q_7f3a"
+			}
+		},
+		"payload_hash": "16574fd33268e9762b71a28d6ee489986bc8819c6de04091bf8988a372005a65",
+		"prev_hash": "056896bcbe9e10201b6c6cfb800a77757e723a0d28a3ad501ca4df4810272a0c",
+		"session_prev_hash": "152bb8df64f5271c4eb88495384feb284373f4b62b05786a3e377f63e695cd00",
+		"hash": "b726abcee51a4faee83e3ba9b8cbd00fa6a3e59489f408bd1263ddd5d9fd51a4"
+	},
+	{
+		"seq": 1232,
+		"order_index": 26,
+		"at": "2026-11-12T10:03:31+02:00",
+		"actor": "mcp",
+		"type": "tool_returned",
+		"text": {
+			"en": "SMS queued for end of call",
+			"fi": "SMS jonossa puhelun loppuun"
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"call_id": "call_4",
+			"tool": "request_confirmation",
+			"result": {
+				"status": "queued",
+				"deliver": "end_of_call",
+				"label": {
+					"en": "SMS queued for end of call",
+					"fi": "SMS jonossa puhelun loppuun"
+				}
+			}
+		},
+		"payload_hash": "e537750753582681fd66604f1f5ff985f3f4f51b70e35676316090129a972e0a",
+		"prev_hash": "b726abcee51a4faee83e3ba9b8cbd00fa6a3e59489f408bd1263ddd5d9fd51a4",
+		"session_prev_hash": "b726abcee51a4faee83e3ba9b8cbd00fa6a3e59489f408bd1263ddd5d9fd51a4",
+		"hash": "b07db4bd03767b67a3b990e86a9d066eacfb49dc41785796c0cfdb8c2470c951"
+	},
+	{
+		"seq": 1233,
+		"order_index": 27,
+		"at": "2026-11-12T10:03:40+02:00",
+		"actor": "relay",
+		"type": "session_ended",
+		"text": {
+			"en": "Call ended by buyer after 1:26.",
+			"fi": "Ostaja lopetti puhelun 1:26 jälkeen."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": null,
+		"payload": {
+			"ended_by": "buyer",
+			"duration_s": 86
+		},
+		"payload_hash": "6fcbaf3efa99c72d34732899067f81914093628d24750302238ac46eefcbceb2",
+		"prev_hash": "b07db4bd03767b67a3b990e86a9d066eacfb49dc41785796c0cfdb8c2470c951",
+		"session_prev_hash": "b07db4bd03767b67a3b990e86a9d066eacfb49dc41785796c0cfdb8c2470c951",
+		"hash": "3b8fb677de12846aab309aa0238a43fbbceb5af833708a971ac37345a3ba9d4f"
+	},
+	{
+		"seq": 1234,
+		"order_index": 28,
+		"at": "2026-11-12T10:03:41+02:00",
+		"actor": "confirmation",
+		"type": "sms_sent",
+		"text": {
+			"en": "Link sent to the demo phone inbox and by SMS to +358 40 *** **12. Link shown on the call screen.",
+			"fi": "Linkki lähetettiin demopuhelimen saapuneisiin ja tekstiviestinä numeroon +358 40 *** **12. Linkki näkyy puhelunäkymässä."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"to": "+358 40 *** **12",
+			"inbox": true,
+			"sms": true
+		},
+		"payload_hash": "603dc1bdb1d680af8502cf9539021fc28c9913c2ed899e06823189166617420a",
+		"prev_hash": "3b8fb677de12846aab309aa0238a43fbbceb5af833708a971ac37345a3ba9d4f",
+		"session_prev_hash": "3b8fb677de12846aab309aa0238a43fbbceb5af833708a971ac37345a3ba9d4f",
+		"hash": "5b2ff47b946bec1debe7269bf210dfedf8e89a818f0dc1b1c851c24549b3cc22"
+	},
+	{
+		"seq": 1235,
+		"order_index": 29,
+		"at": "2026-11-12T10:03:52+02:00",
+		"actor": "confirmation",
+		"type": "link_opened",
+		"text": {
+			"en": "Buyer opened the link.",
+			"fi": "Ostaja avasi linkin."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"quote_id": "q_7f3a",
+			"version": 1
+		},
+		"payload_hash": "cee102f2dc17c1586dd2c158aa79ccc80e8c466dfeb3717cb5f407b1ab7dc2a0",
+		"prev_hash": "5b2ff47b946bec1debe7269bf210dfedf8e89a818f0dc1b1c851c24549b3cc22",
+		"session_prev_hash": "5b2ff47b946bec1debe7269bf210dfedf8e89a818f0dc1b1c851c24549b3cc22",
+		"hash": "422e993842287011cbabe0e35a5cbc6e5e9247a44778d8961abeb0310a7f6c12"
+	},
+	{
+		"seq": 1236,
+		"order_index": 30,
+		"at": "2026-11-12T10:04:05+02:00",
+		"actor": "confirmation",
+		"type": "flags_acknowledged",
+		"text": {
+			"en": "Buyer checked 3 flags (10:03 to 10:04).",
+			"fi": "Ostaja tarkisti 3 huomiota (10.03–10.04)."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"quote_id": "q_7f3a",
+			"flags": [
+				{
+					"flag_key": "rounded_up:l2",
+					"choice": "keep_rounded",
+					"at": "2026-11-12T10:04:01+02:00"
+				},
+				{
+					"flag_key": "stock_unverified:l3",
+					"at": "2026-11-12T10:03:58+02:00"
+				},
+				{
+					"flag_key": "no_allergen_info:l3",
+					"at": "2026-11-12T10:04:05+02:00"
+				}
+			]
+		},
+		"payload_hash": "854904c3e757e402b49382b5abeb631c766743924e0cc993535cdef5375f4e18",
+		"prev_hash": "422e993842287011cbabe0e35a5cbc6e5e9247a44778d8961abeb0310a7f6c12",
+		"session_prev_hash": "422e993842287011cbabe0e35a5cbc6e5e9247a44778d8961abeb0310a7f6c12",
+		"hash": "3d978f4b966a025b9a7fa94ecc78800341b95171c73f467ee2d8dc1c35e04421"
+	},
+	{
+		"seq": 1237,
+		"order_index": 31,
+		"at": "2026-11-12T10:04:12+02:00",
+		"actor": "confirmation",
+		"type": "order_confirmed",
+		"text": {
+			"en": "Order confirmed. Stock rechecked: unchanged. Order D-1042 created.",
+			"fi": "Tilaus vahvistettu. Saldo tarkistettiin uudelleen: ei muutoksia. Tilaus D-1042 luotu."
+		},
+		"session_id": "s_2611_0042",
+		"channel": "phone",
+		"identity_masked": "+358 40 *** **12",
+		"quote_id": "q_7f3a",
+		"payload": {
+			"quote_id": "q_7f3a",
+			"version": 1,
+			"order_number": "D-1042",
+			"stock_recheck": "unchanged",
+			"total_cents": 12840
+		},
+		"payload_hash": "e33c1507064fb6096dc4984d0297e133dde6c338d073043a44fb00e0dcb1124f",
+		"prev_hash": "3d978f4b966a025b9a7fa94ecc78800341b95171c73f467ee2d8dc1c35e04421",
+		"session_prev_hash": "3d978f4b966a025b9a7fa94ecc78800341b95171c73f467ee2d8dc1c35e04421",
+		"hash": "cc9cecc95babf0cebc035506d5c48ca6dfd45a28496e26d2f7dd15e0ebc05e77"
+	}
+]

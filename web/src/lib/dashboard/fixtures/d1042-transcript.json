@@ -1,0 +1,44 @@
+[
+	{
+		"at": "2026-11-12T10:02:20+02:00",
+		"who": "buyer",
+		"text": "I need five kilos of ground beef for tomorrow.",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:02:27+02:00",
+		"who": "agent",
+		"text": "Tomorrow is Sunday. The earliest delivery is Monday. Is Monday fine?",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:02:33+02:00",
+		"who": "buyer",
+		"text": "Yes, Monday works.",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:02:38+02:00",
+		"who": "agent",
+		"text": "I found beef mince 10 %, two 2.5 kg packs, 41.90 euros, arriving Monday. Anything else?",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:02:49+02:00",
+		"who": "buyer",
+		"text": "Yes, my usual oat drink, twenty litres. And ten litres of rapeseed oil.",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:03:02+02:00",
+		"who": "agent",
+		"text": "Oat drink comes in cases of 12, so that is 24 litres. Rapeseed oil, two 5 litre cans. All together 128.40 euros, arriving Monday. Shall I send it to your phone for confirmation?",
+		"lang": "en"
+	},
+	{
+		"at": "2026-11-12T10:03:29+02:00",
+		"who": "buyer",
+		"text": "Yes, send it.",
+		"lang": "en"
+	}
+]
