@@ -32,6 +32,7 @@ from app.services.caller import Caller
 from app.services.dashboard.feed import DashboardFeed, start_feed
 from app.services.dashboard.stream import Broadcaster, StreamEvent, get_broadcaster
 from app.settings import get_settings
+from tests.test_confirmation_page import STOCK_FLAG, Page, ordered
 from tests.test_dashboard_routes import Stream
 
 API = "/api/v1/public"
@@ -537,6 +538,106 @@ async def test_last_event_id_resume_gets_missed_events_then_live_ones(app_db):
     assert live["data"]["line"]["who"] == "agent"
     assert live["data"]["line"]["text"] == "Lähetänkö tarjouksen?"
     await events.aclose()
+
+
+# --- Orders and acknowledgements from the confirmation page (#47) -----------------------
+
+
+async def _session_of(engine: AsyncEngine, quote_id: str) -> str:
+    async with AsyncSession(engine) as db:
+        quote = await db.get_one(Quote, uuid.UUID(quote_id))
+        return str(quote.session_id)
+
+
+def _card(client: TestClient, session_id: str) -> dict:
+    cards = _cards(client.get(f"{API}/orders").json())
+    [card] = [c for c in cards if c["session_id"] == session_id]
+    return card
+
+
+def _last_update(hub: Broadcaster, session_id: str) -> dict:
+    return [
+        e.data
+        for e in hub._history
+        if e.event == "order_updated" and e.data["order"]["session_id"] == session_id
+    ][-1]
+
+
+@pytest.mark.usefixtures("no_caller")
+async def test_a_confirmed_order_shows_its_number_and_the_checked_flags(client, app_db):
+    hub = Broadcaster()
+    feed = DashboardFeed(hub, async_sessionmaker(app_db, expire_on_commit=False))
+    await feed.on_connect()
+
+    _, quote, token = ordered()
+    session_id = await _session_of(app_db, quote["quote_id"])
+    page = Page(token)
+    view = page.view()
+    assert page.ack(view["quote"]["quote_hash"], STOCK_FLAG).status_code == 204
+    # An edit makes version 2: the order is on it, and the tick carries over.
+    edit = {"quote_hash": view["quote"]["quote_hash"], "op": "set_quantity", "line_id": "l2"}
+    assert page.post("edits", {**edit, "quantity": 6}).status_code == 204
+    view = page.view()
+    receipt = page.post("confirm", {"quote_hash": view["quote"]["quote_hash"]}).json()
+    number = receipt["order_number"]
+    assert re.fullmatch(r"D-\d{4,}", number)
+
+    card = _card(client, session_id)
+    assert card["state"] == "confirmed" and card["order_number"] == number
+
+    summary = client.get(f"{API}/orders/{session_id}").json()
+    assert summary["order_number"] == number
+    assert summary["quote"]["version"] == 2
+    stock = next(f for f in summary["flags"] if f["flag_key"] == STOCK_FLAG)
+    assert stock["acknowledged_at"] is not None
+    assert summary["status_line"]["en"] == "by the buyer, after checking 1 flags"
+
+    await feed.catch_up()
+    update = _last_update(hub, session_id)
+    assert update["order"]["state"] == "confirmed"
+    assert update["order"]["order_number"] == number
+    assert update["totals"]["confirmed"] == 1
+    assert update["totals"]["confirmed_cents"] == view["quote"]["total_cents"]
+
+
+@pytest.mark.usefixtures("no_caller")
+async def test_an_unconfirmed_session_has_no_order_number(client, app_db):
+    hub = Broadcaster()
+    feed = DashboardFeed(hub, async_sessionmaker(app_db, expire_on_commit=False))
+    await feed.on_connect()
+
+    _, quote, token = ordered()
+    session_id = await _session_of(app_db, quote["quote_id"])
+    page = Page(token)
+    view = page.view()
+    assert page.ack(view["quote"]["quote_hash"], STOCK_FLAG).status_code == 204
+
+    card = _card(client, session_id)
+    assert card["state"] == "link_opened" and card["order_number"] is None
+
+    summary = client.get(f"{API}/orders/{session_id}").json()
+    assert summary["order_number"] is None
+    stock = next(f for f in summary["flags"] if f["flag_key"] == STOCK_FLAG)
+    assert stock["acknowledged_at"] is not None
+    others = [f for f in summary["flags"] if f["flag_key"] != STOCK_FLAG]
+    assert all(f["acknowledged_at"] is None for f in others)
+
+    await feed.catch_up()
+    update = _last_update(hub, session_id)
+    assert update["order"]["state"] == "link_opened"
+    assert update["order"]["order_number"] is None
+
+
+@pytest.mark.usefixtures("no_caller")
+async def test_a_cancelled_session_shows_as_cancelled_without_a_number(client, app_db):
+    _, quote, token = ordered()
+    session_id = await _session_of(app_db, quote["quote_id"])
+    page = Page(token)
+    view = page.view()
+    assert page.post("cancel", {"quote_hash": view["quote"]["quote_hash"]}).status_code == 204
+
+    card = _card(client, session_id)
+    assert card["state"] == "cancelled" and card["order_number"] is None
 
 
 # --- Per-subscriber filter (no database) ------------------------------------------------
