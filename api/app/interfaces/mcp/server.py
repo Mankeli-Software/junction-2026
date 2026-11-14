@@ -43,9 +43,16 @@ from app.services.caller import Caller
 from app.services.errors import ServiceError
 from app.settings import get_settings
 
+# Where RequireCaller leaves the caller in the request scope's state for the tools.
+CALLER_STATE_KEY = "simo_caller"
 
-def _caller(ctx: Context) -> Caller:
-    caller = resolve_caller(ctx.request_context.request, "connector")
+
+async def _caller(ctx: Context) -> Caller:
+    """The caller the mount check resolved; in-process clients (tests) resolve here."""
+    request = ctx.request_context.request
+    caller = request.scope.get("state", {}).get(CALLER_STATE_KEY) if request else None
+    if caller is None:
+        caller = await resolve_caller(request, "mcp")
     if caller is None:
         raise ToolError("not signed in")
     return caller
@@ -66,7 +73,7 @@ def _tool(
     """
 
     async def run(ctx: Context, **arguments: Any) -> BaseModel:
-        caller = _caller(ctx)
+        caller = await _caller(ctx)
         try:
             if request_model is None:
                 return service(caller)
@@ -165,16 +172,27 @@ mcp = FastMCP(
 
 
 class RequireCaller:
-    """Answers 401 on the mount before the MCP transport when nobody is signed in."""
+    """Resolves the bearer token on the mount, before the MCP transport.
+
+    Answers 401 when nobody is signed in; otherwise leaves the caller in the scope's state,
+    where the tools pick it up, so a request looks the token up once.
+    """
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] == "http" and resolve_caller(HTTPConnection(scope), "connector") is None:
-            response = JSONResponse({"detail": "Not signed in"}, status_code=401)
-            await response(scope, receive, send)
-            return
+        if scope["type"] == "http":
+            caller = await resolve_caller(HTTPConnection(scope), "mcp")
+            if caller is None:
+                response = JSONResponse(
+                    {"detail": "Not signed in"},
+                    status_code=401,
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+                await response(scope, receive, send)
+                return
+            scope.setdefault("state", {})[CALLER_STATE_KEY] = caller
         await self.app(scope, receive, send)
 
 

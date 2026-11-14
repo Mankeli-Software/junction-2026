@@ -1,21 +1,22 @@
-"""The caller's kitchen profile and usual items, from the caller and a fixture (#44 replaces it)."""
+"""The caller's kitchen profile and usual items.
 
+The kitchen profile comes from the caller (its company's profile, #44). The usual items
+still come from a fixture until the order history lands (#32, #61).
+"""
+
+from collections.abc import Iterable
 from functools import cache
 
-from app.schemas import CustomerContext, Exclusion, ExclusionLabel, Localized, UsualItem
+from app.schemas import CustomerContext, Exclusion, ExclusionLabel, UsualItem
 from app.services.caller import Caller
 from app.services.fixtures import load
+from app.services.policy import get_rule_set
 
-# The labels in policy/allergen_rules.yaml. The policy loader (#35) will own them.
-EXCLUSION_LABELS = {
-    Exclusion.milk_free: Localized(fi="maidoton", en="milk-free"),
-    Exclusion.lactose_free: Localized(fi="laktoositon", en="lactose-free"),
-    Exclusion.gluten_free: Localized(fi="gluteeniton", en="gluten-free"),
-    Exclusion.nut_free: Localized(fi="pähkinätön", en="nut-free"),
-    Exclusion.egg_free: Localized(fi="kananmunaton", en="egg-free"),
-    Exclusion.fish_free: Localized(fi="kalaton", en="fish-free"),
-    Exclusion.vegan: Localized(fi="vegaaninen", en="vegan"),
-}
+
+def exclusion_labels(exclusions: Iterable[Exclusion]) -> list[ExclusionLabel]:
+    """Each exclusion with its label from `policy/allergen_rules.yaml`."""
+    kitchen = get_rule_set().kitchen
+    return [ExclusionLabel(key=e, label=kitchen[e].label) for e in exclusions]
 
 
 @cache
@@ -31,7 +32,7 @@ def get_customer_context(caller: Caller) -> CustomerContext:
     return CustomerContext(
         company_name=caller.company_name,
         phone_masked=caller.phone_masked,
-        exclusions=[ExclusionLabel(key=e, label=EXCLUSION_LABELS[e]) for e in caller.exclusions],
+        exclusions=exclusion_labels(caller.exclusions),
         usual_items=usual_items(caller),
         lang=caller.lang,
     )

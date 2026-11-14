@@ -83,6 +83,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # prod makes the session cookie Secure. Set ENV=prod on the VM.
+    env: Literal["dev", "prod"] = "dev"
+
     database_url: str = "postgresql+psycopg://junction:junction@localhost:5432/junction"
     # Alembic uses this one when it is set, so migrations can run as the table owner while
     # the app uses a user that cannot change the schema. Empty means use `database_url`.
