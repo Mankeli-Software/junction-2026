@@ -14,10 +14,11 @@ from app.models.catalogue import (
     ProductUnit,
     ProductUnitConversion,
 )
-from app.models.confirmations import Confirmation, SmsMessage
+from app.models.confirmations import Confirmation, ConfirmationAcknowledgement, SmsMessage
 from app.models.customers import Company, KitchenProfile, User
 from app.models.oauth import OAuthClient, OAuthCode, OAuthRefreshToken, OAuthRequest
 from app.models.ordering import OrderSession, Quote, QuoteLine
+from app.models.orders import Order, OrderLine
 from app.models.valio import ApiCache
 
 __all__ = [
@@ -29,11 +30,14 @@ __all__ = [
     "Category",
     "Company",
     "Confirmation",
+    "ConfirmationAcknowledgement",
     "KitchenProfile",
     "OAuthClient",
     "OAuthCode",
     "OAuthRefreshToken",
     "OAuthRequest",
+    "Order",
+    "OrderLine",
     "OrderSession",
     "Product",
     "ProductAllergen",
