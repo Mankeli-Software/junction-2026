@@ -4,7 +4,7 @@ Status: draft v1, 2026-11-14. Builds on `vision.md` sections 5, 6, 10 and 11. Vi
 
 ## 1. Purpose
 
-The confirmation page is the **only place an order can be confirmed**. The agent prepares a quote, the engine sends an SMS with a link, and the buyer opens it on their phone, checks the order, deals with anything unusual and taps Confirm.
+The confirmation page is the **only place an order can be confirmed**. The agent prepares a quote, the engine sends the buyer a link (by SMS in production, to the demo phone during the event), and the buyer opens it on their phone, checks the order, deals with anything unusual and taps Confirm.
 
 It is the human-in-the-loop step of our guardrail story (judging: autonomy and controls, 20%) and the end of the live demo: a booth visitor ends the call and confirms the order on their own phone while the dashboard updates.
 
@@ -16,7 +16,7 @@ The page must make three things obvious:
 
 ## 2. Access: the link is the key
 
-- **No login, no user accounts.** Whoever holds the link can open the page. The link is the second factor: it went to the phone number registered on the account (vision section 6).
+- **No login, no user accounts.** Whoever holds the link can open the page. The link is the second factor: it goes only to the account that made the order (vision section 6).
 - The link carries a random single-use token (128 bits or more, stored hashed), bound to the quote, its hash and the recipient. It expires with the quote. **For the event, quotes do not expire** (decided 2026-11-14): visitors can confirm whenever they get to it. Expiry is one config value (`quote_ttl`, off for the event, for example 30 minutes in production), so the expired state below exists in the code but is not reached in the demo.
 - The page is server-rendered from engine data only. Nothing from the agent or from product free text is trusted; all text is escaped.
 - No agent can open, read or act on the page. Confirm and Cancel exist only here (vision section 8).
@@ -26,14 +26,14 @@ The page must make three things obvious:
 
 Two ways, both after the call ends:
 
-1. **SMS through Twilio** to the number the visitor typed in. This is the real path and is always sent.
-2. **A notification on the web call screen** with the same link. The call is made from our web phone page, not a real phone call, so when the visitor hangs up the page shows a phone-style notification ("Valio Aimo: confirm your order") that opens the confirmation page in one tap.
+1. **The demo phone's inbox.** Every message lands in the inbox of the account that made the order, shown on our web phone page. The call is made from that page, not a real phone call, so when the visitor hangs up the page shows a phone-style notification ("Valio Aimo: confirm your order") that opens the message, and its link opens the confirmation page. This is always on during the event, so the demo never depends on an SMS provider.
+2. **SMS through Twilio**, only when real SMS is turned on (a flag, off by default) and the number the visitor typed is on our allowlist. Every other number gets the inbox message only, so a typed number that belongs to a stranger never gets our SMS.
 
-The notification is a demo convenience. It lets people try the demo at Junction even when the SMS is slow, does not arrive or goes to a foreign number. It is shown as a banner inside the call page; a real browser notification is optional and only used if the visitor has allowed notifications. Chat and webshop sessions get the SMS only.
+The inbox is a demo convenience. It lets people try the demo at Junction with any number, including foreign ones, without depending on SMS delivery. The notification is shown as a banner inside the call page; a real browser notification is optional and only used if the visitor has allowed notifications. Webshop chat sessions get the inbox message too (`webshop-chat.md` section 2).
 
-Trade-off, stated in the pitch: showing the link on the call screen means the device that made the call can also confirm, so it is not a true second factor. In production only the SMS (or another out-of-band channel) carries the link. This is one config value (`show_link_on_call_screen`, on for the event).
+Trade-off, stated in the pitch: the inbox shows the link in the browser that made the order, so that device can also confirm, and it is not a true second factor. In production only the SMS (or another out-of-band channel) carries the link. This is one config value (`demo_inbox`, on for the event).
 
-Both deliveries are audit events (`sms_sent` or `sms_failed`, and `link_shown_on_call_screen`) and show on the dashboard. If the SMS fails, the dashboard still shows the failure, and the visitor can still confirm through the notification.
+Both deliveries are audit events (`inbox_delivered`, and `sms_sent` or `sms_failed` when a real SMS goes out) and show on the dashboard. If the SMS fails, the dashboard still shows the failure, and the visitor can still confirm through the inbox.
 
 ## 3. Page states
 
@@ -159,3 +159,4 @@ None at the moment.
 - The link stays readable until the end of the event after confirmation.
 - Quotes do not expire during the event. Expiry is a config value for production.
 - After an edit, only new or changed flags need a new acknowledgement.
+- Every link goes to the demo phone's inbox. Real SMS through Twilio sits behind a flag that is off by default and goes only to allowlisted numbers.
