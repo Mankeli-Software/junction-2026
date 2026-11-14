@@ -21,6 +21,7 @@ from app.interfaces.rest import jwks as rest_jwks
 from app.interfaces.rest import oauth as rest_oauth
 from app.interfaces.rest import recipe_drafts as rest_recipe_drafts
 from app.interfaces.rest import tools as rest_tools
+from app.interfaces.rest import twilio as rest_twilio
 from app.interfaces.voice import routes as voice_routes
 from app.observability import excluded as excluded_from_telemetry
 from app.observability import setup_observability
@@ -75,6 +76,7 @@ app.include_router(rest_inbox.router, prefix="/api/v1")
 app.include_router(rest_oauth.router, prefix="/api/v1")
 app.include_router(rest_confirmations.router, prefix="/api/v1")
 app.include_router(chat_routes.router, prefix="/api/v1")
+app.include_router(rest_twilio.router, prefix="/api/v1")
 app.include_router(rest_jwks.router)
 app.include_router(voice_routes.router)
 rest_dashboard.event_stream_openapi(app, "/api/v1/public/stream")
