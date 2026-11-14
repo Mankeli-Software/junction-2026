@@ -31,11 +31,6 @@ containment_en:
 
 codes:
   # --- Validate and resolve ---
-  INPUT_INVALID:
-    kind: reason
-    fi: "Tilausta ei voitu käsitellä, koska siinä oli virheellisiä tietoja."
-    en: "The order could not be processed because some of its details were invalid."
-    next: {fi: "Kerro tuote, määrä ja toivottu toimituspäivä uudelleen.", en: "Please tell me the product, quantity and delivery date again."}
   # Input errors (#106). The agent reads these, fixes the line and calls again; the buyer
   # is not asked again for what the agent already has.
   PACKAGE_WORD_MISSING:

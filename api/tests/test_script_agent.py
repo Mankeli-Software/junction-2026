@@ -44,6 +44,6 @@ def test_reading_a_quote_tells_milk_products_from_plant_based_ones():
     blank = {"fi": "", "en": ""}
     rejected = [
         {"line_id": "a", "reason_code": "CALLBACK_REQUESTED", "next_step": step},
-        {"line_id": "b", "reason_code": "INPUT_INVALID", "next_step": blank},
+        {"line_id": "b", "reason_code": "PRODUCT_NOT_FOUND", "next_step": blank},
     ]
-    assert dead_ends(quote(rejections=rejected)) == ["b INPUT_INVALID"]
+    assert dead_ends(quote(rejections=rejected)) == ["b PRODUCT_NOT_FOUND"]
