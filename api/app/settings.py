@@ -101,6 +101,9 @@ class Settings(BaseSettings):
 
     session_secret: str = ""
 
+    # Where the web app is served. Confirmation links are `<public_base_url>/c/<token>`.
+    public_base_url: str = "http://localhost:5173"
+
     # Rule files (technical-plan.md §4.3). The container mounts them read-only.
     policy_dir: Path = REPO_ROOT / "policy"
     data_dir: Path = REPO_ROOT / "data"
@@ -135,6 +138,11 @@ class Settings(BaseSettings):
     @property
     def migrations_url(self) -> str:
         return self.migration_database_url or self.database_url
+
+    @field_validator("public_base_url")
+    @classmethod
+    def _no_trailing_slash(cls, value: str) -> str:
+        return value.rstrip("/")
 
     @property
     def mcp_allowed_host_list(self) -> list[str]:
