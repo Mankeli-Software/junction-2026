@@ -451,4 +451,4 @@ def test_end_call_waits_for_the_goodbye_to_play(call):
     assert waited >= 0.9
     assert (END_CALL, {"ok": True}) in service.local_tools
     assert not live.tool_responses  # Gemini gets no answer, so it says nothing more
-    assert ("agent", "Hei hei!", {"lang": "fi"}) in service.said
+    assert service.log[-2:] == ["agent_said: Hei hei!", f"tool: {END_CALL}"]

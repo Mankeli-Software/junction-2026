@@ -298,6 +298,8 @@ async def test_a_call_releases_the_link_at_every_ending(app_db, live_client, mon
     for wanted in ("session_started", "customer_identified", "buyer_said", "tool_called"):
         assert wanted in types
     assert types[-1] == "session_ended"
+    # The caller's line is logged before the tool call it led to.
+    assert types.index("buyer_said") < types.index("tool_called")
     # The refused request is on the record too, answered by the relay.
     returned = [e for e in await events(app_db, session.id) if e.type == "tool_returned"]
     assert any(e.payload.get("answered_by") == "relay" for e in returned)
