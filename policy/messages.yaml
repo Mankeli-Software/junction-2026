@@ -132,6 +132,7 @@ codes:
     kind: reason
     fi: "Pakkaus voi tarkoittaa tuotteella {product} useampaa kokoa. Kuinka paljon tarvitset kiloina, litroina tai kappaleina?"
     en: "That pack word could mean more than one size for {product}. How much do you need in kilos, litres or pieces?"
+    short: {fi: "pakkaus epäselvä", en: "unclear pack word"}
   PACK_SIZE_FROM_NAME:
     kind: flag
     ack: true
@@ -139,7 +140,8 @@ codes:
     en: "The pack size of {product} was read from its name."
   ROUNDED_UP:
     kind: flag
-    ack: false
+    # A flag only when the surplus is over the round-up limits; within them it is a reason.
+    ack: true
     fi: "Pyöristin tuotteen {product} määrän ylöspäin kokonaisiin myyntiyksiköihin: {quantity} {unit}."
     en: "I rounded {product} up to {quantity} {unit} to make whole sales units."
   EXACT_FIT_ALTERNATIVE:

@@ -1,5 +1,5 @@
-"""Candidate checks in technical-plan.md §4.2 order. Simple versions for #36:
-#37 deepens the allergen filter, #38 availability and units, #39 the price checks.
+"""Candidate checks in technical-plan.md §4.2 order. #39 adds the substitution and
+deeper price checks.
 
 Each check either fills in the candidate or returns the reason it was removed.
 """
@@ -33,6 +33,9 @@ CLAIMS = {
     ("VEGETARIAN", None): Claim.vegetarian,
 }
 UNSAFE = {"CONTAINS", "MAY_CONTAIN"}
+# How far unit price ÷ comparison price may be from the known size. Both prices are
+# rounded to the cent, so a small pack can be a few percent off without being wrong.
+PRICE_RATIO_TOLERANCE = Decimal("0.05")
 
 
 @dataclass
@@ -50,6 +53,8 @@ class Candidate:
     stock: StockStatus = StockStatus.verified
     unit_price: Decimal = Decimal(0)
     total_cents: int = 0
+    surplus: Decimal = Decimal(0)  # in the asked unit, from rounding up to whole sales units
+    within_limits: bool = True  # the surplus is within the automatic round-up limits
 
 
 @dataclass(frozen=True)
@@ -174,19 +179,37 @@ def _availability(c: Candidate, ctx: Context) -> Removal | None:
 def _units(c: Candidate, ctx: Context) -> Removal | None:
     assert c.offer is not None
     c.sales_unit = c.offer.sales_unit or c.product.sales_unit
-    if c.sales_unit not in c.product.units:
+    if c.sales_unit not in c.product.units or not _price_ratio_agrees(c):
         return Removal(ReasonCode.UNIT_UNKNOWN, {"product": c.product.name})
-    c.amount = units.sales_units(ctx.line, c.product, c.sales_unit, ctx.rules)
-    if c.amount is None or c.amount.sales_units < 1:
+    amount = units.sales_units(ctx.line, c.product, c.sales_unit, ctx.rules)
+    if isinstance(amount, ReasonCode) or amount.sales_units < 1:
         return Removal(
-            ReasonCode.UNIT_CONVERSION_UNKNOWN,
+            amount if isinstance(amount, ReasonCode) else ReasonCode.UNIT_CONVERSION_UNKNOWN,
             {
                 "product": c.product.name,
                 "quantity": number(ctx.line.quantity),
                 "unit": ctx.line.package_word or ctx.line.unit.value,
             },
         )
+    c.amount = amount
+    c.surplus = units.surplus(ctx.line, amount)
+    c.within_limits = units.within_limits(ctx.line, amount, ctx.rules)
     return None
+
+
+def _price_ratio_agrees(c: Candidate) -> bool:
+    """Unit price ÷ comparison price is the litres or kilos in one sales unit. If the
+    product data says otherwise, the sales unit is not what we think it is (§4.2)."""
+    assert c.offer is not None
+    price, comparison = c.offer.unit_price_gross, c.offer.comparison_price_gross
+    unit = c.offer.comparison_unit
+    if price is None or not comparison or unit not in ("L", "KG"):
+        return True
+    known = units.size_or_name(c.product, c.sales_unit, unit)
+    if known is None:
+        return True
+    implied = price / comparison
+    return abs(implied - known[0]) <= PRICE_RATIO_TOLERANCE * known[0]
 
 
 def _stock(c: Candidate, ctx: Context) -> Removal | None:

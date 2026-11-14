@@ -44,6 +44,7 @@ STEP_ORDER = [
     ReasonCode.PAST_CLOSING_TIME,
     ReasonCode.UNIT_UNKNOWN,
     ReasonCode.UNIT_CONVERSION_UNKNOWN,
+    ReasonCode.PACKAGING_AMBIGUOUS,
     ReasonCode.PARTIAL_STOCK,
     ReasonCode.PRICE_NOT_VALID,
 ]
@@ -51,6 +52,8 @@ AMBIGUITY_WINDOW = 5  # top search results looked at for "spans categories"
 MAX_OPTIONS = 3
 MAX_ALTERNATIVES = 2
 SPOKEN_LINES = 3  # lines named in the spoken summary; the rest are counted
+# A line whose best candidate fails on these goes back to the buyer as a question.
+ASK_BUYER = {ReasonCode.UNIT_CONVERSION_UNKNOWN, ReasonCode.PACKAGING_AMBIGUOUS}
 
 
 @dataclass
@@ -115,6 +118,8 @@ def _line(
             first = removals[0][1]
             return _clarify(line, first.code, first.fields, rules)
         first = removals[0][1]  # the best search hit's reason is the most relevant one
+        if first.code in ASK_BUYER:
+            return _clarify(line, first.code, first.fields, rules)
         return _reject(line, first.code, first.fields, rules)
 
     if not named and line.category is None:
@@ -170,11 +175,14 @@ def _filter(
 
 
 def _rank(candidates: list[Candidate], data: EngineInput) -> list[Candidate]:
-    """Lowest total, then verified stock, then products ordered before, then product id."""
+    """Waste first: candidates within the round-up limits, then the least surplus. Then the
+    lowest total, verified stock, products ordered before, and product id."""
     ordered_before = {h.product_id for h in data.history.recent_lines}
     return sorted(
         candidates,
         key=lambda c: (
+            not c.within_limits,
+            Decimal(0) if c.within_limits else c.surplus,
             c.total_cents,
             c.stock != StockStatus.verified,
             c.product.product_id not in ordered_before,
@@ -207,17 +215,18 @@ def _priced(line: LineRequest, ranked: list[Candidate], trace: Trace, rules: Rul
     explain = [text.text(rules, TextKey.CHOSEN_CHEAPEST, date=text.day(line.needed_by))]
     flags: list[Flag] = []
 
-    if amount.size is not None and amount.in_asked_unit > line.quantity:
+    if chosen.surplus > 0:
         reasons.append(ReasonCode.ROUNDED_UP)
-        explain.append(
-            text.message(
-                rules,
-                ReasonCode.ROUNDED_UP,
-                product=product.name,
-                quantity=text.number(Decimal(amount.sales_units)),
-                unit=text.unit_name(rules, chosen.sales_unit, plural=True),
-            )
-        )
+        rounded = {
+            "quantity": text.number(Decimal(amount.sales_units)),
+            "unit": text.unit_name(rules, chosen.sales_unit, plural=amount.sales_units != 1),
+        }
+        explain.append(text.message(rules, ReasonCode.ROUNDED_UP, product=product.name, **rounded))
+        if not chosen.within_limits:  # more waste than the limits allow: the buyer must see it
+            flags.append(_flag(ReasonCode.ROUNDED_UP, line, product, rules, **rounded))
+    if amount.from_name:
+        reasons.append(ReasonCode.PACK_SIZE_FROM_NAME)
+        flags.append(_flag(ReasonCode.PACK_SIZE_FROM_NAME, line, product, rules))
     if chosen.stock == StockStatus.unverified:
         reasons.append(ReasonCode.AVAILABILITY_UNVERIFIED)
         flags.append(_flag(ReasonCode.AVAILABILITY_UNVERIFIED, line, product, rules))
@@ -252,18 +261,28 @@ def _priced(line: LineRequest, ranked: list[Candidate], trace: Trace, rules: Rul
         reason_codes=reasons,
         reason_text=text.join(*explain),
         trace=trace,
-        alternatives=[_alternative(c) for c in ranked[1 : 1 + MAX_ALTERNATIVES]],
+        alternatives=[
+            _alternative(c)
+            for c in ranked[1:]
+            if c.within_limits or not chosen.within_limits  # no waste-heavy alternatives
+        ][:MAX_ALTERNATIVES],
     )
     return LineResult(line=quote_line, flags=flags)
 
 
-def _flag(code: ReasonCode, line: LineRequest, product: ProductRecord, rules: RuleSet) -> Flag:
+def _flag(
+    code: ReasonCode,
+    line: LineRequest,
+    product: ProductRecord,
+    rules: RuleSet,
+    **fields: text.Field,
+) -> Flag:
     return Flag(
         flag_key=f"{code.value}:{line.line_id}",
         code=code,
         line_ids=[line.line_id],
         kind="acknowledge",
-        text=text.message(rules, code, product=product.name),
+        text=text.message(rules, code, product=product.name, **fields),
     )
 
 

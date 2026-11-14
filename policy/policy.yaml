@@ -1,6 +1,6 @@
 # Engine rule set (technical-plan.md §4.3). Every quote records `version`
 # plus a sha256 over all files in policy/, so bump `version` when you change a rule.
-version: "2026-11-14.5"
+version: "2026-11-14.6"
 
 # Every order is confirmed by a human through the SMS link (vision §6).
 confirmation: always
@@ -27,8 +27,9 @@ enforce_closing_time: true
 # Availability at or above this is unknown stock: orderable, flagged unverified.
 unverified_stock_threshold: 999999
 
-# Automatic round-up to whole sales units. Both limits must hold; above them
-# the buyer gets an exact-fit alternative.
+# Automatic round-up to whole sales units. Both limits must hold. Waste first:
+# candidates within them rank before all others; if none is, the least surplus
+# wins and the buyer must acknowledge the round-up.
 rounding:
   max_overage_units: 1
   max_overage_ratio: "0.02"
