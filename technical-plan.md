@@ -586,12 +586,15 @@ api/                     FastAPI app
       voice/             Gemini Live relay
       auth/              OAuth provider, web sessions
     schemas/             Pydantic models shared by REST and MCP
-    models/              SQLAlchemy tables (proposed in #29)
+    models/              SQLAlchemy tables
     loaders/             catalogue loader; runs inside the api container on the VM (#29)
+    search/              product search and name vectors (#30)
+    agent/               the S.I.MO system prompt (#53)
+    seed/                demo kitchens and their order history (#32)
   migrations/            Alembic
   tests/
 web/                     SvelteKit
-  src/routes/            phone, shop, c/[token], dashboard, orders, login, signup
+  src/routes/            start page, phone, shop, c/[token], dashboard, login, signup, connect
 policy/                  rule files and message templates (versioned)
 data/                    existing data files, snapshots/
 scripts/                 embeddings, snapshot recorder, audit-chain checker
