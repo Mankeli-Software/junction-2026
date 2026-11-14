@@ -19,6 +19,7 @@ from app.models.customers import Company, KitchenProfile, OrderHistoryLine, User
 from app.models.oauth import OAuthClient, OAuthCode, OAuthRefreshToken, OAuthRequest
 from app.models.ordering import OrderSession, Quote, QuoteLine
 from app.models.orders import Order, OrderLine
+from app.models.recipes import Recipe, RecipeIngredient, RecipeProductLink, RecipeTag
 from app.models.valio import ApiCache
 
 __all__ = [
@@ -50,6 +51,10 @@ __all__ = [
     "SmsMessage",
     "Quote",
     "QuoteLine",
+    "Recipe",
+    "RecipeIngredient",
+    "RecipeProductLink",
+    "RecipeTag",
     "RuleSetRow",
     "StatusEvent",
     "User",
