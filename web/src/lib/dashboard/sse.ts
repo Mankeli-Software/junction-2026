@@ -4,10 +4,10 @@
  * as `Last-Event-ID` on a reconnect.
  *
  * Why: one `status_events` id can carry several events (a `step`, a `transcript` and an
- * `order_updated`), and the server resends only the events with a *greater* id. Resuming
- * from the last id seen, as `EventSource` does, would lose the rest of a group the
- * connection dropped in the middle of. So the client resumes from the last id it knows is
- * complete, the one before the latest, and the events it gets twice merge idempotently.
+ * `order_updated`). The server now resends the whole group of `Last-Event-ID` and then the
+ * later events, so a plain `EventSource` would no longer lose anything either. The client
+ * still resumes from the id before the latest, which costs one extra group at most, and the
+ * events it gets twice merge idempotently.
  */
 
 export interface SseMessage {
