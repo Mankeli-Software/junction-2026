@@ -102,6 +102,7 @@ This is the heart of the guardrail story, and it is deliberately simple.
 - The SMS goes to the identified person's own registered number. An agent can never choose or change the recipient. (In production an account could name a separate confirmation person. We do not build that.)
 - The link carries a random single-use token (128 bits or more, stored hashed), bound to the quote, its hash and the recipient. It expires with the quote (default 30 minutes).
 - The page is server-rendered from engine data only. It shows lines, quantities in sales units and in the unit the buyer asked for, delivery date, gross total and a readable trace of why each product was chosen.
+- **Asked and added, side by side.** Each line shows what we understood the buyer asked for ("1,000 L lactose-free milk, by Monday") next to the product we added for it (name, pack, quantity, price), with a one-line reason for the choice ("cheapest lactose-free milk in stock that arrives Monday"). If one request became several lines (a recipe, or a split on partial stock), they are grouped under that request. A misheard or misunderstood request is then easy to spot, and the buyer sees why each product was chosen.
 - **Odd things are shown first, in plain words.** Each one must be acknowledged before Confirm is enabled. Examples:
   - "5,000 pieces. You usually order 5 to 50." (quantity outside the normal range, likely unit or scanning error)
   - "This is a substitute for X. It also contains soy."
