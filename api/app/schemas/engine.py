@@ -123,6 +123,10 @@ class Offer(StrictModel):
     ok: bool  # false when price or availability couldn't be fetched
     unit_price_gross: JsonDecimal | None
     price_valid_to: date | None
+    # Gross price per `comparison_unit` (L or KG). Unit price ÷ this = litres or kilos in one
+    # sales unit, which cross-checks the sales unit (#38). None when the API has none.
+    comparison_price_gross: JsonDecimal | None = None
+    comparison_unit: str | None = None
     sales_unit: str | None  # from availability
     schedule: list[ScheduleLine]
     sales_block: bool
