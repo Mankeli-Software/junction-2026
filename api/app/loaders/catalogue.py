@@ -4,7 +4,9 @@
 
 Runs in one transaction and can be re-run: categories, allergen codes and products are
 upserted, and each loaded product's child rows are replaced. Products that are no longer
-in the file are kept (quotes and orders may point at them) and reported.
+in the file are kept (quotes and orders may point at them) and reported. The product
+image URLs are refreshed from data/product_images.json.gz in the same transaction
+(app.loaders.images, #108).
 """
 
 import argparse
@@ -13,7 +15,7 @@ import json
 import sys
 import urllib.request
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -24,6 +26,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
 from app.db import get_engine
+from app.loaders.images import IMAGE_FILE, ImageEntry, read_image_file, replace_images
 from app.loaders.product_file import (
     Anomaly,
     parse_product,
@@ -111,7 +114,10 @@ async def load(
     products: list[dict[str, Any]],
     categories: list[dict[str, Any]],
     allergen_codes: list[dict[str, Any]],
+    images: Mapping[str, ImageEntry] | None = None,
 ) -> LoadResult:
+    """Load the products. With `images`, product_images is refreshed in the same
+    transaction; without, it is left as it is."""
     result = LoadResult()
     loaded_at = datetime.now(UTC)
 
@@ -163,6 +169,8 @@ async def load(
 
         await conn.execute(text("SELECT refresh_product_search()"))
 
+        image_result = await replace_images(conn, images) if images is not None else None
+
         stored = set((await conn.scalars(select(Product.id))).all())
         for stale in sorted(stored - product_ids):
             result.anomalies.append(Anomaly("product_not_in_file", stale))
@@ -173,6 +181,9 @@ async def load(
         "products": len(product_rows),
         **{name: len(rows) for name, rows in child_rows.items()},
     }
+    if image_result is not None:
+        result.counts.update(image_result.counts)
+        result.anomalies.extend(image_result.anomalies)
     return result
 
 
@@ -201,6 +212,7 @@ async def _load_and_dispose(products: list[dict[str, Any]]) -> LoadResult:
             products,
             read_categories(CATEGORY_FILE),
             read_allergen_codes(ALLERGEN_CODE_FILE),
+            read_image_file(IMAGE_FILE),
         )
     finally:
         await engine.dispose()

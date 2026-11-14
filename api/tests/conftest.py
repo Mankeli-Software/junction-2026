@@ -24,6 +24,7 @@ from sqlalchemy.pool import NullPool
 import app.db
 from app.loaders import recipes as recipe_loader
 from app.loaders.catalogue import ALLERGEN_CODE_FILE, CATEGORY_FILE, load
+from app.loaders.images import ImageEntry, read_image_file
 from app.loaders.product_file import read_allergen_codes, read_categories
 from app.recipes import data as recipe_data
 
@@ -42,6 +43,9 @@ FIXTURES = Path(__file__).parent / "fixtures"
 # valio-api-analysis.md §11, whose prices and availability are recorded in data/snapshots/)
 # plus the search sample (distractors and an oat drink).
 CATALOGUE_SAMPLES = ("products_sample.json", "products_search_sample.json")
+# Their image URLs from data/product_images.json.gz (#108), plus one product that isn't in
+# the test catalogue. Some test products have no image.
+IMAGE_SAMPLE = FIXTURES / "product_images_sample.json"
 
 # What the HTTP-level tests write, emptied after each of them.
 ACCOUNT_TABLES = (
@@ -115,14 +119,21 @@ def catalogue_products() -> list[dict[str, Any]]:
     return products
 
 
+@cache
+def catalogue_images() -> dict[str, ImageEntry]:
+    return read_image_file(IMAGE_SAMPLE)
+
+
 @pytest.fixture
 async def catalogue(db_engine: AsyncEngine) -> AsyncEngine:
     """The test catalogue in the test database, committed. Loaded again only when the
-    stored products differ, for example after the loader tests."""
+    stored products or images differ, for example after the loader tests."""
     products = catalogue_products()
+    ids = {p["id"] for p in products}
     async with db_engine.connect() as conn:
         stored = sorted((await conn.scalars(text("SELECT id FROM products"))).all())
-    if stored != sorted(p["id"] for p in products):
+        images = await conn.scalar(text("SELECT count(*) FROM product_images"))
+    if stored != sorted(ids) or images != len(ids & catalogue_images().keys()):
         if stored:
             async with db_engine.begin() as conn:
                 await conn.execute(text("DELETE FROM products"))
@@ -131,6 +142,7 @@ async def catalogue(db_engine: AsyncEngine) -> AsyncEngine:
             products,
             read_categories(CATEGORY_FILE),
             read_allergen_codes(ALLERGEN_CODE_FILE),
+            catalogue_images(),
         )
     return db_engine
 
