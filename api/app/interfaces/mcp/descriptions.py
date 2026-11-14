@@ -21,16 +21,21 @@ GET_CUSTOMER_CONTEXT = (
     "exclusions to every line by itself."
 )
 SEARCH_RECIPES = (
-    "Search recipes by a dish or ingredient word, with optional Finnish diet tags (such as "
-    '"laktoositon" or "gluteeniton") and an occasion (such as "lounasruoka"); returns '
-    "recipe_ids, Finnish names, default portions and diet tags. Use it when the buyer orders "
-    "for a dish or a menu, then get_recipe."
+    "Search the 2,091 Valio Aimo recipes by a dish, an ingredient or a free description, in "
+    "Finnish or English, by meaning and by words. Optional filters: diet tags, all required "
+    '(Finnish such as "laktoositon", "gluteeniton", "maidoton", "vegaaninen", or '
+    '"lactose_free", "gluten_free", "milk_free", "vegan"), and an occasion (such as '
+    '"lounasruoka", "buffet", "joulu" or "lunch"). Diet words in q filter too, and portion '
+    "counts in q are ignored. Returns recipe_ids, Finnish names, default portions and diet "
+    "tags. Use it when the buyer orders for a dish or a menu, then get_recipe."
 )
 GET_RECIPE = (
     "Get one recipe scaled to the given number of portions: its ingredients (in Finnish) with "
-    "amounts, and a product_id where an ingredient is linked to a product. Order the "
-    "ingredients with build_quote, with group set to the recipe name; the engine applies the "
-    "kitchen's exclusions."
+    "amounts, and a product_id where an ingredient is linked to a product. To order it, send "
+    "build_quote one line with recipe_ref {recipe_id, portions} and no ingredient_index, "
+    "quantity the portions, unit piece and group the recipe name: the linked ingredients are "
+    "ordered and the others are listed in not_ordered. The engine applies the kitchen's "
+    "exclusions."
 )
 BUILD_QUOTE = (
     "Price the whole order. Call it once, with every line the buyer wants, only after they "
@@ -38,9 +43,11 @@ BUILD_QUOTE = (
     "while they are still adding lines, and not after each line. In each line, text keeps "
     'the product words and any pack size the buyer said ("kevytmaito 1 l"), and product_id '
     "is only an id a tool returned for that product (a get_customer_context usual item, a "
-    "search_products result or a recipe ingredient), never invented. Returns a decision "
-    "(ready, needs_clarification or rejected), priced lines, flags, a clarification question "
-    "or rejections, and speak, a short summary in Finnish and English."
+    "search_products result or a recipe ingredient), never invented. A whole recipe is one "
+    "line with recipe_ref (see get_recipe). Returns a decision (ready, needs_clarification or "
+    "rejected), priced lines, flags, a clarification question or rejections, not_ordered "
+    "(recipe ingredients the buyer gets elsewhere), and speak, a short summary in Finnish "
+    "and English."
 )
 UPDATE_QUOTE = (
     "Answer the engine's clarification or change a quote's lines; returns a new quote that "
