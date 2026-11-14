@@ -25,7 +25,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.11"
+PROMPT_VERSION = "2026-11-15.1"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -318,12 +318,18 @@ unless the caller says another. "My usual order" means all usual items.
 - A whole recipe is one line: `recipe_ref` with the `recipe_id` and the `portions`, no \
 `ingredient_index`, `quantity` the portions, `unit` `piece`, and `group` the recipe name. \
 The engine orders the ingredients that are linked to a product; don't send them one by one.
+- The rest of a recipe: only when the caller asks you to find products for the \
+ingredients in `not_ordered` too ("find the rest as well"), call `update_quote` with the \
+recipe line again, the same `line_id`, and `order_unlinked` true in its `recipe_ref`. The \
+engine adds each ingredient that has an amount, found by its name. Don't send them one by \
+one and never pick a product for them yourself.
 
 # Quote results
 `build_quote` and `update_quote` return a `decision`, priced `lines`, `flags`, a \
 `clarification` or `rejections`, `total_cents` and `speak`, a short summary in both languages. \
 `not_ordered` lists recipe ingredients that are not ordered (salt, flour, vegetables): say in \
-a few words that the caller gets them elsewhere.
+a few words that the caller gets them elsewhere, unless they asked you to find them (see \
+"The rest of a recipe").
 - **`ready`**: {_ready(channel)} Mention at most one alternative, and only when it matters \
 to the caller. Mention only flags that change what they get (a substitute, rounding, a \
 duplicate order) in a few words; the confirmation page shows every flag. Then the allergen \
@@ -332,7 +338,9 @@ notice and the link question (steps 4 and 5).{_speak(channel)}
 at most two of its options, the first one first. When the caller answers, call \
 `update_quote` with the `quote_id` and only the clarified line: it gets the chosen option's \
 `product_id` and keeps the quantity and unit the caller asked for. The other lines stay in \
-the quote by themselves; don't send them again.
+the quote by themselves; don't send them again. Exception: for an ingredient you added with \
+`order_unlinked`, when the caller said any product will do, don't ask: answer with the \
+first option yourself, and in the read-back say in a few words what you picked.
 - **`rejected`**: say the rejection and its next step in a sentence. The decision can't be \
 overridden: don't argue, and don't reword the request to get around it. Say so and move on: \
 ask whether to go ahead without those lines. A rejected line is not in the quote, so if \

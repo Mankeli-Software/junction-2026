@@ -34,8 +34,10 @@ GET_RECIPE = (
     "amounts, and a product_id where an ingredient is linked to a product. To order it, send "
     "build_quote one line with recipe_ref {recipe_id, portions} and no ingredient_index, "
     "quantity the portions, unit piece and group the recipe name: the linked ingredients are "
-    "ordered and the others are listed in not_ordered. The engine applies the kitchen's "
-    "exclusions."
+    "ordered and the others are listed in not_ordered. Only if the buyer asks you to find "
+    "products for those too, send the recipe line again with order_unlinked true in "
+    "recipe_ref: each one with an amount is then ordered by its name. The engine applies "
+    "the kitchen's exclusions."
 )
 PROPOSE_RECIPE = (
     "Turn a recipe the buyer showed you (a photo of a written recipe, or of a dish) into a "
@@ -61,7 +63,7 @@ BUILD_QUOTE = (
     "ingredient and substitute of this order, stays through update_quote, and is not saved "
     "to the kitchen. Returns a decision (ready, needs_clarification or "
     "rejected), priced lines, flags, a clarification question or rejections, not_ordered "
-    "(recipe ingredients the buyer gets elsewhere), and speak, a short summary in Finnish "
+    "(recipe ingredients not ordered, see get_recipe), and speak, a short summary in Finnish "
     "and English. If a line has an input error (a package unit without package_word, a "
     "needed_by in the past, no product, a repeated line_id), the call fails, makes no quote "
     "and lists each such line with the field to fix: correct those lines and call again, "
