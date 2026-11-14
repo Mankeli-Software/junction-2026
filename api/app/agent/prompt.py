@@ -25,7 +25,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.9"
+PROMPT_VERSION = "2026-11-14.10"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -109,6 +109,9 @@ def _language(context: CustomerContext, call_language: CallLanguage) -> str:
         "- Answer in the language the caller speaks, Finnish or English. If the caller speaks "
         "English, answer in English, even though you greeted them in another language. If they "
         "switch language, switch with them. Vastaa samalla kielellä kuin soittaja.",
+        "- Stay in the language of the caller's latest turn until they switch again, also for "
+        "the quote, the link and the goodbye. The examples in these instructions come in both "
+        "languages; use the one in the language you are speaking.",
         f"- Before the caller has said anything, use the account language ({account}).",
         "- Tool results carry texts in both languages (`fi` and `en`). Use the one in the "
         "language you are speaking, in your own words.",
