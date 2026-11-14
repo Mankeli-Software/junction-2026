@@ -18,7 +18,10 @@ export const variables = defineEnvVars({
 	},
 	API_INTERNAL_URL: {
 		description:
-			'FastAPI as the web server reaches it for the first page load. "http://api:8000" inside Compose.',
-		schema: (value) => (value ? value.replace(/\/+$/, '') : 'http://localhost:8000')
+			'FastAPI as the web server reaches it, for the dashboard\'s page loads and its local passthrough of /api/v1/public. Defaults to API_BASE_URL, then http://localhost:8000.',
+		schema: (value) => {
+			const fallback = typeof process === 'undefined' ? undefined : process.env.API_BASE_URL;
+			return (value || fallback || 'http://localhost:8000').replace(/\/+$/, '');
+		}
 	}
 });
