@@ -1,9 +1,9 @@
 name: CI
 
+# Runs only when a release is pushed to the production branch (see CLAUDE.md).
 on:
   push:
-    branches: [main]
-  pull_request:
+    branches: [production]
 
 jobs:
   api:

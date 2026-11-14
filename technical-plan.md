@@ -581,7 +581,7 @@ deploy/                  docker-compose.yml, docker-compose.dev.yml, Caddyfile
 .env.example             development settings, copied to .env (never committed)
 ```
 
-Tooling (set up in #27): Python 3.12 with `uv`, `ruff` and `pytest`; async SQLAlchemy 2 with psycopg 3. `pnpm` and `svelte-check` for the web app. GitHub Actions runs lint and all tests on every push to `main`, with the same `pgvector/pgvector` image as a service container.
+Tooling (set up in #27): Python 3.12 with `uv`, `ruff` and `pytest`; async SQLAlchemy 2 with psycopg 3. `pnpm` and `svelte-check` for the web app. GitHub Actions runs lint and all tests on every push to the `production` branch, with the same `pgvector/pgvector` image as a service container.
 
 Tests:
 

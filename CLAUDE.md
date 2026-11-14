@@ -83,7 +83,7 @@ pnpm check                                # svelte-check
 pnpm build
 ```
 
-Only the database: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up -d db`. CI (`.github/workflows/ci.yml`) runs the same lint, migration and test commands on every push to `main`.
+Only the database: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up -d db`. CI (`.github/workflows/ci.yml`) runs the same lint, migration and test commands only on pushes to `production`, so run them locally before pushing to `main`.
 
 ## Database and secrets
 
