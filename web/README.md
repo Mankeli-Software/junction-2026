@@ -88,7 +88,15 @@ Generated files in `src/lib/generated/`, never edited by hand:
 
 After changing a tool, a tool description or an API schema, run both commands and commit the three files.
 
-To try the tools locally, run FastAPI (see `api/`) and the web app against it: `DEMO_SOURCE=api pnpm dev`, then open http://localhost:5173/shop. With the default `DEMO_SOURCE=fixture` the page and the number entry work, but the tools answer 503. The page needs a browser with WebMCP: the ChatGPT desktop app's built-in browser, or ordinary Chrome with the MCP-B extension (its `@mcp-b/global` polyfill) or Chrome's WebMCP testing flag in `chrome://flags`. The tools card on the page says whether it found one. The Playwright tests use a shim instead (`tests/support/webmcp-shim.ts`).
+To try the tools locally, run FastAPI (see `api/`) and the web app against it: `DEMO_SOURCE=api pnpm dev`, then open http://localhost:5173/shop. With the default `DEMO_SOURCE=fixture` the page and the number entry work, but the tools answer 503. The page needs an agent that can call WebMCP tools (#93):
+
+| Setup | Status |
+|---|---|
+| **Chrome with the MCP-B extension** | The demo setup, tested on production on 2026-11-14, where the extension's agent completed an order. The extension adds WebMCP to the page itself, so the page loads nothing extra. Install the extension, sign in to its chat (it offered a ChatGPT login), open `/shop`, type a number, then ask: "Order 20 litres of lactose-free milk for Monday." |
+| ChatGPT desktop app's built-in browser | Needs Plus or higher (GPT-6 Sol). On Free and Go (GPT-6 Luna) it fails with `does not support command "webmcp_list_tools"`. The paid backup if MCP-B fails on stage. |
+| Gemini in Chrome | Not available: Google has announced WebMCP support but it hadn't shipped, and no Gemini button showed on our AI Pro account. |
+
+A browser agent sees only the tools' names, descriptions and schemas, not S.I.MO's prompt, so it orders less carefully than the phone or the chat. The tools card on the page says whether it found a model context. The Playwright tests use a shim instead (`tests/support/webmcp-shim.ts`).
 
 ## Screenshots
 

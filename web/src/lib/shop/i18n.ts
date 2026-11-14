@@ -54,8 +54,8 @@ const strings = {
 		fi: '{n} tilaustyökalua on valmiina tämän selaimen agentille (WebMCP).'
 	},
 	toolsMissing: {
-		en: 'This browser has no WebMCP agent. Open the page in an agent browser, such as the one in the ChatGPT desktop app.',
-		fi: 'Tässä selaimessa ei ole WebMCP-agenttia. Avaa sivu agenttiselaimessa, esimerkiksi ChatGPT-työpöytäsovelluksen selaimessa.'
+		en: 'This browser has no WebMCP agent. Open the page in Chrome with the MCP-B extension.',
+		fi: 'Tässä selaimessa ei ole WebMCP-agenttia. Avaa sivu Chromessa, jossa on MCP-B-laajennus.'
 	},
 	toolsTry: {
 		en: 'Try asking: "Order 20 litres of lactose-free milk for Monday."',
