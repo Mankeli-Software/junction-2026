@@ -27,6 +27,7 @@ LINES = [
     {"line_id": "l2", "text": "arla", "quantity": 5, "unit": "l", "needed_by": "2026-11-16"},
 ]
 STOCK_FLAG = "AVAILABILITY_UNVERIFIED:l1"
+VALIO_MEDIA = "https://api.valioaimo.fi/medias/"
 
 
 class Page:
@@ -92,6 +93,8 @@ async def test_build_send_open_acknowledge_edit_confirm_creates_the_order(app_db
     assert view["quote"]["quote_id"] == quote["quote_id"]
     assert view["quote"]["quote_hash"] == quote["quote_hash"]
     assert [x["product_id"] for x in view["lines"]] == ["464306", "462775"]
+    # Valio's own image URLs from the catalogue (#108).
+    assert all(x["image_url"].startswith(VALIO_MEDIA) for x in view["lines"])
     stock = flag(view, STOCK_FLAG)
     assert stock["requires_ack"] is True
     assert stock["acknowledged_at"] is None

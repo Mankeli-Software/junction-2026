@@ -4,6 +4,7 @@ Service-level tests use the rolled-back `db` session; the tool-call wrapper test
 through the REST twins with `app_db`.
 """
 
+import json
 import random
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -29,6 +30,7 @@ from app.schemas import (
     LineRequest,
     QuoteStatus,
     RequestConfirmationRequest,
+    SearchProductsRequest,
     SessionState,
     UpdateQuoteRequest,
 )
@@ -36,9 +38,10 @@ from app.services import accounts, catalog, dev_caller, quotes, sessions, signin
 from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
-from tests.conftest import write_audit
+from tests.conftest import IMAGE_SAMPLE, write_audit
 
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
+IMAGES = json.loads(IMAGE_SAMPLE.read_text(encoding="utf-8"))
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
 
 QUOTE_EVENTS = [
@@ -102,6 +105,7 @@ async def test_build_quote_stores_the_engine_input_and_output_and_replays(db, ca
     assert response.status == QuoteStatus.ready
     assert response.version == 1
     assert response.lines[0].product_id == "464306"
+    assert response.lines[0].image_url == IMAGES["464306"]["image"]
     quote = await stored(db, response.quote_id)
     assert quote.company_id == caller.company_id
     assert quote.quote_hash == response.quote_hash
@@ -141,6 +145,18 @@ async def test_build_quote_stores_the_engine_input_and_output_and_replays(db, ca
         },
         "origin": {"value": response.lines[0].origin, "source": "product_data"},
     }
+
+
+async def test_products_and_search_hits_carry_the_stored_image_url(db, caller):
+    # 464440 is not in the image map: null, and the clients show the placeholder (#108).
+    with_image, without = await catalog.get_products(db, ["464306", "464440"])
+    assert with_image.image_url == IMAGES["464306"]["image"]
+    assert without.image_url is None
+
+    response = await catalog.search_products(db, caller, SearchProductsRequest(q="maito", limit=20))
+    hits = {hit.product_id: hit.image_url for hit in response.results}
+    assert hits["464306"] == IMAGES["464306"]["image"]
+    assert all(url == (IMAGES.get(i) or {}).get("image") for i, url in hits.items())
 
 
 async def test_build_quote_writes_the_events_in_order(db, caller):

@@ -21,6 +21,7 @@ from app.models import (
     Product,
     ProductAllergen,
     ProductClaim,
+    ProductImage,
     ProductSubstitution,
     ProductUnit,
     ProductUnitConversion,
@@ -90,6 +91,15 @@ async def get_products(db: AsyncSession, ids: Sequence[str]) -> list[ProductReco
     substitutions = await rows(
         ProductSubstitution, ProductSubstitution.position, ProductSubstitution.substitute_product_id
     )
+    images = dict(
+        (
+            await db.execute(
+                select(ProductImage.product_id, ProductImage.image_url).where(
+                    ProductImage.product_id.in_(found)
+                )
+            )
+        ).all()
+    )
     return [
         _record(
             products[i],
@@ -98,6 +108,7 @@ async def get_products(db: AsyncSession, ids: Sequence[str]) -> list[ProductReco
             allergens[i],
             claims[i],
             substitutions[i],
+            images.get(i),
         )
         for i in wanted
         if i in products
@@ -111,6 +122,7 @@ def _record(
     allergens: list[ProductAllergen],
     claims: list[ProductClaim],
     substitutions: list[ProductSubstitution],
+    image_url: str | None,
 ) -> ProductRecord:
     return ProductRecord(
         product_id=product.id,
@@ -124,7 +136,8 @@ def _record(
         allergen_listing=product.has_classifications,
         claims=sorted({_CLAIMS[c.claim_id] for c in claims if c.claim_id in _CLAIMS}),
         origin=product.country_of_origin.upper() if product.country_of_origin else None,
-        image_url=None,  # product images come with #33
+        # Valio's own URL from product_images (#108); null shows the placeholder.
+        image_url=image_url,
         substitutions=[s.substitute_product_id for s in substitutions],
     )
 

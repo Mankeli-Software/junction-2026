@@ -85,6 +85,8 @@ class TestWithCaller:
         assert (milk["price_per_base_unit"], milk["base_unit"]) == (milk["unit_price_gross"], "l")
         assert milk["stock_status"] in ("verified", "unverified")
         assert milk["sales_unit_label"]["fi"]
+        # Valio's own image URL from the catalogue, hotlinked (#108).
+        assert milk["image_url"].startswith("https://api.valioaimo.fi/medias/")
         # No recorded offer: listed, but unavailable and without a price.
         assert hits["464768"]["stock_status"] == "unavailable"
         assert hits["464768"]["unit_price_gross"] is None

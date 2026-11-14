@@ -317,6 +317,7 @@ async def test_summary_steps_transcript_and_events_of_a_built_quote(client, app_
     [request] = summary["requests"]
     assert request["request_id"] == "l1"
     assert request["lines"][0]["product_id"] == "464306"
+    assert request["lines"][0]["image_url"].startswith("https://api.valioaimo.fi/medias/")
     trace = request["lines"][0]["trace"]
     assert trace["found"] >= 1
     # The "why this product" drill-down: the engine's ranked survivors, the chosen one first
