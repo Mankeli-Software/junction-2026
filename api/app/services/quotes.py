@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from app import engine
+from app.db import get_sessionmaker
 from app.schemas import (
     BuildQuoteRequest,
     ConfirmationRequestResponse,
@@ -24,7 +25,7 @@ from app.schemas import (
     RequestConfirmationRequest,
     UpdateQuoteRequest,
 )
-from app.services import catalog, customers
+from app.services import catalog, confirmations, customers
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
 from app.services.policy import get_rule_set
@@ -102,10 +103,15 @@ def update_quote(caller: Caller, request: UpdateQuoteRequest) -> QuoteResponse:
     return quote
 
 
-def request_confirmation(
+async def request_confirmation(
     caller: Caller, request: RequestConfirmationRequest
 ) -> ConfirmationRequestResponse:
-    """Marks a ready quote as waiting for the SMS confirmation. Nothing is sent yet (#46)."""
+    """Marks a ready quote as waiting for confirmation and sends the link to the caller's
+    own inbox (#46, `app/services/confirmations.py`).
+
+    Opens its own database session, because the MCP tools have none; the persisted quote
+    service (#45) can take the request's session instead.
+    """
     stored = _get(caller, request.quote_id)
     quote = stored.quote
     if quote.status != QuoteStatus.ready:
@@ -117,10 +123,16 @@ def request_confirmation(
             f"the quote's decision is {quote.decision.value}; "
             "answer the question or change the lines with update_quote first"
         )
+    # Marked before the first await, so a second request for the same quote gets a conflict.
     stored.quote = quote.model_copy(update={"status": QuoteStatus.pending_confirmation})
-    return ConfirmationRequestResponse(
-        sent_to_masked=caller.phone_masked, sms_status="off", inbox=True
-    )
+    try:
+        async with get_sessionmaker()() as db:
+            response = await confirmations.request_confirmation(db, caller, quote)
+            await db.commit()
+    except BaseException:
+        stored.quote = quote
+        raise
+    return response
 
 
 def get_order_status(caller: Caller, request: GetOrderStatusRequest) -> OrderStatusResponse:

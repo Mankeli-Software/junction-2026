@@ -84,8 +84,9 @@ def update_quote(caller: CurrentCaller, quote_id: str, body: BuildQuoteRequest) 
 
 
 @router.post("/quotes/{quote_id}/confirmation-request", response_model=ConfirmationRequestResponse)
-def request_confirmation(caller: CurrentCaller, quote_id: str) -> ConfirmationRequestResponse:
-    return quotes.request_confirmation(
+async def request_confirmation(caller: CurrentCaller, quote_id: str) -> ConfirmationRequestResponse:
+    """Sends the link to the caller's own inbox. Never returns the link or its token."""
+    return await quotes.request_confirmation(
         caller, _build(RequestConfirmationRequest, quote_id=quote_id)
     )
 
