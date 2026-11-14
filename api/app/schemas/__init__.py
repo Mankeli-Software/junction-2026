@@ -1,5 +1,6 @@
 """The shared contract (#26). Change a model only in its own commit, with a team heads-up."""
 
+from .accounts import DemoAccountRequest, DemoAccountResponse, Me
 from .common import (
     Claim,
     Decision,
@@ -141,6 +142,9 @@ __all__ = [
     "TranscriptEvent",
     "TranscriptLine",
     "VerifyResult",
+    "DemoAccountRequest",
+    "DemoAccountResponse",
+    "Me",
     "TextKey",
     "REMOVAL_CODES",
     "REJECTING_CODES",
