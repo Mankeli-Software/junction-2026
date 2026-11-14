@@ -1,6 +1,6 @@
 # Technical implementation plan
 
-Status: draft v2, 2026-11-14, after the first PR review. Built on `vision.md` (source of truth), `valio-api-analysis.md`, the files in `data/` and the team answers recorded in section 1. **The existing GitHub issues (#1 to #21) are not a source for this plan.** New issues will be created from this spec and should reference it. Where the plan suggests something vision.md does not settle, it is marked *proposed*. Section 13 lists what still needs a team answer.
+Status: draft v2, 2026-11-14, after the first PR review. Built on `vision.md` (source of truth), `valio-api-analysis.md`, the files in `data/` and the team answers recorded in section 1. **The existing GitHub issues (#1 to #21) are not a source for this plan.** New issues will be created from this spec and should reference it. Where the plan suggests something vision.md does not settle, it is marked *proposed*. Section 13 lists what moves to follow-up issues.
 
 ## 1. Decisions this plan builds on
 
@@ -11,7 +11,7 @@ Taken on 2026-11-14, in addition to vision.md:
 | Backend | Python, FastAPI |
 | Frontend | SvelteKit |
 | Cloud | Azure (we have credits). The app containers (Caddy, FastAPI, SvelteKit) run on one VM with Docker Compose. Not Container Apps or Web Apps, because their 240-second request limit may cut voice calls and the dashboard stream (section 9) |
-| Database | The existing Azure Database for PostgreSQL instance, for the demo and for development. Nobody runs Postgres in Docker. `vector`, `pg_trgm` and `unaccent` are allowed on the server (section 9.1) |
+| Database | The deployed app on the VM uses the existing Azure Database for PostgreSQL instance (`junction_demo`). `vector`, `pg_trgm` and `unaccent` are allowed on the server. Development uses Postgres with pgvector in Docker on each laptop. We revisit this once we know how many developers change database data or schema at the same time (section 9.1) |
 | Voice path | Our server relays audio between the browser and Gemini Live. The server is an ordinary MCP client |
 | SMS | Twilio |
 | Product images | The image file's `code` is the product file's `id`. Images are hotlinked from their `img` URL |
@@ -19,6 +19,12 @@ Taken on 2026-11-14, in addition to vision.md:
 | Recipe embeddings | Gemini embeddings, stored in pgvector |
 | Clock | A business clock frozen at Thu 2026-11-12 09:00 for cutoffs and delivery dates. The real clock for link and quote expiry, the duplicate check and audit timestamps |
 | SMS after a call | When the call ends, the voice relay calls `request_confirmation` for the call's latest ready quote |
+| Token after an edit | The token belongs to a confirmation that points to the current quote. Confirm must send the hash of the quote on screen |
+| Substitute price limit | An automatic swap may be at most 10% more expensive. The value is configurable in `policy.yaml` |
+| Rounding | Line total = quantity × gross unit price, rounded up to the next cent. Nothing is rounded before that |
+| Missing price or availability | The agent explains that the price or stock could not be checked and asks whether to try again |
+| Call language | The agent follows the caller's language. A setting can force Finnish or English |
+| Connector accounts | Both: self sign-up, and accounts we create and hand out |
 
 Constraints from vision.md that shape the architecture:
 
@@ -28,7 +34,7 @@ Constraints from vision.md that shape the architecture:
 - Product search runs locally on the product file loaded into Postgres. Price and availability are fetched only for a shortlist and cached for about five minutes. A 429 means wait 30 seconds (§10).
 - Injectable clock, demo clock Thu 2026-11-12 09:00, `closingTime` enforced (§10). This overrides section 12 of `valio-api-analysis.md`.
 - Live API or recorded snapshot, behind a switch (§10).
-- Gross prices in integer cents, decimal arithmetic, deposits not added (§10).
+- Gross totals in integer cents, decimal arithmetic, deposits not added (§10).
 - Hash-chained append-only audit, dashboard updated by push (§11).
 - Quotes signed as JWS with a published key (§12).
 
@@ -109,8 +115,8 @@ REST and MCP share one set of Pydantic models and one service layer. FastAPI tur
 | OpenAI connector | ChatGPT custom MCP connectors | Testing only | P1 |
 | Live dashboard | Server-Sent Events (`sse-starlette`), Postgres `LISTEN/NOTIFY`. The listener needs a direct connection on port 5432, because PgBouncer in transaction mode drops notifications | Status events, plain-language step texts, operator and buyer views | P0 |
 | Audit trail | Postgres, SHA-256 | Append-only hash-chained table, database privileges, chain checker | P0 |
-| Database | The existing Azure Database for PostgreSQL instance, with `vector`, `pg_trgm` and `unaccent` allowed in `azure.extensions` (done 2026-11-14). SQLAlchemy 2, Alembic | Schema, migrations (the first one runs `CREATE EXTENSION` in each database), loaders, seed data | P0 |
-| Hosting | Azure VM, Docker Compose, Caddy (automatic HTTPS) | Compose file for the app containers, Caddyfile, deploy script | P0 |
+| Database | Deployed: the existing Azure Database for PostgreSQL instance, with `vector`, `pg_trgm` and `unaccent` allowed in `azure.extensions` (done 2026-11-14). Development: the `pgvector/pgvector` image in Docker. SQLAlchemy 2, Alembic | Schema, migrations (the first one runs `CREATE EXTENSION`), loaders, seed data | P0 |
+| Hosting | Azure VM, Docker Compose, Caddy (automatic HTTPS) | Compose file for the app containers, a development override with the database, Caddyfile, deploy script | P0 |
 
 In short: protocols, transport, crypto, search primitives, speech and SMS come off the shelf. The engine, the data loaders, the confirmation flow, the relay and the four web pages are ours.
 
@@ -136,7 +142,7 @@ class LineRequest(BaseModel, extra="forbid"):
 
 `EngineInput` = the lines, the kitchen profile (allergen and diet exclusions), a history summary, the candidate product records, one offer per candidate (price and availability, with fetch time and source live or snapshot), the rule set with its version, business "now" and the quote issue time.
 
-`EngineOutput` = a decision (`ready`, `needs_clarification` or `rejected`), priced lines (asked, chosen, quantity in sales units and in the asked unit, gross unit price and line total in cents, delivery date, reason codes, trace), flags (code, whether the buyer must acknowledge it, Finnish and English text), alternatives, at most one clarification question, a next step for every rejection, text to speak in Finnish and English, and the quote when the decision is `ready`.
+`EngineOutput` = a decision (`ready`, `needs_clarification` or `rejected`), priced lines (asked, chosen, quantity in sales units and in the asked unit, gross unit price as an exact decimal and line total in cents, delivery date, reason codes, trace), flags (code, whether the buyer must acknowledge it, Finnish and English text), alternatives, at most one clarification question, a next step for every rejection, text to speak in Finnish and English, and the quote when the decision is `ready`.
 
 ### 4.2 Pipeline per line
 
@@ -149,16 +155,16 @@ class LineRequest(BaseModel, extra="forbid"):
 | Units | Sales unit comes from availability, checked against `units[]` and the price ratio. Disagreement is `UNIT_UNKNOWN`, a hard stop. Conversion uses `unitConversions`. A pack size read from the name is allowed and flagged. An unknown conversion, or a packaging word that could mean two sizes, goes to the buyer | vision §6, §10 |
 | Rounding | Whole sales units (`allowedLotSize` 0.01 counts as 1). Rounding up is automatic when the overage is at most one unit and 2%, and is flagged. Above that, the buyer gets an exact-fit product as the alternative | vision §6, §10 |
 | Rank | Price, stock certainty, history, origin. Ties broken by product id (*proposed*, keeps ranking deterministic) | vision §6 |
-| Substitute | Only when the line cannot be filled. Order of tries: same product in another pack, then a curated `substitutions[]` pair, then a similar product, then a callback request. Automatic only for the first two, and only if no allergen is added and the price is within the limit. Splitting on partial stock is the buyer's choice | vision §4, §6 |
-| Price | Gross cents from `valueWithTax`. `validTo` must cover the delivery date. Totals computed by us | vision §10; analysis §3, §11 |
+| Substitute | Only when the line cannot be filled. Order of tries: same product in another pack, then a curated `substitutions[]` pair, then a similar product, then a callback request. Automatic only for the first two, and only if no allergen is added and the substitute is at most 10% more expensive (configurable). The price is compared per kg or litre where known, since pack sizes differ; when it can't be compared, there is no automatic swap (*proposed*). Splitting on partial stock is the buyer's choice | vision §4, §6; review |
+| Price | Gross unit price from `valueWithTax`, kept as an exact decimal. Line total = quantity × unit price, rounded up to the next cent. Order total = sum of line totals. `validTo` must cover the delivery date. If price or availability can't be fetched (`error: true`, API down, no snapshot), the line isn't quoted: the agent explains and asks whether to try again (returned as `needs_clarification`, *proposed*) | vision §10; analysis §3, §11; review |
 | Sanity checks (P1) | Normal quantity range per product from history, the same order within two hours, a product never ordered before. These flags need an acknowledgement and never block | vision §6 |
 
 Then for the whole order: one notice that lists every product without allergen information (customers with an exclusion only, analysis §13), the decision, and the quote.
 
 ### 4.3 Rules as data (`policy/`)
 
-- `policy.yaml`: version, confirmation `always`, quote lifetime 30 minutes, cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (value open, section 13).
-- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`.
+- `policy.yaml`: version, confirmation `always`, quote lifetime 30 minutes, cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (10% more expensive), call language (`auto`, `fi` or `en`, default `auto`).
+- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Whether pine nut, coconut and peanut belong to nut-free is decided in a follow-up issue (section 13). It is a one-line change in this file.
 - `messages.yaml`: one Finnish and one English template per reason code and flag. Uses `data/allergen_containment_levels.csv` and the partitive allergen names for Finnish sentences.
 - `unit_codes.csv`: display names for unit codes in Finnish and English.
 
@@ -205,7 +211,7 @@ If tests show that this misses too often, a vector index on product names is the
 
 ### 5.4 Recipes (P1, Juho owns the data and the linking, vision §7)
 
-- Embed each recipe once (name, description, ingredient names, tags) with the Gemini embedding model at `output_dimensionality` 768. pgvector's HNSW index takes at most 2,000 dimensions for the `vector` type. The script saves the vectors to a file, so `junction_demo` and each developer database load them without calling the API again (*proposed*).
+- Embed each recipe once (name, description, ingredient names, tags) with the Gemini embedding model at `output_dimensionality` 768. pgvector's HNSW index takes at most 2,000 dimensions for the `vector` type. The script saves the vectors to a file, so `junction_demo` and every laptop database load them without calling the API again (*proposed*).
 - Search: embed the query at request time, rank by vector and by full-text search, merge with reciprocal rank fusion, filter by taxonomy. Diet tags are only a search hint (vision §7).
 - `get_recipe` scales `singlePortionAmounts` to the portion count. In `build_quote`, ingredients with a product link go through `recipe-product-map.json`, the rest through normal resolution, and anything that cannot be resolved safely becomes a clarification.
 
@@ -221,7 +227,7 @@ If tests show that this misses too often, a vector index on product names is the
 - A token bucket at 5 requests per second (*proposed*, below our reading of a roughly 10 per second burst limit). On 429: wait 30 seconds, retry once.
 - Cache in Postgres for 300 seconds, keyed by endpoint, product id and requested date.
 - `VALIO_SOURCE=live | record | snapshot`. `record` calls live and stores every response. `snapshot` reads only stored responses, and a missing one is logged loudly. Snapshots live in `data/snapshots/` (no key inside, safe to commit).
-- Normalisation at the edge: euros to cents, sentinels to "unverified", empty schedule to "not available", the sales-unit cross-check from section 4.2.
+- Normalisation at the edge: prices as exact decimals (totals become cents in the engine), sentinels to "unverified", empty schedule to "not available", the sales-unit cross-check from section 4.2.
 - Availability is called again at confirmation, for the quote's products only (vision §10).
 
 ## 7. Channels
@@ -260,7 +266,7 @@ sequenceDiagram
 - **After hang-up** (decided 2026-11-14): when the call ends, the relay calls `request_confirmation` for the call's latest ready quote. If there is no ready quote, no SMS goes out and the dashboard shows that the call ended without one. The agent never has to remember to send the link.
 - **Tool bridge**: at call start the relay lists the MCP tools and turns their JSON Schemas into Gemini function declarations. It authenticates to MCP as the identified caller with a short-lived token from our own auth server, so MCP treats the phone like any other client (vision §2: no client is special).
 - **Model and platform**: a 3.x Live model through the Gemini API (AI Studio key), not Vertex AI. Finnish is listed only for the 3.x audio models, and the Vertex "Configure language and voice" page does not list it. `gemini-3.8-live` is the candidate. Google's docs list synchronous and asynchronous function calling for it, and asynchronous calls let the agent keep talking while `build_quote` runs. Pick after the spike in M0.
-- **Finnish** (researched 2026-11-14): Finnish (`fi`) is in Google's table of additional languages for 3.x audio models, not in the base 24 that every audio model supports. The native audio models detect the language themselves and take no `language_code`, so the system prompt fixes it ("Always respond in Finnish"). Any of the 30 HD voices should work. Quality is not tested: recognition of product names and Finnish compound words may be weaker than for the major languages. Two existing parts of the design soften this: search tolerates typos (trigram), and the confirmation page shows what we understood next to what we added, so a misheard word is easy to spot (vision §6).
+- **Finnish** (researched 2026-11-14): Finnish (`fi`) is in Google's table of additional languages for 3.x audio models, not in the base 24 that every audio model supports. The native audio models detect the language themselves and take no `language_code`. By default the agent follows the caller. The `call_language` setting can force Finnish or English, which becomes one line in the system prompt ("Always respond in Finnish"). Any of the 30 HD voices should work. Quality is not tested: recognition of product names and Finnish compound words may be weaker than for the major languages. Two existing parts of the design soften this: search tolerates typos (trigram), and the confirmation page shows what we understood next to what we added, so a misheard word is easy to spot (vision §6).
 - **System prompt** (ours): collect all lines, then one `build_quote`. One clarification per turn. Speak the top pick and at most one alternative (vision §5). Give the no-allergen-listing notice once, at the end. Never say the order is placed. Say the link comes by SMS after hanging up. When a decision cannot be overridden, say so and move on.
 - **Call screen**: dial-pad look, timer, mute, hang-up. No proximity sensor (vision §9).
 
@@ -275,6 +281,7 @@ sequenceDiagram
 
 - The connector URL is `https://<host>/mcp`. FastAPI serves the OAuth protected-resource metadata (RFC 9728) and authorization-server metadata. The MCP SDK's auth routes handle client registration, authorize with PKCE and token. Our provider stores clients, codes and tokens in Postgres. Authorize redirects to the SvelteKit `/login` page (email and password) and back.
 - Claude lets you add a custom connector with auth turned off, so the tools can be tested before login works.
+- Accounts (decided): both self sign-up (email, password and phone number) and accounts we create and hand out to judges and peers. A handed-out account gets the recipient's own phone number, because the confirmation SMS goes there.
 - Tool results carry structured fields and product names only. Marketing text is never sent to an agent (*proposed*; vision §8 treats all product free text as data).
 
 ### 7.4 OpenAI connector (P1)
@@ -293,7 +300,7 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 ### 8.2 SMS link
 
 - `request_confirmation(quote_id)` has no recipient argument. The recipient is the identified user's registered number (vision §6).
-- The token is 256 random bits, stored as SHA-256, bound to the quote, its hash and the recipient, and it expires with the quote.
+- The token is 256 random bits, stored as SHA-256. It belongs to a confirmation that holds the recipient and points to the current quote (decided). It expires with the current quote.
 - Link `https://<host>/c/<token>`. *Proposed*: opening the link never uses it up, so SMS link previews and repeated opens do no harm. Confirm or Cancel uses it up.
 - Twilio sends with a status callback to `/api/v1/twilio/status` (Twilio signature checked). A failed delivery appears on the dashboard, nothing is ordered, and a resend can be offered (vision §6).
 - Twilio setup: a trial account only sends to verified numbers, so the booth demo needs an upgraded account. Check the sender-id rules for Finland at the same time.
@@ -303,7 +310,7 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 - Rendered on the server by SvelteKit from FastAPI data only (vision §6).
 - Odd things first, each with an acknowledge box. Confirm stays disabled until every box is ticked.
 - Asked and added side by side, grouped by request. Quantities in sales units and in the asked unit, delivery date, gross total, and a readable trace.
-- Edits (quantity, remove a line, pick an alternative) run the engine again and produce a new quote on the same page. The old quote becomes void.
+- Edits (quantity, remove a line, pick an alternative) run the engine again and produce a new quote on the same page. The old quote becomes void and the confirmation points to the new one. Confirm must send the hash of the quote on screen, so a stale tab cannot confirm an old version.
 - Confirm re-checks availability. If it got worse, the quote is void and a new one is shown. Otherwise the order is created and the page shows "order received".
 - Product text is escaped (Svelte's default, never `{@html}`). `Referrer-Policy: no-referrer` keeps the token out of Referer headers, including towards the hotlinked image host.
 
@@ -325,6 +332,7 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 - The relay emits call events (started, tool called, ended), so a call shows up while it is still going on.
 - A periodic job marks expired quotes and emits the event, because expiry does not happen on its own.
 - The stream and audit endpoints accept web sessions only, never MCP tokens, so no agent can read the log (vision §8).
+- Login and a public view are a follow-up issue (section 13). The team wants a dashboard anyone can see without logging in, with its scope decided later. So that it stays cheap to add, each status event carries a public-safe part (step, status, counts, totals, timestamps, no phone numbers or personal names) next to the full detail.
 
 ## 9. Hosting on Azure
 
@@ -341,14 +349,9 @@ Why a VM and not Container Apps or Web Apps (asked in review, decided 2026-11-14
 - **Extensions**: `vector`, `pg_trgm` and `unaccent` are allowed in the `azure.extensions` server parameter (done 2026-11-14). Each database still needs `CREATE EXTENSION`, which the first migration runs.
 - **Connections**: all app connections go straight to port 5432, not through PgBouncer. PgBouncer in transaction mode drops `LISTEN/NOTIFY` notifications (the dashboard) and keeps no session-level state. One API process needs only a few connections.
 - **`DATABASE_URL`** includes `sslmode=require`, which Azure requires.
-- **Databases on the shared server**, so that migrations, seed data and the hash-chained audit table don't collide:
-
-| Database | Used by |
-|---|---|
-| `junction_demo` | The VM: the stage demo, judges and peers |
-| One per developer (for example `junction_dev_<name>`) | That developer's laptop |
-
-- **Firewall**: one rule for the VM's IP (or its VNet) and one per laptop IP. On venue Wi-Fi the laptops may share one public IP, and it changes when someone switches to a phone hotspot, so someone with admin access to the server should be reachable.
+- **Databases**: the VM uses `junction_demo` on the Azure server (stage demo, judges and peers). Each laptop runs its own Postgres in Docker for development (decided in review). We revisit this once we know how many developers change database data or schema at the same time.
+- **Laptop database**: the `pgvector/pgvector` image at the same major Postgres version as the Azure server. `pg_trgm` and `unaccent` ship with it. `DATABASE_URL` points at the container without TLS.
+- **Firewall**: one rule for the VM's IP (or its VNet). Laptops don't connect to the server, so they need no rules.
 - **Backup before the pitch**: a `pg_dump` of `junction_demo`, or the server's point-in-time restore. A VM disk snapshot no longer holds the data.
 
 ### 9.2 VM setup
@@ -361,7 +364,7 @@ Why a VM and not Container Apps or Web Apps (asked in review, decided 2026-11-14
 6. Deploy with `git pull && docker compose up -d --build`. Automate with a GitHub Action over SSH if time allows.
 7. Caddy routes `/api/*`, `/mcp`, `/.well-known/*`, the OAuth routes and `/voice/*` to FastAPI, and everything else to SvelteKit. Everything is same-origin, so cookies stay simple.
 
-Laptops run the same Compose file, or the FastAPI and SvelteKit dev servers directly, against their own database.
+Laptops run the same Compose file plus a development override (`deploy/docker-compose.dev.yml`, *proposed*) that adds a `db` service from the `pgvector/pgvector` image with a volume. The FastAPI and SvelteKit dev servers can also run directly against that container.
 
 Production path: the database part is already in place. Azure Container Apps and Key Vault are still pitch-only.
 
@@ -389,7 +392,7 @@ scripts/                 loaders, embeddings, snapshot recorder, audit-chain che
 deploy/                  docker-compose.yml, Caddyfile, .env.example
 ```
 
-Tooling (*proposed*): Python 3.12 with `uv`, `ruff` and `pytest`. `pnpm` and `svelte-check` for the web app. GitHub Actions runs lint and the tests that need no database on pull requests. Database tests run locally against each developer's own database, since CI has no firewall access to the server.
+Tooling (*proposed*): Python 3.12 with `uv`, `ruff` and `pytest`. `pnpm` and `svelte-check` for the web app. GitHub Actions runs lint and all tests on pull requests, with the same `pgvector/pgvector` image as a service container.
 
 Tests:
 
@@ -405,7 +408,7 @@ Tests:
 
 | Milestone | Done when |
 |---|---|
-| M0 Foundations and spikes | VM with HTTPS and Compose. Database firewall rules for the VM and the laptops. `junction_demo` and one database per developer created, with the extensions enabled in each (they are already allowed on the server). Product file in Postgres. Valio client working, with a snapshot of the demo shortlist. Twilio upgraded and a test SMS received. Gemini Live spike on a 3.x model: Finnish recognition of real product names and compound words, latency, and one function call through the relay |
+| M0 Foundations and spikes | VM with HTTPS and Compose. Database firewall rule for the VM. `junction_demo` created with the extensions enabled (they are already allowed on the server). Development Compose override with Postgres in Docker. Product file in Postgres. Valio client working, with a snapshot of the demo shortlist. Twilio upgraded and a test SMS received. Gemini Live spike on a 3.x model: Finnish recognition of real product names and compound words, latency, and one function call through the relay |
 | M1 Walking skeleton | From MCP Inspector: `build_quote` (milk, one line) → `request_confirmation` → SMS → confirmation page → Confirm → order record → dashboard event → audit chain. Running on the VM |
 | M2 Phone demo | Number entry → demo account → call screen → relay → SMS after hang-up |
 | M3 Engine breadth (P0) | Allergen and diet rules, units and rounding, availability states and cutoffs, basic substitution with callback, clarifications, rejections with a next step, flags and acknowledgements, edits, re-check at confirmation, JWS |
@@ -433,23 +436,15 @@ Tests:
 | Venue Wi-Fi degrades WebSocket audio | Call breaks up | Test on the venue network. Phone hotspot as backup |
 | SMS apps open the link to build a preview | Token used up before the buyer sees it | Opening never uses the token up (8.2) |
 | One VM | App outage | One-command redeploy. The data lives on the managed server |
-| Shared database server | A heavy query or a bad migration on one database slows the demo | One database per developer. Only the VM uses `junction_demo` |
+| Laptop Postgres (Docker) and the Azure server differ | Works on a laptop, fails on the VM | Same major version and extensions locally. Deploy to the VM from M0 on, so differences show up early |
 
-## 13. Open questions
+## 13. Follow-up issues
 
-Vision.md does not settle these. Each needs a team answer before its part is built.
+The first review settled every other open question (section 1). These three get their own issues, created from this spec:
 
-The clock and the SMS trigger after a call were settled in the first review (section 1).
-
-1. **Token after an edit.** Vision §6 binds the token to the quote and its hash, but an edit creates a new quote on the same page. *Proposed*: the token belongs to a confirmation that points to the current quote, and Confirm must send the hash of the quote on screen.
-2. **Substitute price limit.** Vision §6 allows an automatic swap "if the price is within the limit" but gives no number.
-3. **Nut-free set.** Vision §10 leaves pine nut (`PN`), coconut (`SO`) and peanut (`AP`) to issue #6, which is not a source for this plan.
-4. **Rounding to cents.** If the API's gross unit price ever has more than two decimals, which rule applies, and is it applied to the unit price or to the line total?
-5. **Missing price or availability.** When the price call returns `error: true`, or the API is down and no snapshot exists, does the line become a substitution case or a callback?
-6. **Demo account content.** The kitchen profile and order history a new demo account gets (vision §13, still open).
-7. **Call language.** Finnish only, English only, or follow the caller? The model detects the language itself, so this is a system-prompt choice.
-8. **Dashboard login.** How operators log in, and how a phone-only buyer with no email sees their own company's orders (vision §11).
-9. **Connector accounts.** Self sign-up (email, password, phone number) or accounts handed out to judges and peers?
+1. **Nut-free set.** Whether pine nut (`PN`), coconut (`SO`) and peanut (`AP`) count as nuts. Vision §10 left this to old issue #6, which is not a source.
+2. **Demo account content.** The kitchen profile and order history a new demo account gets (vision §13, still open).
+3. **Dashboard login and a public view.** How operators log in, how a phone-only buyer with no email sees their own company's orders (vision §11), and the scope of a public dashboard that needs no login (section 8.6).
 
 Inputs we are waiting for:
 
