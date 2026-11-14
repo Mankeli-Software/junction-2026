@@ -296,11 +296,11 @@ class VerifyResult(StrictModel):
 
 
 class OrderUpdated(StrictModel):
-    """Assumed shape: the full card with its company, so a new card can be placed."""
+    """The full card with its company, so a new card can be placed, and the fresh totals."""
 
     company: CompanyRef
     order: OrderCard
-    totals: Totals | None = None  # Assumed: fresh totals; otherwise the client adjusts
+    totals: Totals | None = None  # the feed always sends them
 
 
 class StepEvent(StrictModel):

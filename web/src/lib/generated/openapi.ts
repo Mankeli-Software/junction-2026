@@ -1260,7 +1260,7 @@ export interface components {
         };
         /**
          * OrderUpdated
-         * @description Assumed shape: the full card with its company, so a new card can be placed.
+         * @description The full card with its company, so a new card can be placed, and the fresh totals.
          */
         OrderUpdated: {
             company: components["schemas"]["CompanyRef"];
