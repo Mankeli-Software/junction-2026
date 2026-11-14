@@ -37,9 +37,10 @@ choices:
   nut_free:
     label: {fi: pähkinätön, en: nut-free}
     # Tree nuts: the general code plus every specific nut, because the data
-    # often lists only the specific one. Pine nut (PN), coconut (SO) and
-    # peanut (AP) wait for issue #60.
-    block: [AN, SA, SH, SW, SC, SP, SM, SR, ST]
+    # often lists only the specific one. Peanut (AP) and pine nut (PN) are
+    # included because a nut-free kitchen avoids them too; coconut (SO) is
+    # not (decided in #60).
+    block: [AN, SA, SH, SW, SC, SP, SM, SR, ST, AP, PN]
 
   egg_free:
     label: {fi: kananmunaton, en: egg-free}

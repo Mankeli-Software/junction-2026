@@ -182,7 +182,7 @@ Then for the whole order: one notice that lists every product without allergen i
 ### 4.3 Rules as data (`policy/`)
 
 - `policy.yaml`: version, confirmation `always`, quote lifetime (`quote_ttl`: off for the event, for example 30 minutes in production), maximum call length (*proposed* 10 minutes, the spec leaves it to the backend), cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (10% more expensive), call language (`auto`, `fi` or `en`, default `auto`).
-- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Its keys are the kitchen choices on the call page: milk-free, lactose-free, gluten-free, nut-free, egg-free, fish-free and vegan (`docs/specs/call-screen.md` §2.2). Lactose-free and vegan also need claim rules (the `LACTOSE` free-from claim, the `VEGAN` claim), not only allergen codes. Whether pine nut, coconut and peanut belong to nut-free is decided in a follow-up issue (section 14). It is a one-line change in this file.
+- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Its keys are the kitchen choices on the call page: milk-free, lactose-free, gluten-free, nut-free, egg-free, fish-free and vegan (`docs/specs/call-screen.md` §2.2). Lactose-free and vegan also need claim rules (the `LACTOSE` free-from claim, the `VEGAN` claim), not only allergen codes. Nut-free also blocks peanut (`AP`) and pine nut (`PN`), but not coconut (`SO`) (decided in #60).
 - `messages.yaml`: one Finnish and one English template per reason code and flag. Uses `data/allergen_containment_levels.csv` and the partitive allergen names for Finnish sentences.
 - `unit_codes.csv`: display names for unit codes in Finnish and English.
 
@@ -621,7 +621,7 @@ Tests:
 
 The first review settled every other open question (section 1). These three get their own issues, created from this spec:
 
-1. **Nut-free set.** Whether pine nut (`PN`), coconut (`SO`) and peanut (`AP`) count as nuts. Vision §10 left this to old issue #6, which is not a source.
+1. **Nut-free set.** Decided in #60: peanut (`AP`) and pine nut (`PN`) count, coconut (`SO`) does not.
 2. **Demo order history.** The seeded order history a new demo company gets, so "my usual" works (vision §13, still open). The kitchen profile is chosen by the visitor (`docs/specs/call-screen.md` §2.2).
 3. **Operator login.** Not needed: the dashboard is fully public (section 9.5, decided 2026-11-14, #62 closed).
 
