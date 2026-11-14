@@ -16,6 +16,7 @@ from sqlalchemy import insert, select
 from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import telemetry
 from app.models import AuditEvent, StatusEvent
 from app.schemas import AuditEventType, Localized
 from app.services.dashboard.redact import redact
@@ -131,6 +132,22 @@ async def record(
             .returning(StatusEvent.id)
         )
     ).scalar_one()
+
+    # A copy for Application Insights (#84): the row above stays the record (hash chain);
+    # this line puts the session's timeline next to its spans. Not the payload, only its hash
+    # and the readable sentence (a transcript's text is already redacted). Written inside the
+    # transaction, so a rolled-back event can still appear here; `seq` and `hash` tell.
+    telemetry.event(
+        f"audit {event_type.value}",
+        audit_type=event_type.value,
+        actor=actor,
+        seq=seq,
+        hash=event_hash,
+        payload_hash=digest,
+        session_id=_uuid_text(session_id),
+        quote_id=_uuid_text(quote_id),
+        text=text_en,
+    )
 
     return RecordedEvent(
         seq=seq,

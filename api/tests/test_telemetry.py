@@ -122,3 +122,22 @@ async def test_a_tool_error_marks_its_span_failed():
     assert tool.status.status_code == trace.StatusCode.ERROR
     assert tool.attributes["simo.outcome"] == "error"
     assert "no such quote" in tool.attributes["simo.error"]
+
+
+async def test_every_audit_event_is_mirrored_as_a_log_line(db, caplog):
+    from app.schemas import Localized
+    from app.services import audit
+
+    caplog.set_level(logging.INFO, logger="simo.events")
+    event = await audit.record(
+        db,
+        type="agent_said",
+        actor="agent",
+        payload={"text": "Tilaan maitoa.", "transcript": True},
+        text=Localized(fi="Tilaan maitoa.", en="Tilaan maitoa."),
+    )
+
+    (line,) = [r for r in caplog.records if r.getMessage() == "audit agent_said"]
+    assert line.__dict__["simo.seq"] == str(event.seq)
+    assert line.__dict__["simo.text"] == "Tilaan maitoa."
+    assert "simo.payload" not in line.__dict__
