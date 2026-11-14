@@ -175,6 +175,8 @@ class SummaryRequest(StrictModel):
     asked: AskedLine
     asked_text: Localized  # "5 kg ground beef, by Monday"
     group: Localized | None  # recipe or split group name
+    # The group's recipe image, from the quote's group (GroupSubtotal.image_url); null without.
+    group_image_url: str | None = None
     lines: list[SummaryLine]
     not_ordered: list[NotOrdered]
 
