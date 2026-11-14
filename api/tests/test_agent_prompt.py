@@ -19,6 +19,7 @@ from app.schemas import (
     ExclusionLabel,
     LineRequest,
     Localized,
+    RecipeRef,
     RequestedUnit,
     UpdateQuoteRequest,
     UsualItem,
@@ -57,6 +58,7 @@ KNOWN = (
     | set(LineRequest.model_fields)
     | set(UpdateQuoteRequest.model_fields)
     | set(BuildQuoteRequest.model_fields)
+    | set(RecipeRef.model_fields)
     | {u.value for u in RequestedUnit}
     | {c.value for c in Claim}
     # Response fields the prompt reads from QuoteResponse and ConfirmationRequestResponse
@@ -76,6 +78,7 @@ KNOWN = (
         "fi",
         "en",
         "ALLERGEN_NO_LISTING",
+        "not_ordered",
     }
 )
 

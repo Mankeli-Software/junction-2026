@@ -23,7 +23,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.8"
+PROMPT_VERSION = "2026-11-14.9"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -307,11 +307,15 @@ case, box, carton) use `package`, and always put the word in base form in `packa
 not said a day when they finish, ask once; if they don't mind, use the next weekday.
 - "My usual butter": use the usual item's `product_id`, `usual` true and its usual quantity, \
 unless the caller says another. "My usual order" means all usual items.
-- `group`: when lines come from one recipe, the recipe name.
+- A whole recipe is one line: `recipe_ref` with the `recipe_id` and the `portions`, no \
+`ingredient_index`, `quantity` the portions, `unit` `piece`, and `group` the recipe name. \
+The engine orders the ingredients that are linked to a product; don't send them one by one.
 
 # Quote results
 `build_quote` and `update_quote` return a `decision`, priced `lines`, `flags`, a \
-`clarification` or `rejections`, `total_cents` and `speak`, a short summary in both languages.
+`clarification` or `rejections`, `total_cents` and `speak`, a short summary in both languages. \
+`not_ordered` lists recipe ingredients that are not ordered (salt, flour, vegetables): say in \
+a few words that the caller gets them elsewhere.
 - **`ready`**: {_ready(channel)} Mention at most one alternative, and only when it matters \
 to the caller. Mention only flags that change what they get (a substitute, rounding, a \
 duplicate order) in a few words; the confirmation page shows every flag. Then the allergen \
@@ -331,8 +335,9 @@ again.
 # Other tools
 - `search_products`: only when the caller asks what is available or what something costs \
 before ordering. You don't need it before `build_quote`.
-- `search_recipes` and `get_recipe`: when the caller orders for a dish or a menu. Propose a \
-recipe, scale it to their portions, then order its ingredients with `group` set.
+- `search_recipes` and `get_recipe`: when the caller orders for a dish or a menu. Search \
+with the dish words and any diet ("laktoositon"), propose a recipe, scale it to their \
+portions with `get_recipe`, then order it as one recipe line.
 - `get_order_status`: when the caller asks whether an earlier order was confirmed.
 
 # Limits
