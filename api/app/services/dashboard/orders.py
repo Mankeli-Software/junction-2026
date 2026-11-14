@@ -1,6 +1,7 @@
 """One order on the public dashboard (#49): summary, steps, transcript, events and verify.
 
-All of these read `sessions`, `quotes` and `audit_events`; the routes redact the result.
+All of these read `sessions`, `quotes`, `orders`, `confirmation_acknowledgements` and
+`audit_events`; the routes redact the result.
 """
 
 import uuid
@@ -11,7 +12,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AuditEvent as AuditEventRow
-from app.models import Quote
+from app.models import ConfirmationAcknowledgement, Quote
 from app.schemas import (
     AgentInfo,
     AskedLine,
@@ -35,6 +36,7 @@ from app.schemas import (
 )
 from app.services.audit import verify_chain
 from app.services.audit.chain import format_at
+from app.services.confirmation_page import text_hash
 from app.services.errors import NotFoundError
 
 from .overview import (
@@ -86,7 +88,7 @@ async def load_summary(db: AsyncSession, session_id: str) -> OrderSummary:
             code=f.code,
             text=f.text,
             detail=None,
-            acknowledged_at=acknowledged.get(f.flag_key),
+            acknowledged_at=acknowledged.get((f.flag_key, text_hash(f.text))),
         )
         for f in (output.flags if output else [])
     ]
@@ -213,18 +215,23 @@ def _summary_line(line: Any) -> SummaryLine:
     )
 
 
-async def _acknowledged(db: AsyncSession, session_id: uuid.UUID) -> dict[str, datetime]:
-    """When each flag was acknowledged, from `flags_acknowledged` events (`flag_keys`)."""
+async def _acknowledged(db: AsyncSession, session_id: uuid.UUID) -> dict[tuple[str, str], datetime]:
+    """When the buyer ticked each flag on the confirmation page, by `(flag_key, text_hash)`.
+
+    From #47's `confirmation_acknowledgements`, over every quote of the session: a tick
+    carries over to a new quote while the flag's text stays the same, as on the page.
+    """
     rows = await db.execute(
-        select(AuditEventRow.at, AuditEventRow.payload)
-        .where(AuditEventRow.session_id == session_id, AuditEventRow.type == "flags_acknowledged")
-        .order_by(AuditEventRow.seq)
+        select(
+            ConfirmationAcknowledgement.flag_key,
+            ConfirmationAcknowledgement.text_hash,
+            func.min(ConfirmationAcknowledgement.acknowledged_at),
+        )
+        .join(Quote, Quote.id == ConfirmationAcknowledgement.quote_id)
+        .where(Quote.session_id == session_id)
+        .group_by(ConfirmationAcknowledgement.flag_key, ConfirmationAcknowledgement.text_hash)
     )
-    acknowledged: dict[str, datetime] = {}
-    for at, payload in rows:
-        for key in (payload or {}).get("flag_keys", []):
-            acknowledged.setdefault(str(key), at)
-    return acknowledged
+    return {(key, digest): at for key, digest, at in rows}
 
 
 def _status_line(row: SessionRow, flags: list[SummaryFlag]) -> Localized | None:
