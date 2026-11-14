@@ -13,9 +13,10 @@
 	import EndedScreen from '#lib/demo/components/phone/EndedScreen.svelte';
 	import InCallScreen from '#lib/demo/components/phone/InCallScreen.svelte';
 	import MessagesScreen from '#lib/demo/components/phone/MessagesScreen.svelte';
-	import SetupScreen, { type SetupValues } from '#lib/demo/components/phone/SetupScreen.svelte';
+	import SetupScreen from '#lib/demo/components/phone/SetupScreen.svelte';
 	import { t } from '#lib/demo/i18n.js';
-	import type { DemoAccount, InboxMessage, Lang } from '#lib/demo/types.js';
+	import { readPhone, writePhone } from '#lib/demo/session.js';
+	import type { DemoAccount, InboxMessage, Lang, SetupValues } from '#lib/demo/types.js';
 	import { VoiceCall } from '#lib/voice/call.svelte.js';
 	import type { PageProps } from './$types';
 
@@ -23,7 +24,6 @@
 	const lang = $derived(data.lang);
 
 	type Screen = 'setup' | 'contacts' | 'call' | 'messages';
-	const STORAGE_KEY = 'simo.phone';
 
 	let screen = $state<Screen>('setup');
 	let ready = $state(false);
@@ -52,11 +52,7 @@
 	}
 
 	function save() {
-		try {
-			sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ values, account, seen }));
-		} catch {
-			// Private mode: the phone just won't survive a reload.
-		}
+		writePhone({ values, account, seen });
 	}
 
 	onMount(() => {
@@ -75,10 +71,10 @@
 	/** Back from the confirmation page or a reload: open the phone where it was. */
 	async function restore() {
 		try {
-			const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? 'null');
-			if (stored?.values) values = stored.values;
-			if (Array.isArray(stored?.seen)) seen = stored.seen;
-			if (stored?.account) {
+			const stored = readPhone();
+			if (stored.values) values = stored.values;
+			if (Array.isArray(stored.seen)) seen = stored.seen;
+			if (stored.account) {
 				const me = await getMe();
 				account = {
 					...stored.account,
