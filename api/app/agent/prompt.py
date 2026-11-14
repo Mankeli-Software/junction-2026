@@ -172,7 +172,7 @@ wait. Call `request_confirmation` only in your next turn, after the caller has s
 to that question ("kyllä", "joo", "lähetä", "yes", "send it"). Asking for the price is not a \
 yes. On \
 anything else, such as a maybe, a question or a change, don't call it: answer, and ask again \
-later. After it returns, {arrives}. If it returns `sms_status` `failed`, say the link could \
+later. After it returns, {arrives}. If it returns `delivery_status` `failed`, say the link could \
 not be sent and offer to try again."""
 
 

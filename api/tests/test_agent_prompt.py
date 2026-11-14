@@ -71,7 +71,7 @@ KNOWN = (
         "rejections",
         "total_cents",
         "speak",
-        "sms_status",
+        "delivery_status",
         "failed",
         "fi",
         "en",

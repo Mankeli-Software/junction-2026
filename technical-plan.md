@@ -393,7 +393,7 @@ The seven tools of vision §8, unchanged. Each has a REST twin with the same Pyd
 | `get_recipe` | `GET /api/v1/recipes/{id}?portions=` |
 | `build_quote` | `POST /api/v1/quotes` |
 | `update_quote` | `POST /api/v1/quotes/{id}/update` (returns a new quote) |
-| `request_confirmation` | `POST /api/v1/quotes/{id}/confirmation-request`, returns `{sent_to_masked, sms_status}` |
+| `request_confirmation` | `POST /api/v1/quotes/{id}/confirmation-request`, returns `{sent_to_masked, delivery_status}` |
 | `get_order_status` | `GET /api/v1/quotes/{id}/status` |
 
 Fields the screens need that section 4.1 doesn't list yet:
@@ -432,7 +432,7 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 | Server → browser | `interrupted` | none (flush playback, section 7.1) |
 | Server → browser | `agent_state` | `state` (`listening`, `thinking`, `working` or `speaking`), `tool` (the tool name while `working`, otherwise null). *Proposed (#54)*; see below |
 | Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
-| Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone) |
+| Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `delivery_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` when the visitor didn't agree to a quote), `inbox` (true when the message is in the simulated phone) |
 
 `agent_state` (*proposed, #54*) drives the call screen's activity indicator (`docs/specs/call-screen.md` §2.3). The relay sends it only when the state changes:
 

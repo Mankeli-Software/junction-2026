@@ -332,7 +332,7 @@ class StubService:
                 return {
                     "output": ConfirmationRequestResponse(
                         sent_to_masked=CONTEXT.phone_masked,
-                        sms_status="held" if self.scenario.channel == "phone" else "off",
+                        delivery_status="held" if self.scenario.channel == "phone" else "off",
                         inbox=True,
                     ).model_dump(mode="json")
                 }
