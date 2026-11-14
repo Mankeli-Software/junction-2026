@@ -16,7 +16,9 @@
  * Test numbers (national part):
  * - ends in 0429: the number has reached the demo limit (429);
  * - ends in 7001: the SMS goes out (`delivery_status: sent`);
- * - ends in 7002: the SMS fails (`delivery_status: failed`).
+ * - ends in 7002: the SMS fails (`delivery_status: failed`);
+ * - ends in 0005: a vegan catering company, which starts with Vegan when nothing is
+ *   chosen (#81); any other number is a lunch restaurant.
  */
 import { randomBytes, randomUUID } from 'node:crypto';
 import { maskPhone } from '../../demo/phone.ts';
@@ -25,6 +27,7 @@ import type {
 	DemoAccountRequest,
 	Exclusion,
 	InboxMessage,
+	KitchenType,
 	Lang,
 	Me,
 	DeliveryStatus,
@@ -37,6 +40,7 @@ interface Company {
 	id: string;
 	phone: string;
 	name: string;
+	kitchenType: KitchenType;
 	exclusions: Exclusion[];
 	lang: Lang;
 }
@@ -90,13 +94,16 @@ export function createAccount(
 			id: randomUUID(),
 			phone: request.phone_e164,
 			name: uniqueName(request.phone_e164),
+			kitchenType: request.phone_e164.endsWith('0005') ? 'vegan_catering' : 'lunch_restaurant',
 			exclusions: [],
 			lang: request.lang
 		};
 		companies.set(company.phone, company);
 	}
 	// A change to the kitchen applies from the next call (spec §2.2).
-	company.exclusions = [...request.exclusions];
+	// A new company with nothing chosen starts from its type's defaults (#81).
+	const defaults: Exclusion[] = company.kitchenType === 'vegan_catering' ? ['vegan'] : [];
+	company.exclusions = newCompany && request.exclusions.length === 0 ? defaults : [...request.exclusions];
 	company.lang = request.lang;
 
 	let user = sessionId ? users.get(sessionId) : undefined;
@@ -127,7 +134,8 @@ export function me(sessionId: string | null | undefined): Me | null {
 		company_name: company.name,
 		phone_masked: maskPhone(company.phone),
 		exclusions: [...company.exclusions],
-		lang: company.lang
+		lang: company.lang,
+		kitchen_type: company.kitchenType
 	};
 }
 
@@ -189,7 +197,8 @@ function accountView(company: Company, user: User, newCompany: boolean, newUser:
 		exclusions: [...company.exclusions],
 		usual_items: usualItems(company.exclusions),
 		new_company: newCompany,
-		new_user: newUser
+		new_user: newUser,
+		kitchen_type: company.kitchenType
 	};
 }
 

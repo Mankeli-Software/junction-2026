@@ -3,7 +3,7 @@
  * (docs/specs/call-screen.md §5). Design rules: the agent is always written S.I.MO,
  * no middle-dot character, masked numbers with stars, no "DEMO" labels.
  */
-import type { Exclusion, Lang, Text } from './types';
+import type { Exclusion, KitchenType, Lang, Text } from './types';
 
 const strings = {
 	language: { en: 'Language', fi: 'Kieli' },
@@ -248,6 +248,22 @@ const exclusionShort: Record<Exclusion, Text> = {
 
 export function exclusionLabel(lang: Lang, exclusion: Exclusion): string {
 	return exclusionShort[exclusion][lang];
+}
+
+/** The kitchen types' names, as in data/demo_histories.yaml (#32, #81). */
+const kitchenTypes: Record<KitchenType, Text> = {
+	school_kitchen: { en: 'School kitchen', fi: 'Koulukeittiö' },
+	lunch_restaurant: { en: 'Lunch restaurant', fi: 'Lounasravintola' },
+	pizza_restaurant: { en: 'Pizza restaurant', fi: 'Pizzeria' },
+	bar: { en: 'Bar', fi: 'Baari' },
+	vegan_catering: { en: 'Vegan catering company', fi: 'Vegaaninen pitopalvelu' },
+	cafe: { en: 'Cafe', fi: 'Kahvila' },
+	tech_office: { en: 'Tech office', fi: 'Teknologiayrityksen toimisto' }
+};
+
+/** The Kitchen row's title on Contacts: the kitchen type, or "Kitchen" when it is unknown. */
+export function kitchenTitle(lang: Lang, kind: KitchenType | null | undefined): string {
+	return kind ? kitchenTypes[kind][lang] : t(lang, 'kitchen');
 }
 
 /** "Avoids milk and nuts" for the Kitchen row on Contacts (design 11). */

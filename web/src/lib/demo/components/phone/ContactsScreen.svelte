@@ -6,7 +6,7 @@
 	 */
 	import Icon from '../Icon.svelte';
 	import TabBar from './TabBar.svelte';
-	import { avoidsText, t, type StringKey } from '../../i18n';
+	import { avoidsText, kitchenTitle, t, type StringKey } from '../../i18n';
 	import type { DemoAccount, Lang } from '../../types';
 
 	let {
@@ -61,7 +61,7 @@
 			<div class="ct">
 				<div class="av small kitchen">K</div>
 				<div class="ct-text">
-					<span class="ct-name">{t(lang, 'kitchen')}</span>
+					<span class="ct-name" data-testid="kitchen-type">{kitchenTitle(lang, account.kitchen_type)}</span>
 					<span class="ct-sub" data-testid="kitchen">{avoidsText(lang, account.exclusions)}</span>
 				</div>
 				<button type="button" class="link" aria-label={t(lang, 'changeKitchen')} onclick={onchange}>{t(lang, 'change')}</button>

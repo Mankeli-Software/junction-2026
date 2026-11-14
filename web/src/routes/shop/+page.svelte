@@ -87,12 +87,14 @@
 		try {
 			const created = await createAccount({ phone_e164: e164, exclusions: next.exclusions, lang });
 			account = created;
+			// The server may have filled in the kitchen type's defaults (#81).
+			values = { ...next, exclusions: created.exclusions };
 			editing = false;
 			quote = null;
 			confirmation = null;
 			// So /phone in this tab opens on Contacts with the same account and inbox.
 			const stored = readPhone();
-			writePhone({ values: next, account: created, seen: created.new_user ? [] : (stored.seen ?? []) });
+			writePhone({ values, account: created, seen: created.new_user ? [] : (stored.seen ?? []) });
 		} catch (error) {
 			entryError = error instanceof ApiError && error.status === 429 ? 'limit' : 'failed';
 		} finally {

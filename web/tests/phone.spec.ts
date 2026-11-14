@@ -109,6 +109,20 @@ test('call, captions, hang up, notification, inbox link opens the confirmation p
 	await expect(page.getByTestId('inbox-message')).toHaveCount(1);
 });
 
+test('a vegan catering company starts vegan and can change it', async ({ page }) => {
+	// The fixture makes a number ending in 0005 a vegan catering company (#81).
+	await setUp(page, number('0005'));
+	await expect(page.getByTestId('kitchen-type')).toHaveText('Vegan catering company');
+	await expect(page.getByTestId('kitchen')).toHaveText('Avoids animal products');
+
+	await page.getByRole('button', { name: 'Change kitchen' }).click();
+	const vegan = page.getByRole('button', { name: 'Animal products', exact: true });
+	await expect(vegan).toHaveAttribute('aria-pressed', 'true');
+	await vegan.click();
+	await page.getByRole('button', { name: 'Open demo phone' }).click();
+	await expect(page.getByTestId('kitchen')).toHaveText('No restrictions');
+});
+
 test('hanging up before agreeing sends nothing', async ({ page }) => {
 	await setUp(page);
 	await page.getByRole('button', { name: 'Call S.I.MO' }).click();

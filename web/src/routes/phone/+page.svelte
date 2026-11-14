@@ -82,8 +82,10 @@
 					company_id: me.company_id,
 					company_name: me.company_name,
 					phone_masked: me.phone_masked,
-					exclusions: me.exclusions
+					exclusions: me.exclusions,
+					kitchen_type: me.kitchen_type ?? stored.account.kitchen_type
 				};
+				values = { ...values, exclusions: me.exclusions };
 				screen = 'contacts';
 				openInbox();
 			} else if (page.url.searchParams.has('inbox')) {
@@ -106,6 +108,9 @@
 		setupError = null;
 		try {
 			account = await createAccount({ phone_e164: e164, exclusions: next.exclusions, lang });
+			// The server may have filled in the kitchen type's defaults (#81), so Change
+			// opens with what was saved.
+			values = { ...next, exclusions: account.exclusions };
 			screen = 'contacts';
 			save();
 			openInbox();

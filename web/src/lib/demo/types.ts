@@ -37,6 +37,16 @@ export function isExclusion(value: unknown): value is Exclusion {
 	return typeof value === 'string' && (EXCLUSIONS as readonly string[]).includes(value);
 }
 
+/** `KitchenType` in api/app/schemas/common.py: chosen by the server from the number (#32). */
+export type KitchenType =
+	| 'pizza_restaurant'
+	| 'school_kitchen'
+	| 'lunch_restaurant'
+	| 'bar'
+	| 'vegan_catering'
+	| 'cafe'
+	| 'tech_office';
+
 /** What the visitor typed in the number entry (the phone's set-up and the webshop). */
 export interface SetupValues {
 	countryCode: string;
@@ -57,6 +67,7 @@ export interface DemoAccountRequest {
 	phone_e164: string;
 	exclusions: Exclusion[];
 	lang: Lang;
+	kitchen_type?: KitchenType | null;
 }
 
 /**
@@ -75,6 +86,11 @@ export interface DemoAccount {
 	new_company: boolean;
 	/** This browser got a new user (a new, empty inbox). */
 	new_user: boolean;
+	/**
+	 * The kind of kitchen. A new company of a type with default exclusions (vegan
+	 * catering: Vegan) gets them when the visitor chose none (#81).
+	 */
+	kitchen_type?: KitchenType | null;
 }
 
 /** Response of `GET /api/v1/me`: `Account` in api/app/services/accounts.py. */
@@ -85,6 +101,7 @@ export interface Me {
 	phone_masked: string;
 	exclusions: Exclusion[];
 	lang: Lang;
+	kitchen_type?: KitchenType | null;
 }
 
 /** One message in the simulated phone inbox (`GET /api/v1/private/inbox`). */
