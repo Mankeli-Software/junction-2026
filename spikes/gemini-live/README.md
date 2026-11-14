@@ -189,12 +189,13 @@ The opposite direction failed once: an English caller (en01, transcribed perfect
   #36 replaced `api/app/engine/stub.py` with the real pipeline, so the harness keeps its own copy of the stub in `stub_engine.py`.
 
   `request_confirmation` gets a fake `ConfirmationRequestResponse` (`held` on the phone). Arguments are checked against the contract models, so a bad argument goes back to the model as an error, as MCP would return it.
-- **Phone calls** run on `gemini-3.8-live` (`v1beta`, voice Aoede), one Live session per call.
+- **Phone calls** run on `gemini-3.8-live` (`v1beta`), one Live session per call. S.I.MO speaks in Achird, the voice picked in #67 and used by the relay; the runs before the shorter replies used Aoede.
   - The relay's first turn, `[call connected]`, goes as realtime text, so S.I.MO greets first.
   - Caller turns go as realtime text. With `--audio` they are Gemini TTS speech (voice Achird), paced in real time with trailing silence.
   - The next caller turn waits for `turn_complete`, after any tool response has been answered.
 - **The chat call** runs on `gemini-3.8-flash` with `generate_content` and manual function calling, as the webshop chat would. It opens no Live session.
-- **Output.** Each run writes `out/prompt_calls/<time>/results.md` (a checklist table and the transcript for each call) and `results.json`. Each Live session it opens is logged in `out/prompt_calls/sessions.log`. A 429 stops the run.
+- **Output.** Each run writes `out/prompt_calls/<time>/results.md` (a table of how long S.I.MO speaks, then a checklist table and the transcript for each call) and `results.json`.
+- **Length.** For each phone turn the harness counts the words of S.I.MO's transcript and the seconds of audio Live sent (24 kHz PCM), so the seconds are real speaking time in text runs too. Per call it reports the total words and seconds and the longest single turn. The chat call has words only. Each Live session it opens is logged in `out/prompt_calls/sessions.log`. A 429 stops the run.
 
 ```sh
 uv run prompt_calls.py                            # all four calls, caller turns as text
@@ -269,6 +270,35 @@ Only the unit tests cover the `call_language` line (`fi`, `en`); no call forced 
 
 - In run 1, fi_milk's spoken read-back came back from Live's output transcription with stray `</td>` and line breaks between words. Nothing in the prompt or the descriptions has HTML, so it looks like a transcription glitch; the relay (#52) should strip markup from transcripts before it shows or stores them.
 - Not rerun with the final text: fi_milk and fi_clarify (passed with the first text, which differs only in the `build_quote` trigger sentence) and the chat call.
+
+### Shorter replies (prompt .8, 2026-11-14)
+
+The Achird voice picked in #67 can't really be slowed down or sped up, so prompt .8 makes S.I.MO say less on the phone:
+
+- While the caller lists lines, it acknowledges each in a word ("Selvä. Muuta?", "Got it. Anything else?") instead of repeating it back.
+- A ready quote is one compact summary: the total and the delivery days, once. A product is named only when the engine's choice wasn't obvious or a flag is about it.
+- It may shorten the engine's `speak` text, but keeps the allergen notice, substitutes and questions.
+- The allergen notice, the link question and the goodbye get shorter examples.
+- The chat keeps its read-back of the lines.
+
+Every run used `--mcp-descriptions` and the Achird voice. Seconds are S.I.MO's speech per call; the longest turn is the quote summary in fi_milk and en_order.
+
+| Call | Before (.7): words, seconds, longest turn | After (.8): words, seconds, longest turn |
+|---|---|---|
+| fi_milk (text) | 72, 40.4 s, 15.8 s | 55, 30.3 s, 14.6 s |
+| en_order (text) | 134, 40.3 s, 14.5 s | 98, 32.1 s, 12.0 s |
+| fi_clarify (text) | 52, 29.7 s, 6.9 s (the greeting) | 45, 24.6 s, 7.1 s |
+| **Three calls** | **258 words, 110.4 s** | **198 words, 87.0 s (22% less)** |
+| fi_milk (`--audio`) | not run | 56, 30.2 s, 15.6 s |
+
+- **Where the time went.** The collecting turns fell from 3.7 to 5.9 s to about 1.6 s each, and the goodbye from 5.8 to 6.7 s to 4.6 to 5.5 s. The quote summary shrank less (15.8 to 14.6 s in Finnish, 14.5 to 12.0 s in English): the allergen notice and a spoken total such as "satakolmekymmentäkahdeksan euroa" are most of it. The greeting, 6 to 7 s per call, didn't change. Without the greeting the calls are 25% shorter.
+- **Short of a third.** Getting there would mean cutting what #53 requires: the greeting as an AI helper, the allergen notice, or "you confirm the order there".
+- **Iterations.** The first .8 draft came to 92.2 s (16% less). The second shortened the allergen notice and the goodbye (81.7 s), but fi_milk then dropped the delivery days from its summary, so the final text says to always give both the total and the days. en_order and fi_clarify are from the second draft, which differs from the final text only in that sentence; both already said the day.
+- **Checks.** The three text calls passed every check on the second draft, and the final fi_milk passed every check. The chat call (text model, no Live session) passed every check on the final text.
+- **Got worse.**
+  - One final fi_milk run left out `package_word` for "kaksikymmentä litran purkkia"; the rerun had it, as did the three other new fi_milk runs. It passed in every earlier round, so it may be flaky now that S.I.MO no longer says the line back.
+  - In the audio run Live's caption heard "20 litran purkki" for "kaksikymmentä litran purkkia", and the line became one 20 l pack ("Arki-kevytmaito 20 l"). The old read-back would have said the line aloud for the caller to correct; now only the total and the confirmation page show it. The caption also heard "Joo, lähetä se." as "Yo la dejé." and the link was still sent, as in the .7 audio run.
+- 12 Live sessions: 3 for the baseline, 3 per draft, two final fi_milk text runs and one audio run.
 
 ### What stays open
 

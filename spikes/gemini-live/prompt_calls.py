@@ -20,8 +20,8 @@ on a text model with `generate_content`, as the webshop chat would (no Live sess
 Every Live session opened is appended to out/prompt_calls/sessions.log, so the usage
 stays countable. A 429 stops the run.
 
-Output: out/prompt_calls/<time>/results.md (checklist per call) and results.json
-(transcripts, tool calls and arguments).
+Output: out/prompt_calls/<time>/results.md (words and seconds of S.I.MO speech, and a
+checklist per call) and results.json (transcripts, tool calls and arguments).
 """
 
 from __future__ import annotations
