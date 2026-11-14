@@ -5,7 +5,7 @@ Junction 2026, Valio Aimo challenge: a deterministic ordering engine behind one 
 ## Source of truth
 
 - `vision.md` (draft v1, 2026-11-14) is the source of truth for what we build. Its section 13 lists what is decided and what is still open.
-- `technical-plan.md` (draft v1, 2026-11-14) describes how we build it: architecture, build-or-buy choices, hosting, milestones. Its section 13 lists the open technical questions.
+- `technical-plan.md` (draft v4, 2026-11-14) describes how we build it: architecture, build-or-buy choices, endpoints, hosting, milestones. Its section 9.8 lists where it differs from `docs/specs/`, and section 14 lists the follow-up issues.
 - `valio-api-analysis.md` holds the findings about the mock API and data. Where it disagrees with `vision.md` (for example on `closingTime` or voice-only), `vision.md` wins.
 - **The existing GitHub issues (#1 to #21) are not a source.** They describe a superseded model (mandates, caps, approver roles, confirmation tiers, voice only). Don't build on them or cite them. New issues will be created from `vision.md` and `technical-plan.md`, and those are valid.
 - There is no organisation model: the caller is assumed eligible, and every order is confirmed by a human through the SMS link.
