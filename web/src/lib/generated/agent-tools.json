@@ -637,7 +637,7 @@
 				},
 				"RecipeRef": {
 					"additionalProperties": false,
-					"description": "A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:\nthe quote service turns it into one line per ingredient with a product link and lists\nthe other ingredients in `not_ordered`.",
+					"description": "A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:\nthe quote service turns it into one line per ingredient with a product link and lists\nthe other ingredients in `not_ordered`.\n\n`order_unlinked` (#103) also orders the ingredients without a product, when the buyer\nasked for them: each one with an amount becomes a line found by the ingredient's name,\nand it leaves `not_ordered`. On an ingredient line it keeps that line ordered by name.",
 					"properties": {
 						"recipe_id": {
 							"title": "Recipe Id",
@@ -660,6 +660,11 @@
 							],
 							"default": null,
 							"title": "Ingredient Index"
+						},
+						"order_unlinked": {
+							"default": false,
+							"title": "Order Unlinked",
+							"type": "boolean"
 						}
 					},
 					"required": [
@@ -894,7 +899,7 @@
 				},
 				"RecipeRef": {
 					"additionalProperties": false,
-					"description": "A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:\nthe quote service turns it into one line per ingredient with a product link and lists\nthe other ingredients in `not_ordered`.",
+					"description": "A line from a recipe (#34). Without `ingredient_index` the line is the whole recipe:\nthe quote service turns it into one line per ingredient with a product link and lists\nthe other ingredients in `not_ordered`.\n\n`order_unlinked` (#103) also orders the ingredients without a product, when the buyer\nasked for them: each one with an amount becomes a line found by the ingredient's name,\nand it leaves `not_ordered`. On an ingredient line it keeps that line ordered by name.",
 					"properties": {
 						"recipe_id": {
 							"title": "Recipe Id",
@@ -917,6 +922,11 @@
 							],
 							"default": null,
 							"title": "Ingredient Index"
+						},
+						"order_unlinked": {
+							"default": false,
+							"title": "Order Unlinked",
+							"type": "boolean"
 						}
 					},
 					"required": [
