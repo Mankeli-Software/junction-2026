@@ -1,0 +1,55 @@
+# Kitchen choices on the call page (docs/specs/call-screen.md §2.2) as GS1
+# AllergenTypeCode sets (data/gs1_allergen_codes.csv) and claim rules.
+# Decided in issue #35. How each containment level (CONTAINS, MAY_CONTAIN,
+# UNDECLARED, no listing) is handled is the engine's job (#37).
+#
+# Per choice:
+#   label:            shown on the call page and used in messages.
+#   block:            a listed code here makes the product unsafe.
+#   block_unless_claim: a listed code here is unsafe unless the product has
+#                     every claim in `claim`.
+#   require_claim:    the product must have every listed claim, whatever its codes.
+# Claims are `nutritionalClaim` entries as CODE + level, e.g. LACTOSE FREE_FROM.
+# LACTOSE LOW does not count as lactose-free.
+# X99 ("no obligatory allergens") is never a hazard and must not appear here.
+
+choices:
+  milk_free:
+    label: {fi: maidoton, en: milk-free}
+    block: [AM]
+
+  lactose_free:
+    label: {fi: laktoositon, en: lactose-free}
+    block: [ML]
+    block_unless_claim:
+      codes: [AM]
+      claim: [{code: LACTOSE, level: FREE_FROM}]
+
+  gluten_free:
+    label: {fi: gluteeniton, en: gluten-free}
+    block: [AW]
+    block_unless_claim:
+      codes: [UW, NR, GB, GO, GS, GK]
+      claim: [{code: GLUTEN, level: FREE_FROM}]
+
+  nut_free:
+    label: {fi: pähkinätön, en: nut-free}
+    # Tree nuts: the general code plus every specific nut, because the data
+    # often lists only the specific one. Pine nut (PN), coconut (SO) and
+    # peanut (AP) wait for issue #60.
+    block: [AN, SA, SH, SW, SC, SP, SM, SR, ST]
+
+  egg_free:
+    label: {fi: kananmunaton, en: egg-free}
+    block: [AE]
+
+  fish_free:
+    label: {fi: kalaton, en: fish-free}
+    # AF is fish; ABD (tuna) and ADQ (pollock) are species codes sometimes
+    # listed without AF. Shellfish is not part of this choice.
+    block: [AF, ABD, ADQ]
+
+  vegan:
+    label: {fi: vegaaninen, en: vegan}
+    # Fail closed: meat is not reliably coded, so only the claim counts.
+    require_claim: [{code: VEGAN}]

@@ -1,0 +1,156 @@
+# One Finnish and one English template per reason code and flag
+# (technical-plan.md §4.3). The engine fills them; the agent reads them aloud
+# and the confirmation page shows them.
+#
+#   kind: reason  explains a line or decision; flag: shown on the confirmation page
+#   ack:  the buyer must tick the flag before Confirm is enabled (vision §13)
+#
+# Placeholders:
+#   {product}            product name             {quantity} {unit}  amount and unit name
+#   {date}               delivery or needed-by date
+#   {allergen}           English allergen name    {allergen_fi}      Finnish partitive (gs1_allergen_codes.csv)
+#   {containment_en}     "contains" / "may contain" ...
+#   {containment_fi}     phrase_fi from allergen_containment_levels.csv
+#   {choice}             kitchen choice label from allergen_rules.yaml
+#   {products}           list of product names    {substitute}       replacement product name
+#   {available}          quantity in stock        {percent}          price difference
+#
+# A test fails if a code the engine emits has no entry here, or an entry has no code.
+
+codes:
+  # --- Validate and resolve ---
+  INPUT_INVALID:
+    kind: reason
+    fi: "Tilausta ei voitu käsitellä, koska siinä oli virheellisiä tietoja."
+    en: "The order could not be processed because some of its details were invalid."
+  PRODUCT_NOT_FOUND:
+    kind: reason
+    fi: "En löytänyt tuotetta tuotenumerolla {product}."
+    en: "I couldn't find a product with the number {product}."
+  NO_MATCH:
+    kind: reason
+    fi: "En löytänyt tuotetta, joka vastaisi pyyntöä {product}. Voitko kuvailla sen toisin?"
+    en: "I couldn't find a product matching {product}. Could you describe it another way?"
+  AMBIGUOUS_MATCH:
+    kind: reason
+    fi: "Pyyntöön {product} sopii useampi tuote. Mitä niistä tarkoitit?"
+    en: "Several products match {product}. Which one did you mean?"
+  USUAL_NOT_FOUND:
+    kind: reason
+    fi: "En löytänyt aiemmista tilauksistanne tuotetta {product}."
+    en: "I couldn't find {product} in your earlier orders."
+
+  # --- Allergens and diet ---
+  ALLERGEN_CONFLICT:
+    kind: reason
+    fi: "Tuote {product} {containment_fi} {allergen_fi}, joten se ei sovi keittiöönne ({choice})."
+    en: "{product} {containment_en} {allergen}, so it doesn't suit your {choice} kitchen."
+  DIET_CLAIM_MISSING:
+    kind: reason
+    fi: "Tuotetta {product} ei ole merkitty sopivaksi keittiöönne ({choice}), joten en voi valita sitä."
+    en: "{product} is not labelled as suitable for a {choice} kitchen, so I can't choose it."
+  ALLERGEN_NO_LISTING:
+    kind: flag
+    ack: true
+    fi: "Huomio: seuraaville tuotteille ei ole ilmoitettu allergeenitietoja: {products}. En voi vahvistaa, etteivät ne sisällä {allergen_fi}."
+    en: "Note: these products have no allergen information: {products}. I can't confirm they are free from {allergen}."
+
+  # --- Availability and dates ---
+  UNAVAILABLE:
+    kind: reason
+    fi: "Tuote {product} ei ole tällä hetkellä saatavilla."
+    en: "{product} is not available right now."
+  DELIVERY_DATE_UNREACHABLE:
+    kind: reason
+    fi: "Tuotetta {product} ei saada perille {date} mennessä."
+    en: "{product} can't be delivered by {date}."
+  PAST_CLOSING_TIME:
+    kind: reason
+    fi: "Tilausaika toimitukselle {date} on jo päättynyt tuotteen {product} osalta."
+    en: "The order cutoff for delivery on {date} has passed for {product}."
+  PARTIAL_STOCK:
+    kind: reason
+    fi: "Tuotetta {product} on saatavilla vain {available} {unit}. Haluatko jakaa tilauksen toiseen tuotteeseen?"
+    en: "Only {available} {unit} of {product} is available. Would you like to split the order with another product?"
+  AVAILABILITY_UNVERIFIED:
+    kind: flag
+    ack: true
+    fi: "Tuotteen {product} varastosaldoa ei voitu varmistaa. Tilaus on mahdollinen, mutta toimitusta ei ole vahvistettu."
+    en: "Stock for {product} could not be verified. It can be ordered, but delivery is not confirmed."
+  OFFER_UNAVAILABLE:
+    kind: reason
+    fi: "En saanut juuri nyt tarkistettua tuotteen {product} hintaa tai saatavuutta. Yritetäänkö uudelleen?"
+    en: "I couldn't check the price or stock for {product} just now. Shall I try again?"
+  PRICE_NOT_VALID:
+    kind: reason
+    fi: "Tuotteen {product} hinta ei ole voimassa toimituspäivänä {date}."
+    en: "The price for {product} is not valid on the delivery date {date}."
+
+  # --- Units and rounding ---
+  UNIT_UNKNOWN:
+    kind: reason
+    fi: "Tuotteen {product} myyntiyksikkö on epäselvä, joten en voi tarjota sitä."
+    en: "The sales unit for {product} is unclear, so I can't quote it."
+  UNIT_CONVERSION_UNKNOWN:
+    kind: reason
+    fi: "En osaa muuntaa määrää {quantity} {unit} tuotteelle {product}. Montako myyntiyksikköä tarvitset?"
+    en: "I can't convert {quantity} {unit} for {product}. How many sales units do you need?"
+  PACKAGING_AMBIGUOUS:
+    kind: reason
+    fi: "Pakkaus voi tarkoittaa tuotteella {product} useampaa kokoa. Kuinka paljon tarvitset kiloina, litroina tai kappaleina?"
+    en: "That pack word could mean more than one size for {product}. How much do you need in kilos, litres or pieces?"
+  PACK_SIZE_FROM_NAME:
+    kind: flag
+    ack: true
+    fi: "Tuotteen {product} pakkauskoko on päätelty tuotenimestä."
+    en: "The pack size of {product} was read from its name."
+  ROUNDED_UP:
+    kind: flag
+    ack: false
+    fi: "Pyöristin tuotteen {product} määrän ylöspäin kokonaisiin myyntiyksiköihin: {quantity} {unit}."
+    en: "I rounded {product} up to {quantity} {unit} to make whole sales units."
+  EXACT_FIT_ALTERNATIVE:
+    kind: reason
+    fi: "Tuotteesta {product} jäisi ylimäärää. Vaihtoehtona {substitute} sopii tarvittavaan määrään tarkemmin."
+    en: "{product} would leave a surplus. {substitute} fits the amount you need more exactly."
+
+  # --- Substitution ---
+  SUBSTITUTED_PACK_SIZE:
+    kind: flag
+    ack: true
+    fi: "Tuote {product} vaihdettiin samaan tuotteeseen eri pakkauskoossa: {substitute}."
+    en: "{product} was replaced by the same product in another pack size: {substitute}."
+  SUBSTITUTED_CURATED:
+    kind: flag
+    ack: true
+    fi: "Tuote {product} vaihdettiin Valio Aimon suosittelemaan korvaavaan tuotteeseen {substitute}."
+    en: "{product} was replaced by Valio Aimo's recommended substitute {substitute}."
+  SUBSTITUTE_SUGGESTED:
+    kind: reason
+    fi: "Tuotetta {product} ei saada. Käykö tilalle {substitute}?"
+    en: "{product} isn't available. Would {substitute} work instead?"
+  SUBSTITUTE_PRICE_TOO_HIGH:
+    kind: reason
+    fi: "Korvaava tuote {substitute} on {percent} % kalliimpi, joten en vaihtanut sitä automaattisesti. Käykö se?"
+    en: "The substitute {substitute} costs {percent}% more, so I didn't swap it automatically. Is it okay?"
+  CALLBACK_REQUESTED:
+    kind: reason
+    fi: "En löytänyt sopivaa korvaavaa tuotetta tuotteelle {product}. Valio Aimon asiakaspalvelu ottaa teihin yhteyttä."
+    en: "I couldn't find a suitable substitute for {product}. Valio Aimo customer service will contact you."
+
+  # --- Sanity checks (P1, never blocking) ---
+  QUANTITY_UNUSUAL:
+    kind: flag
+    ack: true
+    fi: "Määrä {quantity} {unit} tuotetta {product} poikkeaa tavallisista tilauksistanne."
+    en: "{quantity} {unit} of {product} is unusual compared with your earlier orders."
+  DUPLICATE_ORDER:
+    kind: flag
+    ack: true
+    fi: "Teitte saman tilauksen hetki sitten. Tarkistakaa, ettei tämä ole tuplatilaus."
+    en: "You placed the same order a moment ago. Please check this isn't a duplicate."
+  FIRST_TIME_PRODUCT:
+    kind: flag
+    ack: true
+    fi: "Ette ole tilanneet tuotetta {product} aiemmin."
+    en: "You haven't ordered {product} before."

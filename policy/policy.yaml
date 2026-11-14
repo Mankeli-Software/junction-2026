@@ -1,0 +1,50 @@
+# Engine rule set (technical-plan.md §4.3). Every quote records `version`
+# plus a sha256 over all files in policy/, so bump `version` when you change a rule.
+version: "2026-11-14.1"
+
+# Every order is confirmed by a human through the SMS link (vision §6).
+confirmation: always
+
+# Quote lifetime in seconds. null = no expiry (decided for the event);
+# production would use for example 1800.
+quote_ttl_seconds: null
+
+# Longest phone call before the relay ends it (proposed, the spec leaves it open).
+max_call_seconds: 600
+
+# How long a fetched price or availability stays usable (vision §10).
+offer_cache_seconds: 300
+
+# Business clock for cutoffs and delivery dates. Frozen for the demo
+# (Thu 2026-11-12 09:00 Helsinki time). The real clock is used for the
+# duplicate window, audit timestamps and quote expiry.
+business_time: "2026-11-12T09:00:00+02:00"
+timezone: Europe/Helsinki
+
+# Order cutoff: business "now" must be before `closingTime`.
+enforce_closing_time: true
+
+# Availability at or above this is unknown stock: orderable, flagged unverified.
+unverified_stock_threshold: 999999
+
+# Automatic round-up to whole sales units. Both limits must hold; above them
+# the buyer gets an exact-fit alternative.
+rounding:
+  max_overage_units: 1
+  max_overage_ratio: "0.02"
+
+substitution:
+  # An automatic swap may cost at most this much more, compared per kg or litre.
+  max_price_increase_ratio: "0.10"
+
+# Same order again within this window raises a flag (P1, real clock).
+duplicate_window_seconds: 7200
+
+# Input limits for build_quote (vision §8).
+limits:
+  max_lines: 50
+  max_text_length: 200
+  max_quantity: "100000"
+
+# Agent language: auto follows the caller; fi or en forces one.
+call_language: auto
