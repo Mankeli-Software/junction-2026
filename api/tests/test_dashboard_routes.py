@@ -1,16 +1,39 @@
-"""`GET /api/v1/public/stream`, driven through the ASGI app (httpx buffers whole bodies)."""
+"""`GET /api/v1/public/stream`, driven through the ASGI app (httpx buffers whole bodies).
+
+No database here: the snapshot is an empty overview. The database-backed endpoints and the
+listener are in `test_dashboard_api.py`.
+"""
 
 import asyncio
 import json
 
 import pytest
 
+from app.interfaces.rest import dashboard as rest_dashboard
 from app.main import app
+from app.schemas import Channel, OverviewResponse, Totals
 from app.services.dashboard.stream import Broadcaster, StreamEvent, get_broadcaster
+from app.services.policy import get_rule_set
+
+
+async def _empty_overview(state, channel, since) -> OverviewResponse:
+    return OverviewResponse(
+        business_now=get_rule_set().policy.business_time,
+        totals=Totals(
+            active=0,
+            waiting=0,
+            confirmed=0,
+            attention=0,
+            confirmed_cents=0,
+            by_channel=dict.fromkeys(Channel, 0),
+        ),
+        companies=[],
+    )
 
 
 @pytest.fixture
-def hub():
+def hub(monkeypatch):
+    monkeypatch.setattr(rest_dashboard, "current_overview", _empty_overview)
     hub = Broadcaster()
     app.dependency_overrides[get_broadcaster] = lambda: hub
     yield hub

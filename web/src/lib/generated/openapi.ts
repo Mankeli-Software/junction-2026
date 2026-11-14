@@ -183,6 +183,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Orders
+         * @description Totals since `EVENT_START`, then at most 200 cards that match the filters, grouped by
+         *     company, newest activity first.
+         */
+        get: operations["get_orders_api_v1_public_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/orders/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Order */
+        get: operations["get_order_api_v1_public_orders__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/orders/{session_id}/steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Steps */
+        get: operations["get_steps_api_v1_public_orders__session_id__steps_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/orders/{session_id}/transcript": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Transcript */
+        get: operations["get_transcript_api_v1_public_orders__session_id__transcript_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/orders/{session_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Events
+         * @description The session's full events; `?download=1` sends them as a file.
+         */
+        get: operations["get_events_api_v1_public_orders__session_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/audit/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Verify
+         * @description #41's chain check: one session's events, or the whole chain without `session_id`.
+         */
+        get: operations["get_verify_api_v1_public_audit_verify_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/stream": {
         parameters: {
             query?: never;
@@ -192,8 +304,9 @@ export interface paths {
         };
         /**
          * Stream
-         * @description Server-sent events: `snapshot` (as `GET /orders`), then `order_updated`, `step` and
-         *     `transcript`. A reconnect with `Last-Event-ID` gets the missed events first.
+         * @description Server-sent events: `snapshot` (as `GET /orders`, with the same filters), then
+         *     `order_updated` (filtered), `step` and `transcript`, each with `id` = the
+         *     `status_events` id. A reconnect with `Last-Event-ID` gets the missed events first.
          */
         get: operations["stream_api_v1_public_stream_get"];
         put?: never;
@@ -518,6 +631,15 @@ export interface components {
              */
             at: string;
         };
+        /**
+         * AgentInfo
+         * @description Assumed: the agent and prompt version that ran the session.
+         */
+        AgentInfo: {
+            name: components["schemas"]["Localized"];
+            /** Prompt Version */
+            prompt_version: string | null;
+        };
         /** Alternative */
         Alternative: {
             /** Product Id */
@@ -546,6 +668,50 @@ export interface components {
              */
             needed_by: string;
         };
+        /**
+         * AuditEvent
+         * @description A full redacted event, as `/events` returns it. The payload shape depends on `type`.
+         *
+         *     `payload_hash` covers `{payload, text_fi, text_en}` exactly as stored (docs/audit-chain.md),
+         *     so the raw sentences are here too, null when the event has none; `text` turns a null into
+         *     an empty string for display. `payload` is null when it was deleted after the event.
+         */
+        AuditEvent: {
+            /** Seq */
+            seq: number;
+            /** Order Index */
+            order_index: number;
+            /** Session Id */
+            session_id: string;
+            /** Quote Id */
+            quote_id: string | null;
+            /** At */
+            at: string;
+            /** Actor */
+            actor: string;
+            /** Type */
+            type: string;
+            text: components["schemas"]["Localized"];
+            /** Payload Hash */
+            payload_hash: string;
+            /** Prev Hash */
+            prev_hash: string;
+            /** Session Prev Hash */
+            session_prev_hash: string | null;
+            /** Hash */
+            hash: string;
+            channel: components["schemas"]["Channel"];
+            /** Identity Masked */
+            identity_masked: string | null;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            } | null;
+            /** Text Fi */
+            text_fi?: string | null;
+            /** Text En */
+            text_en?: string | null;
+        };
         /** BuildQuoteRequest */
         BuildQuoteRequest: {
             /** Lines */
@@ -555,6 +721,15 @@ export interface components {
         CancelRequest: {
             /** Quote Hash */
             quote_hash: string;
+        };
+        /**
+         * CardFlag
+         * @description A flag on a card, for "2 flags: stock not confirmed, new product".
+         */
+        CardFlag: {
+            /** Code */
+            code: string;
+            short: components["schemas"]["Localized"];
         };
         /**
          * Channel
@@ -594,6 +769,22 @@ export interface components {
             question: components["schemas"]["Localized"];
             /** Options */
             options: components["schemas"]["Alternative"][];
+        };
+        /** CompanyGroup */
+        CompanyGroup: {
+            /** Name */
+            name: string;
+            /** Exclusions */
+            exclusions: components["schemas"]["Exclusion"][];
+            /** Orders */
+            orders: components["schemas"]["OrderCard"][];
+        };
+        /** CompanyRef */
+        CompanyRef: {
+            /** Name */
+            name: string;
+            /** Exclusions */
+            exclusions: components["schemas"]["Exclusion"][];
         };
         /** ConfirmRequest */
         ConfirmRequest: {
@@ -993,6 +1184,37 @@ export interface components {
             unit: string | null;
             reason: components["schemas"]["Localized"];
         };
+        /** OrderCard */
+        OrderCard: {
+            /** Session Id */
+            session_id: string;
+            /** Order Number */
+            order_number: string | null;
+            channel: components["schemas"]["Channel"];
+            /** Client */
+            client: string;
+            /** Identity Masked */
+            identity_masked: string | null;
+            state: components["schemas"]["SessionState"];
+            /**
+             * State Since
+             * Format: date-time
+             */
+            state_since: string;
+            title: components["schemas"]["Localized"];
+            step_text: components["schemas"]["Localized"] | null;
+            /** Line Count */
+            line_count: number;
+            /** Total Cents */
+            total_cents: number | null;
+            /** Flags */
+            flags: components["schemas"]["CardFlag"][];
+            next_step: components["schemas"]["Localized"] | null;
+            /** Delivery Date */
+            delivery_date?: string | null;
+            /** Recipe Count */
+            recipe_count?: number | null;
+        };
         /** OrderStatusResponse */
         OrderStatusResponse: {
             /** Quote Id */
@@ -1002,6 +1224,52 @@ export interface components {
             order_number: string | null;
             /** Replaced By Quote Id */
             replaced_by_quote_id: string | null;
+        };
+        /** OrderSummary */
+        OrderSummary: {
+            /** Session Id */
+            session_id: string;
+            /** Order Number */
+            order_number: string | null;
+            company: components["schemas"]["CompanyRef"];
+            channel: components["schemas"]["Channel"];
+            /** Client */
+            client: string;
+            /** Identity Masked */
+            identity_masked: string | null;
+            state: components["schemas"]["SessionState"];
+            /**
+             * State Since
+             * Format: date-time
+             */
+            state_since: string;
+            status_line: components["schemas"]["Localized"] | null;
+            /** Delivery Date */
+            delivery_date: string | null;
+            /** Total Cents */
+            total_cents: number | null;
+            /** Requests */
+            requests: components["schemas"]["SummaryRequest"][];
+            /** Flags */
+            flags: components["schemas"]["SummaryFlag"][];
+            quote: components["schemas"]["QuoteRef"] | null;
+            /** Signature Valid */
+            signature_valid: boolean | null;
+            agent?: components["schemas"]["AgentInfo"] | null;
+        };
+        /**
+         * OverviewResponse
+         * @description `GET /orders` and the stream's `snapshot` event.
+         */
+        OverviewResponse: {
+            /**
+             * Business Now
+             * Format: date-time
+             */
+            business_now: string;
+            totals: components["schemas"]["Totals"];
+            /** Companies */
+            companies: components["schemas"]["CompanyGroup"][];
         };
         /**
          * PhoneRequest
@@ -1093,6 +1361,15 @@ export interface components {
             /** Alternatives */
             alternatives: components["schemas"]["Alternative"][];
         };
+        /** QuoteRef */
+        QuoteRef: {
+            /** Id */
+            id: string;
+            /** Version */
+            version: number;
+            /** Hash */
+            hash: string;
+        };
         /**
          * QuoteResponse
          * @description The engine's decision plus the quote id, version, status, expiry and hash.
@@ -1138,6 +1415,19 @@ export interface components {
          * @enum {string}
          */
         QuoteStatus: "ready" | "needs_clarification" | "rejected" | "pending_confirmation" | "confirmed" | "cancelled" | "expired" | "void";
+        /** RankedCandidate */
+        RankedCandidate: {
+            /** Rank */
+            rank: number;
+            /** Product Id */
+            product_id: string;
+            name: components["schemas"]["Localized"];
+            /** Price Per Base Unit */
+            price_per_base_unit: number | null;
+            stock_status: components["schemas"]["StockStatus"];
+            /** Chosen */
+            chosen: boolean;
+        };
         /** Recipe */
         Recipe: {
             /** Recipe Id */
@@ -1207,6 +1497,12 @@ export interface components {
             /** Line Id */
             line_id: string;
         };
+        /** RemovedProduct */
+        RemovedProduct: {
+            /** Product Id */
+            product_id: string;
+            name: components["schemas"]["Localized"];
+        };
         /**
          * RequestedUnit
          * @description The unit the buyer asked in. With `package`, the word is in `package_word`.
@@ -1223,6 +1519,12 @@ export interface components {
             /** Results */
             results: components["schemas"]["RecipeHit"][];
         };
+        /**
+         * SessionState
+         * @description Session states, `docs/specs/dashboard.md` §4.
+         * @enum {string}
+         */
+        SessionState: "in_conversation" | "needs_clarification" | "quote_ready" | "awaiting_confirmation" | "link_opened" | "confirmed" | "cancelled" | "expired" | "rejected" | "sms_failed" | "callback_requested" | "requote_needed" | "abandoned";
         /** SetQuantityEdit */
         SetQuantityEdit: {
             /** Quote Hash */
@@ -1259,10 +1561,157 @@ export interface components {
          */
         StateGroup: "active" | "waiting" | "confirmed" | "attention";
         /**
+         * Step
+         * @description One audit event without its payload, enough to verify the chain (§8.5).
+         *
+         *     The hash covers `session_id` and `quote_id` too (docs/audit-chain.md), so they are here.
+         */
+        Step: {
+            /** Seq */
+            seq: number;
+            /** Order Index */
+            order_index: number;
+            /** Session Id */
+            session_id: string;
+            /** Quote Id */
+            quote_id: string | null;
+            /** At */
+            at: string;
+            /** Actor */
+            actor: string;
+            /** Type */
+            type: string;
+            text: components["schemas"]["Localized"];
+            /** Payload Hash */
+            payload_hash: string;
+            /** Prev Hash */
+            prev_hash: string;
+            /** Session Prev Hash */
+            session_prev_hash: string | null;
+            /** Hash */
+            hash: string;
+        };
+        /**
          * StockStatus
          * @enum {string}
          */
         StockStatus: "verified" | "unverified" | "unavailable";
+        /** SummaryFlag */
+        SummaryFlag: {
+            /** Flag Key */
+            flag_key: string;
+            /** Code */
+            code: string;
+            text: components["schemas"]["Localized"];
+            detail: components["schemas"]["Localized"] | null;
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+        };
+        /**
+         * SummaryLine
+         * @description The fields of `QuoteLine` the summary shows, with the richer trace.
+         */
+        SummaryLine: {
+            /** Line Id */
+            line_id: string;
+            /** Product Id */
+            product_id: string;
+            name: components["schemas"]["Localized"];
+            /** Image Url */
+            image_url: string | null;
+            /** Sales Unit */
+            sales_unit: string;
+            sales_unit_label: components["schemas"]["Localized"];
+            /** Quantity Sales Units */
+            quantity_sales_units: number;
+            /** Quantity In Asked Unit */
+            quantity_in_asked_unit: number;
+            /** Unit Price Gross */
+            unit_price_gross: number;
+            /** Price Per Base Unit */
+            price_per_base_unit: number | null;
+            /** Base Unit */
+            base_unit: string | null;
+            /** Line Total Cents */
+            line_total_cents: number;
+            /**
+             * Delivery Date
+             * Format: date
+             */
+            delivery_date: string;
+            stock_status: components["schemas"]["StockStatus"];
+            reason_text: components["schemas"]["Localized"];
+            trace: components["schemas"]["SummaryTrace"];
+        };
+        /**
+         * SummaryRequest
+         * @description Assumed grouping: one request ("what was asked") with the lines added for it.
+         */
+        SummaryRequest: {
+            /** Request Id */
+            request_id: string;
+            asked: components["schemas"]["AskedLine"];
+            asked_text: components["schemas"]["Localized"];
+            group: components["schemas"]["Localized"] | null;
+            /** Lines */
+            lines: components["schemas"]["SummaryLine"][];
+            /** Not Ordered */
+            not_ordered: components["schemas"]["NotOrdered"][];
+        };
+        /**
+         * SummaryTrace
+         * @description `Trace` plus the ranked candidates #49 lists for the summary.
+         */
+        SummaryTrace: {
+            /** Found */
+            found: number;
+            /** Removed */
+            removed: components["schemas"]["SummaryTraceRemoval"][];
+            /** Left */
+            left: number;
+            ranking_rule: components["schemas"]["Localized"];
+            /**
+             * Ranked
+             * @default []
+             */
+            ranked: components["schemas"]["RankedCandidate"][];
+        };
+        /**
+         * SummaryTraceRemoval
+         * @description `TraceRemoval` plus the products the filter removed.
+         */
+        SummaryTraceRemoval: {
+            /** Reason Code */
+            reason_code: string;
+            /** Count */
+            count: number;
+            text: components["schemas"]["Localized"];
+            /**
+             * Products
+             * @default []
+             */
+            products: components["schemas"]["RemovedProduct"][];
+        };
+        /**
+         * Totals
+         * @description Counts since `EVENT_START`, not limited by the filters or the 200-card cap.
+         */
+        Totals: {
+            /** Active */
+            active: number;
+            /** Waiting */
+            waiting: number;
+            /** Confirmed */
+            confirmed: number;
+            /** Attention */
+            attention: number;
+            /** Confirmed Cents */
+            confirmed_cents: number;
+            /** By Channel */
+            by_channel: {
+                [key: string]: number;
+            };
+        };
         /**
          * Trace
          * @description Candidates found, removed per reason and left.
@@ -1286,6 +1735,26 @@ export interface components {
             count: number;
             text: components["schemas"]["Localized"];
         };
+        /** TranscriptLine */
+        TranscriptLine: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /**
+             * Who
+             * @enum {string}
+             */
+            who: "buyer" | "agent";
+            /** Text */
+            text: string;
+            /**
+             * Lang
+             * @enum {string}
+             */
+            lang: "fi" | "en";
+        };
         /** UsualItem */
         UsualItem: {
             /** Product Id */
@@ -1308,6 +1777,20 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * VerifyResult
+         * @description From #41's verify function; the global chain without `session_id`.
+         */
+        VerifyResult: {
+            /** Ok */
+            ok: boolean;
+            /** Checked */
+            checked: number;
+            /** First Bad Seq */
+            first_bad_seq: number | null;
+            /** Signature Valid */
+            signature_valid: boolean | null;
         };
         /**
          * ViewFlag
@@ -1639,6 +2122,196 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderStatusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_orders_api_v1_public_orders_get: {
+        parameters: {
+            query?: {
+                state?: components["schemas"]["StateGroup"] | null;
+                channel?: components["schemas"]["Channel"] | null;
+                since?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_order_api_v1_public_orders__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_steps_api_v1_public_orders__session_id__steps_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Step"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_transcript_api_v1_public_orders__session_id__transcript_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptLine"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_events_api_v1_public_orders__session_id__events_get: {
+        parameters: {
+            query?: {
+                download?: boolean;
+            };
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEvent"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_verify_api_v1_public_audit_verify_get: {
+        parameters: {
+            query?: {
+                session_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerifyResult"];
                 };
             };
             /** @description Validation Error */

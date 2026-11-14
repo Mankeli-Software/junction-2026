@@ -503,13 +503,337 @@
 				}
 			}
 		},
+		"/api/v1/public/orders": {
+			"get": {
+				"tags": [
+					"dashboard"
+				],
+				"summary": "Get Orders",
+				"description": "Totals since `EVENT_START`, then at most 200 cards that match the filters, grouped by\ncompany, newest activity first.",
+				"operationId": "get_orders_api_v1_public_orders_get",
+				"parameters": [
+					{
+						"name": "state",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/StateGroup"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "State"
+						}
+					},
+					{
+						"name": "channel",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/Channel"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Channel"
+						}
+					},
+					{
+						"name": "since",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string",
+									"format": "date-time"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Since"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OverviewResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/public/orders/{session_id}": {
+			"get": {
+				"tags": [
+					"dashboard"
+				],
+				"summary": "Get Order",
+				"operationId": "get_order_api_v1_public_orders__session_id__get",
+				"parameters": [
+					{
+						"name": "session_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Session Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OrderSummary"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/public/orders/{session_id}/steps": {
+			"get": {
+				"tags": [
+					"dashboard"
+				],
+				"summary": "Get Steps",
+				"operationId": "get_steps_api_v1_public_orders__session_id__steps_get",
+				"parameters": [
+					{
+						"name": "session_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Session Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/Step"
+									},
+									"title": "Response Get Steps Api V1 Public Orders  Session Id  Steps Get"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/public/orders/{session_id}/transcript": {
+			"get": {
+				"tags": [
+					"dashboard"
+				],
+				"summary": "Get Transcript",
+				"operationId": "get_transcript_api_v1_public_orders__session_id__transcript_get",
+				"parameters": [
+					{
+						"name": "session_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Session Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/TranscriptLine"
+									},
+									"title": "Response Get Transcript Api V1 Public Orders  Session Id  Transcript Get"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/public/orders/{session_id}/events": {
+			"get": {
+				"tags": [
+					"dashboard"
+				],
+				"summary": "Get Events",
+				"description": "The session's full events; `?download=1` sends them as a file.",
+				"operationId": "get_events_api_v1_public_orders__session_id__events_get",
+				"parameters": [
+					{
+						"name": "session_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Session Id"
+						}
+					},
+					{
+						"name": "download",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": false,
+							"title": "Download"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/AuditEvent"
+									},
+									"title": "Response Get Events Api V1 Public Orders  Session Id  Events Get"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/public/audit/verify": {
+			"get": {
+				"tags": [
+					"dashboard"
+				],
+				"summary": "Get Verify",
+				"description": "#41's chain check: one session's events, or the whole chain without `session_id`.",
+				"operationId": "get_verify_api_v1_public_audit_verify_get",
+				"parameters": [
+					{
+						"name": "session_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Session Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/VerifyResult"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/public/stream": {
 			"get": {
 				"tags": [
 					"dashboard"
 				],
 				"summary": "Stream",
-				"description": "Server-sent events: `snapshot` (as `GET /orders`), then `order_updated`, `step` and\n`transcript`. A reconnect with `Last-Event-ID` gets the missed events first.",
+				"description": "Server-sent events: `snapshot` (as `GET /orders`, with the same filters), then\n`order_updated` (filtered), `step` and `transcript`, each with `id` = the\n`status_events` id. A reconnect with `Last-Event-ID` gets the missed events first.",
 				"operationId": "stream_api_v1_public_stream_get",
 				"parameters": [
 					{
@@ -1358,6 +1682,32 @@
 				],
 				"title": "AcknowledgedFlag"
 			},
+			"AgentInfo": {
+				"properties": {
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"prompt_version": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Prompt Version"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"name",
+					"prompt_version"
+				],
+				"title": "AgentInfo",
+				"description": "Assumed: the agent and prompt version that ran the session."
+			},
 			"Alternative": {
 				"properties": {
 					"product_id": {
@@ -1435,6 +1785,140 @@
 				"title": "AskedLine",
 				"description": "Echo of what the buyer asked for."
 			},
+			"AuditEvent": {
+				"properties": {
+					"seq": {
+						"type": "integer",
+						"title": "Seq"
+					},
+					"order_index": {
+						"type": "integer",
+						"title": "Order Index"
+					},
+					"session_id": {
+						"type": "string",
+						"title": "Session Id"
+					},
+					"quote_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Quote Id"
+					},
+					"at": {
+						"type": "string",
+						"title": "At"
+					},
+					"actor": {
+						"type": "string",
+						"title": "Actor"
+					},
+					"type": {
+						"type": "string",
+						"title": "Type"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"payload_hash": {
+						"type": "string",
+						"title": "Payload Hash"
+					},
+					"prev_hash": {
+						"type": "string",
+						"title": "Prev Hash"
+					},
+					"session_prev_hash": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Session Prev Hash"
+					},
+					"hash": {
+						"type": "string",
+						"title": "Hash"
+					},
+					"channel": {
+						"$ref": "#/components/schemas/Channel"
+					},
+					"identity_masked": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Identity Masked"
+					},
+					"payload": {
+						"anyOf": [
+							{
+								"additionalProperties": true,
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Payload"
+					},
+					"text_fi": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Text Fi"
+					},
+					"text_en": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Text En"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"seq",
+					"order_index",
+					"session_id",
+					"quote_id",
+					"at",
+					"actor",
+					"type",
+					"text",
+					"payload_hash",
+					"prev_hash",
+					"session_prev_hash",
+					"hash",
+					"channel",
+					"identity_masked",
+					"payload"
+				],
+				"title": "AuditEvent",
+				"description": "A full redacted event, as `/events` returns it. The payload shape depends on `type`.\n\n`payload_hash` covers `{payload, text_fi, text_en}` exactly as stored (docs/audit-chain.md),\nso the raw sentences are here too, null when the event has none; `text` turns a null into\nan empty string for display. `payload` is null when it was deleted after the event."
+			},
 			"BuildQuoteRequest": {
 				"properties": {
 					"lines": {
@@ -1467,6 +1951,25 @@
 					"quote_hash"
 				],
 				"title": "CancelRequest"
+			},
+			"CardFlag": {
+				"properties": {
+					"code": {
+						"type": "string",
+						"title": "Code"
+					},
+					"short": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"code",
+					"short"
+				],
+				"title": "CardFlag",
+				"description": "A flag on a card, for \"2 flags: stock not confirmed, new product\"."
 			},
 			"Channel": {
 				"type": "string",
@@ -1546,6 +2049,58 @@
 				],
 				"title": "Clarification",
 				"description": "The single question back to the buyer. `options` may be empty for an open question."
+			},
+			"CompanyGroup": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/Exclusion"
+						},
+						"type": "array",
+						"title": "Exclusions"
+					},
+					"orders": {
+						"items": {
+							"$ref": "#/components/schemas/OrderCard"
+						},
+						"type": "array",
+						"title": "Orders"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"name",
+					"exclusions",
+					"orders"
+				],
+				"title": "CompanyGroup"
+			},
+			"CompanyRef": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"exclusions": {
+						"items": {
+							"$ref": "#/components/schemas/Exclusion"
+						},
+						"type": "array",
+						"title": "Exclusions"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"name",
+					"exclusions"
+				],
+				"title": "CompanyRef"
 			},
 			"ConfirmRequest": {
 				"properties": {
@@ -2520,6 +3075,137 @@
 				"title": "NotOrdered",
 				"description": "A recipe ingredient without a product link. The recipe data is Finnish only."
 			},
+			"OrderCard": {
+				"properties": {
+					"session_id": {
+						"type": "string",
+						"title": "Session Id"
+					},
+					"order_number": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Order Number"
+					},
+					"channel": {
+						"$ref": "#/components/schemas/Channel"
+					},
+					"client": {
+						"type": "string",
+						"title": "Client"
+					},
+					"identity_masked": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Identity Masked"
+					},
+					"state": {
+						"$ref": "#/components/schemas/SessionState"
+					},
+					"state_since": {
+						"type": "string",
+						"format": "date-time",
+						"title": "State Since"
+					},
+					"title": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"step_text": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Localized"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"line_count": {
+						"type": "integer",
+						"title": "Line Count"
+					},
+					"total_cents": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Total Cents"
+					},
+					"flags": {
+						"items": {
+							"$ref": "#/components/schemas/CardFlag"
+						},
+						"type": "array",
+						"title": "Flags"
+					},
+					"next_step": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Localized"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"delivery_date": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Delivery Date"
+					},
+					"recipe_count": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Recipe Count"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"session_id",
+					"order_number",
+					"channel",
+					"client",
+					"identity_masked",
+					"state",
+					"state_since",
+					"title",
+					"step_text",
+					"line_count",
+					"total_cents",
+					"flags",
+					"next_step"
+				],
+				"title": "OrderCard"
+			},
 			"OrderStatusResponse": {
 				"properties": {
 					"quote_id": {
@@ -2561,6 +3247,180 @@
 					"replaced_by_quote_id"
 				],
 				"title": "OrderStatusResponse"
+			},
+			"OrderSummary": {
+				"properties": {
+					"session_id": {
+						"type": "string",
+						"title": "Session Id"
+					},
+					"order_number": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Order Number"
+					},
+					"company": {
+						"$ref": "#/components/schemas/CompanyRef"
+					},
+					"channel": {
+						"$ref": "#/components/schemas/Channel"
+					},
+					"client": {
+						"type": "string",
+						"title": "Client"
+					},
+					"identity_masked": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Identity Masked"
+					},
+					"state": {
+						"$ref": "#/components/schemas/SessionState"
+					},
+					"state_since": {
+						"type": "string",
+						"format": "date-time",
+						"title": "State Since"
+					},
+					"status_line": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Localized"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"delivery_date": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Delivery Date"
+					},
+					"total_cents": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Total Cents"
+					},
+					"requests": {
+						"items": {
+							"$ref": "#/components/schemas/SummaryRequest"
+						},
+						"type": "array",
+						"title": "Requests"
+					},
+					"flags": {
+						"items": {
+							"$ref": "#/components/schemas/SummaryFlag"
+						},
+						"type": "array",
+						"title": "Flags"
+					},
+					"quote": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/QuoteRef"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"signature_valid": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Signature Valid"
+					},
+					"agent": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/AgentInfo"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"session_id",
+					"order_number",
+					"company",
+					"channel",
+					"client",
+					"identity_masked",
+					"state",
+					"state_since",
+					"status_line",
+					"delivery_date",
+					"total_cents",
+					"requests",
+					"flags",
+					"quote",
+					"signature_valid"
+				],
+				"title": "OrderSummary"
+			},
+			"OverviewResponse": {
+				"properties": {
+					"business_now": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Business Now"
+					},
+					"totals": {
+						"$ref": "#/components/schemas/Totals"
+					},
+					"companies": {
+						"items": {
+							"$ref": "#/components/schemas/CompanyGroup"
+						},
+						"type": "array",
+						"title": "Companies"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"business_now",
+					"totals",
+					"companies"
+				],
+				"title": "OverviewResponse",
+				"description": "`GET /orders` and the stream's `snapshot` event."
 			},
 			"PhoneRequest": {
 				"properties": {
@@ -2879,6 +3739,30 @@
 				],
 				"title": "QuoteLine"
 			},
+			"QuoteRef": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"title": "Id"
+					},
+					"version": {
+						"type": "integer",
+						"title": "Version"
+					},
+					"hash": {
+						"type": "string",
+						"title": "Hash"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"id",
+					"version",
+					"hash"
+				],
+				"title": "QuoteRef"
+			},
 			"QuoteResponse": {
 				"properties": {
 					"decision": {
@@ -3034,6 +3918,50 @@
 				],
 				"title": "QuoteStatus",
 				"description": "Quote lifecycle.\n\nA quote starts as `ready`, `needs_clarification` or `rejected`, after the engine's\ndecision. Only a `ready` quote can be sent for confirmation; the other two are\nanswered or changed with `update_quote`."
+			},
+			"RankedCandidate": {
+				"properties": {
+					"rank": {
+						"type": "integer",
+						"title": "Rank"
+					},
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"price_per_base_unit": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Price Per Base Unit"
+					},
+					"stock_status": {
+						"$ref": "#/components/schemas/StockStatus"
+					},
+					"chosen": {
+						"type": "boolean",
+						"title": "Chosen"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"rank",
+					"product_id",
+					"name",
+					"price_per_base_unit",
+					"stock_status",
+					"chosen"
+				],
+				"title": "RankedCandidate"
 			},
 			"Recipe": {
 				"properties": {
@@ -3254,6 +4182,24 @@
 				],
 				"title": "RemoveLineEdit"
 			},
+			"RemovedProduct": {
+				"properties": {
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"product_id",
+					"name"
+				],
+				"title": "RemovedProduct"
+			},
 			"RequestedUnit": {
 				"type": "string",
 				"enum": [
@@ -3299,6 +4245,26 @@
 					"results"
 				],
 				"title": "SearchRecipesResponse"
+			},
+			"SessionState": {
+				"type": "string",
+				"enum": [
+					"in_conversation",
+					"needs_clarification",
+					"quote_ready",
+					"awaiting_confirmation",
+					"link_opened",
+					"confirmed",
+					"cancelled",
+					"expired",
+					"rejected",
+					"sms_failed",
+					"callback_requested",
+					"requote_needed",
+					"abandoned"
+				],
+				"title": "SessionState",
+				"description": "Session states, `docs/specs/dashboard.md` §4."
 			},
 			"SetQuantityEdit": {
 				"properties": {
@@ -3368,6 +4334,89 @@
 				"title": "StateGroup",
 				"description": "The groups behind the counters and the `?state=` filter (#49, \"States and totals\")."
 			},
+			"Step": {
+				"properties": {
+					"seq": {
+						"type": "integer",
+						"title": "Seq"
+					},
+					"order_index": {
+						"type": "integer",
+						"title": "Order Index"
+					},
+					"session_id": {
+						"type": "string",
+						"title": "Session Id"
+					},
+					"quote_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Quote Id"
+					},
+					"at": {
+						"type": "string",
+						"title": "At"
+					},
+					"actor": {
+						"type": "string",
+						"title": "Actor"
+					},
+					"type": {
+						"type": "string",
+						"title": "Type"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"payload_hash": {
+						"type": "string",
+						"title": "Payload Hash"
+					},
+					"prev_hash": {
+						"type": "string",
+						"title": "Prev Hash"
+					},
+					"session_prev_hash": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Session Prev Hash"
+					},
+					"hash": {
+						"type": "string",
+						"title": "Hash"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"seq",
+					"order_index",
+					"session_id",
+					"quote_id",
+					"at",
+					"actor",
+					"type",
+					"text",
+					"payload_hash",
+					"prev_hash",
+					"session_prev_hash",
+					"hash"
+				],
+				"title": "Step",
+				"description": "One audit event without its payload, enough to verify the chain (§8.5).\n\nThe hash covers `session_id` and `quote_id` too (docs/audit-chain.md), so they are here."
+			},
 			"StockStatus": {
 				"type": "string",
 				"enum": [
@@ -3376,6 +4425,328 @@
 					"unavailable"
 				],
 				"title": "StockStatus"
+			},
+			"SummaryFlag": {
+				"properties": {
+					"flag_key": {
+						"type": "string",
+						"title": "Flag Key"
+					},
+					"code": {
+						"type": "string",
+						"title": "Code"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"detail": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Localized"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"acknowledged_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Acknowledged At"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"flag_key",
+					"code",
+					"text",
+					"detail",
+					"acknowledged_at"
+				],
+				"title": "SummaryFlag"
+			},
+			"SummaryLine": {
+				"properties": {
+					"line_id": {
+						"type": "string",
+						"title": "Line Id"
+					},
+					"product_id": {
+						"type": "string",
+						"title": "Product Id"
+					},
+					"name": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"image_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image Url"
+					},
+					"sales_unit": {
+						"type": "string",
+						"title": "Sales Unit"
+					},
+					"sales_unit_label": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"quantity_sales_units": {
+						"type": "integer",
+						"title": "Quantity Sales Units"
+					},
+					"quantity_in_asked_unit": {
+						"type": "number",
+						"title": "Quantity In Asked Unit"
+					},
+					"unit_price_gross": {
+						"type": "number",
+						"title": "Unit Price Gross"
+					},
+					"price_per_base_unit": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Price Per Base Unit"
+					},
+					"base_unit": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Base Unit"
+					},
+					"line_total_cents": {
+						"type": "integer",
+						"title": "Line Total Cents"
+					},
+					"delivery_date": {
+						"type": "string",
+						"format": "date",
+						"title": "Delivery Date"
+					},
+					"stock_status": {
+						"$ref": "#/components/schemas/StockStatus"
+					},
+					"reason_text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"trace": {
+						"$ref": "#/components/schemas/SummaryTrace"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"line_id",
+					"product_id",
+					"name",
+					"image_url",
+					"sales_unit",
+					"sales_unit_label",
+					"quantity_sales_units",
+					"quantity_in_asked_unit",
+					"unit_price_gross",
+					"price_per_base_unit",
+					"base_unit",
+					"line_total_cents",
+					"delivery_date",
+					"stock_status",
+					"reason_text",
+					"trace"
+				],
+				"title": "SummaryLine",
+				"description": "The fields of `QuoteLine` the summary shows, with the richer trace."
+			},
+			"SummaryRequest": {
+				"properties": {
+					"request_id": {
+						"type": "string",
+						"title": "Request Id"
+					},
+					"asked": {
+						"$ref": "#/components/schemas/AskedLine"
+					},
+					"asked_text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"group": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/Localized"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"lines": {
+						"items": {
+							"$ref": "#/components/schemas/SummaryLine"
+						},
+						"type": "array",
+						"title": "Lines"
+					},
+					"not_ordered": {
+						"items": {
+							"$ref": "#/components/schemas/NotOrdered"
+						},
+						"type": "array",
+						"title": "Not Ordered"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"request_id",
+					"asked",
+					"asked_text",
+					"group",
+					"lines",
+					"not_ordered"
+				],
+				"title": "SummaryRequest",
+				"description": "Assumed grouping: one request (\"what was asked\") with the lines added for it."
+			},
+			"SummaryTrace": {
+				"properties": {
+					"found": {
+						"type": "integer",
+						"title": "Found"
+					},
+					"removed": {
+						"items": {
+							"$ref": "#/components/schemas/SummaryTraceRemoval"
+						},
+						"type": "array",
+						"title": "Removed"
+					},
+					"left": {
+						"type": "integer",
+						"title": "Left"
+					},
+					"ranking_rule": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"ranked": {
+						"items": {
+							"$ref": "#/components/schemas/RankedCandidate"
+						},
+						"type": "array",
+						"title": "Ranked",
+						"default": []
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"found",
+					"removed",
+					"left",
+					"ranking_rule"
+				],
+				"title": "SummaryTrace",
+				"description": "`Trace` plus the ranked candidates #49 lists for the summary."
+			},
+			"SummaryTraceRemoval": {
+				"properties": {
+					"reason_code": {
+						"type": "string",
+						"title": "Reason Code"
+					},
+					"count": {
+						"type": "integer",
+						"title": "Count"
+					},
+					"text": {
+						"$ref": "#/components/schemas/Localized"
+					},
+					"products": {
+						"items": {
+							"$ref": "#/components/schemas/RemovedProduct"
+						},
+						"type": "array",
+						"title": "Products",
+						"default": []
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"reason_code",
+					"count",
+					"text"
+				],
+				"title": "SummaryTraceRemoval",
+				"description": "`TraceRemoval` plus the products the filter removed."
+			},
+			"Totals": {
+				"properties": {
+					"active": {
+						"type": "integer",
+						"title": "Active"
+					},
+					"waiting": {
+						"type": "integer",
+						"title": "Waiting"
+					},
+					"confirmed": {
+						"type": "integer",
+						"title": "Confirmed"
+					},
+					"attention": {
+						"type": "integer",
+						"title": "Attention"
+					},
+					"confirmed_cents": {
+						"type": "integer",
+						"title": "Confirmed Cents"
+					},
+					"by_channel": {
+						"additionalProperties": {
+							"type": "integer"
+						},
+						"propertyNames": {
+							"$ref": "#/components/schemas/Channel"
+						},
+						"type": "object",
+						"title": "By Channel"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"active",
+					"waiting",
+					"confirmed",
+					"attention",
+					"confirmed_cents",
+					"by_channel"
+				],
+				"title": "Totals",
+				"description": "Counts since `EVENT_START`, not limited by the filters or the 200-card cap."
 			},
 			"Trace": {
 				"properties": {
@@ -3431,6 +4802,44 @@
 					"text"
 				],
 				"title": "TraceRemoval"
+			},
+			"TranscriptLine": {
+				"properties": {
+					"at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "At"
+					},
+					"who": {
+						"type": "string",
+						"enum": [
+							"buyer",
+							"agent"
+						],
+						"title": "Who"
+					},
+					"text": {
+						"type": "string",
+						"title": "Text"
+					},
+					"lang": {
+						"type": "string",
+						"enum": [
+							"fi",
+							"en"
+						],
+						"title": "Lang"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"at",
+					"who",
+					"text",
+					"lang"
+				],
+				"title": "TranscriptLine"
 			},
 			"UsualItem": {
 				"properties": {
@@ -3499,6 +4908,50 @@
 					"type"
 				],
 				"title": "ValidationError"
+			},
+			"VerifyResult": {
+				"properties": {
+					"ok": {
+						"type": "boolean",
+						"title": "Ok"
+					},
+					"checked": {
+						"type": "integer",
+						"title": "Checked"
+					},
+					"first_bad_seq": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "First Bad Seq"
+					},
+					"signature_valid": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Signature Valid"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"ok",
+					"checked",
+					"first_bad_seq",
+					"signature_valid"
+				],
+				"title": "VerifyResult",
+				"description": "From #41's verify function; the global chain without `session_id`."
 			},
 			"ViewFlag": {
 				"properties": {
