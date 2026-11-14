@@ -93,7 +93,7 @@ cp .env.example .env
 docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up --build
 ```
 
-This starts Caddy, the API, the web app and a local Postgres on http://localhost. Try http://localhost/api/v1/health and the confirmation page fixture at http://localhost/c/fx-ready-try.
+This starts Caddy, the API, the web app and a local Postgres on http://localhost. Try http://localhost/api/v1/health. Compose runs the confirmation page against the API; for its fixture at http://localhost/c/fx-ready-try, start with `CONFIRMATION_SOURCE=fixture`.
 
 The dev servers, tests, linters, migrations and the catalogue loader are in [`CLAUDE.md`](CLAUDE.md), section "Commands". The web app also has its own [`web/README.md`](web/README.md).
 
