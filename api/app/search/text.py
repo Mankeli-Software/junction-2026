@@ -5,8 +5,12 @@ import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
+
+if TYPE_CHECKING:
+    from app.search.spelling import Vocabulary
 
 HERE = Path(__file__).parent
 
@@ -80,15 +84,33 @@ def modifiers() -> tuple[str, ...]:
     return tuple(fold(m) for m in data)
 
 
-def parse_query(q: str, ignore: frozenset[str] = frozenset()) -> Query:
+def _term(word: str, corrections: tuple[str, ...] = ()) -> Term:
+    """The word, its spelling corrections, and the synonyms of both."""
+    words = (word, *corrections)
+    extra = [s for w in words for s in synonyms().get(fold(w), ())]
+    return Term(word, tuple(dict.fromkeys((*words, *extra))))
+
+
+def parse_query(
+    q: str, ignore: frozenset[str] = frozenset(), vocabulary: "Vocabulary | None" = None
+) -> Query:
+    """Words, amounts and the folded text. With a vocabulary, a word that is in no product
+    name gets its spelling corrections, or is split into two known words (spelling.py)."""
     terms: list[Term] = []
     amounts: list[str] = []
     for token in tokens(q):
         if is_amount(token):
             amounts.append(token)
         elif len(token) >= MIN_WORD_LENGTH and token not in STOPWORDS and token not in ignore:
-            extra = synonyms().get(fold(token), ())
-            terms.append(Term(token, (token, *extra)))
+            folded = fold(token)
+            if vocabulary is None or folded in vocabulary or not folded.isalpha():
+                terms.append(_term(token))
+            elif corrections := vocabulary.corrections(folded):
+                terms.append(_term(token, corrections))
+            elif parts := vocabulary.split(folded):
+                terms.extend(_term(p) for p in parts if p not in ignore)
+            else:
+                terms.append(_term(token))
     return Query(tuple(terms), tuple(dict.fromkeys(amounts)), fold(q))
 
 

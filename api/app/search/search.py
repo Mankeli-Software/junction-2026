@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
 from sqlalchemy.types import Text
 
 from app.schemas.common import Claim
+from app.search.spelling import Vocabulary
 from app.search.text import Query, name_tokens, parse_query, unasked_modifiers
 
 CLAIM_IDS: dict[Claim, str] = {
@@ -47,10 +48,12 @@ W_MODIFIER = 0.3
 CATEGORY_PARTIAL = 0.8
 CATEGORY_NAME_THRESHOLD = 0.6
 CATEGORY_MARGIN = 0.05
-# Weight of "share of the top matches in this category" next to the name match.
-CATEGORY_SHARE_WEIGHT = 0.0
 # Query words at least this long count fully when found inside a name word (0: off).
 COMPOUND_MIN_LENGTH = 5
+# How much a word that names the product's category counts toward coverage (0: off).
+CATEGORY_TERM_COVERAGE = 0.6
+# Correct words that are in no product name (spelling.py).
+SPELLING = True
 PLURALITY_POOL = 20
 # The plurality category is inferred only if it holds at least this share of the pool.
 PLURALITY_MIN_SHARE = 0.0
@@ -131,6 +134,20 @@ _BRAND_WORDS = text(
 ).bindparams(_WORDS)
 
 
+# The catalogue's words for spelling correction, built once per database and process.
+# A catalogue reload adds words only after a restart; until then they are simply not
+# corrected towards, and exact words still match.
+_VOCABULARIES: dict[str, Vocabulary] = {}
+
+
+async def _vocabulary(db: AsyncConnection | AsyncSession) -> Vocabulary:
+    key = str(db.bind.engine.url) if isinstance(db, AsyncSession) else str(db.engine.url)
+    if key not in _VOCABULARIES:
+        rows = await db.execute(text("SELECT name_fi, coalesce(name_en, '') FROM products"))
+        _VOCABULARIES[key] = Vocabulary.from_names(f"{fi} {en}" for fi, en in rows)
+    return _VOCABULARIES[key]
+
+
 @dataclass(frozen=True)
 class SearchHit:
     product_id: str
@@ -148,18 +165,24 @@ class _Candidate:
     sims: tuple[float, ...]
 
 
-def _coverage(query: Query, candidate: _Candidate) -> float:
-    """Mean over the buyer's words of how well the name covers each (synonyms count)."""
+def _coverage(
+    query: Query, candidate: _Candidate, category_terms: Sequence[float] | None = None
+) -> float:
+    """Mean over the buyer's words of how well the name covers each (synonyms count). A word
+    that names the product's category counts too, at CATEGORY_TERM_COVERAGE: "viinerit" is
+    a category, not a word in the names of the pastries in it."""
     scores: list[float] = []
     sims = iter(candidate.sims)
     names = name_tokens(candidate.name)
-    for term in query.terms:
+    for i, term in enumerate(query.terms):
         best = max(next(sims) for _ in term.alternatives)
         # A word inside a compound is a full match: "maito" in "kevytmaito".
         if COMPOUND_MIN_LENGTH and any(
             len(a) >= COMPOUND_MIN_LENGTH and any(a in n for n in names) for a in term.folded
         ):
             best = 1.0
+        if category_terms is not None:
+            best = max(best, CATEGORY_TERM_COVERAGE * category_terms[i])
         scores.append(best)
     if query.amounts:
         scores.extend(1.0 if a in names else 0.0 for a in query.amounts)
@@ -171,46 +194,40 @@ def _term_scores(query: Query, sims: Sequence[float]) -> list[float]:
     return [max(next(it) for _ in term.alternatives) for term in query.terms]
 
 
-async def _infer_categories(
-    db: AsyncConnection | AsyncSession, query: Query, ranked: list[_Candidate]
+async def _category_terms(
+    db: AsyncConnection | AsyncSession, query: Query, brands: set[str]
+) -> dict[str, list[float]]:
+    """Per category, how well its name matches each of the buyer's words (brand words 0)."""
+    if not query.terms:
+        return {}
+    raw_words = [a for t in query.terms for a in t.alternatives]
+    rows = (
+        await db.execute(_CATEGORY_MATCHES, {"words": query.trigram_words, "raw_words": raw_words})
+    ).all()
+    out = {}
+    for category_id, sims, whole in rows:
+        per_word = [1.0 if w else CATEGORY_PARTIAL * s for s, w in zip(sims, whole, strict=True)]
+        scores = _term_scores(query, per_word)
+        out[category_id] = [
+            0.0 if t.folded[0] in brands else v for t, v in zip(query.terms, scores, strict=True)
+        ]
+    return out
+
+
+def _infer_categories(
+    query: Query,
+    brands: set[str],
+    category_terms: dict[str, list[float]],
+    ranked: list[_Candidate],
 ) -> tuple[dict[str, float], str]:
     """Categories whose name matches the query; else the plurality of the best matches."""
-    brands = set(
-        (await db.scalars(_BRAND_WORDS, {"words": [t.folded[0] for t in query.terms]})).all()
-    )
-    query = Query(
-        tuple(t for t in query.terms if t.folded[0] not in brands), query.amounts, query.folded_text
-    )
-    if query.terms:
-        raw_words = [a for t in query.terms for a in t.alternatives]
-        rows = (
-            await db.execute(
-                _CATEGORY_MATCHES, {"words": query.trigram_words, "raw_words": raw_words}
-            )
-        ).all()
-        named: dict[str, float] = {}  # above the name threshold
-        all_named: dict[str, float] = {}  # every category, for the share-weighted choice
-        for category_id, sims, whole in rows:
-            per_word = [
-                1.0 if w else CATEGORY_PARTIAL * s for s, w in zip(sims, whole, strict=True)
-            ]
-            scores = _term_scores(query, per_word)
-            all_named[category_id] = sum(scores) / len(scores)
+    kept = [i for i, t in enumerate(query.terms) if t.folded[0] not in brands]
+    if kept:
+        named: dict[str, float] = {}
+        for category_id, all_scores in category_terms.items():
+            scores = [all_scores[i] for i in kept]
             if max(scores) >= CATEGORY_NAME_THRESHOLD:
-                named[category_id] = all_named[category_id]
-        if named and CATEGORY_SHARE_WEIGHT > 0 and not brands:
-            # A name match counts more when the strongest matches actually sit there:
-            # "maito" names "Maito- ja kermajauheet", but the milks are in "Maidot ja piimät".
-            top = ranked[:PLURALITY_POOL]
-            share = Counter(c.category_id for c in top)
-            combined = {
-                c: all_named.get(c, 0.0) + CATEGORY_SHARE_WEIGHT * n / len(top)
-                for c, n in share.items()
-            } | {c: v for c, v in named.items() if c not in share}
-            best = max(combined.values())
-            return {
-                c: 1.0 for c, v in combined.items() if v >= best - CATEGORY_MARGIN
-            }, "category_name_and_matches"
+                named[category_id] = sum(scores) / len(scores)
         if named:
             best = max(named.values())
             return {c: v for c, v in named.items() if v >= best - CATEGORY_MARGIN}, "category_name"
@@ -237,7 +254,9 @@ async def search_products(
     """Search the catalogue. Neutral about the kitchen: only the given claims and category
     filter (§7.1). An empty query with filters returns the filtered set by product id."""
     # Once the claim is a filter, its words in the text only match noise ("free").
-    query = parse_query(q, ignore=frozenset(w for c in claims for w in CLAIM_WORDS[c]))
+    ignore = frozenset(w for c in claims for w in CLAIM_WORDS[c])
+    vocabulary = await _vocabulary(db) if SPELLING else None
+    query = parse_query(q, ignore=ignore, vocabulary=vocabulary)
     limit = max(1, min(limit, MAX_LIMIT))
     has_text = bool(query.terms or query.amounts)
     if not has_text and not claims and category is None:
@@ -273,10 +292,20 @@ async def search_products(
             for c in sorted(candidates, key=lambda c: c.product_id)
         ][:limit]
 
-    base = {c.product_id: W_COVERAGE * _coverage(query, c) + W_FTS * c.fts for c in candidates}
+    brands = set(
+        (await db.scalars(_BRAND_WORDS, {"words": [t.folded[0] for t in query.terms]})).all()
+    )
+    category_terms = await _category_terms(db, query, brands)
+    use_terms = CATEGORY_TERM_COVERAGE > 0
+    base = {
+        c.product_id: W_COVERAGE
+        * _coverage(query, c, category_terms.get(c.category_id) if use_terms else None)
+        + W_FTS * c.fts
+        for c in candidates
+    }
     by_base = sorted(candidates, key=lambda c: (-round(base[c.product_id], 4), c.product_id))
     if category is None:
-        inferred, how = await _infer_categories(db, query, by_base)
+        inferred, how = _infer_categories(query, brands, category_terms, by_base)
     else:
         inferred, how = {}, ""
 

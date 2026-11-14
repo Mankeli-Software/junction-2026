@@ -15,6 +15,7 @@ from app.loaders.catalogue import ALLERGEN_CODE_FILE, CATEGORY_FILE, load
 from app.loaders.product_file import read_allergen_codes, read_categories
 from app.schemas.common import Claim
 from app.search import search_products
+from app.search.spelling import Vocabulary
 from app.search.text import parse_query, unasked_modifiers
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -123,3 +124,19 @@ async def test_empty_query_without_filters_returns_nothing(catalogue):
 async def test_same_query_same_result(catalogue):
     first = await _ids(catalogue, "maito")
     assert first == await _ids(catalogue, "maito")
+
+
+def test_spelling_corrects_one_edit_and_keeps_known_words():
+    vocabulary = Vocabulary.from_names(["Valio rasvaton maito 1 l", "Atria naudan jauheliha 2 kg"])
+    assert vocabulary.corrections("miato") == ("maito",)
+    assert vocabulary.corrections("jaheliha") == ("jauheliha",)  # dropped letter
+    assert vocabulary.corrections("juaheliha") == ("jauheliha",)  # swapped letters
+    query = parse_query("naudan juaheliha", vocabulary=vocabulary)
+    assert query.terms[0].alternatives[0] == "naudan"  # known: untouched
+    assert "jauheliha" in query.terms[1].alternatives
+
+
+def test_spelling_splits_a_joined_pair():
+    vocabulary = Vocabulary.from_names(["Valio rasvaton maito 1 l laktoositon"])
+    query = parse_query("laktoositonmaito", vocabulary=vocabulary)
+    assert [t.word for t in query.terms] == ["laktoositon", "maito"]
