@@ -645,14 +645,16 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
         texts = [str(line.get("text", "")) for line in lines]
         rows.append(("Pack size kept in the line text", any(any(p in t for p in scenario.pack_terms) for t in texts), "; ".join(texts)))
     usual_ids = {u.product_id for u in CONTEXT.usual_items}
+    # Stub ids are known only once a tool (search_products, build_quote) has returned them.
+    ordered = [c for t in result.turns for c in t.tool_calls]
     invented = [
         line.get("product_id")
-        for name in ("build_quote", "update_quote")
-        for _, a in _calls(result, name)
-        for line in a.get("lines", [])
+        for i, c in enumerate(ordered)
+        if c["name"] in ("build_quote", "update_quote")
+        for line in c["args"].get("lines", [])
         if line.get("product_id")
         and not (line["product_id"] in usual_ids and line.get("usual"))
-        and not (name == "update_quote" and line["product_id"] in (MILK_ID, WHOLE_MILK_ID))
+        and not (line["product_id"] in (MILK_ID, WHOLE_MILK_ID) and i > 0)
     ]
     rows.append(("product_id only for a usual item or a picked option", not invented, ", ".join(map(str, invented))))
     no_word = [

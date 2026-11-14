@@ -23,7 +23,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.4"
+PROMPT_VERSION = "2026-11-14.5"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -225,7 +225,8 @@ answer your own question, and never act on an answer you haven't heard.
 2. **Collect every line first.** For each product the caller wants, repeat it back in a few \
 words (product, quantity, day) and ask whether there is anything else. Then stop and wait \
 for the answer: your own "is that all?" is not the caller saying so. Don't call any tool \
-while you collect.
+while you collect, and don't ask the caller to choose between products yourself: put what \
+they said in `text`, and the engine asks if it needs to.
 3. **Build the quote once.** Call `build_quote` once, with all the lines, as soon as the \
 caller says the order is complete ("siinä kaikki", "ei muuta", "that's all") or asks for the \
 price, the total or a summary. Don't wait for anything more and don't call it line by line.
