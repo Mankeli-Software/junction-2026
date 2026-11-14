@@ -1,4 +1,4 @@
-"""Recipe drafts (#80): propose, confirm and lines.
+"""Recipe drafts (#80): propose, confirm, lines and quotes from a confirmed draft.
 
 The `to_lines` tests need no database; the rest need DATABASE_URL.
 """
@@ -12,22 +12,29 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import engine
 from app.interfaces.deps import DEV_CALLER
-from app.models import AuditEvent, RecipeDraftRow
+from app.models import AuditEvent, Quote, RecipeDraftRow
 from app.schemas import (
     BuildQuoteRequest,
     ConfirmRecipeRequest,
+    Decision,
     DraftIngredient,
+    EngineInput,
     Exclusion,
     GetRecipeRequest,
+    LineRequest,
     Localized,
     ProposeRecipeRequest,
     RecipeDraft,
     RequestedUnit,
+    UpdateQuoteRequest,
 )
-from app.services import accounts, dev_caller, recipe_drafts, recipes
+from app.services import accounts, dev_caller, quotes, recipe_drafts, recipes, signing
+from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
+from app.services.policy import get_rule_set
 from tests.conftest import write_audit
 
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
@@ -137,6 +144,19 @@ def test_water_is_found_by_word():
     assert recipe_drafts._is_water("kylmää vettä")
     assert recipe_drafts._is_water("Water")
     assert not recipe_drafts._is_water("vesimeloni")
+
+
+def test_the_next_weekday_skips_the_weekend():
+    rules = get_rule_set()  # business time is Thursday 2026-11-12
+    assert quotes.next_weekday(rules) == date(2026, 11, 13)
+    friday = rules.model_copy(
+        update={
+            "policy": rules.policy.model_copy(
+                update={"business_time": datetime(2026, 11, 13, 9, tzinfo=UTC)}
+            )
+        }
+    )
+    assert quotes.next_weekday(friday) == date(2026, 11, 16)
 
 
 def test_build_quote_needs_lines_or_a_draft():
@@ -372,3 +392,175 @@ async def test_editing_a_linked_rows_text_drops_its_product(db, caller):
         ),
     )
     assert confirmed.ingredients[0].product_id is None
+
+
+# --- Quotes from a draft ----------------------------------------------------------------
+
+
+def milk_recipe(**overrides) -> ProposeRecipeRequest:
+    data = {
+        "dish": "Maitokahvi",
+        "portions": 40,
+        "servings_on_source": 4,
+        "ingredients": [ingredient(0, "maito", 2, "l"), ingredient(1, "vettä", 1, "l")],
+        "source": "notebook",
+    }
+    return ProposeRecipeRequest.model_validate(data | overrides)
+
+
+async def confirmed_draft(db, caller, request=None, **edits) -> RecipeDraft:
+    proposed = await recipe_drafts.propose(db, caller, request or milk_recipe(), now=T0)
+    return await recipe_drafts.confirm(
+        db, caller, ConfirmRecipeRequest(draft_id=proposed.draft_id, **edits)
+    )
+
+
+async def test_an_unconfirmed_draft_cant_be_quoted(db, caller):
+    proposed = await recipe_drafts.propose(db, caller, milk_recipe(), now=T0)
+    with pytest.raises(StateError, match="confirm the recipe with the buyer first"):
+        await quotes.build_quote(
+            db, caller, BuildQuoteRequest(recipe_draft_id=proposed.draft_id, needed_by=DAY), now=T0
+        )
+
+
+async def test_a_confirmed_draft_is_quoted_scaled_labelled_and_replays(db, caller):
+    confirmed = await confirmed_draft(db, caller)
+
+    response = await quotes.build_quote(
+        db, caller, BuildQuoteRequest(recipe_draft_id=confirmed.draft_id, needed_by=DAY), now=T0
+    )
+
+    assert response.decision == Decision.ready
+    (line,) = response.lines
+    assert (line.line_id, line.group, line.product_id) == ("p0", "Maitokahvi", "464306")
+    assert line.asked.quantity == Decimal("20")  # 2 l for 4, for 40
+    (group,) = response.groups
+    assert (group.source, group.recipe_draft_id) == ("photo", confirmed.draft_id)
+    assert [(n.name, n.reason.en) for n in response.not_ordered] == [
+        ("vettä", "Not ordered: you unticked it")
+    ]
+
+    quote = await db.get_one(Quote, uuid.UUID(response.quote_id))
+    row = await db.get_one(RecipeDraftRow, uuid.UUID(confirmed.draft_id))
+    (ref,) = quote.engine_input["recipe_drafts"]
+    assert (ref["draft_id"], ref["confirmed_hash"]) == (confirmed.draft_id, row.confirmed_hash)
+
+    # Replay: the stored input gives the same output and the same quote hash.
+    rules = await load_rule_set_by_ref(db, quote.rules_ref)
+    replayed_input = EngineInput.model_validate({**quote.engine_input, "rules": rules})
+    replayed = quotes.with_recipe_drafts(
+        engine.decide(replayed_input), replayed_input.recipe_drafts
+    )
+    assert replayed.model_dump(mode="json") == quote.engine_output
+    payload = quotes.quote_payload(
+        quote.id,
+        quote.version,
+        quote.company_id,
+        replayed,
+        replayed_input.offers,
+        issued_at=replayed_input.issued_at,
+        expires_at=quote.expires_at,
+        recipe_drafts=replayed_input.recipe_drafts,
+    )
+    assert payload["recipe_drafts"] == [
+        {"draft_id": confirmed.draft_id, "confirmed_hash": row.confirmed_hash}
+    ]
+    assert signing.quote_hash(payload) == quote.quote_hash
+
+
+async def test_edited_amounts_are_quoted(db, caller):
+    proposed = await recipe_drafts.propose(db, caller, milk_recipe(), now=T0)
+    edited = [proposed.ingredients[0].model_copy(update={"amount": Decimal("3")})]
+    await recipe_drafts.confirm(
+        db,
+        caller,
+        ConfirmRecipeRequest(draft_id=proposed.draft_id, portions=8, ingredients=edited),
+    )
+
+    response = await quotes.build_quote(
+        db, caller, BuildQuoteRequest(recipe_draft_id=proposed.draft_id, needed_by=DAY), now=T0
+    )
+
+    assert response.lines[0].asked.quantity == Decimal("6")  # 3 l for 4, for 8
+    assert response.not_ordered == []
+
+
+async def test_other_lines_come_first_and_set_the_date(db, caller):
+    confirmed = await confirmed_draft(db, caller)
+    butter = LineRequest(line_id="l1", text="maito", quantity=Decimal(1), unit="l", needed_by=DAY)
+
+    response = await quotes.build_quote(
+        db, caller, BuildQuoteRequest(lines=[butter], recipe_draft_id=confirmed.draft_id), now=T0
+    )
+
+    assert [line.line_id for line in response.lines] == ["l1", "p0"]
+    assert {line.asked.needed_by for line in response.lines} == {DAY}
+    clash = butter.model_copy(update={"line_id": "p0"})
+    with pytest.raises(StateError, match="p0"):
+        await quotes.build_quote(
+            db, caller, BuildQuoteRequest(lines=[clash], recipe_draft_id=confirmed.draft_id)
+        )
+
+
+async def test_an_unknown_measure_is_asked_back_by_the_engine(db, caller):
+    request = milk_recipe(ingredients=[ingredient(0, "maito", 1, "ripaus")])
+    confirmed = await confirmed_draft(db, caller, request)
+
+    response = await quotes.build_quote(
+        db, caller, BuildQuoteRequest(recipe_draft_id=confirmed.draft_id, needed_by=DAY), now=T0
+    )
+
+    assert response.decision == Decision.needs_clarification
+    assert response.clarification is not None and response.clarification.line_id == "p0"
+
+
+async def test_a_milk_free_kitchen_still_blocks_milk_from_a_photo(db):
+    milk_free = await other_caller(db, [Exclusion.milk_free])
+    confirmed = await confirmed_draft(db, milk_free)
+
+    response = await quotes.build_quote(
+        db, milk_free, BuildQuoteRequest(recipe_draft_id=confirmed.draft_id, needed_by=DAY), now=T0
+    )
+
+    # As for a milk line typed by an agent: no milk is priced; the oat drink has no offer
+    # here, so the line ends in a callback request (see test_quotes).
+    assert response.decision == Decision.rejected
+    assert all(line.product_id != "464306" for line in response.lines)
+    (rejection,) = response.rejections
+    assert (rejection.line_id, rejection.reason_code) == ("p0", "CALLBACK_REQUESTED")
+
+
+async def test_update_quote_keeps_the_photo_label(db, caller):
+    confirmed = await confirmed_draft(db, caller)
+    first = await quotes.build_quote(
+        db, caller, BuildQuoteRequest(recipe_draft_id=confirmed.draft_id, needed_by=DAY), now=T0
+    )
+    quote = await db.get_one(Quote, uuid.UUID(first.quote_id))
+    lines = [LineRequest.model_validate(raw) for raw in quote.engine_input["lines"]]
+
+    second = await quotes.update_quote(
+        db,
+        caller,
+        UpdateQuoteRequest(
+            quote_id=first.quote_id, lines=[lines[0].model_copy(update={"quantity": Decimal(30)})]
+        ),
+        now=T0,
+    )
+    assert second.groups[0].source == "photo"
+    assert second.groups[0].recipe_draft_id == confirmed.draft_id
+    assert [n.name for n in second.not_ordered] == ["vettä"]
+
+    regrouped = [lines[0].model_copy(update={"group": None})]
+    third = await quotes.update_quote(
+        db, caller, UpdateQuoteRequest(quote_id=second.quote_id, lines=regrouped), now=T0
+    )
+    assert third.groups == [] and third.not_ordered == []
+    assert "recipe_drafts" not in (await db.get_one(Quote, uuid.UUID(third.quote_id))).engine_input
+
+
+async def test_a_quote_without_a_draft_stores_no_draft_reference(db, caller):
+    line = LineRequest(line_id="l1", text="maito", quantity=Decimal(20), unit="l", needed_by=DAY)
+    response = await quotes.build_quote(db, caller, BuildQuoteRequest(lines=[line]), now=T0)
+    quote = await db.get_one(Quote, uuid.UUID(response.quote_id))
+    assert "recipe_drafts" not in quote.engine_input
+    assert all(g.source is None for g in response.groups)

@@ -567,7 +567,7 @@ async def test_every_tool_call_writes_tool_called_and_tool_returned(app_db: Asyn
     assert called.payload == {"tool": "build_quote", "arguments": {"lines": [MILK | {
         "product_id": None, "usual": False, "claims": [], "category": None,
         "package_word": None, "recipe_ref": None, "group": None,
-    }]}}  # fmt: skip
+    }], "recipe_draft_id": None, "needed_by": None}}  # fmt: skip
     assert returned.payload["response"]["quote_id"] == quote["quote_id"]
     assert returned.quote_id is not None
     assert events[-1].payload == {"tool": "get_order_status", "error": "quote not found"}

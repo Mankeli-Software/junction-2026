@@ -7,11 +7,16 @@ session and the audit events always commit or roll back together.
 
 The engine input is stored with the quote, without the rule set (`rules_ref` names it), so
 `decide()` on it gives the same output and quote hash again (the replay test).
+
+A quote from a confirmed recipe draft (#80) stores the draft's id and confirmed hash in the
+engine input (`recipe_drafts`, which the engine doesn't read) and its unticked ingredients in
+`not_ordered`. `with_recipe_drafts()` then labels the draft's group `source="photo"`, the
+same way on replay; the quote hash covers the draft reference too.
 """
 
 import logging
 import uuid
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
@@ -43,6 +48,7 @@ from app.schemas import (
     QuoteLine,
     QuoteResponse,
     QuoteStatus,
+    RecipeDraftRef,
     RequestConfirmationRequest,
     RuleSet,
     SessionState,
@@ -55,6 +61,7 @@ from app.services import (
     catalog,
     confirmations,
     customers,
+    recipe_drafts,
     recipes,
     sessions,
     signing,
@@ -108,7 +115,16 @@ async def build_quote(
     now = now or datetime.now(UTC)
     timer = telemetry.Timer()
     session = await sessions.current_session(db, caller, now=now)
-    _, response = await _new_quote(db, caller, session, request.lines, now=now)
+    lines, drafts = list(request.lines), []
+    if request.recipe_draft_id is not None:
+        needed_by = request.needed_by or min(
+            (line.needed_by for line in lines), default=next_weekday(get_rule_set())
+        )
+        lines, draft = await recipe_drafts.quote_lines(
+            db, caller, request.recipe_draft_id, lines, needed_by
+        )
+        drafts.append(draft)
+    _, response = await _new_quote(db, caller, session, lines, now=now, drafts=drafts)
     telemetry.quote_duration.record(
         timer.ms, telemetry.metric_attrs(tool="build_quote", decision=response.decision.value)
     )
@@ -128,7 +144,16 @@ async def update_quote(
             f"the current quote is {current.id}"
         )
     session = await sessions.quote_session(db, old, now=now)
-    new, response = await _new_quote(db, caller, session, request.lines, now=now, parent=old)
+    # The new lines still carry a recipe draft's group: the group keeps its photo label.
+    groups = {line.group for line in request.lines}
+    drafts = [
+        draft
+        for draft in map(RecipeDraftRef.model_validate, old.engine_input.get("recipe_drafts", []))
+        if draft.group in groups
+    ]
+    new, response = await _new_quote(
+        db, caller, session, request.lines, now=now, parent=old, drafts=drafts
+    )
 
     old.status = QuoteStatus.void
     await db.flush()
@@ -262,6 +287,7 @@ async def _new_quote(
     *,
     now: datetime,
     parent: Quote | None = None,
+    drafts: Sequence[RecipeDraftRef] = (),
 ) -> tuple[Quote, QuoteResponse]:
     """Steps 2 to 10 of #45's spec: candidates, offers, decide, store, audit."""
     quote_id = uuid.uuid4()
@@ -345,13 +371,15 @@ async def _new_quote(
         business_now=rules.policy.business_time,
         issued_at=now,
         lang=caller.lang,
-        not_ordered=not_ordered,
+        # A recipe draft's unticked ingredients are listed with the recipes' (#34).
+        not_ordered=[*not_ordered, *(item for d in drafts for item in d.not_ordered)],
+        recipe_drafts=list(drafts),
     )
     # The engine is pure; its span is made here, from its output (#84).
     engine_timer = telemetry.Timer()
     with telemetry.span("engine decide", lines=len(lines), products=len(products)):
         try:
-            output = engine.decide(engine_input)
+            output = with_recipe_drafts(engine.decide(engine_input), engine_input.recipe_drafts)
         except Exception:
             log.exception("the engine failed on quote %s", quote_id)
             raise
@@ -381,12 +409,15 @@ async def _new_quote(
             engine_input.offers,
             issued_at=now,
             expires_at=expires_at,
+            recipe_drafts=engine_input.recipe_drafts,
         )
         quote_hash, jws = signing.quote_hash(payload), signing.sign_quote(payload)
 
     # Stored once in `rule_sets` (with its audit event), so `rules_ref` resolves on replay.
     await audit.ensure_rule_set(db, rules)
-    stored_input = engine_input.model_dump(mode="json", exclude={"rules"})
+    # Without a draft, the stored input is exactly as before #80.
+    exclude = {"rules"} if engine_input.recipe_drafts else {"rules", "recipe_drafts"}
+    stored_input = engine_input.model_dump(mode="json", exclude=exclude)
     stored_output = output.model_dump(mode="json")
     quote = Quote(
         id=quote_id,
@@ -446,13 +477,15 @@ def quote_payload(
     *,
     issued_at: datetime,
     expires_at: datetime | None,
+    recipe_drafts: Iterable[RecipeDraftRef] = (),
 ) -> dict[str, Any]:
     """What the quote hash and signature cover (technical-plan.md §8.1): the customer, the
     lines with their labelled claims, totals, delivery dates, issue time, expiry and rule
     set. Decimals are strings and times are UTC ISO 8601, so the canonical JSON is exact.
-    `offers` are the engine input's, where each line's price came from."""
+    `offers` are the engine input's, where each line's price came from. A quote from a
+    recipe draft also covers the draft's id and confirmed hash (#80)."""
     offer_by_product = {offer.product_id: offer for offer in offers}
-    return {
+    payload = {
         "quote_id": str(quote_id),
         "version": version,
         "customer": {"company_id": str(company_id)},
@@ -475,6 +508,37 @@ def quote_payload(
         "expires_at": _utc(expires_at) if expires_at else None,
         "rules_ref": output.rules_ref,
     }
+    drafts = [{"draft_id": d.draft_id, "confirmed_hash": d.confirmed_hash} for d in recipe_drafts]
+    if drafts:
+        payload["recipe_drafts"] = drafts
+    return payload
+
+
+def with_recipe_drafts(output: EngineOutput, drafts: Iterable[RecipeDraftRef]) -> EngineOutput:
+    """The engine's output with each recipe draft's group labelled as from a photo (#80).
+    Unchanged without a draft. The draft's unticked ingredients are already in the engine
+    input's `not_ordered`, which the engine returns as they are."""
+    by_group = {draft.group: draft for draft in drafts}
+    if not by_group:
+        return output
+    groups = [
+        group.model_copy(
+            update={"source": "photo", "recipe_draft_id": by_group[group.group].draft_id}
+        )
+        if group.group in by_group
+        else group
+        for group in output.groups
+    ]
+    return output.model_copy(update={"groups": groups})
+
+
+def next_weekday(rules: RuleSet) -> date:
+    """The business day after today, skipping the weekend: a recipe draft's lines are
+    needed by then unless the request says otherwise."""
+    day = rules.policy.business_time.date() + timedelta(days=1)
+    while day.weekday() >= 5:
+        day += timedelta(days=1)
+    return day
 
 
 def line_claims(line: QuoteLine, offer: Offer | None) -> dict[str, Any]:

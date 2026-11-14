@@ -359,18 +359,40 @@
 			"additionalProperties": false,
 			"properties": {
 				"lines": {
+					"default": [],
 					"items": {
 						"$ref": "#/$defs/LineRequest"
 					},
 					"maxItems": 50,
-					"minItems": 1,
 					"title": "Lines",
 					"type": "array"
+				},
+				"recipe_draft_id": {
+					"anyOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Recipe Draft Id"
+				},
+				"needed_by": {
+					"anyOf": [
+						{
+							"format": "date",
+							"type": "string"
+						},
+						{
+							"type": "null"
+						}
+					],
+					"default": null,
+					"title": "Needed By"
 				}
 			},
-			"required": [
-				"lines"
-			],
 			"title": "build_quoteArguments",
 			"type": "object"
 		},

@@ -713,10 +713,21 @@ export interface components {
             /** Text En */
             text_en?: string | null;
         };
-        /** BuildQuoteRequest */
+        /**
+         * BuildQuoteRequest
+         * @description The order's lines. With `recipe_draft_id`, a confirmed recipe draft's ingredients
+         *     are added as lines too, so `lines` may then be empty.
+         */
         BuildQuoteRequest: {
-            /** Lines */
+            /**
+             * Lines
+             * @default []
+             */
             lines: components["schemas"]["LineRequest"][];
+            /** Recipe Draft Id */
+            recipe_draft_id?: string | null;
+            /** Needed By */
+            needed_by?: string | null;
         };
         /** CancelRequest */
         CancelRequest: {
@@ -1061,6 +1072,10 @@ export interface components {
             line_ids: string[];
             /** Subtotal Cents */
             subtotal_cents: number;
+            /** Source */
+            source?: "photo" | null;
+            /** Recipe Draft Id */
+            recipe_draft_id?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

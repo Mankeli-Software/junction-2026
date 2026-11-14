@@ -1948,16 +1948,37 @@
 						},
 						"type": "array",
 						"maxItems": 50,
-						"minItems": 1,
-						"title": "Lines"
+						"title": "Lines",
+						"default": []
+					},
+					"recipe_draft_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Recipe Draft Id"
+					},
+					"needed_by": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Needed By"
 					}
 				},
 				"additionalProperties": false,
 				"type": "object",
-				"required": [
-					"lines"
-				],
-				"title": "BuildQuoteRequest"
+				"title": "BuildQuoteRequest",
+				"description": "The order's lines. With `recipe_draft_id`, a confirmed recipe draft's ingredients\nare added as lines too, so `lines` may then be empty."
 			},
 			"CancelRequest": {
 				"properties": {
@@ -2802,6 +2823,29 @@
 					"subtotal_cents": {
 						"type": "integer",
 						"title": "Subtotal Cents"
+					},
+					"source": {
+						"anyOf": [
+							{
+								"type": "string",
+								"const": "photo"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Source"
+					},
+					"recipe_draft_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Recipe Draft Id"
 					}
 				},
 				"additionalProperties": false,
