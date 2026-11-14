@@ -75,7 +75,7 @@ uv run pytest                             # database tests run only when DATABAS
 uv run python -m app.loaders.catalogue --download   # product file into Postgres (VALIO_API_KEY)
 ```
 
-The catalogue loader downloads the product file once to `data/valio-products.json` (git-ignored) and can be re-run. Database tests get their own `<name>_test` database, so they never touch development data. In Compose: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml exec api python -m app.loaders.catalogue --download`.
+The catalogue loader downloads the product file once to `data/valio-products.json` (git-ignored) and can be re-run. It also fills the product image URLs from the committed `data/product_images.json.gz` (#108); `uv run python -m app.loaders.images` refreshes only the images. Database tests get their own `<name>_test` database, so they never touch development data. In Compose: `docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml exec api python -m app.loaders.catalogue --download`.
 
 Web (`web/`, SvelteKit, `pnpm`):
 
@@ -95,6 +95,8 @@ Only the database: `docker compose -f deploy/docker-compose.yml -f deploy/docker
 VM (`simo.mankeli.co`, Azure): in the repo on the VM, after `git pull` on `production`, run `docker compose --env-file deploy/vm.env -f deploy/docker-compose.yml up -d --build`. `deploy/vm.env` holds the non-secret settings. Secrets come from Key Vault `kv-simo-junction26` through the VM's managed identity: `database-url` (user `simo_app`) for the app and `database-admin-url` for migrations, which run at container start.
 
 After migration 0014 is deployed, load the recipes once with `docker compose --env-file deploy/vm.env -f deploy/docker-compose.yml exec api python -m app.loaders.recipes`. The loader reads recipe data, product links and committed vectors from the image without calling Gemini or Valio. Re-run it only when `data/valio-recipes.json`, `data/recipe-product-map.json` or `data/recipe-embeddings.json.gz` changes, or if the recipe tables are rebuilt or cleared. Regenerating vectors is a developer step, not part of a VM release.
+
+After migration 0017 is deployed, load the product images once with `docker compose --env-file deploy/vm.env -f deploy/docker-compose.yml exec api python -m app.loaders.images`. It reads `data/product_images.json.gz` from the image and touches only `product_images`. Re-run it when that file changes; a catalogue reload refreshes the images too.
 
 ## Database and secrets
 

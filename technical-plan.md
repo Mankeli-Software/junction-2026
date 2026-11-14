@@ -14,7 +14,7 @@ Taken on 2026-11-14, in addition to vision.md:
 | Database | The deployed app on the VM uses the existing Azure Database for PostgreSQL instance (`junction_demo`). `vector`, `pg_trgm` and `unaccent` are allowed on the server. Development uses Postgres with pgvector in Docker on each laptop. We revisit this once we know how many developers change database data or schema at the same time (section 10.1) |
 | Voice path | Our server relays audio between the browser and Gemini Live. The server is an ordinary MCP client |
 | SMS | Twilio |
-| Product images | The image file's `code` is the product file's `id`. Images are hotlinked from their `img` URL |
+| Product images | Our portal crawl, joined to the product file by barcode, gives each product Valio's own image URL (`data/product_images.json.gz`, #108). The URL is stored in the database and images are hotlinked from it |
 | Connector login | Our own OAuth 2.1 authorization server, built on the MCP Python SDK's auth routes, with our own email and password page |
 | Recipe embeddings | Gemini embeddings, stored in pgvector |
 | Clock | A business clock frozen at Thu 2026-11-12 09:00 for cutoffs and delivery dates. The real clock for the duplicate check, audit timestamps and quote expiry when it is on |
@@ -201,11 +201,11 @@ Two clocks (decided 2026-11-14). A business clock, frozen at the demo time, give
 | Allergen codes and phrases | `data/gs1_allergen_codes.csv`, `data/allergen_containment_levels.csv` | `allergen_codes`, message templates |
 | Recipes | `data/valio-recipes.json` (2,091 recipes) | `recipes`, `recipe_ingredients`, `recipe_tags` |
 | Recipe-to-product links | `data/recipe-product-map.json` | `recipe_product_links` |
-| Product images | The image file still to come (`code`, `name`, `img`) | `product_images`, joined on `code` = product `id` |
+| Product images | `data/product_images.json.gz` (#108): our own crawl of the Minun Aimo portal (toimitustukku.valioaimo.fi, use OK'd by the organisers), joined to the product file by barcode, with an exact Finnish name match as the fallback. Product id to Valio's main image URL, the EAN and the match kind: 13,598 of 17,546 products, 13,432 by barcode and 166 by name. Built by `scripts/build_image_map.py`; the raw crawl is not committed. Loaded by the catalogue loader, or alone with `python -m app.loaders.images` | `product_images` (`product_id`, `image_url`, `image_match` `gtin` or `name`) |
 | Carbon and reliability CSVs | API downloads | Stretch |
 | Customers, kitchen profiles, phone numbers, order history | Our seed script. No real people (vision §10) | `companies`, `users`, `kitchen_profiles`, `order_history_lines` |
 
-Every loader can be re-run: it reloads in one transaction and prints counts and anomalies (for example image codes with no matching product).
+Every loader can be re-run: it reloads in one transaction and prints counts and anomalies (for example image entries with no matching product, and products without an image).
 
 ### 5.2 Tables
 
@@ -238,7 +238,8 @@ Today `search_recipes` and `get_recipe` run on two fixture recipes (`api/app/ser
 
 ### 5.5 Images and category names
 
-- `<img src={img} loading="lazy" referrerpolicy="no-referrer">` with a placeholder when the image is missing or fails to load. Only pages that are actually rendered fetch from Valio's media server. We never prefetch the catalogue's images.
+- Images stay on Valio's media server (`https://api.valioaimo.fi/medias/...`, public WebP, the 300 px rendition) and are hotlinked, on laptops and production alike; nothing is downloaded or self-hosted (#108). The URL comes with the product from the database as `image_url` on product records, search hits, quote lines, the dashboard summary and the confirmation page, and the webshop's `products.json` carries the same URLs. No client builds or looks up image URLs itself.
+- `<img src={image_url} loading="lazy" referrerpolicy="no-referrer">` with fixed dimensions and a placeholder when `image_url` is null (about 3,950 products) or the image fails to load. Only pages that are actually rendered fetch from Valio's media server. We never prefetch the catalogue's images.
 - `name_fi` and `name_en` are used for voice and display. `mandate_group` is a coarse grouping for search filters and the dashboard. It is never used for allergens and never as "chilled" or "fresh" (category brief).
 
 ## 6. Valio API adapter
@@ -400,6 +401,8 @@ The ten tools of vision §8 (it counts `search_recipes` and `get_recipe` as one 
 | `update_quote` | `POST /api/v1/quotes/{id}/update` (returns a new quote) |
 | `request_confirmation` | `POST /api/v1/quotes/{id}/confirmation-request`, returns `{sent_to_masked, delivery_status}` |
 | `get_order_status` | `GET /api/v1/quotes/{id}/status` |
+
+Search hits and quote lines carry the product's `image_url` from the database (section 5.5, #108), or null when there is no image. Recipe ingredients linked to a product carry only its `product_id`.
 
 Not tools, for the webshop chat's recipe card (#80): `GET /api/v1/recipe-drafts/{id}`, `POST /api/v1/recipe-drafts/{id}/discard`, `POST /api/v1/recipe-drafts/{id}/copy` ("Edit as new draft") and `POST /api/v1/recipe-drafts/read` (a multipart photo, web session only; an agent never uploads through us).
 
@@ -662,7 +665,7 @@ The first review settled every other open question (section 1). These three get 
 2. **Demo order history.** Decided in #61 (`docs/plans/61-order-history.md`, vision §13) and built in #32: each demo company is one of seven kitchen types, picked from its phone number, with eight weeks of history from `data/demo_histories.yaml` (`api/app/seed/history.py`), so "my usual" works. The kitchen profile is chosen by the visitor (`docs/specs/call-screen.md` §2.2).
 3. **Operator login.** Not needed: the dashboard is fully public (section 9.5, decided 2026-11-14, #62 closed).
 
-Input we are waiting for: the product image file (`code`, `name`, `img`).
+The product image file is no longer awaited: we built it from the portal (#108, section 5.1).
 
 ## 15. External references (checked 2026-11-14)
 

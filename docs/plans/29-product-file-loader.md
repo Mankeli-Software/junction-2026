@@ -35,7 +35,7 @@ Profiled on 2026-11-14 from a fresh download (`/api/products/download`, 87,077,4
 4. **Tests** on a small committed sample (§5).
 5. **Run on `junction_demo`** once #28 has the VM up (§6).
 
-Not in scope: search columns and indexes (`tsvector`, trigram) belong to #30; `product_images` to #33; recipes to #34; nutrition, ingredients and marketing text stay in `raw` only.
+Not in scope: search columns and indexes (`tsvector`, trigram) belong to #30; `product_images` to #33 (done in #108, which fills it from the catalogue loader); recipes to #34; nutrition, ingredients and marketing text stay in `raw` only.
 
 ## 3. Tables (migration `0002_catalogue`)
 
