@@ -99,7 +99,7 @@ def _fi() -> list[str]:
 
 
 VARIANTS = {
-    "none": lambda: [],
+    "none": list,
     "fi": _fi,
     "fi+en": lambda: [*_fi(), *ORDER_PHRASES_EN],
     "small": lambda: list(NEEDED_TERMS),
@@ -282,6 +282,12 @@ async def run(args) -> None:
                     sender = asyncio.create_task(send_audio(call, samples, timeout_s=args.turn_timeout))
                     await call.wait_turn(args.turn_timeout + len(samples) / IN_RATE)
                     await sender
+                    # The caption can come after the reply (session 4 of #116 got p02's
+                    # caption in the next turn), so give it a moment before the next turn.
+                    for _ in range(30):
+                        if turn.heard.strip():
+                            break
+                        await asyncio.sleep(0.1)
                     rows.append(
                         {
                             "index": i,
