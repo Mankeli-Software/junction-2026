@@ -30,7 +30,7 @@ Taken from the UI specs in `docs/specs/` (2026-11-14). The specs README says the
 | Kitchen profile | The visitor chooses the exclusions on the call page. The seeded order history is decided in #61 (`docs/plans/61-order-history.md`) and built in #32 (`data/demo_histories.yaml`, section 14) |
 | Conversation in the audit log | Buyer and agent turns and every tool call with its response are audit events. They are shown on the public dashboard (section 9.5) |
 | Webshop | Our own static page in the Aimo webshop's style, with about 12 real products from the product file. No scrape and no Valio or Aimo logos (decided in #56). It registers the WebMCP tools (P0) and gets the S.I.MO chat panel (stretch), which runs on Gemini like the phone |
-| Recipe orders | Only ingredients with a product link (`data/recipe-product-map.json`) are ordered. The rest are listed as "not ordered" |
+| Recipe orders | Only ingredients with a product link (`data/recipe-product-map.json`) are ordered. The rest are listed as "not ordered" (confirmed by Jesse 2026-11-14, now also in vision §7). Not built yet: #34 implements it (section 5.4) |
 | Confirmation page | Follows the language of the call or chat. After an edit, only new or changed flags need a new acknowledgement |
 | Call screen | Phone on speaker with live captions for both sides, not held to the ear. The agent is called S.I.MO and greets the caller by company name |
 | Token after an edit | The token belongs to a confirmation that points to the current quote. Confirm must send the hash of the quote on screen |
@@ -227,11 +227,14 @@ Deterministic: the same query text on the same data always gives the same ids in
 
 A vector index on product names is built too (#30, migration `0012`; vision §7 allows more indexes). Each product's Finnish and English name and its category are embedded once with `gemini-embedding-001` at 768 dimensions into `product_embeddings`, with an HNSW index. The 50 nearest products add candidates, and their cosine similarity adds to the score. Query vectors are cached per query text in `query_embeddings`, so the same text always gives the same vector. `SEARCH_VECTORS` picks `live` (embed a query that isn't cached yet, and search by text only if that fails), `cache` (never calls the API, for the stage) or `off` (text only). Vectors only add candidates and score, so the engine's choice stays deterministic.
 
-### 5.4 Recipes (P1, Juho owns the data and the linking, vision §7)
+### 5.4 Recipes (P1, Jesse owns the recipe issues #34 and #80, vision §7)
+
+Today `search_recipes` and `get_recipe` run on two fixture recipes (`api/app/services/fixtures/recipes.json`) with a match on the name. The loader, the embeddings and the hybrid search below are #34.
 
 - Embed each recipe once (name, description, ingredient names, tags) with the Gemini embedding model at `output_dimensionality` 768. pgvector's HNSW index takes at most 2,000 dimensions for the `vector` type. The script saves the vectors to a file, so `junction_demo` and every laptop database load them without calling the API again (*proposed*).
 - Search: embed the query at request time, rank by vector and by full-text search, merge with reciprocal rank fusion, filter by taxonomy. Diet tags are only a search hint (vision §7).
-- `get_recipe` scales `singlePortionAmounts` to the portion count. In `build_quote`, only ingredients with a product link are ordered, through `recipe-product-map.json`. The rest go to `not_ordered[]`, so the buyer knows to get them elsewhere. This was decided in `docs/specs/webshop-chat.md` §4.3 and narrows vision §7, where generic ingredients go through normal resolution.
+- `get_recipe` scales `singlePortionAmounts` to the portion count, and gives an ingredient a `product_id` only when `recipe-product-map.json` links it. In `build_quote`, only ingredients with a product link are ordered. The rest go to `not_ordered[]`, so the buyer knows to get them elsewhere. Decided in `docs/specs/webshop-chat.md` §4.3 and confirmed by Jesse on 2026-11-14; vision §7 now says the same.
+- Not built yet (#34 implements it): today the engine doesn't use `recipe_ref` and always returns an empty `not_ordered[]`. The agent sends each ingredient as a line with `group` set to the recipe name, so an unlinked ingredient goes in by its name and through normal product search (section 5.3), and one with no match comes back as a clarification (`NO_MATCH`).
 
 ### 5.5 Images and category names
 
@@ -403,7 +406,7 @@ Fields the screens need that section 4.1 doesn't list yet:
 - **Request group**: `LineRequest` gets an optional `group` label that is echoed back, and the quote gives a subtotal per group (`42-webshop-quote`: "Mon, chicken curry, 3 lines, 118,40 €").
 - **Trace**: candidates found, removed per reason, left, and the ranking rule ("14 found, −4 arrive after Monday, −3 out of stock, −2 contain milk, 5 safe"). Each candidate is counted once, at the first step it fails, in the order of section 4.2.
 - **Flag**: stable `flag_key`, `line_ids`, `kind` (`acknowledge` or `choose`), `options[]` with line totals for `choose` (`20-confirm-check`: "Keep 24 l / Exactly 20 l"), `acknowledged_at`.
-- **Quote**: `version`, `parent_quote_id`, `expires_at`, a delivery summary for the whole order, and `not_ordered[]` for recipe ingredients without a product link, which are not ordered (section 5.4).
+- **Quote**: `version`, `parent_quote_id`, `expires_at`, a delivery summary for the whole order, and `not_ordered[]` for recipe ingredients without a product link, which are not ordered. The engine leaves it empty until #34 (section 5.4).
 - **Recipe**: `image_url` (in the data). The data has no English names, no English diet labels and no cooking time, so the design's "45 min" has no source.
 
 ### 9.2 Accounts and web sessions
@@ -623,7 +626,7 @@ Tests:
 | Workstream | Owns | First deliverable |
 |---|---|---|
 | Engine | `api/app/engine`, `policy/` | Pure pipeline for the milk scenario |
-| Data and search | Loaders, search, categories, images, seed data. Recipes and recipe linking (Juho, vision §7) | Products in Postgres and a working search |
+| Data and search | Loaders, search, categories, images, seed data. Recipes and recipe linking (Jesse, #34 and #80, vision §7) | Products in Postgres and a working search |
 | Platform | FastAPI, MCP, auth, Valio adapter, audit, SMS, deploy | VM and the MCP skeleton |
 | Voice | Relay, prompt, call screen | The M0 spike |
 | Web | Confirmation page, dashboard, webshop with WebMCP | Confirmation page against the stub |
