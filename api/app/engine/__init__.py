@@ -3,6 +3,6 @@
 Everything comes in through EngineInput, so the same input always gives the same output.
 """
 
-from .pipeline import decide
+from .pipeline import decide, input_errors
 
-__all__ = ["decide"]
+__all__ = ["decide", "input_errors"]

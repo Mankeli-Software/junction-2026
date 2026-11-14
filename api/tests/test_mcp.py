@@ -52,6 +52,18 @@ async def test_unknown_quote_is_a_tool_error():
     assert "quote not found" in result.content[0].text
 
 
+@pytest.mark.usefixtures("app_db", "dev_caller")
+async def test_a_line_with_an_input_error_is_a_tool_error_that_names_the_field():
+    bad = {**LINE, "line_id": "l2", "unit": "package"}
+    async with create_connected_server_and_client_session(mcp) as session:
+        result = await session.call_tool("build_quote", {"lines": [LINE, bad]})
+
+    assert result.isError
+    text = result.content[0].text
+    assert "line l2, PACKAGE_WORD_MISSING" in text and "package_word" in text
+    assert "No quote was made." in text and "line l1" not in text
+
+
 @pytest.mark.usefixtures("dev_caller")
 async def test_unknown_argument_is_a_tool_error():
     async with create_connected_server_and_client_session(mcp) as session:

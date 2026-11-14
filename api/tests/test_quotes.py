@@ -37,7 +37,7 @@ from app.schemas import (
 from app.services import accounts, catalog, dev_caller, quotes, sessions, signing
 from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
-from app.services.errors import NotFoundError, StateError
+from app.services.errors import InvalidLinesError, NotFoundError, StateError
 from tests.conftest import IMAGE_SAMPLE, write_audit
 
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
@@ -285,6 +285,50 @@ async def test_update_quote_makes_version_2_and_voids_the_old_one(db, caller):
         await quotes.update_quote(
             db, caller, UpdateQuoteRequest(quote_id=old.quote_id, lines=lines()), now=T0
         )
+
+
+async def test_build_quote_refuses_lines_with_input_errors_and_names_each_one(db, caller):
+    request = build(
+        {"line_id": "a"},
+        {"line_id": "b", "unit": "package"},
+        {"line_id": "c", "needed_by": "2026-11-01", "unit": "package"},
+    )
+
+    with pytest.raises(InvalidLinesError) as refused:
+        await quotes.build_quote(db, caller, request)
+
+    assert refused.value.problems == [
+        ("b", "PACKAGE_WORD_MISSING"),
+        ("c", "PACKAGE_WORD_MISSING"),
+        ("c", "NEEDED_BY_PAST"),
+    ]
+    message = str(refused.value)
+    assert "No quote was made." in message
+    assert "- line b, PACKAGE_WORD_MISSING: " in message and "package_word" in message
+    assert "- line c, NEEDED_BY_PAST: " in message and "needed_by" in message
+    assert "line a" not in message
+    assert (await db.scalars(select(Quote))).all() == []
+
+
+async def test_update_quote_with_an_input_error_keeps_the_old_quote_current(db, caller):
+    first = await quotes.build_quote(db, caller, build())
+    request = UpdateQuoteRequest(
+        quote_id=first.quote_id,
+        lines=lines({"quantity": 30}, {"line_id": "l2", "unit": "package"}),
+    )
+
+    with pytest.raises(InvalidLinesError) as refused:
+        await quotes.update_quote(db, caller, request)
+
+    assert refused.value.problems == [("l2", "PACKAGE_WORD_MISSING")]
+    assert f"The current quote {first.quote_id} is unchanged." in str(refused.value)
+    old = await stored(db, first.quote_id)
+    assert old.status == QuoteStatus.ready
+    assert len((await db.scalars(select(Quote))).all()) == 1
+    status = await quotes.get_order_status(
+        db, caller, GetOrderStatusRequest(quote_id=first.quote_id)
+    )
+    assert status.replaced_by_quote_id is None
 
 
 async def test_replaced_by_follows_the_newest_descendant(db, caller):

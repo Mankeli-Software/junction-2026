@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from app.engine import decide
+from app.engine import decide, input_errors
 from app.schemas import (
     Claim,
     Decision,
@@ -266,23 +266,62 @@ def test_no_matching_usual_item_asks():
     assert out.clarification is not None and out.clarification.options == []
 
 
-def test_duplicate_line_ids_reject_the_whole_order():
-    out = decide(engine_input(milk_line(), milk_line()))
+def test_lines_sharing_a_line_id_are_rejected_and_the_others_are_not():
+    out = decide(engine_input(milk_line(), milk_line(), milk_line(line_id="other")))
 
-    assert out.decision == Decision.rejected
-    assert {r.reason_code for r in out.rejections} == {"INPUT_INVALID"}
+    assert [(r.line_id, r.reason_code) for r in out.rejections] == [
+        ("milk", "DUPLICATE_LINE_ID"),
+        ("milk", "DUPLICATE_LINE_ID"),
+    ]
+    # The third line has its own id: it goes on to the product search (nothing found here).
+    assert out.clarification is not None and out.clarification.line_id == "other"
 
 
-def test_a_date_before_the_business_day_is_invalid():
+def test_a_date_before_the_business_day_is_rejected_with_its_own_code():
     out = decide(engine_input(milk_line(needed_by=date(2026, 11, 11))))
 
-    assert out.rejections[0].reason_code == "INPUT_INVALID"
+    [rejection] = out.rejections
+    assert rejection.reason_code == "NEEDED_BY_PAST"
+    assert "needed_by" in rejection.text.en and "needed_by" in rejection.next_step.en
 
 
 def test_a_line_must_say_what_it_wants():
     out = decide(engine_input(milk_line(text=None, claims=[Claim.lactose_free])))
 
-    assert out.rejections[0].reason_code == "INPUT_INVALID"
+    assert out.rejections[0].reason_code == "LINE_EMPTY"
+
+
+def test_a_package_without_its_word_is_rejected_and_says_what_to_send():
+    out = decide(engine_input(milk_line(unit="package", package_word=None)))
+
+    [rejection] = out.rejections
+    assert rejection.reason_code == "PACKAGE_WORD_MISSING"
+    assert "package_word" in rejection.next_step.en
+
+
+def test_input_errors_lists_every_error_of_every_line_in_order():
+    lines = [
+        milk_line(line_id="a"),
+        milk_line(line_id="b", unit="package", package_word=None, needed_by=date(2026, 11, 11)),
+        milk_line(line_id="c", text=None, claims=[]),
+        milk_line(line_id="a"),
+    ]
+
+    errors = input_errors(lines, date(2026, 11, 13))
+
+    assert [(lines[i].line_id, code.value) for i, code in errors] == [
+        ("a", "DUPLICATE_LINE_ID"),
+        ("b", "PACKAGE_WORD_MISSING"),
+        ("b", "NEEDED_BY_PAST"),
+        ("c", "LINE_EMPTY"),
+        ("a", "DUPLICATE_LINE_ID"),
+    ]
+
+
+def test_a_whole_recipe_line_is_not_an_empty_line():
+    line = milk_line(text=None, claims=[], recipe_ref={"recipe_id": "38100", "portions": 120})
+
+    assert input_errors([line], date(2026, 11, 13)) == []
 
 
 def test_same_input_gives_the_same_output_whatever_the_list_order():

@@ -3,7 +3,10 @@
 Pure: everything comes in through EngineInput, so the same input gives the same output.
 """
 
+from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import Decimal
 
 from app.schemas import (
@@ -74,14 +77,37 @@ def decide(data: EngineInput) -> EngineOutput:
     products = {p.product_id: p for p in data.products}
     ctx_offers = {o.product_id: o for o in data.offers}
 
-    if len({line.line_id for line in data.lines}) != len(data.lines):
-        results = [_reject(line, ReasonCode.INPUT_INVALID, {}, rules) for line in data.lines]
-    else:
-        results = []
-        for line in data.lines:
-            ctx = Context(line, data.kitchen.exclusions, ctx_offers, rules, data.business_now)
-            results.append(_line(line, data, products, ctx))
+    # An invalid line is rejected with its first error. The services refuse such a call
+    # before it gets here (#106); this keeps the engine right on its own.
+    invalid: dict[int, ReasonCode] = {}
+    for index, code in input_errors(data.lines, data.business_now.date()):
+        invalid.setdefault(index, code)
+    results = []
+    for index, line in enumerate(data.lines):
+        if index in invalid:
+            results.append(_reject(line, invalid[index], {}, rules))
+            continue
+        ctx = Context(line, data.kitchen.exclusions, ctx_offers, rules, data.business_now)
+        results.append(_line(line, data, products, ctx))
     return _order(results, data)
+
+
+def input_errors(lines: Sequence[LineRequest], today: date) -> list[tuple[int, ReasonCode]]:
+    """What is wrong with the lines as sent, before any product is looked up: (index of
+    the line, code), in line order, every error of every line. A whole-recipe line names
+    its product through `recipe_ref`."""
+    seen = Counter(line.line_id for line in lines)
+    errors: list[tuple[int, ReasonCode]] = []
+    for index, line in enumerate(lines):
+        if seen[line.line_id] > 1:
+            errors.append((index, ReasonCode.DUPLICATE_LINE_ID))
+        if not (line.product_id or line.usual or line.text or line.category or line.recipe_ref):
+            errors.append((index, ReasonCode.LINE_EMPTY))
+        if line.unit == RequestedUnit.package and not line.package_word:
+            errors.append((index, ReasonCode.PACKAGE_WORD_MISSING))
+        if line.needed_by < today:
+            errors.append((index, ReasonCode.NEEDED_BY_PAST))
+    return errors
 
 
 # --- One line ---------------------------------------------------------------------------
@@ -91,8 +117,6 @@ def _line(
     line: LineRequest, data: EngineInput, products: dict[str, ProductRecord], ctx: Context
 ) -> LineResult:
     rules = data.rules
-    if not _valid(line, data):
-        return _reject(line, ReasonCode.INPUT_INVALID, {}, rules)
 
     # Resolve: a named product, "my usual", or the search results for this line.
     given = [pid for pid in data.candidates.get(line.line_id, []) if pid in products]
@@ -221,14 +245,6 @@ def _substitute(
             line_id=line.line_id, question=text.join(lead, question), options=options
         )
     )
-
-
-def _valid(line: LineRequest, data: EngineInput) -> bool:
-    if not (line.product_id or line.usual or line.text or line.category):
-        return False
-    if line.unit == RequestedUnit.package and not line.package_word:
-        return False
-    return line.needed_by >= data.business_now.date()
 
 
 def _usual(line: LineRequest, data: EngineInput) -> list[str]:

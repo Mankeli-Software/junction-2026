@@ -67,7 +67,7 @@ from app.services import (
     signing,
 )
 from app.services.caller import Caller
-from app.services.errors import NotFoundError, StateError
+from app.services.errors import InvalidLinesError, NotFoundError, StateError
 from app.services.policy import get_rule_set
 
 log = logging.getLogger(__name__)
@@ -124,6 +124,7 @@ async def build_quote(
             db, caller, request.recipe_draft_id, lines, needed_by
         )
         drafts.append(draft)
+    refuse_invalid_lines(lines)
     _, response = await _new_quote(db, caller, session, lines, now=now, drafts=drafts)
     telemetry.quote_duration.record(
         timer.ms, telemetry.metric_attrs(tool="build_quote", decision=response.decision.value)
@@ -132,11 +133,23 @@ async def build_quote(
 
 
 async def update_quote(
-    db: AsyncSession, caller: Caller, request: UpdateQuoteRequest, *, now: datetime | None = None
+    db: AsyncSession,
+    caller: Caller,
+    request: UpdateQuoteRequest,
+    *,
+    now: datetime | None = None,
+    refuse_invalid: bool = True,
 ) -> QuoteResponse:
-    """A new quote with the next version, in the old quote's session. The old one is `void`."""
+    """A new quote with the next version, in the old quote's session. The old one is `void`.
+
+    Lines with input errors refuse the whole update and the old quote stays current
+    (#106). The confirmation page turns that off: it builds the lines itself and shows a
+    rejected line in its own words.
+    """
     now = now or datetime.now(UTC)
     old = await _load(db, caller, request.quote_id, for_update=True)
+    if refuse_invalid:
+        refuse_invalid_lines(request.lines, current=old)
     if QuoteStatus(old.status) not in EDITABLE:
         current = await _newest_descendant(db, old)
         raise StateError(
@@ -180,6 +193,37 @@ async def update_quote(
         ),
     )
     return response
+
+
+def refuse_invalid_lines(lines: Sequence[LineRequest], *, current: Quote | None = None) -> None:
+    """Raises InvalidLinesError when a line has an input error, naming every one: the line,
+    the code, the field and the fix. Nothing is stored, so the agent corrects the lines
+    and calls again without asking the buyer for what it already has."""
+    rules = get_rule_set()
+    errors = engine.input_errors(lines, rules.policy.business_time.date())
+    if not errors:
+        return
+    problems = [(lines[index].line_id, code.value) for index, code in errors]
+    listed = [
+        f"- line {lines[index].line_id}, {code.value}: {rules.messages[code].en} "
+        f"{rules.messages[code].next.en}"
+        for index, code in errors
+    ]
+    kept = (
+        f"The current quote {current.id} is unchanged."
+        if current is not None
+        else "No quote was made."
+    )
+    raise InvalidLinesError(
+        "\n".join(
+            [
+                f"{len(listed)} input error(s) in the lines. {kept} Fix them and call again "
+                "with the same lines; don't ask the buyer again for what you already have.",
+                *listed,
+            ]
+        ),
+        problems,
+    )
 
 
 async def request_confirmation(

@@ -562,7 +562,7 @@ async def _replace(
     request = UpdateQuoteRequest(quote_id=str(quote.id), lines=requested)
     try:
         async with db.begin_nested():
-            response = await quotes.update_quote(db, caller, request, now=now)
+            response = await quotes.update_quote(db, caller, request, now=now, refuse_invalid=False)
             if refuse_line is not None and response.decision != Decision.ready:
                 raise _NotReady(response)
     except _NotReady as not_ready:

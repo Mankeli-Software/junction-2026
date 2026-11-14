@@ -59,14 +59,18 @@ BUILD_QUOTE = (
     "line with recipe_ref (see get_recipe). Returns a decision (ready, needs_clarification or "
     "rejected), priced lines, flags, a clarification question or rejections, not_ordered "
     "(recipe ingredients the buyer gets elsewhere), and speak, a short summary in Finnish "
-    "and English."
+    "and English. If a line has an input error (a package unit without package_word, a "
+    "needed_by in the past, no product, a repeated line_id), the call fails, makes no quote "
+    "and lists each such line with the field to fix: correct those lines and call again, "
+    "without asking the buyer again for what you already have."
 )
 UPDATE_QUOTE = (
     "Answer the engine's clarification or change a quote's lines; returns a new quote that "
     "replaces the old one. Send the quote_id and the full line list with the same line_ids: "
     "for a clarification, the asked line gets the chosen option's product_id and the other "
     "lines stay as they were. Answer the clarification with this call, not by searching for "
-    "products yourself."
+    "products yourself. A line with an input error fails the call as in build_quote, and the "
+    "quote stays as it was: correct the lines and call again."
 )
 REQUEST_CONFIRMATION = (
     "Send the confirmation link for a ready quote to the buyer's own phone, the number on the "
