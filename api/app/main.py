@@ -20,6 +20,7 @@ from app.interfaces.rest import jwks as rest_jwks
 from app.interfaces.rest import oauth as rest_oauth
 from app.interfaces.rest import tools as rest_tools
 from app.interfaces.voice import routes as voice_routes
+from app.observability import excluded as excluded_from_telemetry
 from app.observability import setup_observability
 from app.services.dashboard.feed import start_feed
 from app.services.dashboard.stream import get_broadcaster
@@ -57,6 +58,8 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json",
     docs_url="/api/v1/docs",
     lifespan=lifespan,
+    # FastAPI's own telemetry makes the request spans; keep tokens and polling out (#46).
+    telemetry={"exclude": excluded_from_telemetry},
 )
 app.add_middleware(McpSlashMiddleware)
 app.include_router(rest_tools.router, prefix="/api/v1")
