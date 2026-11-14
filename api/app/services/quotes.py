@@ -18,7 +18,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import engine
+from app import engine, telemetry
 from app.adapters import valio
 from app.engine.filters import CLAIMS, UNSAFE
 from app.engine.units import without_size
@@ -99,8 +99,12 @@ async def build_quote(
     db: AsyncSession, caller: Caller, request: BuildQuoteRequest, *, now: datetime | None = None
 ) -> QuoteResponse:
     now = now or datetime.now(UTC)
+    timer = telemetry.Timer()
     session = await sessions.current_session(db, caller, now=now)
     _, response = await _new_quote(db, caller, session, request.lines, now=now)
+    telemetry.quote_duration.record(
+        timer.ms, telemetry.metric_attrs(tool="build_quote", decision=response.decision.value)
+    )
     return response
 
 
@@ -266,9 +270,15 @@ async def _new_quote(
     usual_items = await customers.usual_items(db, caller)
     rules = get_rule_set()
     exclusions = await _exclusions(db, caller)
-    ranked, substitutes = await _ranked_candidates(db, lines, usual_items, exclusions, rules)
-    kept = cap_candidates(ranked, MAX_CANDIDATES)
-    candidates = {line_id: [i for i in ids if i in kept] for line_id, ids in ranked.items()}
+    with telemetry.span("quote search", lines=len(lines)):
+        ranked, substitutes = await _ranked_candidates(db, lines, usual_items, exclusions, rules)
+        kept = cap_candidates(ranked, MAX_CANDIDATES)
+        candidates = {line_id: [i for i in ids if i in kept] for line_id, ids in ranked.items()}
+        telemetry.annotate(
+            candidates=len(kept),
+            substitutes=sum(len(ids) for ids in substitutes.values()),
+            empty_lines=sum(not ids for ids in candidates.values()),
+        )
     await record(
         "products_searched",
         {
@@ -290,8 +300,14 @@ async def _new_quote(
     )
 
     products = await catalog.get_products(db, sorted(kept))
-    offers = await _offers(lines, candidates, products)
-    failed = sum(not offer.ok for offer in offers)
+    with telemetry.span("quote offers", products=len(products)):
+        offers = await _offers(lines, candidates, products)
+        failed = sum(not offer.ok for offer in offers)
+        telemetry.annotate(
+            offers=len(offers),
+            failed=failed,
+            sources=",".join(sorted({offer.source.value for offer in offers})),
+        )
     await record(
         "availability_checked",
         {
@@ -321,11 +337,26 @@ async def _new_quote(
         issued_at=now,
         lang=caller.lang,
     )
-    try:
-        output = engine.decide(engine_input)
-    except Exception:
-        log.exception("the engine failed on quote %s", quote_id)
-        raise
+    # The engine is pure; its span is made here, from its output (#84).
+    engine_timer = telemetry.Timer()
+    with telemetry.span("engine decide", lines=len(lines), products=len(products)):
+        try:
+            output = engine.decide(engine_input)
+        except Exception:
+            log.exception("the engine failed on quote %s", quote_id)
+            raise
+        telemetry.annotate(
+            decision=output.decision.value,
+            quote_lines=len(output.lines),
+            flags=",".join(sorted({f.code for f in output.flags})) or None,
+            rejections=",".join(sorted({r.reason_code for r in output.rejections})) or None,
+            clarification=output.clarification.question.en if output.clarification else None,
+            total_cents=output.total_cents,
+            rules_ref=output.rules_ref,
+            speak=output.speak.en,
+        )
+    telemetry.engine_duration.record(engine_timer.ms, telemetry.metric_attrs())
+    telemetry.quote_decisions.add(1, telemetry.metric_attrs(decision=output.decision.value))
 
     ready = output.decision == Decision.ready
     ttl = rules.policy.quote_ttl_seconds

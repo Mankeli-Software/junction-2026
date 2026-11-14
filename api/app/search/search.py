@@ -15,6 +15,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession
 from sqlalchemy.types import Text
 
+from app import telemetry
 from app.schemas.common import Claim
 from app.search.spelling import Vocabulary
 from app.search.text import Query, name_tokens, parse_query, unasked_modifiers
@@ -210,10 +211,14 @@ async def _query_vector(db: AsyncConnection | AsyncSession, q: str) -> str | Non
         return None
     cached = await db.scalar(_QUERY_VECTOR, {"q": query_key(q), "model": EMBED_MODEL})
     if cached is not None or mode != "live":
+        telemetry.annotate(query_vector="cached" if cached is not None else "none")
         return cached
     from app.search.embeddings import embed_query_live  # httpx and the client: only when live
 
-    return await embed_query_live(async_engine(db), q)
+    vector = await embed_query_live(async_engine(db), q)
+    telemetry.annotate(query_vector="live" if vector is not None else "live failed")
+    telemetry.live_embeddings.add(1, telemetry.metric_attrs(ok=vector is not None))
+    return vector
 
 
 def async_engine(db: AsyncConnection | AsyncSession) -> AsyncEngine:
@@ -319,6 +324,38 @@ def _infer_categories(
 
 
 async def search_products(
+    db: AsyncConnection | AsyncSession,
+    q: str,
+    *,
+    claims: Sequence[Claim] = (),
+    category: str | None = None,
+    limit: int = MAX_LIMIT,
+    semantic: bool = False,
+) -> list[SearchHit]:
+    """See `_search_products`; this records one span and the search latency (#84)."""
+    timer = telemetry.Timer()
+    with telemetry.span(
+        "search products",
+        q=q,
+        claims=",".join(claims) or None,
+        category=category,
+        semantic=semantic or None,
+    ):
+        hits = await _search_products(
+            db, q, claims=claims, category=category, limit=limit, semantic=semantic
+        )
+        telemetry.annotate(
+            hits=len(hits),
+            top=hits[0].product_id if hits else None,
+            top_matched_on=",".join(hits[0].matched_on) if hits else None,
+        )
+    telemetry.search_duration.record(
+        timer.ms, telemetry.metric_attrs(semantic=semantic, empty=not hits)
+    )
+    return hits
+
+
+async def _search_products(
     db: AsyncConnection | AsyncSession,
     q: str,
     *,

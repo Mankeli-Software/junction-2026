@@ -25,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app import telemetry
 from app.models.valio import ApiCache
 from app.schemas import Offer, OfferSource, ScheduleLine
 from app.settings import get_settings
@@ -279,25 +280,47 @@ class ValioClient:
         ids = list(dict.fromkeys(product_ids))
         if not ids:
             return []
-        results = await asyncio.gather(
-            *(self._entries(endpoint, ids, requested) for endpoint in ENDPOINTS),
-            return_exceptions=True,
-        )
-        for endpoint, result in zip(ENDPOINTS, results, strict=True):
-            if isinstance(result, BaseException):
-                log.error("Valio %s call failed: %s", endpoint, result)
-        price, availability = (r if isinstance(r, dict) else {} for r in results)
-        source = OfferSource.snapshot if self.source == "snapshot" else OfferSource.live
-        now = self._clock()
-        return [build_offer(i, price.get(i), availability.get(i), source, now=now) for i in ids]
+        timer = telemetry.Timer()
+        with telemetry.span(
+            "valio offers", valio_source=self.source, products=len(ids), requested=requested
+        ):
+            results = await asyncio.gather(
+                *(self._entries(endpoint, ids, requested) for endpoint in ENDPOINTS),
+                return_exceptions=True,
+            )
+            for endpoint, result in zip(ENDPOINTS, results, strict=True):
+                if isinstance(result, BaseException):
+                    log.error("Valio %s call failed: %s", endpoint, result)
+            price, availability = (r if isinstance(r, dict) else {} for r in results)
+            source = OfferSource.snapshot if self.source == "snapshot" else OfferSource.live
+            now = self._clock()
+            offers = [
+                build_offer(i, price.get(i), availability.get(i), source, now=now) for i in ids
+            ]
+            failed = sum(not offer.ok for offer in offers)
+            telemetry.annotate(ok=len(offers) - failed, failed=failed)
+            if failed:
+                telemetry.failed(f"{failed} of {len(offers)} products without price or stock")
+        telemetry.valio_duration.record(timer.ms, telemetry.metric_attrs(valio_source=self.source))
+        return offers
 
     async def _entries(
         self, endpoint: str, ids: list[str], requested: date
     ) -> dict[str, tuple[dict[str, Any], datetime]]:
         if self.source == "snapshot":
-            return self.snapshots.get(endpoint, ids, requested)
+            found = self.snapshots.get(endpoint, ids, requested)
+            if misses := len(ids) - len(found):
+                telemetry.snapshot_misses.add(misses, telemetry.metric_attrs(endpoint=endpoint))
+            telemetry.event(
+                f"valio {endpoint}", endpoint=endpoint, products=len(ids), snapshot_misses=misses
+            )
+            return found
         found = {} if self.source == "record" else await self._cached(endpoint, ids, requested)
         missing = [i for i in ids if i not in found]
+        telemetry.event(
+            f"valio {endpoint}", endpoint=endpoint, products=len(ids), cached=len(found),
+            fetched=len(missing),
+        )  # fmt: skip
         for start in range(0, len(missing), MAX_BATCH):
             batch = missing[start : start + MAX_BATCH]
             fetched_at = self._clock()
@@ -319,6 +342,7 @@ class ValioClient:
                 raise ValioError(f"{endpoint}: {error}") from error
             if response.status_code == 429 and attempt == 1:
                 log.warning("Valio %s rate limited, waiting %s s", endpoint, self.rate_limit_wait)
+                telemetry.annotate(rate_limited=True)
                 await self._sleep(self.rate_limit_wait)
                 continue
             if response.status_code != 200:
