@@ -15,7 +15,7 @@ from app.models.catalogue import (
     ProductUnitConversion,
 )
 from app.models.confirmations import Confirmation, ConfirmationAcknowledgement, SmsMessage
-from app.models.customers import Company, KitchenProfile, User
+from app.models.customers import Company, KitchenProfile, OrderHistoryLine, User
 from app.models.oauth import OAuthClient, OAuthCode, OAuthRefreshToken, OAuthRequest
 from app.models.ordering import OrderSession, Quote, QuoteLine
 from app.models.orders import Order, OrderLine
@@ -32,6 +32,7 @@ __all__ = [
     "Confirmation",
     "ConfirmationAcknowledgement",
     "KitchenProfile",
+    "OrderHistoryLine",
     "OAuthClient",
     "OAuthCode",
     "OAuthRefreshToken",

@@ -23,9 +23,9 @@ Status: agreed 2026-11-14 (Miska), recorded in `vision.md` §13. Issue: #61. Fee
 | Cafe | three times a week | Mon, Wed, Fri | 24 |
 | Tech office | every other week | Mon | 4 |
 
-Each order has the type's **core** items always and its **sometimes** items about every other order. Quantities vary by up to ±15% around the base, rounded to a sensible step (whole sales units, 0.5 kg, 1 l). The variation and the "sometimes" choice are seeded by the phone number and the order date, so a history is the same on every run.
+Each order has the type's **core** items always and its **sometimes** items every other order, from a start seeded by the number. Quantities vary by up to ±15% around the base, rounded to a sensible step (whole sales units, 0.5 kg, 1 l). The variation is seeded by the phone number and the order date, so a history is the same on every run.
 
-"My usual" is each core item with its median quantity. "The same as last time" is the latest order.
+"My usual" is every product in at least three of four orders (so the core items), at its median quantity rounded to the same step. "The same as last time" is the latest order.
 
 ## 3. Items per type
 

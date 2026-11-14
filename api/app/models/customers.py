@@ -1,4 +1,4 @@
-"""Demo companies, their users and kitchen profiles (#44, minimal until #32).
+"""Demo companies, their users, kitchen profiles and order history (#44, #32).
 
 The customer tables of `technical-plan.md` §5.2. #32 adds the seeded order history and
 better company names on top.
@@ -6,8 +6,9 @@ better company names on top.
 
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, ForeignKey, Text, text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Numeric, Text, text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,6 +24,8 @@ class Company(Base):
     name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     phone_e164: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     created_at: Mapped[datetime] = timestamp_now()
+    # Chosen from the number on first use (#32); null for a company created before that.
+    kitchen_type: Mapped[str | None] = mapped_column(Text)
 
 
 class KitchenProfile(Base):
@@ -65,3 +68,27 @@ class User(Base):
     password_hash: Mapped[str | None] = mapped_column(Text)
     lang: Mapped[str] = mapped_column(Text, nullable=False, server_default="fi")
     created_at: Mapped[datetime] = timestamp_now()
+
+
+class OrderHistoryLine(Base):
+    """One line of a demo company's seeded order history (#32, `docs/plans/61-order-history.md`).
+
+    Regenerated, not edited: the same number, type and exclusions always give the same lines.
+    """
+
+    __tablename__ = "order_history_lines"
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="quantity"),
+        CheckConstraint("unit IN ('l', 'kg', 'piece', 'sales_unit')", name="unit"),
+    )
+
+    id: Mapped[uuid.UUID] = uuid_pk()
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE"), nullable=False
+    )
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
+    quantity: Mapped[Decimal] = mapped_column(Numeric, nullable=False)
+    unit: Mapped[str] = mapped_column(Text, nullable=False)
+    ordered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # The history's own product when the kitchen's exclusions swapped it (milk -> oat drink).
+    replaces_product_id: Mapped[str | None] = mapped_column(ForeignKey("products.id"))

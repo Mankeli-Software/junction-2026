@@ -259,7 +259,7 @@ async def _new_quote(
         Localized(fi=f"Tilauspyyntö, {len(lines)} riviä", en=f"Order request, {len(lines)} lines"),
     )
 
-    usual_items = customers.usual_items(caller)
+    usual_items = await customers.usual_items(db, caller)
     rules = get_rule_set()
     exclusions = await _exclusions(db, caller)
     ranked, substitutes = await _ranked_candidates(db, lines, usual_items, exclusions, rules)
@@ -305,7 +305,9 @@ async def _new_quote(
     engine_input = EngineInput(
         lines=lines,
         kitchen=KitchenProfile(exclusions=exclusions),
-        history=HistorySummary(usual_items=usual_items, recent_lines=[]),
+        history=HistorySummary(
+            usual_items=usual_items, recent_lines=await customers.recent_lines(db, caller)
+        ),
         candidates=candidates,
         substitutes={line: [i for i in ids if i in kept] for line, ids in substitutes.items()},
         products=products,

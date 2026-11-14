@@ -10,10 +10,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.interfaces.deps import SESSION_COOKIE, current_caller, session_user
+from app.models import Company
 from app.schemas import (
     DemoAccountRequest,
     DemoAccountResponse,
@@ -89,11 +91,12 @@ async def create_demo_account(
         usual_items=account.usual_items,
         new_company=account.new_company,
         new_user=account.new_user,
+        kitchen_type=account.kitchen_type,
     )
 
 
 @router.get("/me", response_model=Me)
-async def get_me(caller: Annotated[Caller, Depends(current_caller)]) -> Me:
+async def get_me(caller: Annotated[Caller, Depends(current_caller)], db: Db) -> Me:
     """This browser's session, or the dev caller when DEV_FAKE_CALLER is on, else 401.
 
     A bearer token doesn't count here: REST reads only the cookie.
@@ -105,6 +108,9 @@ async def get_me(caller: Annotated[Caller, Depends(current_caller)]) -> Me:
         phone_masked=caller.phone_masked,
         exclusions=caller.exclusions,
         lang=caller.lang,
+        kitchen_type=await db.scalar(
+            select(Company.kitchen_type).where(Company.id == caller.company_id)
+        ),
     )
 
 

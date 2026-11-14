@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.schemas import KitchenType
 from app.services.policy import get_rule_set
 
 client = TestClient(app)
@@ -93,7 +94,10 @@ class TestWithCaller:
 
         assert context["company_name"] == "Hassu Hauki Oy"
         assert context["exclusions"][0]["key"] == "lactose_free"
-        assert [i["product_id"] for i in context["usual_items"]] == ["464306", "475797"]
+        # The dev company's seeded history (#32): a kitchen type, its usual items and the
+        # last order, limited to the products in the test catalogue.
+        assert context["kitchen_type"] in {k.value for k in KitchenType}
+        assert context["usual_items"] and context["last_order"]
 
     def test_recipes(self):
         hits = client.get("/api/v1/recipes", params={"q": "munavoi"}).json()["results"]

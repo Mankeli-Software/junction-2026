@@ -102,6 +102,9 @@ class Settings(BaseSettings):
     # text-only on failure). cache: use only cached query vectors, never the network (stage).
     # off: text-only search.
     search_vectors: Literal["live", "cache", "off"] = "live"
+    # The stage number (#32, #61): it always gets the school kitchen, so the scripted demo
+    # knows its usual. Set on the VM or in .env, never committed (CLAUDE.md: no real numbers).
+    demo_stage_phone: str = ""
 
     # The phone call's voice relay (/voice/ws, #52). The model is on the v1beta API only
     # (spikes/gemini-live). The voice is Achird, picked in #67; the filler clips in

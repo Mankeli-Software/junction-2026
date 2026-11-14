@@ -1,0 +1,115 @@
+# Demo kitchen types and their order history (#32, decided in #61).
+# Source of the numbers: docs/plans/61-order-history.md §2 and §3; keep the two in step.
+# days: weekdays an order is placed; every_weeks: 2 = every other week.
+# items: product id, base quantity per order, unit (the contract's RequestedUnit), core or not.
+# Core items are in every order; the others in every other order, from a seeded start.
+# "My usual" is the products in at least 3 of 4 orders, at their median quantity.
+weeks: 8
+variation: 0.15
+types:
+  school_kitchen:
+    name: {fi: Koulukeittiö, en: School kitchen}
+    days: [mon]
+    every_weeks: 1
+    items:
+      - {id: "464201", quantity: 120, unit: l, core: true}  # Valio kevytmaito 1 l laktoositon UHT
+      - {id: "463104", quantity: 30, unit: kg, core: true}  # Atria Naudan 0 Jauheliha 10% 2 kg
+      - {id: "460478", quantity: 80, unit: kg, core: true}  # Peruna pesty 1 kg
+      - {id: "460708", quantity: 30, unit: kg, core: true}  # Porkkana 10 kg säkki Suomi
+      - {id: "460829", quantity: 6, unit: kg, core: true}  # Keiju Catering kasvirasvalevite 70% 400 g
+      - {id: "462683", quantity: 30, unit: sales_unit, core: true}  # Oululainen Jälkiuuni Täysjyväruis 8 kpl
+      - {id: "468185", quantity: 12, unit: kg, core: true}  # Bama jäävuorisalaattipala 1 kg × 6
+      - {id: "463883", quantity: 10, unit: kg, core: false}  # Kieku Luomu kananmuna M 5200 g
+      - {id: "462863", quantity: 20, unit: kg, core: false}  # Myllyn Paras Makaroni 10 kg
+      - {id: "468936", quantity: 24, unit: kg, core: false}  # Atria Kanan Paistisuikale 3 kg
+  lunch_restaurant:
+    name: {fi: Lounasravintola, en: Lunch restaurant}
+    days: [mon, thu]
+    every_weeks: 1
+    items:
+      - {id: "469549", quantity: 20, unit: l, core: true}  # Valio kevytmaito 1 l ESL
+      - {id: "464249", quantity: 15, unit: l, core: true}  # Valio ruokakerma 15% 1 l UHT laktoositon
+      - {id: "464411", quantity: 5, unit: kg, core: true}  # Valio voi 500 g suolaamaton
+      - {id: "467238", quantity: 15, unit: kg, core: true}  # Naapurin maalaiskananpojan rintafilee n 15 kg
+      - {id: "475245", quantity: 40, unit: kg, core: true}  # SPL raaka yleisperuna veitsikuorittu
+      - {id: "460195", quantity: 10, unit: kg, core: true}  # Sipuli 10 kg säkki Suomi
+      - {id: "460065", quantity: 6, unit: kg, core: true}  # Tomaatti 1 lk Suomi
+      - {id: "460137", quantity: 5, unit: kg, core: true}  # Kurkku 1 Suomi
+      - {id: "461814", quantity: 10, unit: kg, core: false}  # Lohifilee n 10 kg
+      - {id: "462346", quantity: 10, unit: kg, core: false}  # Risella pitkäriisi parboil 5 kg
+  pizza_restaurant:
+    name: {fi: Pizzeria, en: Pizza restaurant}
+    days: [tue, fri]
+    every_weeks: 1
+    items:
+      - {id: "471650", quantity: 20, unit: kg, core: true}  # Galbani Mozzarella raaste 2 kg
+      - {id: "472880", quantity: 50, unit: kg, core: true}  # Caputo Pizzajauho Pizzeria 00
+      - {id: "466203", quantity: 20, unit: kg, core: true}  # Bravo Chef tomaattimurska 10 kg BIB
+      - {id: "467697", quantity: 6, unit: kg, core: true}  # Karelian pizzakinkkusuikale
+      - {id: "463031", quantity: 4, unit: kg, core: true}  # Argal pepperoni 1 kg
+      - {id: "463716", quantity: 2, unit: sales_unit, core: true}  # Praft ananaspala mehussa 3,035 kg
+      - {id: "460039", quantity: 2, unit: kg, core: true}  # Tuorehiiva 1 kg
+      - {id: "461266", quantity: 6, unit: kg, core: false}  # Herkkusieni tuore 3 kg Suomi
+      - {id: "472267", quantity: 5, unit: l, core: false}  # Luglio extra virgin oliiviöljy 5 l
+      - {id: "476881", quantity: 2, unit: kg, core: false}  # Valio AURA® murennettu 1 kg
+  bar:
+    name: {fi: Baari, en: Bar}
+    days: [wed, fri]
+    every_weeks: 1
+    items:
+      - {id: "460846", quantity: 3, unit: kg, core: true}  # Sitruuna 1 kg pussi
+      - {id: "461007", quantity: 2, unit: kg, core: true}  # Lime
+      - {id: "477209", quantity: 4, unit: sales_unit, core: true}  # Laitilan Kukko Lager alkoholiton 24 ×
+      - {id: "477380", quantity: 3, unit: sales_unit, core: true}  # Coca-Cola Original 20 ×
+      - {id: "477159", quantity: 4, unit: sales_unit, core: true}  # Thomas Henry Tonic Water 20 cl
+      - {id: "477191", quantity: 6, unit: sales_unit, core: true}  # Olvi Vichy 12 × 0,33 l
+      - {id: "461416", quantity: 20, unit: kg, core: true}  # Bloks jääpalat 4 kg
+      - {id: "472755", quantity: 2, unit: sales_unit, core: false}  # Sun Valley suolapähkinä 24 × 50 g
+      - {id: "474485", quantity: 2, unit: sales_unit, core: false}  # Taffel Sips suolattu 10 × 130 g
+      - {id: "477228", quantity: 2, unit: sales_unit, core: false}  # Ginger People inkivääriolut
+  vegan_catering:
+    name: {fi: Vegaaninen pitopalvelu, en: Vegan catering company}
+    days: [tue]
+    every_weeks: 1
+    default_exclusions: [vegan]
+    items:
+      - {id: "468465", quantity: 30, unit: l, core: true}  # Oddlygood® kaurajuoma 1 l
+      - {id: "473956", quantity: 20, unit: sales_unit, core: true}  # Fazer Aito Oat for Cooking kauraruoka
+      - {id: "467690", quantity: 12, unit: sales_unit, core: true}  # Jalotofu maustamaton tofu 1080 g
+      - {id: "475009", quantity: 15, unit: kg, core: true}  # Gold&Green® Härkis® härkäpapumurska
+      - {id: "474111", quantity: 2, unit: sales_unit, core: true}  # Monarch kikherne 5 × 3 kg
+      - {id: "462346", quantity: 20, unit: kg, core: true}  # Risella pitkäriisi parboil 5 kg
+      - {id: "466285", quantity: 10, unit: l, core: true}  # Keiju Catering rypsiöljy 10 l
+      - {id: "460195", quantity: 20, unit: kg, core: true}  # Sipuli 10 kg säkki Suomi
+      - {id: "467595", quantity: 5, unit: kg, core: false}  # Oddlygood® grated 1 kg
+      - {id: "461219", quantity: 1, unit: sales_unit, core: false}  # Knorr kasvisliemi 5 kg
+  cafe:
+    name: {fi: Kahvila, en: Cafe}
+    days: [mon, wed, fri]
+    every_weeks: 1
+    items:
+      - {id: "463213", quantity: 4, unit: kg, core: true}  # Puro Fuerte espresso kahvipapu 1 kg
+      - {id: "475224", quantity: 12, unit: l, core: true}  # Fazer Aito Professional Barista kaurajuoma 1 l
+      - {id: "469549", quantity: 20, unit: l, core: true}  # Valio kevytmaito 1 l ESL
+      - {id: "464727", quantity: 4, unit: l, core: true}  # Arla kuohukerma 1 l ESL laktoositon
+      - {id: "476407", quantity: 1, unit: sales_unit, core: true}  # Fazer korvapuusti 60 × 110 g raakapakaste
+      - {id: "460884", quantity: 1, unit: sales_unit, core: true}  # Reuter & Stolt croissant voita
+      - {id: "464411", quantity: 2, unit: kg, core: true}  # Valio voi 500 g suolaamaton
+      - {id: "463161", quantity: 3, unit: kg, core: false}  # DS taloussokeri 1 kg
+      - {id: "462475", quantity: 1, unit: sales_unit, core: false}  # Nordqvist tee 160 pss
+      - {id: "467917", quantity: 2, unit: sales_unit, core: false}  # Fazer Jyväshyvä kaurakeksi
+  tech_office:
+    name: {fi: Teknologiayrityksen toimisto, en: Tech office}
+    days: [mon]
+    every_weeks: 2
+    items:
+      - {id: "474002", quantity: 2, unit: sales_unit, core: true}  # Paulig Presidentti tumma paahto
+      - {id: "468465", quantity: 12, unit: l, core: true}  # Oddlygood® kaurajuoma 1 l
+      - {id: "464201", quantity: 12, unit: l, core: true}  # Valio kevytmaito 1 l laktoositon UHT
+      - {id: "476937", quantity: 2, unit: sales_unit, core: true}  # Battery energiajuoma 24 × 0,33 l
+      - {id: "477191", quantity: 4, unit: sales_unit, core: true}  # Olvi Vichy 12 × 0,33 l
+      - {id: "461010", quantity: 9, unit: kg, core: true}  # Banaani 4,5 kg
+      - {id: "472120", quantity: 2, unit: sales_unit, core: true}  # Fazer Pätkis Crunchy proteiinipatukka
+      - {id: "464990", quantity: 2, unit: sales_unit, core: false}  # Nutisal Natural Mix pähkinäsekoitus
+      - {id: "474485", quantity: 1, unit: sales_unit, core: false}  # Taffel Sips suolattu 10 × 130 g
+      - {id: "468473", quantity: 2, unit: sales_unit, core: false}  # Clipper luomu musta tee 20 pussia

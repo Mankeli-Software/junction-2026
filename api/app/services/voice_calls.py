@@ -103,7 +103,7 @@ async def start_call(
         session_id=session.id,
         call_id=call_id,
         token=token,
-        context=customers.get_customer_context(caller),
+        context=await customers.get_customer_context(db, caller),
     )
 
 

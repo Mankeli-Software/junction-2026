@@ -22,8 +22,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Company, KitchenProfile, User, WebSession
-from app.schemas.common import Exclusion, Lang
+from app.schemas.common import Exclusion, KitchenType, Lang
 from app.schemas.engine import UsualItem
+from app.seed import history
+from app.services.policy import get_rule_set
 
 from .company_names import company_name_candidates
 from .passwords import MIN_PASSWORD_LENGTH, failed_logins, hash_password, verify_password
@@ -51,6 +53,7 @@ class DemoAccount:
     usual_items: list[UsualItem]
     new_company: bool
     new_user: bool
+    kitchen_type: KitchenType | None = None
 
 
 @dataclass(frozen=True)
@@ -77,6 +80,7 @@ class Account:
     phone_masked: str
     exclusions: list[Exclusion]
     lang: Lang
+    kitchen_type: KitchenType | None = None
 
 
 def _clean_exclusions(exclusions: Iterable[Exclusion | str]) -> list[Exclusion]:
@@ -108,7 +112,19 @@ async def create_demo_account(
     chosen = _clean_exclusions(exclusions)
 
     company, new_company = await _find_or_create_company(db, phone_e164, names)
+    previous = await db.scalar(
+        select(KitchenProfile.exclusions).where(KitchenProfile.company_id == company.id)
+    )
     await _write_kitchen_profile(db, company.id, chosen)
+    # The kitchen type and order history (#32): made on first use, and made again when the
+    # exclusions change, so a blocked item is swapped for its alternative.
+    kind = await history.ensure_history(
+        db,
+        company,
+        chosen,
+        get_rule_set().policy.business_time,
+        regenerate=previous is not None and set(previous) != {e.value for e in chosen},
+    )
 
     user: User | None = None
     if current_session_token:
@@ -135,18 +151,16 @@ async def create_demo_account(
         company_name=company.name,
         phone_masked=mask_phone(phone_e164),
         exclusions=chosen,
-        usual_items=await usual_items(db, company.id),
+        usual_items=await history.usual_items(db, company.id),
         new_company=new_company,
         new_user=new_user,
+        kitchen_type=kind,
     )
 
 
 async def usual_items(db: AsyncSession, company_id: uuid.UUID) -> list[UsualItem]:
-    """The company's usual items from its order history.
-
-    Empty until `order_history_lines` exists (#32, #61), which fills this in.
-    """
-    return []
+    """The company's usual items from its order history (#32)."""
+    return await history.usual_items(db, company_id)
 
 
 async def resolve_session(
@@ -201,7 +215,7 @@ async def me(db: AsyncSession, user_id: uuid.UUID) -> Account | None:
     """
     row = (
         await db.execute(
-            select(User, Company.name, KitchenProfile.exclusions)
+            select(User, Company.name, KitchenProfile.exclusions, Company.kitchen_type)
             .join(Company, Company.id == User.company_id)
             .outerjoin(KitchenProfile, KitchenProfile.company_id == Company.id)
             .where(User.id == user_id)
@@ -209,7 +223,7 @@ async def me(db: AsyncSession, user_id: uuid.UUID) -> Account | None:
     ).one_or_none()
     if row is None:
         return None
-    user, company_name, exclusions = row
+    user, company_name, exclusions, kitchen_type = row
     assert user.company_id is not None and user.phone_e164 is not None  # the inner join
     return Account(
         user_id=user.id,
@@ -218,6 +232,7 @@ async def me(db: AsyncSession, user_id: uuid.UUID) -> Account | None:
         phone_masked=mask_phone(user.phone_e164),
         exclusions=_clean_exclusions(exclusions or []),
         lang=user.lang,
+        kitchen_type=KitchenType(kitchen_type) if kitchen_type else None,
     )
 
 

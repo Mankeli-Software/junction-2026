@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from app.interfaces.deps import DEV_CALLER, SESSION_COOKIE, web_session_user
 from app.main import app
+from app.schemas import KitchenType
 from app.services.accounts import SessionUser, resolve_session
 from app.services.caller import Caller
 from app.services.tokens import issue_caller_token
@@ -122,7 +123,9 @@ def test_response_shape_and_masked_number():
     assert body["exclusions"] == []
     assert body["company_name"].endswith(" Oy")
     assert body["phone_masked"].startswith("+358 40 *** **")
-    assert body["usual_items"] == []
+    # A new number gets a kitchen type and its seeded history (#32).
+    assert body["kitchen_type"] in {k.value for k in KitchenType}
+    assert isinstance(body["usual_items"], list)
 
 
 @pytest.mark.parametrize(
