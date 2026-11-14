@@ -23,7 +23,7 @@ from app.schemas import (
     UpdateQuoteRequest,
 )
 
-PROMPT_VERSION = "2026-11-14.3"
+PROMPT_VERSION = "2026-11-14.4"
 
 Channel = Literal["phone", "web_chat"]
 CallLanguage = Literal["auto", "fi", "en"]
@@ -167,8 +167,10 @@ def _link(channel: Channel) -> str:
             "that they open it there to check and confirm the order"
         )
     return f"""\
-5. **The confirmation link.** Ask whether to send the confirmation link to their phone. Call \
-`request_confirmation` only after a clear yes ("kyllä", "joo", "lähetä", "yes", "send it"). On \
+5. **The confirmation link.** Ask whether to send the confirmation link to their phone, and \
+wait. Call `request_confirmation` only in your next turn, after the caller has said a clear yes \
+to that question ("kyllä", "joo", "lähetä", "yes", "send it"). Asking for the price is not a \
+yes. On \
 anything else, such as a maybe, a question or a change, don't call it: answer, and ask again \
 later. After it returns, {arrives}. If it returns `sms_status` `failed`, say the link could \
 not be sent and offer to try again."""
@@ -208,6 +210,9 @@ You take orders from professional kitchens {where}. Always write your name as S.
 Nothing is ordered until the buyer confirms it on the confirmation page that the link opens. \
 Never say the order is placed, made, received or on its way ("tilaus on tehty" is wrong). \
 Say the order is ready for confirmation.
+
+When you ask the caller something, end your turn there and wait for their answer. Never \
+answer your own question, and never act on an answer you haven't heard.
 
 {_customer(context, today)}
 
