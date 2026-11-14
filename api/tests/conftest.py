@@ -31,6 +31,9 @@ from app.recipes import data as recipe_data
 # Tests never call the Gemini API: search is text-only here (no product vectors in the
 # test database anyway). Environment variables win over .env.
 os.environ["SEARCH_VECTORS"] = "off"
+# Nor Twilio: real SMS stays off even when a laptop's .env turns it on (#46). The tests
+# that send turn it on themselves, with a fake transport.
+os.environ["SMS_TWILIO_ENABLED"] = "false"
 
 from app.main import app as fastapi_app
 from app.services.audit import RecordedEvent, write_pending
