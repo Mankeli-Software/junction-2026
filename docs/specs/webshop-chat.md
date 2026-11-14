@@ -18,7 +18,8 @@ The same chat can also be opened on the confirmation page, so the buyer can ask 
 Same as the phone demo, no user accounts:
 
 - The visitor types their phone number. The same number gets the same demo company and kitchen profile as on the phone (`call-screen.md` section 2.2), and can choose the kitchen profile here too.
-- The confirmation link goes by SMS through Twilio to that number and is also shown in the chat (section 4.4), the same as the banner on the call screen.
+- The confirmation link goes to the demo phone's inbox of this browser's account, and by SMS only to an allowlisted number when real SMS is on (`confirmation-page.md`, "How the link reaches the buyer").
+- The inbox is shown on the phone page only, never in the shop: a browser agent works inside the shop page and could follow the link (vision section 8). The visitor reads the link on the phone page in the same browser (section 4.4).
 
 ## 3. Layout
 
@@ -33,7 +34,7 @@ The webshop's own catalogue, product pages, cart and search are not wired up. Or
 
 ## 4. Message types
 
-Plain text plus four cards. Cards are rendered by the page from tool results (engine data), never from text the model wrote, so prices and products shown are always the engine's.
+Plain text plus three cards. Cards are rendered by the page from tool results (engine data), never from text the model wrote, so prices and products shown are always the engine's.
 
 ### 4.1 Recipe card
 
@@ -49,9 +50,11 @@ For menu planning: a week grid, Monday to Friday, one main dish per day, with th
 
 From `build_quote` and `update_quote`: a short summary of the lines, total, delivery date and flags in plain words. For a menu, lines are grouped per recipe, and ingredients we do not order are listed as "Not ordered: salt, flour, ..." (decided: only portal-linked products are orderable). If the engine asks a clarification question, the card shows the question with the offered answers as buttons. Button: **Send to my phone for confirmation**.
 
-### 4.4 Confirmation link card
+### 4.4 After sending: no link in the chat
 
-After `request_confirmation`: "We sent a link to +358 40 ••• ••12. You can also open it here." with an **Open confirmation page** button. Same convenience and same trade-off as the call screen banner (`confirmation-page.md`, "How the link reaches the buyer").
+After `request_confirmation` the chat shows a short plain-text notice, not a card: "Sent. Open the demo phone in this browser to confirm." When a real SMS was also sent (allowlisted numbers only), it adds "Also sent by SMS to +358 40 *** **12."
+
+There is no "Open confirmation page" button and the link is never shown in the shop, because a browser agent works inside this page and could follow it (vision section 8). The visitor reads the link in the demo phone's inbox on the phone page, in the same browser (`call-screen.md` section 2.4).
 
 ## 5. Chat on the confirmation page (stretch on top of stretch)
 
@@ -96,3 +99,4 @@ None at the moment.
 - The chat runs on Gemini, the same as the phone agent, with one shared agent prompt. Outside agents such as an OpenAI client can still use the page through WebMCP.
 - A menu is weekdays, one main dish per day.
 - The confirmation page chat is the same chat component as the webshop. It is built only after the webshop chat works.
+- No confirmation link in the shop. The inbox is shown on the phone page only, and webshop visitors read the link there, in the same browser.

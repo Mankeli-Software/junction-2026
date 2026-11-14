@@ -78,7 +78,7 @@ The agent greets the caller by company name ("Hi, Hassu Hauki Oy, what can I get
 - If no quote was made: "No order was made on this call." and nothing is sent.
 - A "Call again" button. A new call is a new order session for the same company.
 
-The banner stays on the page until the visitor taps it or leaves. The message stays in the demo phone's inbox, so it can be opened later.
+The banner stays on the page until the visitor taps it or leaves. The message stays in the demo phone's inbox, so it can be opened later. Orders made in the webshop chat in the same browser land in the same inbox, since the inbox is never shown in the shop (`webshop-chat.md` section 2).
 
 ## 3. When things go wrong
 

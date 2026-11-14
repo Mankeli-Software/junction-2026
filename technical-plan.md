@@ -330,7 +330,7 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
   - **Real SMS**: Twilio sends only when the feature flag `SMS_TWILIO_ENABLED` is on (default off) and the number is on the allowlist `SMS_ALLOWLIST`. Every other number gets the inbox message only, so a made-up number that belongs to a stranger never gets our SMS.
   - **Allowlist**: holds real phone numbers, so it lives in Azure Key Vault (comma-separated E.164 numbers), never in the repo (section 10.2).
   - **Vision**: this deviates from vision §6, where the SMS is the only path. The inbox is a demo setting (`demo_inbox`, on for the event). Production would use SMS only.
-  - **Webshop visitors**: the inbox isn't shown in the shop. A webshop visitor reads the message in the simulated phone on the phone page, in the same browser (*proposed*).
+  - **Webshop visitors**: the inbox isn't shown in the shop. A webshop visitor reads the message in the simulated phone on the phone page, in the same browser.
 - The token is 256 random bits, stored as SHA-256. It belongs to a confirmation that holds the recipient and points to the current quote (decided). It expires with the current quote, which doesn't happen during the event.
 - Link `https://<host>/c/<token>`. *Proposed*: opening the link never uses it up, so SMS link previews and repeated opens do no harm. Confirm or Cancel uses it up for actions. After that the link stays readable as a receipt until the end of the event (`docs/specs/confirmation-page.md` §7).
 - Twilio sends with a status callback to `/api/v1/twilio/status` (Twilio signature checked). A failed delivery appears on the dashboard. The simulated inbox still has the message, so the buyer can confirm from there. With the inbox off, nothing is ordered and a resend can be offered (vision §6).
@@ -516,7 +516,7 @@ These decisions were made after the specs were written, so the specs need an upd
 |---|---|---|
 | Dashboard access | No login, everything public, including the conversation (`dashboard.md` §2, §3.3, §8; `call-screen.md` §2.1 notice) | General data public, conversation and contact details private behind the number-entry login (section 9.5) |
 | SMS | Twilio always sends (`call-screen.md` §2.4, §3; `confirmation-page.md` §2) | Every message goes to the simulated phone inbox. Twilio sits behind a flag that is off by default, for allowlisted numbers only (section 8.2). The per-number SMS limit in `call-screen.md` §6 then only matters for allowlisted numbers |
-| Link in the webshop chat | "Open confirmation page" card in the chat (`webshop-chat.md` §2, §4.4) | The inbox shows on the phone page only, because a browser agent works inside the shop page (vision §8). Webshop visitors read the link on the phone page in the same browser (*proposed*) |
+| Link in the webshop chat | "Open confirmation page" card in the chat (`webshop-chat.md` §2, §4.4) | The inbox shows on the phone page only, because a browser agent works inside the shop page (vision §8). Webshop visitors read the link on the phone page in the same browser |
 
 
 ## 10. Hosting on Azure
