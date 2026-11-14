@@ -219,6 +219,12 @@ async def app_db(
     event loops.
     """
     engine = create_async_engine(db_engine.url, poolclass=NullPool)
+    # Connect once here, so the engine's one-time first-connect setup is done before the
+    # app uses it. That setup runs under an asyncio lock, and two event loops making the
+    # first connection at once (a request, and the lifespan's dashboard feed that
+    # live_client starts) could leave one of them waiting on it forever.
+    async with engine.connect():
+        pass
     monkeypatch.setattr(app.db, "get_engine", lambda: engine)
     app.db.get_sessionmaker.cache_clear()
     try:
