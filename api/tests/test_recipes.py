@@ -125,6 +125,47 @@ def test_the_committed_vectors_cover_every_recipe():
 # --- Loader -----------------------------------------------------------------------------
 
 
+def test_generic_ingredients_get_their_hand_made_links():
+    # Juustoinen liha-makaronilaatikko (#100): only cheese and milk have a recipe product
+    # in the export; macaroni, beef, onion and eggs are linked by ingredient id.
+    data = files.read_recipe_file()
+    [macaroni_box] = [r for r in data["recipes"] if r["id"] == 38100]
+
+    _, ingredients, _ = loader.recipe_rows(
+        [macaroni_box], data["taxonomies"], T0, files.read_ingredient_links()
+    )
+
+    assert {i["name"]: i["recipe_product_id"] for i in ingredients} == {
+        "makaronia": 900001,
+        "vähärasvaista naudan jauhelihaa": 900002,
+        "pakastesipulikuutioita": 900003,
+        "suolaa": None,
+        "valkopippuria": None,
+        "Valio juustoraasteseosta": 3157,
+        "Valio maitoa": 12,
+        "kananmunia": 900004,
+    }
+
+
+def test_every_ingredient_link_is_a_generic_ingredient_with_weighed_packs():
+    links = files.read_ingredient_links()
+    mappings = files.read_product_map()
+    generic = {
+        str(i["id"])
+        for r in files.read_recipe_file()["recipes"]
+        for _, i in files.ingredients(r)
+        if not i["productId"]
+    }
+
+    assert links and set(links) <= generic
+    for key in set(links.values()):
+        assert int(key) >= 900001
+        entry = mappings[key]
+        assert entry["confidence"] == "reviewed" and entry["aimoProducts"]
+        # choose_pack needs the weight of a sales unit to cover the scaled kilos.
+        assert all(p["netWeightKg"] and p["unitsPerSalesUnit"] for p in entry["aimoProducts"])
+
+
 async def _counts(db_engine) -> dict[str, int]:
     tables = ("recipes", "recipe_ingredients", "recipe_tags", "recipe_product_links")
     async with db_engine.connect() as conn:

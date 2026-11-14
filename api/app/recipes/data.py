@@ -45,6 +45,13 @@ def read_product_map(path: Path = PRODUCT_MAP_FILE) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))["mappings"]
 
 
+@cache
+def read_ingredient_links(path: Path = PRODUCT_MAP_FILE) -> dict[str, str]:
+    """Recipe ingredient id -> recipe product id, for generic ingredients that have no
+    recipe product of their own (#100). Applies in every recipe using the ingredient."""
+    return json.loads(path.read_text(encoding="utf-8")).get("ingredientLinks", {})
+
+
 def ingredients(recipe: dict[str, Any]) -> list[tuple[str | None, dict[str, Any]]]:
     """(segment title, ingredient) in order. The position in this list is the ingredient
     index of get_recipe and RecipeRef."""

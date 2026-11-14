@@ -74,8 +74,13 @@ def _amount(values: list[float]) -> Decimal | None:
 
 
 def recipe_rows(
-    recipes: list[dict[str, Any]], taxonomies: dict[str, Any], loaded_at: datetime
+    recipes: list[dict[str, Any]],
+    taxonomies: dict[str, Any],
+    loaded_at: datetime,
+    ingredient_links: dict[str, str] | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """ingredient_links gives a recipe product to an ingredient that has none (#100)."""
+    links = ingredient_links or {}
     rows, ingredients, tags = [], [], []
     for r in recipes:
         rows.append(
@@ -104,7 +109,7 @@ def recipe_rows(
                     "amount_per_portion": _amount(i["singlePortionAmounts"]),
                     "unit": files.unit(i["portionFormat"]),
                     "suffix": i.get("suffix"),
-                    "recipe_product_id": i.get("productId"),
+                    "recipe_product_id": _recipe_product_id(i, links),
                 }
             )
         tags += [
@@ -118,6 +123,13 @@ def recipe_rows(
             for t in files.tags(r, taxonomies)
         ]
     return rows, ingredients, tags
+
+
+def _recipe_product_id(ingredient: dict[str, Any], links: dict[str, str]) -> int | None:
+    if ingredient.get("productId"):
+        return ingredient["productId"]
+    linked = links.get(str(ingredient["id"]))
+    return int(linked) if linked else None
 
 
 def link_rows(mappings: dict[str, Any]) -> list[dict[str, Any]]:
@@ -158,12 +170,16 @@ async def load(
     recipe_file: dict[str, Any],
     mappings: dict[str, Any],
     vectors: dict[int, files.StoredVector] | None,
+    ingredient_links: dict[str, str] | None = None,
 ) -> LoadResult:
-    """vectors None leaves recipe_embeddings as it is."""
+    """vectors None leaves recipe_embeddings as it is. ingredient_links None reads them from
+    the product map file."""
     result = LoadResult()
     recipes = recipe_file["recipes"]
     taxonomies = recipe_file["taxonomies"]
-    rows, ingredients, tags = recipe_rows(recipes, taxonomies, datetime.now(UTC))
+    if ingredient_links is None:
+        ingredient_links = files.read_ingredient_links()
+    rows, ingredients, tags = recipe_rows(recipes, taxonomies, datetime.now(UTC), ingredient_links)
     links = link_rows(mappings)
     ids = sorted(r["id"] for r in rows)
     if len(ids) != len(set(ids)):
