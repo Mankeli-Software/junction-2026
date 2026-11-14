@@ -8,7 +8,7 @@ accepted so the URLs the dashboard uses already work.
 from datetime import datetime
 
 from app.schemas import Channel, OverviewResponse, StateGroup, Totals
-from app.services.quotes import BUSINESS_NOW
+from app.services.policy import get_rule_set
 
 
 async def load_overview(
@@ -19,7 +19,7 @@ async def load_overview(
     # TODO(#49): read the sessions since EVENT_START, newest activity first, at most 200
     # cards, with the totals over all of them.
     return OverviewResponse(
-        business_now=BUSINESS_NOW,
+        business_now=get_rule_set().policy.business_time,
         totals=Totals(
             active=0,
             waiting=0,

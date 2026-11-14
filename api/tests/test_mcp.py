@@ -31,7 +31,7 @@ async def test_lists_exactly_the_eight_tools():
         assert tool.inputSchema.get("additionalProperties") is False
 
 
-@pytest.mark.usefixtures("dev_caller")
+@pytest.mark.usefixtures("app_db", "dev_caller")
 async def test_build_quote_is_ready():
     async with create_connected_server_and_client_session(mcp) as session:
         result = await session.call_tool("build_quote", {"lines": [LINE]})
@@ -41,7 +41,7 @@ async def test_build_quote_is_ready():
     assert result.structuredContent["lines"][0]["product_id"] == "464306"
 
 
-@pytest.mark.usefixtures("dev_caller")
+@pytest.mark.usefixtures("app_db", "dev_caller")
 async def test_unknown_quote_is_a_tool_error():
     async with create_connected_server_and_client_session(mcp) as session:
         result = await session.call_tool("get_order_status", {"quote_id": "nope"})

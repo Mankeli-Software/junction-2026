@@ -11,7 +11,6 @@ from pydantic import BaseModel
 
 from app.schemas import (
     Claim,
-    LineRequest,
     Localized,
     Offer,
     ProductHit,
@@ -43,10 +42,6 @@ def _unit_labels() -> dict[str, Localized]:
     return {
         code: Localized.model_validate(label) for code, label in data["sales_unit_labels"].items()
     }
-
-
-def records() -> list[ProductRecord]:
-    return [p.record for p in _products()]
 
 
 def offers() -> list[Offer]:
@@ -125,19 +120,3 @@ async def get_products(ids: list[str]) -> list[ProductRecord]:
     """The records for these ids, in the order given. Unknown ids are left out."""
     by_id = {p.record.product_id: p.record for p in _products()}
     return [by_id[i] for i in ids if i in by_id]
-
-
-def candidates(lines: list[LineRequest]) -> dict[str, list[str]]:
-    """Candidate product ids per line, for `EngineInput.candidates` (#45 replaces this).
-
-    A named product is its own candidate; otherwise the fixture search on the line's
-    words, or every fixture product when the words match nothing.
-    """
-    result: dict[str, list[str]] = {}
-    for line in lines:
-        if line.product_id is not None:
-            result[line.line_id] = [line.product_id]
-            continue
-        hits = _matching(line.text or "", line.claims, line.category) or list(_products())
-        result[line.line_id] = [p.record.product_id for p in hits]
-    return result

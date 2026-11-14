@@ -3,11 +3,10 @@
 Each tool's arguments are the fields of its request model in `app.schemas` and its result
 is the response model, sent as structured content. The REST twins use the same models, so
 the two surfaces can't drift. Tools only get the caller, call one service function and map
-errors. Nothing else is registered: no confirm, cancel, audit or inbox tool (vision §8).
+errors; `run_tool` writes the `tool_called` and `tool_returned` audit events around each
+call. Nothing else is registered: no confirm, cancel, audit or inbox tool (vision §8).
 """
 
-import inspect
-from collections.abc import Awaitable, Callable
 from typing import Any
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -22,6 +21,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.interfaces.deps import resolve_caller
 from app.interfaces.mcp import descriptions
+from app.interfaces.tool_calls import Service, run_tool
 from app.schemas import (
     BuildQuoteRequest,
     ConfirmationRequestResponse,
@@ -62,7 +62,7 @@ async def _caller(ctx: Context) -> Caller:
 def _tool(
     name: str,
     description: str,
-    service: Callable[..., BaseModel | Awaitable[BaseModel]],
+    service: Service,
     request_model: type[StrictModel] | None,
     response_model: type[BaseModel],
 ) -> Tool:
@@ -75,14 +75,9 @@ def _tool(
 
     async def run(ctx: Context, **arguments: Any) -> BaseModel:
         caller = await _caller(ctx)
+        request = request_model(**arguments) if request_model is not None else None
         try:
-            if request_model is None:
-                result = service(caller)
-            else:
-                result = service(caller, request_model(**arguments))
-            if inspect.isawaitable(result):
-                result = await result
-            return result
+            return await run_tool(name, caller, service, request)
         except ServiceError as error:
             raise ToolError(str(error)) from error
 

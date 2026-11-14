@@ -15,7 +15,8 @@ def build(**extra) -> dict:
     return response.json()
 
 
-@pytest.mark.usefixtures("dev_caller")
+# Every tool call writes its audit events, so these need the database.
+@pytest.mark.usefixtures("app_db", "dev_caller")
 class TestWithCaller:
     def test_build_quote_is_ready(self):
         quote = build()

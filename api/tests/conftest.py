@@ -19,10 +19,14 @@ from app.settings import get_settings, psycopg_url
 
 API_DIR = Path(__file__).resolve().parents[1]
 
-# What the HTTP-level account tests write, emptied after each of them.
+# What the HTTP-level tests write, emptied after each of them.
 ACCOUNT_TABLES = (
     "sms_messages",
     "confirmations",
+    "audit_events",
+    "quote_lines",
+    "quotes",
+    "sessions",
     "access_tokens",
     "web_sessions",
     "users",
@@ -100,7 +104,7 @@ async def app_db(
 ) -> AsyncIterator[AsyncEngine]:
     """Point the app's own database sessions at the test database, for HTTP-level tests.
 
-    The app commits for real, so the account tables are emptied after the test, leaving
+    The app commits for real, so the tables it writes are emptied after the test, leaving
     them clean for the `db` tests. NullPool, because TestClient runs requests in other
     event loops.
     """
