@@ -22,8 +22,10 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 import app.db
+from app.loaders import recipes as recipe_loader
 from app.loaders.catalogue import ALLERGEN_CODE_FILE, CATEGORY_FILE, load
 from app.loaders.product_file import read_allergen_codes, read_categories
+from app.recipes import data as recipe_data
 
 # Tests never call the Gemini API: search is text-only here (no product vectors in the
 # test database anyway). Environment variables win over .env.
@@ -129,6 +131,28 @@ async def catalogue(db_engine: AsyncEngine) -> AsyncEngine:
             read_categories(CATEGORY_FILE),
             read_allergen_codes(ALLERGEN_CODE_FILE),
         )
+    return db_engine
+
+
+async def load_recipes(engine: AsyncEngine) -> recipe_loader.LoadResult:
+    return await recipe_loader.load(
+        engine,
+        recipe_data.read_recipe_file(),
+        recipe_data.read_product_map(),
+        recipe_data.read_vector_file(),
+    )
+
+
+@pytest.fixture
+async def recipes(db_engine: AsyncEngine) -> AsyncEngine:
+    """All recipes, product links and committed vectors from data/ in the test database,
+    committed (#34). Loaded again only when they are missing, e.g. after the loader tests."""
+    expected = len(recipe_data.read_recipe_file()["recipes"])
+    async with db_engine.connect() as conn:
+        stored = await conn.scalar(text("SELECT count(*) FROM recipes"))
+        vectors = await conn.scalar(text("SELECT count(*) FROM recipe_embeddings"))
+    if (stored, vectors) != (expected, expected):
+        await load_recipes(db_engine)
     return db_engine
 
 

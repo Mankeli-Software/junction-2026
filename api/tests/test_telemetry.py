@@ -95,7 +95,7 @@ def test_a_rest_tool_call_is_one_span_with_its_session_outcome_and_test_run():
 
     response = client.get(
         "/api/v1/recipes",
-        params={"q": "hernekeitto"},
+        params={"q": "qxzqxz"},
         headers={"X-Simo-Test-Run": "perf-1", "X-Simo-Test-Case": "soup-1"},
     )
 
@@ -105,8 +105,8 @@ def test_a_rest_tool_call_is_one_span_with_its_session_outcome_and_test_run():
     assert attributes["simo.tool"] == "search_recipes"
     assert attributes["simo.test_run"] == "perf-1" and attributes["simo.test_case"] == "soup-1"
     assert attributes["simo.session_id"] and attributes["simo.channel"] == "web"
-    assert attributes["simo.outcome"] == "empty"  # the fixture recipes have no soup
-    assert '"hernekeitto"' in attributes["simo.arguments"]
+    assert attributes["simo.outcome"] == "empty"  # no recipe matches the word (#34)
+    assert '"qxzqxz"' in attributes["simo.arguments"]
 
 
 @pytest.mark.usefixtures("app_db", "dev_caller")

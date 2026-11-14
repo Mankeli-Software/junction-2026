@@ -1,5 +1,4 @@
-"""Small fixture files that stand in for the real data: the usual items (until #32, #61)
-and the recipes."""
+"""Small fixture files that stand in for the real data: the usual items (until #32, #61)."""
 
 import json
 from functools import cache

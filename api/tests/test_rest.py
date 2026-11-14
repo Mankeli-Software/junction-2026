@@ -99,17 +99,21 @@ class TestWithCaller:
         assert context["kitchen_type"] in {k.value for k in KitchenType}
         assert context["usual_items"] and context["last_order"]
 
+    @pytest.mark.usefixtures("recipes")
     def test_recipes(self):
         hits = client.get("/api/v1/recipes", params={"q": "munavoi"}).json()["results"]
-        assert [h["recipe_id"] for h in hits] == ["40728"]
+        assert hits[0]["recipe_id"] == "40728"
 
         recipe = client.get("/api/v1/recipes/40728", params={"portions": 90}).json()
-        butter = next(i for i in recipe["ingredients"] if i["product_id"] == "475797")
+        # Valio voi: the 200 g case is the only linked pack in the test catalogue.
+        butter = next(i for i in recipe["ingredients"] if i["product_id"] == "463798")
         assert butter["quantity"] == 0.2
         assert butter["unit"] == "kg"
 
         assert client.get("/api/v1/recipes/1", params={"portions": 10}).status_code == 404
         assert client.get("/api/v1/recipes/40728", params={"portions": 0}).status_code == 422
+        response = client.get("/api/v1/recipes", params={"q": "pasta", "diet": ["keto"]})
+        assert response.status_code == 422
 
 
 @pytest.mark.usefixtures("no_caller")
