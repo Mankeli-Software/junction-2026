@@ -20,11 +20,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import engine
 from app.adapters import valio
+from app.engine.filters import CLAIMS, UNSAFE
 from app.models import KitchenProfile as KitchenProfileRow
 from app.models import Order, OrderSession, Quote
 from app.models import QuoteLine as QuoteLineRow
 from app.schemas import (
     BuildQuoteRequest,
+    ClaimRule,
     ConfirmationRequestResponse,
     Decision,
     EngineInput,
@@ -41,6 +43,7 @@ from app.schemas import (
     QuoteResponse,
     QuoteStatus,
     RequestConfirmationRequest,
+    RuleSet,
     SessionState,
     UpdateQuoteRequest,
     UsualItem,
@@ -56,7 +59,8 @@ log = logging.getLogger(__name__)
 # shortlists only). Over the cap, each line keeps its best candidates first.
 MAX_CANDIDATES = 100
 SEARCH_LIMIT = 20
-# The curated substitutes of this many top search hits are added as candidates.
+# When every search hit may be blocked, the curated substitutes of this many top hits are
+# added as candidates.
 SUBSTITUTES_OF_TOP = 5
 
 # A quote can be replaced by an edit until it is confirmed, cancelled or expired. Answering
@@ -252,7 +256,9 @@ async def _new_quote(
     )
 
     usual_items = customers.usual_items(caller)
-    ranked = await _ranked_candidates(db, lines, usual_items)
+    rules = get_rule_set()
+    exclusions = await _exclusions(db, caller)
+    ranked, substitutes = await _ranked_candidates(db, lines, usual_items, exclusions, rules)
     kept = cap_candidates(ranked, MAX_CANDIDATES)
     candidates = {line_id: [i for i in ids if i in kept] for line_id, ids in ranked.items()}
     await record(
@@ -265,6 +271,7 @@ async def _new_quote(
                         mode="json", include={"product_id", "usual", "text", "claims", "category"}
                     ),
                     "candidate_ids": candidates[line.line_id],
+                    "substitute_ids": [i for i in substitutes[line.line_id] if i in kept],
                 }
                 for line in lines
             ],
@@ -291,10 +298,9 @@ async def _new_quote(
         ),
     )
 
-    rules = get_rule_set()
     engine_input = EngineInput(
         lines=lines,
-        kitchen=KitchenProfile(exclusions=await _exclusions(db, caller)),
+        kitchen=KitchenProfile(exclusions=exclusions),
         history=HistorySummary(usual_items=usual_items, recent_lines=[]),
         candidates=candidates,
         products=products,
@@ -424,36 +430,89 @@ def cap_candidates(ranked: dict[str, list[str]], limit: int) -> set[str]:
 
 
 async def _ranked_candidates(
-    db: AsyncSession, lines: list[LineRequest], usual_items: list[UsualItem]
-) -> dict[str, list[str]]:
-    """Candidate ids per line, best first, without duplicates."""
+    db: AsyncSession,
+    lines: list[LineRequest],
+    usual_items: list[UsualItem],
+    exclusions: list[Exclusion],
+    rules: RuleSet,
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+    """Candidate ids per line, best first, without duplicates, and the substitute ids
+    among them.
+
+    A named product or "my usual" brings its curated substitutes. A text line is its search
+    hits; only when every hit may be blocked by the kitchen (`may_be_blocked`) are the
+    substitute candidates added after them (docs/plans/30-product-search.md §7.2): the
+    curated substitutes of the top hits, then a second search in the top hit's category
+    with the line's claims and no words (that category's products by product id).
+    Substitutes that may be blocked themselves are left out, so they don't use up the cap.
+    """
     ranked: dict[str, list[str]] = {}
+    substitutes: dict[str, list[str]] = {}
     for line in lines:
-        if line.product_id is not None:
-            ids = [line.product_id]
-            with_substitutes = ids
-        elif line.usual:
-            words = (line.text or "").lower().split()
-            ids = sorted(
-                {
-                    item.product_id
-                    for item in usual_items
-                    if all(w in f"{item.name.fi} {item.name.en}".lower() for w in words)
-                }
-            )
-            with_substitutes = ids
+        if line.product_id is not None or line.usual:
+            if line.product_id is not None:
+                ids = [line.product_id]
+            else:
+                words = (line.text or "").lower().split()
+                ids = sorted(
+                    {
+                        item.product_id
+                        for item in usual_items
+                        if all(w in f"{item.name.fi} {item.name.en}".lower() for w in words)
+                    }
+                )
+            subs = [
+                sub for record in await catalog.get_products(db, ids)
+                for sub in record.substitutions
+            ]  # fmt: skip
         else:
             hits = await catalog.search_candidates(
                 db, line.text, line.claims, line.category, limit=SEARCH_LIMIT
             )
             ids = [hit.product_id for hit in hits]
-            with_substitutes = ids[:SUBSTITUTES_OF_TOP]
-        substitutes = [
-            sub for record in await catalog.get_products(db, with_substitutes)
-            for sub in record.substitutions
-        ]  # fmt: skip
-        ranked[line.line_id] = _unique([*ids, *substitutes])
-    return ranked
+            subs = []
+            if hits and all(may_be_blocked(hit, exclusions, rules) for hit in hits):
+                curated = [s for hit in hits[:SUBSTITUTES_OF_TOP] for s in hit.substitutions]
+                same_category = await catalog.search_candidates(
+                    db, None, line.claims, hits[0].category, limit=SEARCH_LIMIT
+                )
+                records = {r.product_id: r for r in await catalog.get_products(db, curated)}
+                records.update({r.product_id: r for r in same_category})
+                subs = [
+                    i
+                    for i in _unique([*curated, *(r.product_id for r in same_category)])
+                    if i in records and not may_be_blocked(records[i], exclusions, rules)
+                ]
+        unique = _unique([*ids, *subs])
+        ranked[line.line_id] = unique
+        substitutes[line.line_id] = [i for i in unique if i not in ids]
+    return ranked, substitutes
+
+
+def may_be_blocked(product: ProductRecord, exclusions: list[Exclusion], rules: RuleSet) -> bool:
+    """Whether one of the kitchen's exclusions could remove this product: it lists (contains
+    or may contain) a code the exclusion blocks, or one it blocks unless the product has a
+    claim it lacks, or it lacks a claim the exclusion requires.
+
+    Only a hint for gathering substitute candidates, read from the same rule set: the
+    engine still filters every candidate and alone decides what is safe. A product with no
+    allergen listing is not blocked (the engine keeps it, with a notice).
+    """
+    listed = {a.code for a in product.allergens if a.containment in UNSAFE}
+
+    def has(claim_rules: Iterable[ClaimRule]) -> bool:
+        return all(CLAIMS.get((r.code, r.level)) in product.claims for r in claim_rules)
+
+    for exclusion in exclusions:
+        rule = rules.kitchen[exclusion]
+        if listed & set(rule.block):
+            return True
+        unless = rule.block_unless_claim
+        if unless and listed & set(unless.codes) and not has(unless.claim):
+            return True
+        if not has(rule.require_claim):
+            return True
+    return False
 
 
 async def _offers(

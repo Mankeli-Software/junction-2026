@@ -19,14 +19,16 @@ from app.adapters import valio
 from app.interfaces.deps import DEV_CALLER
 from app.interfaces.mcp.server import mcp
 from app.main import app
-from app.models import AuditEvent, OrderSession, Quote, QuoteLine
+from app.models import AuditEvent, OrderSession, ProductSubstitution, Quote, QuoteLine
 from app.schemas import (
     BuildQuoteRequest,
+    Claim,
     Decision,
     EngineInput,
     Exclusion,
     GetOrderStatusRequest,
     LineRequest,
+    ProductRecord,
     QuoteStatus,
     RequestConfirmationRequest,
     SessionState,
@@ -36,6 +38,7 @@ from app.services import accounts, catalog, dev_caller, quotes, sessions, signin
 from app.services.audit import load_rule_set_by_ref
 from app.services.caller import Caller
 from app.services.errors import NotFoundError, StateError
+from app.services.policy import get_rule_set
 
 MILK = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
 T0 = datetime(2026, 11, 14, 12, 0, tzinfo=UTC)
@@ -343,6 +346,42 @@ async def test_over_100_candidates_are_capped(db, caller, monkeypatch):
     assert searched.payload["candidate_count"] == 100
 
 
+async def test_the_cap_holds_with_substitutes(db, monkeypatch):
+    """Lines whose hits may all be blocked get substitutes, and still at most 100 ids:
+    each line's hits come before any substitute."""
+    milk = (await catalog.get_products(db, ["464306"]))[0]
+    oat = (await catalog.get_products(db, ["460825"]))[0]
+
+    async def search(db, q, claims, category, limit=20):
+        if q:  # the line's search: milks, each line in a category of its own
+            return [
+                milk.model_copy(update={"category": q, "product_id": f"{q}{i:02}"})
+                for i in range(20)
+            ]
+        # The second search, in the top hit's category: milk-free products.
+        return [oat.model_copy(update={"product_id": f"{category}s{i:02}"}) for i in range(20)]
+
+    async def get_products(db, ids):
+        return []  # no curated substitutes
+
+    monkeypatch.setattr(catalog, "search_candidates", search)
+    monkeypatch.setattr(catalog, "get_products", get_products)
+    milk_free = await other_caller(db, [Exclusion.milk_free])
+    request = build(*({"line_id": f"l{n}", "text": f"q{n}"} for n in range(4)))
+
+    response = await quotes.build_quote(db, milk_free, request, now=T0)
+
+    quote = await stored(db, response.quote_id)
+    candidates = quote.engine_input["candidates"]
+    searched = await searched_lines(db, quote)
+    assert len({i for ids in candidates.values() for i in ids}) == 100
+    for n in range(4):
+        hits = [f"q{n}{i:02}" for i in range(20)]
+        substitutes = [f"q{n}s{i:02}" for i in range(5)]
+        assert candidates[f"l{n}"] == hits + substitutes
+        assert searched[f"l{n}"]["substitute_ids"] == substitutes
+
+
 async def test_a_failed_offer_reaches_the_engine(db, caller, monkeypatch):
     async def get_offers(ids, needed_by):
         return [valio._failed(i) for i in ids]
@@ -369,7 +408,16 @@ async def test_a_named_product_brings_its_curated_substitutes(db, caller):
     assert quote.engine_input["candidates"]["l1"] == ["464306", "464201"]
 
 
-# --- Real search (#30) --------------------------------------------------------------------
+# --- Real search and substitute candidates (#30) ----------------------------------------
+
+
+async def searched_lines(db: AsyncSession, quote: Quote) -> dict[str, dict]:
+    event = await db.scalar(
+        select(AuditEvent).where(
+            AuditEvent.type == "products_searched", AuditEvent.quote_id == quote.id
+        )
+    )
+    return {line["line_id"]: line for line in event.payload["lines"]}
 
 
 async def test_a_lactose_free_kitchen_gets_a_lactose_free_milk(db, caller):
@@ -382,6 +430,101 @@ async def test_a_lactose_free_kitchen_gets_a_lactose_free_milk(db, caller):
     )
     assert "lactose_free" in chosen["claims"]
     assert "maito" in chosen["name"]["fi"].lower()
+    # Lactose-free milks pass the kitchen, so no substitutes are added.
+    assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == []
+
+
+async def test_a_milk_free_kitchen_asking_for_milk_gets_a_rejection_with_a_next_step(db):
+    milk_free = await other_caller(db, [Exclusion.milk_free])
+
+    response = await quotes.build_quote(db, milk_free, build(), now=T0)
+
+    assert response.decision == Decision.rejected
+    assert response.status == QuoteStatus.rejected
+    (rejection,) = response.rejections
+    assert rejection.reason_code == "ALLERGEN_CONFLICT"
+    assert rejection.next_step.en
+    quote = await stored(db, response.quote_id)
+    # Every hit lists milk, and so does every other product in the milk category, so no
+    # substitute gets past the hint.
+    assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == []
+
+
+async def test_a_milk_free_kitchen_gets_a_curated_oat_drink_for_milk(db, monkeypatch):
+    # A curated pair from the top hit for "maito" to the oat drink, in this test only.
+    db.add(ProductSubstitution(product_id="464119", substitute_product_id="460825", position=9))
+    await db.flush()
+    real_offers = valio.get_offers
+
+    async def get_offers(ids, needed_by):
+        # The oat drink has no recorded offer; it borrows the milk's.
+        offers = {o.product_id: o for o in await real_offers(sorted({*ids, "464306"}), needed_by)}
+        offers["460825"] = offers["464306"].model_copy(update={"product_id": "460825"})
+        return [offers[i] for i in ids]
+
+    monkeypatch.setattr(valio, "get_offers", get_offers)
+    milk_free = await other_caller(db, [Exclusion.milk_free])
+
+    response = await quotes.build_quote(db, milk_free, build(), now=T0)
+
+    quote = await stored(db, response.quote_id)
+    assert (await searched_lines(db, quote))["l1"]["substitute_ids"] == ["460825"]
+    assert quote.engine_input["candidates"]["l1"][-1] == "460825"
+    assert response.decision == Decision.ready
+    assert response.lines[0].product_id == "460825"
+
+
+async def test_candidate_order_is_deterministic(db, caller):
+    milk_free = await other_caller(db, [Exclusion.milk_free])
+    request = build({"line_id": "a"}, {"line_id": "b", "text": "naudan jauheliha"})
+
+    for who in (caller, milk_free):
+        first = await quotes.build_quote(db, who, request, now=T0)
+        second = await quotes.build_quote(db, who, request, now=T0)
+
+        a = (await stored(db, first.quote_id)).engine_input["candidates"]
+        b = (await stored(db, second.quote_id)).engine_input["candidates"]
+        assert a == b
+        assert len(a["a"]) == len(set(a["a"])) and "464306" in a["a"]
+
+
+def record(**changes) -> ProductRecord:
+    base = {
+        "product_id": "1",
+        "name": {"fi": "x", "en": "x"},
+        "category": "10400",
+        "sales_unit": "ST",
+        "base_unit": "ST",
+        "units": ["ST"],
+        "unit_conversions": [],
+        "allergens": [],
+        "allergen_listing": True,
+        "claims": [],
+        "origin": None,
+        "image_url": None,
+        "substitutions": [],
+    }
+    return ProductRecord.model_validate(base | changes)
+
+
+@pytest.mark.parametrize(
+    ("allergens", "claims", "exclusions", "blocked"),
+    [
+        ([], [], [], False),
+        ([("AM", "CONTAINS")], [], [], False),  # no exclusion
+        ([("AM", "CONTAINS")], [], [Exclusion.milk_free], True),
+        ([("AM", "MAY_CONTAIN")], [], [Exclusion.milk_free], True),
+        ([("AM", "FREE_FROM")], [], [Exclusion.milk_free], False),
+        ([("AM", "CONTAINS")], [], [Exclusion.lactose_free], True),
+        ([("AM", "CONTAINS")], [Claim.lactose_free], [Exclusion.lactose_free], False),
+        ([("AM", "CONTAINS")], [Claim.lactose_free], [Exclusion.milk_free], True),
+        ([], [], [Exclusion.vegan], True),  # vegan requires the claim
+        ([], [Claim.vegan], [Exclusion.vegan], False),
+    ],
+)
+def test_may_be_blocked_follows_the_kitchen_rules(allergens, claims, exclusions, blocked):
+    product = record(allergens=[{"code": c, "containment": k} for c, k in allergens], claims=claims)
+    assert quotes.may_be_blocked(product, exclusions, get_rule_set()) is blocked
 
 
 # --- The tool-call wrapper (REST twins) -------------------------------------------------
