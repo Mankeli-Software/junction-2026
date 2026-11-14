@@ -59,7 +59,12 @@ async def test_unknown_argument_is_a_tool_error():
     assert "discount" in result.content[0].text
 
 
-def _initialize(client: TestClient, path: str):
+def _initialize(client: TestClient, path: str, host: str | None = None, origin: str | None = None):
+    headers = {"Accept": "application/json, text/event-stream"}
+    if host:
+        headers["Host"] = host
+    if origin:
+        headers["Origin"] = origin
     return client.post(
         path,
         json={
@@ -72,7 +77,7 @@ def _initialize(client: TestClient, path: str):
                 "clientInfo": {"name": "test", "version": "0"},
             },
         },
-        headers={"Accept": "application/json, text/event-stream"},
+        headers=headers,
         follow_redirects=False,
     )
 
@@ -80,13 +85,18 @@ def _initialize(client: TestClient, path: str):
 @pytest.mark.usefixtures("dev_caller")
 def test_mcp_answers_with_and_without_trailing_slash():
     # The session manager runs once per process, so both paths share one lifespan.
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://localhost") as client:
         for path in ("/mcp", "/mcp/"):
             response = _initialize(client, path)
             assert response.status_code == 200, (path, response.status_code)
             assert '"serverInfo"' in response.text
+        # DNS-rebinding protection: our public name passes, an unknown host and origin don't.
+        assert _initialize(client, "/mcp", host="simo.mankeli.co").status_code == 200
+        assert _initialize(client, "/mcp", host="evil.example").status_code == 421
+        assert _initialize(client, "/mcp", origin="https://evil.example").status_code == 403
+        assert _initialize(client, "/mcp", origin="http://localhost:6274").status_code == 200
 
 
 @pytest.mark.usefixtures("no_caller")
 def test_mcp_without_caller_is_401():
-    assert _initialize(TestClient(app), "/mcp").status_code == 401
+    assert _initialize(TestClient(app, base_url="http://localhost"), "/mcp").status_code == 401

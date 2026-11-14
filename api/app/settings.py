@@ -106,6 +106,11 @@ class Settings(BaseSettings):
     # is on. Off means requests without a caller get 401.
     dev_fake_caller: bool = False
 
+    # Host header values /mcp accepts (DNS-rebinding protection). `name:*` allows any port.
+    # Browser clients such as MCP Inspector may also send an Origin; http and https origins
+    # for the same names are allowed.
+    mcp_allowed_hosts: str = "simo.mankeli.co,localhost,localhost:*,127.0.0.1,127.0.0.1:*"
+
     @classmethod
     def settings_customise_sources(
         cls,
@@ -127,6 +132,10 @@ class Settings(BaseSettings):
     @property
     def migrations_url(self) -> str:
         return self.migration_database_url or self.database_url
+
+    @property
+    def mcp_allowed_host_list(self) -> list[str]:
+        return [h.strip() for h in self.mcp_allowed_hosts.split(",") if h.strip()]
 
     @property
     def sms_allowlist_numbers(self) -> frozenset[str]:

@@ -41,6 +41,7 @@ from app.schemas import (
 from app.services import catalog, customers, quotes, recipes
 from app.services.caller import Caller
 from app.services.errors import ServiceError
+from app.settings import get_settings
 
 
 def _caller(ctx: Context) -> Caller:
@@ -140,15 +141,26 @@ TOOLS = [
     ),
 ]
 
+
+def _transport_security() -> TransportSecuritySettings:
+    """DNS-rebinding protection that lets our own host names through.
+
+    The SDK's default for a localhost bind only accepts `Host: localhost`, which would
+    reject requests coming through Caddy for the public name.
+    """
+    hosts = get_settings().mcp_allowed_host_list
+    origins = [f"{scheme}://{host}" for host in hosts for scheme in ("https", "http")]
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True, allowed_hosts=hosts, allowed_origins=origins
+    )
+
+
 mcp = FastMCP(
     "simo",
     tools=TOOLS,
     stateless_http=True,
     streamable_http_path="/",
-    # The SDK turns on DNS-rebinding protection for a localhost bind, which only lets
-    # Host: localhost through. The server runs behind Caddy on a public name and every tool
-    # needs a caller, so it is off.
-    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+    transport_security=_transport_security(),
 )
 
 
