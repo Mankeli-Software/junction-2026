@@ -6,12 +6,13 @@ Usage:
 Reads the static product file (downloaded once with `curl -L` from
 /api/products/download, never from the live API) and data/valio_category_names.csv,
 and writes web/src/lib/shop/products.json: about 12 real Valio products with their
-names, pack size, category and image URL. The image URL stays null until the product
-image file (`code`, `name`, `img`, technical-plan.md section 5.5) is in the repository;
-the shop then shows a placeholder.
+names, pack size, category and image URL. The image URL is Valio's own, from
+data/product_images.json.gz (#108), the same file the API's catalogue loads; a product
+without one gets null and the shop shows a placeholder.
 """
 
 import csv
+import gzip
 import json
 import re
 import sys
@@ -19,6 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "web" / "src" / "lib" / "shop" / "products.json"
+IMAGES = ROOT / "data" / "product_images.json.gz"
 
 # Real Valio products a kitchen buys, one or two per shelf. Most appear in the recipe
 # data (data/recipe-product-map.json); 464073 is also in the API's fixture catalogue.
@@ -55,6 +57,8 @@ def main(product_file: Path) -> None:
     with (ROOT / "data" / "valio_category_names.csv").open(encoding="utf-8") as f:
         categories = {row["category"]: row for row in csv.DictReader(f)}
     shelf_of = {code: key for key, _, codes in SHELVES for code in codes}
+    with gzip.open(IMAGES, "rt", encoding="utf-8") as f:
+        images = json.load(f)
 
     selection = []
     for product_id in PRODUCT_IDS:
@@ -76,7 +80,7 @@ def main(product_file: Path) -> None:
                 "pack_size": f"{size.group(1)} {size.group(2)}" if size else None,
                 "sales_unit": product["salesUnit"],
                 "units_per_sales_unit": int(per_sales_unit),
-                "image_url": None,
+                "image_url": images.get(product_id, {}).get("image"),
             }
         )
 

@@ -20,6 +20,8 @@
 			<img
 				src={product.image_url}
 				alt=""
+				width="300"
+				height="300"
 				loading="lazy"
 				referrerpolicy="no-referrer"
 				onerror={() => (broken = true)}
