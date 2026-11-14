@@ -111,7 +111,7 @@ export interface EndedMessage {
 }
 
 /**
- * A caption. `who` is `buyer` or `agent`. Assumed for #52: a message with
+ * A caption. `who` is `buyer` or `agent`. As the relay (#52) sends it: a message with
  * `final: false` carries the next piece of the current utterance (a delta); a
  * message with `final: true` closes it, and when it carries text, that text is the
  * whole utterance and replaces the pieces. Gemini sends the caller's text in one
@@ -125,7 +125,7 @@ export interface TranscriptMessage {
 }
 
 /**
- * What S.I.MO is doing, sent by the relay when it changes (proposed in #54,
+ * What S.I.MO is doing, sent by the relay when it changes (#54, #52,
  * technical-plan.md §9.3):
  * - `listening`: waiting for the caller (after `ready`, after each agent turn, after `interrupted`);
  * - `thinking`: the caller's utterance ended, or a tool result went back, and no audio yet;
@@ -152,9 +152,11 @@ export type ServerMessage =
 export type ClientMessage = { type: 'hangup' };
 
 /**
- * WebSocket close codes the call screen understands when no `ended` arrived.
- * Proposed for #52: 4401 no session (set up the phone again), 4429 the number
- * reached the demo limit (docs/specs/call-screen.md §3).
+ * WebSocket close codes the call screen understands when no `ended` arrived, as the
+ * relay (#52) sends them: 4401 no session (set up the phone again), 4429 the demo
+ * limit (docs/specs/call-screen.md §3; for now, this user already has a call). Any
+ * other code before `ready`, such as 1011 when Gemini can't be reached, is "could not
+ * connect".
  */
 export const CLOSE_NO_SESSION = 4401;
 export const CLOSE_LIMIT = 4429;

@@ -1,6 +1,7 @@
 /**
  * Mock voice relay for `/voice/ws` (technical-plan.md §9.3), used with
- * DEMO_SOURCE=fixture until the real Gemini Live relay (#52) exists.
+ * DEMO_SOURCE=fixture and by the end-to-end tests. The real Gemini Live relay (#52) is
+ * in api/app/interfaces/voice/.
  *
  * It speaks the same protocol as the real relay:
  * - takes binary frames of 16 kHz 16-bit mono PCM from the browser;
