@@ -1,0 +1,55 @@
+{
+	"id": "https://simo.mankeli.co/a2ui/catalog/v1.json",
+	"components": [
+		{
+			"name": "Column",
+			"description": "Stacks its children top to bottom. Use as the root of a surface with more than one component. At most 8 levels deep.",
+			"props": "children: string[] (required, component ids in order)."
+		},
+		{
+			"name": "Row",
+			"description": "Places its children side by side, wrapping on narrow screens. Use for two or three buttons.",
+			"props": "children: string[] (required, component ids in order)."
+		},
+		{
+			"name": "Text",
+			"description": "A short plain-text line in your own words. Never put product names, amounts, prices or totals here: the cards show those.",
+			"props": "text: string (required, plain text, no Markdown); variant?: heading|body|caption."
+		},
+		{
+			"name": "Notice",
+			"description": "A yellow notice for one important short sentence, such as a reminder.",
+			"props": "text: string (required, plain text)."
+		},
+		{
+			"name": "Button",
+			"description": "A quick-answer button that sends an action back to you as the next turn. Use for answers you offer the buyer, such as portion counts. After one tap every Button on the surface is read-only. Never use it to confirm an order: that happens only on the buyer's phone.",
+			"props": "label: string (required, 1 to 4 words); action: {event: {name: string (required), context?: object of strings, numbers or booleans}} ({name, context} also works); primary?: boolean (only one primary button per surface)."
+		},
+		{
+			"name": "RecipeDraftCard",
+			"description": "The editable 'Recipe I read' card for a recipe draft from a photo (propose_recipe, or a message with attachment_draft_id). The page loads the draft by id; the buyer edits and confirms it there, and the page confirms the draft itself. Actions back to you: recipe_confirmed {draftId, portions}: then call build_quote with recipe_draft_id; recipe_discarded {draftId}: the buyer started over; recipe_edit_as_new {draftId, copiedFrom}: the buyer is editing a copy of a confirmed draft, wait for recipe_confirmed.",
+			"props": "draftId: string (required, from the recipe draft)."
+		},
+		{
+			"name": "RecipeCard",
+			"description": "One recipe from search_recipes or get_recipe, with image, portions and the ingredients we can order. The page loads the recipe by id. Several in a Column make a short list (at most five). Actions back to you: recipe_selected {recipeId, portions}, recipe_swap {recipeId}.",
+			"props": "recipeId: string (required); portions: integer (required, the buyer's portion count)."
+		},
+		{
+			"name": "MenuWeek",
+			"description": "A Monday to Friday menu from show_menu, one dish a day. The page loads the menu by id. Actions back to you: menu_swap_day {menuId, day} (day is mon, tue, wed, thu or fri): offer another recipe for that day and call show_menu again; menu_build {menuId}: build one quote from the whole menu.",
+			"props": "menuId: string (required, from show_menu)."
+		},
+		{
+			"name": "QuoteCard",
+			"description": "A quote from build_quote or update_quote: what the buyer asked next to what was added, totals, delivery, flags, any clarification question and any line that can't be added. The page loads the quote by id and shows the engine's prices. Actions back to you: clarification_answered {quoteId, lineId, productId}: call update_quote with that product; rejection_next_step {quoteId, lineId}: act on that line's next step; send_for_confirmation {quoteId}: call request_confirmation.",
+			"props": "quoteId: string (required, from the latest quote)."
+		},
+		{
+			"name": "SentNotice",
+			"description": "Shown after request_confirmation: tells the buyer to open the demo phone in this browser to confirm. Never show or write the confirmation link.",
+			"props": "none."
+		}
+	]
+}

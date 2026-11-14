@@ -1,0 +1,247 @@
+/*
+ * Controls the chat cards share (design UI-01). Every class starts with `a2-`, so
+ * nothing outside the cards picks them up. Colours and fonts are the app.css tokens.
+ */
+
+.a2-cap {
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--muted);
+}
+.a2-cap.warn {
+	margin: 0;
+	color: var(--red);
+	font-weight: 600;
+}
+.a2-lbl {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.a2-tag {
+	font-family: var(--font-head);
+	font-weight: 700;
+	font-size: 12px;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	background: var(--yellow);
+	color: var(--ink);
+	padding: 1px 6px;
+	border-radius: 3px;
+	white-space: nowrap;
+}
+.a2-tag.soft {
+	background: var(--chip);
+	color: var(--muted);
+}
+.a2-tag.can {
+	background: var(--lime-soft);
+	color: #3f5a00;
+}
+
+.a2-in {
+	height: 42px;
+	min-width: 0;
+	width: 100%;
+	border: 1px solid var(--border-strong);
+	border-radius: 6px;
+	padding: 0 10px;
+	background: var(--card);
+	font: inherit;
+	font-size: 15px;
+	color: var(--ink);
+}
+.a2-in:disabled,
+.a2-in[readonly] {
+	background: var(--page);
+	color: var(--muted);
+}
+.a2-in.num {
+	text-align: right;
+}
+.a2-in.unsure {
+	border: 2px solid var(--amber);
+}
+.a2-in.bad {
+	border: 2px solid var(--red);
+}
+
+/* The one main action per card: lime. */
+.a2-main,
+.a2-sec,
+.a2-dark {
+	min-height: 50px;
+	padding: 0 18px;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-family: var(--font-head);
+	font-weight: 700;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+.a2-main {
+	flex: 1 1 auto;
+	border: 0;
+	background: var(--lime);
+	color: var(--ink);
+	font-size: 19px;
+	letter-spacing: 0.6px;
+}
+.a2-sec {
+	flex: 0 0 auto;
+	padding: 0 14px;
+	border: 2px solid var(--petrol);
+	background: var(--card);
+	color: var(--petrol);
+	font-size: 17px;
+	letter-spacing: 0.5px;
+}
+/* Send to my phone: petrol. */
+.a2-dark {
+	min-height: 48px;
+	width: 100%;
+	border: 0;
+	background: var(--petrol);
+	color: #fff;
+	font-size: 18px;
+	letter-spacing: 0.6px;
+}
+.a2-ghost {
+	min-height: 44px;
+	padding: 0 12px;
+	border-radius: 8px;
+	border: 2px solid var(--petrol);
+	background: var(--card);
+	color: var(--petrol);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 14px;
+	font-weight: 700;
+	cursor: pointer;
+}
+.a2-ghost.saved {
+	border-color: var(--ok-border);
+	background: var(--ok-bg);
+	color: #3f5a00;
+}
+.a2-pill {
+	min-height: 42px;
+	padding: 0 14px;
+	border-radius: 21px;
+	border: 2px solid var(--petrol);
+	background: var(--card);
+	color: var(--petrol);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 14px;
+	font-weight: 700;
+	cursor: pointer;
+}
+.a2-pill.lime {
+	background: var(--lime);
+	border-color: var(--lime);
+	color: var(--ink);
+}
+.a2-round {
+	width: 42px;
+	height: 42px;
+	flex-shrink: 0;
+	border-radius: 21px;
+	border: 0;
+	background: var(--chip);
+	color: var(--petrol);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+.a2-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+:is(.a2-main, .a2-sec, .a2-dark, .a2-ghost, .a2-pill, .a2-round):disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.a2-ghost.saved:disabled {
+	opacity: 1;
+}
+:is(.a2-main, .a2-sec, .a2-dark, .a2-ghost, .a2-pill, .a2-round, .a2-in):focus-visible {
+	outline: 3px solid var(--petrol);
+	outline-offset: 2px;
+}
+
+/* Yellow banner (guess from the picture) and the green "done" line. */
+.a2-banner,
+.a2-done {
+	margin: 0;
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	border-radius: 8px;
+	padding: 10px 12px;
+	font-size: 14px;
+	font-weight: 600;
+}
+.a2-banner {
+	background: var(--yellow-note);
+}
+.a2-done {
+	align-items: center;
+	background: var(--ok-bg);
+	border: 1px solid var(--ok-border);
+	padding: 9px 12px;
+	font-size: 15px;
+	font-weight: 700;
+}
+
+/* A read-only list: name, amount, tag. */
+.a2-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+.a2-list > li {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 7px 0;
+	border-top: 1px solid var(--divider);
+	font-size: 15px;
+}
+.a2-list > li > :first-child {
+	flex-grow: 1;
+	min-width: 0;
+}
+.a2-list > li > b {
+	white-space: nowrap;
+}
+.a2-list > li.muted {
+	color: var(--muted);
+}
+
+/* Recipe image or the placeholder plate. */
+.a2-img {
+	width: 76px;
+	height: 76px;
+	flex-shrink: 0;
+	border-radius: 8px;
+	background: var(--page);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+.a2-img img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
