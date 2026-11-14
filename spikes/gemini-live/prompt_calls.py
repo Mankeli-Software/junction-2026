@@ -609,9 +609,12 @@ PLACED = (
 FI_WORDS = {"ja", "on", "ei", "se", "että", "kiitos", "tilaus", "haluatko", "litraa", "euroa", "hei", "moi", "selvä", "vielä", "muuta", "tulee", "puhelimeesi"}
 
 
-def finnish_share(text: str) -> float:
+EN_WORDS = {"the", "and", "is", "for", "you", "your", "of", "to", "anything", "else", "it", "would", "order", "link", "got", "that"}
+
+
+def word_share(text: str, vocabulary: set[str]) -> float:
     words = re.findall(r"[a-zåäö]+", text.lower())
-    return sum(w in FI_WORDS for w in words) / len(words) if words else 0.0
+    return sum(w in vocabulary for w in words) / len(words) if words else 0.0
 
 
 def _calls(result: CallResult, name: str) -> list[tuple[int, dict[str, Any]]]:
@@ -661,7 +664,8 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
     ]
     rows.append(("package_word set for every package line", not no_word, f"lines {no_word}"))
     questions = max((t.agent.count("?") for t in agent_turns), default=0)
-    rows.append(("One question per turn (max '?' in a turn)", questions <= 1, str(questions)))
+    # Two '?' can be one question ("Mitä maitoa? Kevytmaitoa vai täysmaitoa?"): read those by hand.
+    rows.append(("One question per turn (max '?' in a turn; 2 = read by hand)", None if questions == 2 else questions <= 1, str(questions)))
 
     if scenario.unclear_first:
         updates = _calls(result, "update_quote")
@@ -719,11 +723,11 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
     rows.append(("Never promises email or SMS", not bad, ", ".join(bad)))
     later = [t for t in agent_turns if t.index >= 1]
     if scenario.reply_lang == "en":
-        worst = max((finnish_share(t.agent) for t in later), default=0.0)
+        worst = max((word_share(t.agent, FI_WORDS) for t in later), default=0.0)
         rows.append(("Replies in English after the caller speaks English", worst < 0.05, f"max Finnish word share {worst:.2f}"))
     else:
-        least = min((finnish_share(t.agent) for t in later), default=0.0)
-        rows.append(("Replies in Finnish", least > 0.0, f"min Finnish word share {least:.2f}"))
+        worst = max((word_share(t.agent, EN_WORDS) for t in later), default=0.0)
+        rows.append(("Replies in Finnish", worst < 0.05, f"max English word share {worst:.2f}"))
     if scenario.channel == "phone":
         listy = [t.index for t in agent_turns if re.search(r"^\s*[-*\d]+[.)]?\s", t.agent, re.M) or "**" in t.agent]
         rows.append(("Spoken style: no lists or markdown", not listy, f"turns {listy}"))
@@ -735,8 +739,8 @@ def check(scenario: Scenario, result: CallResult) -> list[tuple[str, bool | None
 # --- Report --------------------------------------------------------------------------
 
 
-def report(out_dir: Path, results: list[tuple[Scenario, CallResult]]) -> None:
-    md = [f"# Prompt calls {out_dir.name}", "", f"Prompt version {PROMPT_VERSION}", ""]
+def report(out_dir: Path, results: list[tuple[Scenario, CallResult]], version: str = PROMPT_VERSION) -> None:
+    md = [f"# Prompt calls {out_dir.name}", "", f"Prompt version {version}", ""]
     data = []
     for scenario, result in results:
         rows = check(scenario, result)
@@ -755,10 +759,26 @@ def report(out_dir: Path, results: list[tuple[Scenario, CallResult]]) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "results.md").write_text("\n".join(md), encoding="utf-8")
     (out_dir / "results.json").write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
-    print(f"Saved to {out_dir.relative_to(HERE)}")
+    print(f"Saved to {out_dir}")
+
+
+def recheck(out_dir: Path) -> None:
+    """Score a saved run again with the current checks (no API calls)."""
+    by_id = {s.id: s for s in SCENARIOS}
+    results = []
+    for item in json.loads((out_dir / "results.json").read_text(encoding="utf-8")):
+        raw = item["result"]
+        turns = [Turn(**t) for t in raw.pop("turns")]
+        results.append((by_id[item["scenario"]["id"]], CallResult(**raw, turns=turns)))
+    old = (out_dir / "results.md").read_text(encoding="utf-8")
+    version = re.search(r"Prompt version (\S+)", old).group(1)
+    report(out_dir, results, version)
 
 
 async def main_async(args) -> None:
+    if args.recheck:
+        recheck(Path(args.recheck))
+        return
     scenarios = [s for s in SCENARIOS if not args.only or s.id in args.only]
     today = date.fromisoformat(args.today) if args.today else date.today()
     if args.dry_run:
@@ -789,6 +809,7 @@ def main() -> None:
     ap.add_argument("--only", nargs="*", help=f"scenario ids: {', '.join(s.id for s in SCENARIOS)}")
     ap.add_argument("--audio", action="store_true", help="speak the caller turns with TTS (phone scenarios)")
     ap.add_argument("--today", help="business date, YYYY-MM-DD (default: today)")
+    ap.add_argument("--recheck", metavar="DIR", help="score a saved run in DIR again, call nothing")
     ap.add_argument("--dry-run", action="store_true", help="print the prompt and declarations, call nothing")
     asyncio.run(main_async(ap.parse_args()))
 
