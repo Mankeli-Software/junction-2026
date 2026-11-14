@@ -58,7 +58,7 @@ test('call, captions, hang up, notification, inbox link opens the confirmation p
 	await expect(page.getByText('Live captions, automatic')).toBeVisible();
 
 	// The agent greets, the timer runs, the caller's lines arrive as captions.
-	await expect(captions(page, 'agent').first()).toContainText('an AI helper', { timeout: 10_000 });
+	await expect(captions(page, 'agent').first()).toContainText('AI helper', { timeout: 10_000 });
 	await expect(page.getByTestId('timer')).toHaveText(/^0:0\d$/);
 	await expect(captions(page, 'buyer').first()).toContainText('five kilos of ground beef', { timeout: 15_000 });
 	await expect(captions(page, 'agent').nth(1)).toContainText('Shall I send the link', { timeout: 10_000 });
@@ -103,7 +103,7 @@ test('hanging up before agreeing sends nothing', async ({ page }) => {
 	// Call again starts a new call for the same company.
 	await page.getByRole('button', { name: 'Call S.I.MO again' }).click();
 	await expect(page.getByTestId('in-call')).toBeVisible();
-	await expect(captions(page, 'agent').first()).toContainText('an AI helper', { timeout: 10_000 });
+	await expect(captions(page, 'agent').first()).toContainText('AI helper', { timeout: 10_000 });
 	await page.getByRole('button', { name: 'Hang up' }).click();
 	await expect(page.getByTestId('call-ended')).toBeVisible();
 });
