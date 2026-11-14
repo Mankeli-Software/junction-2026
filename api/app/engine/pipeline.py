@@ -593,7 +593,7 @@ def _order(results: list[LineResult], data: EngineInput) -> EngineOutput:
         flags=flags,
         clarification=clarification,
         rejections=rejections,
-        not_ordered=[],
+        not_ordered=data.not_ordered,
         total_cents=total,
         delivery=DeliverySummary(earliest=dates[0], latest=dates[-1]) if dates else None,
         speak=speak,
