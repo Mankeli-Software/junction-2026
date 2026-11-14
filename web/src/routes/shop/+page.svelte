@@ -18,7 +18,7 @@
 	import ProductCard from '#lib/shop/components/ProductCard.svelte';
 	import { t } from '#lib/shop/i18n.js';
 	import { PRODUCTS, SHELVES } from '#lib/shop/products.js';
-	import { AGENT_TOOLS, findModelContext, registerAgentTools } from '#lib/shop/webmcp.js';
+	import { AGENT_TOOLS, findModelContext, installMcpB, registerAgentTools } from '#lib/shop/webmcp.js';
 	import type { PageProps } from './$types';
 
 	type Quote = components['schemas']['QuoteResponse'];
@@ -49,6 +49,7 @@
 		void identify();
 		let unregister: (() => void) | null = null;
 		// A polyfill or extension may add the model context a moment after the page loads.
+		let timer: ReturnType<typeof setTimeout> | undefined;
 		let tries = 0;
 		const look = () => {
 			const context = findModelContext();
@@ -61,8 +62,12 @@
 				tools = 'missing';
 			}
 		};
-		let timer = setTimeout(look, 0);
+		let gone = false;
+		void installMcpB().then(() => {
+			if (!gone) timer = setTimeout(look, 0);
+		});
 		return () => {
+			gone = true;
 			clearTimeout(timer);
 			unregister?.();
 		};

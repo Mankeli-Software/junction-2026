@@ -8,6 +8,11 @@
  * the inbox and page edits are never registered, and no result carries the
  * confirmation link. The page registers through `document.modelContext`, falling
  * back to `navigator.modelContext` (the API moved between the two in 2026).
+ *
+ * `installMcpB` first loads the MCP-B runtime (`@mcp-b/global`, #93): it wraps the
+ * browser's own model context when there is one (ChatGPT's browser, Chrome with the
+ * WebMCP flag) and installs a polyfill when there isn't, and it serves the tools to
+ * the MCP-B extension through this tab, so an agent in ordinary Chrome can use them.
  */
 import toolFile from '#lib/generated/agent-tools.json';
 
@@ -40,8 +45,29 @@ export interface ModelContext {
 	unregisterTool?(name: string): unknown;
 }
 
+const holder = (target: object) => (target as { modelContext?: ModelContext }).modelContext;
+
+/**
+ * Loads the MCP-B runtime once. Only this page's own origin may talk to it over the
+ * tab transport (the extension's content script posts from the page itself), and it
+ * never serves a parent frame. A failure leaves the browser's own context, if any.
+ * A browser with only the older `navigator.modelContext` keeps it: MCP-B would put a
+ * polyfill on `document` and the browser's own agent would never see the tools.
+ */
+export async function installMcpB(): Promise<void> {
+	if (!holder(document) && holder(navigator)) return;
+	try {
+		window.__webModelContextOptions = { autoInitialize: false };
+		const { initializeWebModelContext } = await import('@mcp-b/global');
+		initializeWebModelContext({
+			transport: { tabServer: { allowedOrigins: [window.location.origin] }, iframeServer: false }
+		});
+	} catch (error) {
+		console.warn('WebMCP: could not load the MCP-B runtime', error);
+	}
+}
+
 export function findModelContext(): ModelContext | null {
-	const holder = (target: object) => (target as { modelContext?: ModelContext }).modelContext;
 	return holder(document) ?? holder(navigator) ?? null;
 }
 

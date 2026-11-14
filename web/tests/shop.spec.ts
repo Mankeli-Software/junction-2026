@@ -86,6 +86,17 @@ test('the tools fall back to navigator.modelContext', async ({ page }) => {
 	expect((await registeredTools(page)).map((tool) => tool.name)).toEqual(AGENT_TOOLS.map((tool) => tool.name));
 });
 
+test('without a browser agent, the MCP-B runtime serves the tools for the extension', async ({ page }) => {
+	// No shim: plain Chromium has no model context, so @mcp-b/global installs its polyfill (#93).
+	await page.goto('/shop');
+	await expect(page.getByTestId('tools')).toHaveAttribute('data-state', 'ready');
+	const names = await page.evaluate(async () => {
+		const context = (document as unknown as { modelContext: { getTools(): Promise<{ name: string }[]> } }).modelContext;
+		return (await context.getTools()).map((tool) => tool.name);
+	});
+	expect(names.sort()).toEqual(AGENT_TOOLS.map((tool) => tool.name).sort());
+});
+
 test('static products with pack size and category, no prices', async ({ page }) => {
 	await page.goto('/shop');
 	const products = page.getByTestId('product');
