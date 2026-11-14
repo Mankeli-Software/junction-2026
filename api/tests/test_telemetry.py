@@ -141,3 +141,41 @@ async def test_every_audit_event_is_mirrored_as_a_log_line(db, caplog):
     assert line.__dict__["simo.seq"] == str(event.seq)
     assert line.__dict__["simo.text"] == "Tilaan maitoa."
     assert "simo.payload" not in line.__dict__
+
+
+@pytest.mark.usefixtures("app_db", "no_caller")
+def test_a_confirmation_flow_exports_no_token_and_no_full_phone_number(caplog):
+    # Part G of #84: run the whole flow with spans going to the in-memory exporter and every
+    # log line captured, then search them all for the secrets.
+    import random
+
+    from app.observability import quiet_http_clients
+
+    quiet_http_clients()  # as setup_observability() does on the VM
+    caplog.set_level(logging.DEBUG)
+    phone = f"+35840{random.randrange(10**6, 10**7)}"
+    client = TestClient(app)
+    created = client.post(
+        "/api/v1/demo/accounts", json={"phone_e164": phone, "exclusions": [], "lang": "en"}
+    )
+    assert created.status_code == 201, created.text
+    line = {
+        "line_id": "l1",
+        "text": "maito",
+        "quantity": 20,
+        "unit": "l",
+        "needed_by": "2026-11-16",
+    }
+    quote = client.post("/api/v1/quotes", json={"lines": [line]}).json()
+    sent = client.post(f"/api/v1/quotes/{quote['quote_id']}/confirmation-request")
+    assert sent.status_code == 200, sent.text
+    [message] = client.get("/api/v1/private/inbox").json()
+    token = message["link"].split("/c/", 1)[1]
+    assert client.get(f"/api/v1/confirmations/{token}").status_code == 200
+
+    exported = " ".join(
+        f"{s.name} {dict(s.attributes)}" for s in SPANS.get_finished_spans()
+    ) + " ".join(f"{r.getMessage()} {r.__dict__}" for r in caplog.records)
+    assert token not in exported
+    assert phone not in exported and phone[1:] not in exported
+    assert "tool request_confirmation" in exported  # the flow was really traced

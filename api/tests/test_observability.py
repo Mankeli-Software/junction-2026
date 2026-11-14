@@ -32,6 +32,7 @@ def test_it_configures_the_exporter_and_keeps_tokens_out(connection_string, monk
     fake.configure_azure_monitor = lambda **kwargs: calls.append(kwargs)
     monkeypatch.setitem(sys.modules, "azure.monitor.opentelemetry", fake)
     monkeypatch.delenv("OTEL_PYTHON_EXCLUDED_URLS", raising=False)
+    monkeypatch.delenv("OTEL_TRACES_SAMPLER", raising=False)
 
     assert observability.setup_observability() is True
 
@@ -49,10 +50,12 @@ def test_it_configures_the_exporter_and_keeps_tokens_out(connection_string, monk
     assert logging.getLogger("azure").level == logging.WARNING
     for client in ("httpx", "httpx2"):  # HTTP clients log full URLs
         assert logging.getLogger(client).level == logging.WARNING
+    assert os.environ["OTEL_TRACES_SAMPLER"] == "parentbased_always_on"  # no sampling
     excluded = os.environ["OTEL_PYTHON_EXCLUDED_URLS"].split(",")
     assert "/confirmations/" in excluded and "/oauth/" in excluded
     monkeypatch.delenv("OTEL_PYTHON_EXCLUDED_URLS")
     monkeypatch.delenv("OTEL_SERVICE_NAME")
+    monkeypatch.delenv("OTEL_TRACES_SAMPLER")
 
 
 @pytest.mark.parametrize(

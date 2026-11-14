@@ -42,6 +42,9 @@ def setup_observability() -> bool:
         return False
     os.environ.setdefault("OTEL_PYTHON_EXCLUDED_URLS", EXCLUDED_URLS)
     os.environ.setdefault("OTEL_SERVICE_NAME", "simo-api")
+    # Keep every trace (#84). Without a sampler the distro samples at 5 traces per second,
+    # which would silently drop most of a performance test run.
+    os.environ.setdefault("OTEL_TRACES_SAMPLER", "parentbased_always_on")
     from azure.monitor.opentelemetry import configure_azure_monitor
 
     from app.telemetry import ContextLogProcessor, ContextSpanProcessor
@@ -56,8 +59,12 @@ def setup_observability() -> bool:
     logging.getLogger().setLevel(logging.INFO)
     # The exporter logs every upload it makes, which would be logged and uploaded in turn.
     logging.getLogger("azure").setLevel(logging.WARNING)
-    # HTTP clients log every request's full URL at INFO, so a token in a URL would be
-    # exported. httpx2 is a second client package in the dependency tree.
+    quiet_http_clients()
+    return True
+
+
+def quiet_http_clients() -> None:
+    """HTTP clients log every request's full URL at INFO, so a token in a URL would be
+    exported. httpx2 is a second client package in the dependency tree."""
     for client in HTTP_CLIENT_LOGGERS:
         logging.getLogger(client).setLevel(logging.WARNING)
-    return True
