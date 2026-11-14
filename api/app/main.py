@@ -17,12 +17,19 @@ from app.interfaces.rest import dashboard as rest_dashboard
 from app.interfaces.rest import inbox as rest_inbox
 from app.interfaces.rest import oauth as rest_oauth
 from app.interfaces.rest import tools as rest_tools
+from app.services.dashboard.feed import start_feed
+from app.services.dashboard.stream import get_broadcaster
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    async with mcp.session_manager.run():
-        yield
+    # One LISTEN status_events connection for the public dashboard stream (#49).
+    listener, _ = start_feed(get_broadcaster())
+    try:
+        async with mcp.session_manager.run():
+            yield
+    finally:
+        await listener.stop()
 
 
 class McpSlashMiddleware:
