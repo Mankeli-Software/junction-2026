@@ -136,6 +136,14 @@ from .rules import (
     TextKey,
     UnitName,
 )
+from .shop import (
+    ShopCatalogue,
+    ShopCategory,
+    ShopGroup,
+    ShopProduct,
+    ShopProducts,
+    ShopSection,
+)
 from .tools import (
     BuildQuoteRequest,
     ConfirmationRequestResponse,
@@ -298,4 +306,10 @@ __all__ = [
     "UpdateQuoteBody",
     "UpdateQuoteRequest",
     "UsualItem",
+    "ShopCatalogue",
+    "ShopCategory",
+    "ShopGroup",
+    "ShopProduct",
+    "ShopProducts",
+    "ShopSection",
 ]
