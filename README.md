@@ -2,15 +2,15 @@
 
 Our entry to the Valio Aimo challenge at Junction 2026.
 
-S.I.MO is a deterministic ordering engine behind one MCP server. Any buyer agent can use it to find products, turn a recipe into order lines and get a fixed-price quote. The agent does the talking. The engine makes every decision, with no LLM inside. A human confirms every order through a link sent to their phone, and anything unusual is pointed out first.
+S.I.MO is a deterministic ordering engine behind one MCP server. Any buyer agent can use its ten tools to find products, turn a recipe (or a photo of one) into order lines and get a fixed-price quote. The agent does the talking. The engine makes every decision, with no LLM inside. There is no organisation model: a human confirms every order through a link sent to their phone, and anything unusual is pointed out first.
 
 Three clients sit on top of the same tools, to show that no client is special:
 
-- **Phone**: a call with S.I.MO in the browser, on Gemini Live voice, with live captions. This is the main stage demo.
-- **Webshop**: a static page of our own in the Aimo webshop's style that registers the tools through WebMCP, so a browser agent can order there.
-- **Chat connector**: Claude, ChatGPT or any MCP client connects to the MCP server directly.
+- **Phone**: a call with S.I.MO in the browser, with live captions. The audio goes through our relay to Gemini Live. No real phone call is placed. This is the main stage demo.
+- **Webshop**: our own page in the Aimo webshop's style, with the whole catalogue. It registers the tools through WebMCP, so a browser agent can order there (in the demo, Chrome with the MCP-B extension). It also has a S.I.MO chat panel, which can read a recipe photo.
+- **Chat connector**: Claude, ChatGPT or any MCP client connects to the MCP server directly, after an OAuth login.
 
-No agent tool can confirm an order. The only place to confirm is the page behind the link. Every step goes into a hash-chained audit log and shows up live on a public dashboard.
+No agent tool can confirm an order. The only place to confirm is the page behind the link, which also has an "Ask for changes" chat. Every step goes into a hash-chained audit log and shows up live on the dashboard.
 
 ## Try it
 
