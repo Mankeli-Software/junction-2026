@@ -31,6 +31,9 @@ services:
       # Set on the VM (deploy/vm.env). The API then reads its secrets from Key Vault with the
       # VM's managed identity. Empty on laptops.
       KEY_VAULT_URL: ${KEY_VAULT_URL:-}
+      # dev on laptops. prod on the VM (deploy/vm.env): Secure session cookies, and the API
+      # refuses to start without the quote signing key from Key Vault (#40).
+      ENV: ${ENV:-dev}
       # Confirmation links are <PUBLIC_BASE_URL>/c/<token>. deploy/vm.env sets it on the VM;
       # on laptops Caddy serves the web app on http://localhost.
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost}
@@ -49,6 +52,8 @@ services:
       # The confirmation page reads FastAPI at its address inside Compose. Not secret and the
       # same everywhere, so it lives here. CONFIRMATION_SOURCE=fixture brings back the fake order.
       API_BASE_URL: http://api:8000
+      # The dashboard's server-side loads call FastAPI here too (#50).
+      API_INTERNAL_URL: http://api:8000
       CONFIRMATION_SOURCE: ${CONFIRMATION_SOURCE:-api}
       # The demo phone's accounts and inbox come from FastAPI too (Caddy sends /api/* and
       # /voice/* there). DEMO_SOURCE=fixture brings back the in-memory stand-ins.
