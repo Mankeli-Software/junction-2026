@@ -83,12 +83,20 @@ def main() -> None:
     args = parser.parse_args()
 
     client = httpx.Client(base_url=args.base, headers={"User-Agent": "curl/8.4.0"})
-    phone = f"+35840{random.randrange(10**6, 10**7)}"
-    made = client.post(
-        "/api/v1/demo/accounts", json={"phone_e164": phone, "exclusions": [], "lang": "fi"}
-    )
-    if made.status_code != 201:
-        sys.exit(f"Could not make a demo account: {made.status_code} {made.text}")
+    # A new vegan catering company starts with the Vegan exclusion (#81), which would
+    # refuse the milk order: take another number until the kitchen has none.
+    for _ in range(20):
+        phone = f"+35840{random.randrange(10**6, 10**7)}"
+        made = client.post(
+            "/api/v1/demo/accounts", json={"phone_e164": phone, "exclusions": [], "lang": "fi"}
+        )
+        if made.status_code != 201:
+            sys.exit(f"Could not make a demo account: {made.status_code} {made.text}")
+        if not made.json()["exclusions"]:
+            break
+        client.cookies.clear()
+    else:
+        sys.exit("Every number got a kitchen with exclusions")
 
     failures: list[str] = []
     print(f"> {args.message}")

@@ -1,7 +1,6 @@
 """The webshop chat over HTTP (#57), with the model faked and the tools going through the
 real `/mcp` as a `web_chat` caller. Needs DATABASE_URL."""
 
-import random
 import uuid
 from datetime import timedelta
 
@@ -18,6 +17,7 @@ from app.main import app
 from app.models import AuditEvent, OrderSession, Quote
 from app.settings import get_settings
 from tests import chat_fakes as fx
+from tests.phones import new_number
 from tests.test_recipe_drafts import PROPOSAL
 
 LINE = {"line_id": "l1", "text": "maito", "quantity": 20, "unit": "l", "needed_by": "2026-11-16"}
@@ -54,11 +54,14 @@ def chat(live_client: TestClient, app_db: AsyncEngine, no_caller, monkeypatch):
 
 
 def sign_in(client: TestClient, lang: str = "en") -> None:
-    phone = f"+35840{random.randrange(10**6, 10**7)}"
+    phone = new_number()  # never a vegan catering number: these orders are milk
     response = client.post(
         "/api/v1/demo/accounts", json={"phone_e164": phone, "exclusions": [], "lang": lang}
     )
     assert response.status_code == 201, response.text
+    # The orders here are milk: a kitchen with an exclusion (a vegan catering number gets
+    # Vegan by default, #81) would refuse them.
+    assert response.json()["exclusions"] == [], response.json()
 
 
 def send(client: TestClient, url: str = "/api/v1/chat", **body) -> list:

@@ -6,7 +6,6 @@ The app commits for real here (`app_db`), because the stream only hears committe
 
 import asyncio
 import json
-import random
 import re
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -33,6 +32,7 @@ from app.services.caller import Caller
 from app.services.dashboard.feed import DashboardFeed, start_feed
 from app.services.dashboard.stream import Broadcaster, StreamEvent, get_broadcaster
 from app.settings import get_settings
+from tests.phones import new_number
 from tests.test_confirmation_page import STOCK_FLAG, Page, ordered
 from tests.test_dashboard_routes import Stream
 from tests.test_recipes import borrowed_offers, recipe_line  # noqa: F401 - a fixture
@@ -729,9 +729,7 @@ def test_order_filter_sends_matching_cards_and_one_last_update_for_cards_that_le
 @pytest.mark.usefixtures("recipes", "borrowed_offers")
 async def test_a_recipe_group_shows_its_image_on_the_summary(client, app_db):
     async with AsyncSession(app_db, expire_on_commit=False) as db:
-        account = await accounts.create_demo_account(
-            db, f"+35840{random.randrange(10**6, 10**7)}", [], "fi"
-        )
+        account = await accounts.create_demo_account(db, new_number(), [], "fi")
         caller = Caller(
             user_id=account.user_id,
             company_id=account.company_id,
