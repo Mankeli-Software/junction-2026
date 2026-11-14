@@ -20,6 +20,7 @@ from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from app import telemetry
 from app.interfaces.auth.routes import resource_metadata_url
 from app.interfaces.deps import bearer_token, resolve_caller
 from app.interfaces.mcp import descriptions
@@ -78,16 +79,20 @@ def _tool(
     """
 
     async def run(ctx: Context, **arguments: Any) -> BaseModel:
-        caller = await _caller(ctx)
-        request = request_model(**arguments) if request_model is not None else None
-        try:
-            return await run_tool(name, caller, service, request)
-        except ServiceError as error:
-            raise ToolError(str(error)) from error
-        except Exception:
-            # The SDK turns this into an "Error executing tool" result and logs nothing.
-            log.exception("Tool %s failed", name)
-            raise
+        # The handler may run outside the HTTP request's context: join the caller's trace
+        # and take the test-run headers from the request itself (#84).
+        http = ctx.request_context.request
+        with telemetry.from_request(http.headers if http is not None else {}):
+            caller = await _caller(ctx)
+            request = request_model(**arguments) if request_model is not None else None
+            try:
+                return await run_tool(name, caller, service, request)
+            except ServiceError as error:
+                raise ToolError(str(error)) from error
+            except Exception:
+                # The SDK turns this into an "Error executing tool" result and logs nothing.
+                log.exception("Tool %s failed", name)
+                raise
 
     run.__annotations__["return"] = response_model
     tool = Tool.from_function(run, name=name, description=description, structured_output=True)

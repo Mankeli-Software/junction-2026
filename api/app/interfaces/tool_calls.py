@@ -16,6 +16,7 @@ they are.
 """
 
 import inspect
+import logging
 import uuid
 from collections.abc import Callable
 from typing import Any
@@ -23,6 +24,7 @@ from typing import Any
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import telemetry
 from app.db import get_sessionmaker
 from app.interfaces.deps import DEV_CALLER
 from app.models import Quote
@@ -40,7 +42,36 @@ Service = Callable[..., Any]
 async def run_tool(
     name: str, caller: Caller, service: Service, request: BaseModel | None
 ) -> BaseModel:
+    """Run the tool inside its own span and correlation context (#84): every span and log
+    line under it carries the tool, the channel, the company and, once known, the session."""
     arguments = request.model_dump(mode="json") if request is not None else {}
+    timer = telemetry.Timer()
+    with (
+        telemetry.bound(
+            tool=name,
+            channel=caller.channel,
+            client_name=caller.client_name,
+            company_id=caller.company_id,
+            user_id=caller.user_id,
+        ),
+        telemetry.span(f"tool {name}", arguments=telemetry.summary(arguments)),
+    ):
+        try:
+            result = await _run(name, caller, service, request, arguments)
+        except ServiceError as error:
+            _observe(name, "error", timer, error=str(error))
+            raise
+        except Exception as error:
+            _observe(name, "error", timer, error=f"{type(error).__name__}: {error}")
+            raise
+        outcome, counts = _outcome(result.model_dump(mode="json"))
+        _observe(name, outcome, timer, result=telemetry.summary(result), **counts)
+        return result
+
+
+async def _run(
+    name: str, caller: Caller, service: Service, request: BaseModel | None, arguments: dict
+) -> BaseModel:
     error: ServiceError | None = None
     async with get_sessionmaker()() as db, db.begin():
         if _is_dev_caller(caller):
@@ -48,40 +79,70 @@ async def run_tool(
         quote_id = arguments.get("quote_id")
         session = await sessions.session_for_tool(db, caller, quote_id)
         named_quote = await _known_quote(db, session.id, quote_id)
-        await audit.record(
-            db,
-            type="tool_called",
-            actor="agent",
-            session_id=session.id,
-            quote_id=named_quote,
-            payload={"tool": name, "arguments": arguments},
-            text=Localized(fi=f"Agentti kutsui: {name}", en=f"The agent called {name}"),
-        )
-        try:
-            async with db.begin_nested():
-                result = await _call(service, db, caller, request)
-        except ServiceError as raised:
-            error = raised
-            payload = {"tool": name, "error": str(raised)}
-            text = Localized(fi=f"{name}: virhe: {raised}", en=f"{name} failed: {raised}")
-            returned_quote = named_quote
-        else:
-            response = result.model_dump(mode="json")
-            payload = {"tool": name, "response": response}
-            text = Localized(fi=f"{name} vastasi", en=f"{name} returned")
-            returned_quote = sessions.parse_uuid(response.get("quote_id")) or named_quote
-        await audit.record(
-            db,
-            type="tool_returned",
-            actor="service",
-            session_id=session.id,
-            quote_id=returned_quote,
-            payload=payload,
-            text=text,
-        )
+        with telemetry.bound(session_id=session.id, quote_id=named_quote):
+            await audit.record(
+                db,
+                type="tool_called",
+                actor="agent",
+                session_id=session.id,
+                quote_id=named_quote,
+                payload={"tool": name, "arguments": arguments},
+                text=Localized(fi=f"Agentti kutsui: {name}", en=f"The agent called {name}"),
+            )
+            try:
+                async with db.begin_nested():
+                    result = await _call(service, db, caller, request)
+            except ServiceError as raised:
+                error = raised
+                payload = {"tool": name, "error": str(raised)}
+                text = Localized(fi=f"{name}: virhe: {raised}", en=f"{name} failed: {raised}")
+                returned_quote = named_quote
+            else:
+                response = result.model_dump(mode="json")
+                payload = {"tool": name, "response": response}
+                text = Localized(fi=f"{name} vastasi", en=f"{name} returned")
+                returned_quote = sessions.parse_uuid(response.get("quote_id")) or named_quote
+            telemetry.annotate(quote_id=returned_quote)
+            await audit.record(
+                db,
+                type="tool_returned",
+                actor="service",
+                session_id=session.id,
+                quote_id=returned_quote,
+                payload=payload,
+                text=text,
+            )
     if error is not None:
         raise error
     return result
+
+
+def _outcome(response: dict[str, Any]) -> tuple[str, dict[str, int]]:
+    """A short outcome code and the counts that explain it, for spans, logs and metrics."""
+    counts = {
+        key: len(value)
+        for key in ("results", "lines", "flags", "rejections", "clarifications", "ingredients")
+        if isinstance(value := response.get(key), list)
+    }
+    if decision := response.get("decision"):
+        return str(decision), counts
+    if "results" in counts and counts["results"] == 0:
+        return "empty", counts
+    return "ok", counts
+
+
+def _observe(name: str, outcome: str, timer: telemetry.Timer, **attrs: Any) -> None:
+    """Close the tool's span with its outcome, write its log line and record its metrics."""
+    telemetry.annotate(outcome=outcome, duration_ms=timer.ms, **attrs)
+    if outcome == "error":
+        telemetry.failed(str(attrs.get("error", "tool error")))
+    level = logging.WARNING if outcome in ("error", "empty", "rejected") else logging.INFO
+    telemetry.event(
+        f"tool {name}: {outcome}", level, outcome=outcome, duration_ms=timer.ms, **attrs
+    )
+    metric = telemetry.metric_attrs(tool=name, outcome=outcome)
+    telemetry.tool_duration.record(timer.ms, metric)
+    telemetry.tool_calls.add(1, metric)
 
 
 async def _call(

@@ -25,6 +25,7 @@ from app.observability import setup_observability
 from app.services.dashboard.feed import start_feed
 from app.services.dashboard.stream import get_broadcaster
 from app.services.signing import signing_key
+from app.telemetry import TestTagsMiddleware
 
 
 @asynccontextmanager
@@ -62,6 +63,8 @@ app = FastAPI(
     telemetry={"exclude": excluded_from_telemetry},
 )
 app.add_middleware(McpSlashMiddleware)
+# Performance test runs tag their requests (X-Simo-Test-Run, #84).
+app.add_middleware(TestTagsMiddleware)
 app.include_router(rest_tools.router, prefix="/api/v1")
 app.include_router(rest_dashboard.router, prefix="/api/v1")
 app.include_router(rest_accounts.router, prefix="/api/v1")

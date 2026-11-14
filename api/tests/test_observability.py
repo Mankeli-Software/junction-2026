@@ -35,14 +35,20 @@ def test_it_configures_the_exporter_and_keeps_tokens_out(connection_string, monk
 
     assert observability.setup_observability() is True
 
-    assert calls == [
-        {"connection_string": "InstrumentationKey=abc;IngestionEndpoint=https://example.test/"}
-    ]
+    (call,) = calls
+    assert (
+        call["connection_string"]
+        == "InstrumentationKey=abc;IngestionEndpoint=https://example.test/"
+    )
+    # Every span and log record gets the call's ids (#84).
+    assert [type(p).__name__ for p in call["span_processors"]] == ["ContextSpanProcessor"]
+    assert [type(p).__name__ for p in call["log_record_processors"]] == ["ContextLogProcessor"]
     import logging
     import os
 
     assert logging.getLogger("azure").level == logging.WARNING
-    assert logging.getLogger("httpx").level == logging.WARNING  # it logs full URLs
+    for client in ("httpx", "httpx2"):  # HTTP clients log full URLs
+        assert logging.getLogger(client).level == logging.WARNING
     excluded = os.environ["OTEL_PYTHON_EXCLUDED_URLS"].split(",")
     assert "/confirmations/" in excluded and "/oauth/" in excluded
     monkeypatch.delenv("OTEL_PYTHON_EXCLUDED_URLS")
