@@ -9,8 +9,8 @@ The system prompt is `build_system_prompt` from `api/app/agent/prompt.py`. The f
 declarations are the contract's request models (`api/app/schemas/tools.py`) turned into
 JSON Schema with `$ref`s inlined, as the relay will do with the MCP tool list, plus the
 relay's local `end_call` on the phone. `build_quote` and `update_quote` are answered by
-the stub engine (`api/app/engine/stub.py`), `request_confirmation` by a fake
-`ConfirmationRequestResponse`.
+the stub engine (`stub_engine.py`, a copy of the removed `api/app/engine/stub.py`),
+`request_confirmation` by a fake `ConfirmationRequestResponse`.
 
 Phone calls run on `gemini-3.8-live` (one Live session per call). The chat call runs
 on a text model with `generate_content`, as the webshop chat would (no Live session).
@@ -45,7 +45,6 @@ API_DIR = HERE.parents[1] / "api"
 sys.path.insert(0, str(API_DIR))
 
 from app.agent import AGENT_TOOLS, CALL_CONNECTED, END_CALL, PROMPT_VERSION, build_system_prompt  # noqa: E402
-from app.engine.stub import MILK_ID, WHOLE_MILK_ID, decide  # noqa: E402
 from app.schemas import (  # noqa: E402
     BuildQuoteRequest,
     ConfirmationRequestResponse,
@@ -67,6 +66,7 @@ from app.schemas import (  # noqa: E402
     UsualItem,
 )
 from app.services.policy import load_rule_set  # noqa: E402
+from stub_engine import MILK_ID, WHOLE_MILK_ID, decide  # noqa: E402
 
 REPO = HERE.parents[1]
 OUT_DIR = HERE / "out" / "prompt_calls"
@@ -263,6 +263,7 @@ class StubService:
         out = decide(
             EngineInput(
                 lines=engine_lines,
+                candidates={},
                 kitchen=KitchenProfile(exclusions=[e.key for e in CONTEXT.exclusions]),
                 history=HistorySummary(usual_items=CONTEXT.usual_items, recent_lines=[]),
                 products=[],
