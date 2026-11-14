@@ -133,7 +133,9 @@ def _record(
         units=[u.unit_id for u in units],
         unit_conversions=_conversions(product, units, conversions),
         allergens=[AllergenEntry(code=a.code, containment=a.containment) for a in allergens],
-        allergen_listing=product.has_classifications,
+        # Listed only when the allergen or nonAllergen groups have an entry. Nutrition
+        # facts or labels alone say nothing about allergens (#113).
+        allergen_listing=bool(allergens),
         claims=sorted({_CLAIMS[c.claim_id] for c in claims if c.claim_id in _CLAIMS}),
         origin=product.country_of_origin.upper() if product.country_of_origin else None,
         # Valio's own URL from product_images (#108); null shows the placeholder.
