@@ -27,14 +27,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models.valio import ApiCache
 from app.schemas import Offer, OfferSource, ScheduleLine
-from app.settings import REPO_ROOT, get_settings
+from app.settings import get_settings
 
 log = logging.getLogger(__name__)
 
 ENDPOINTS = ("price", "availability")
 MAX_BATCH = 1000  # the API answers 422 above this
 USER_AGENT = "curl/8.4.0"  # Cloudflare blocks Python's default
-SNAPSHOT_DIR = REPO_ROOT / "data" / "snapshots"
 # Amounts at or above this are "unknown stock" placeholders (Terminal products and unbounded
 # Stock), not real quantities. Offers keep the number; the engine treats it as unverified.
 UNVERIFIED_AMOUNT = Decimal(999999)
@@ -178,8 +177,8 @@ class SnapshotStore:
     The files hold only API responses and fetch times, never the key.
     """
 
-    def __init__(self, directory: Path = SNAPSHOT_DIR):
-        self.directory = directory
+    def __init__(self, directory: Path | None = None):
+        self.directory = directory or get_settings().valio_snapshot_dir
 
     def _path(self, endpoint: str, requested: date) -> Path:
         return self.directory / f"{endpoint}-{requested.isoformat()}.json"
@@ -229,9 +228,13 @@ class SnapshotStore:
         products = self._read(path) if path.exists() else {}
         for product_id, data in entries.items():
             products[product_id] = {"fetched_at": fetched_at.isoformat(), "data": data}
-        self.directory.mkdir(parents=True, exist_ok=True)
         body = {"endpoint": endpoint, "requestedDate": requested.isoformat(), "products": products}
-        path.write_text(json.dumps(body, indent=1, sort_keys=True, ensure_ascii=False) + "\n")
+        try:
+            self.directory.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(body, indent=1, sort_keys=True, ensure_ascii=False) + "\n")
+        except OSError as error:
+            # The live response is still used; only the recording is lost.
+            log.error("SNAPSHOT NOT RECORDED: %s %s: %s", endpoint, requested, error)
 
 
 # --- Client -------------------------------------------------------------------------------

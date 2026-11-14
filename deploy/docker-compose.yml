@@ -40,9 +40,17 @@ services:
       # Engine rule files (#35), mounted read-only so the API can't change its own rules.
       POLICY_DIR: /srv/policy
       DATA_DIR: /srv/data
+      # Valio prices and stock (#31): snapshot reads recorded responses only, record calls
+      # the API and saves every response, live calls the API. deploy/vm.env sets the VM's.
+      VALIO_SOURCE: ${VALIO_SOURCE:-snapshot}
+      VALIO_SNAPSHOT_DIR: /srv/snapshots
     volumes:
       - ../policy:/srv/policy:ro
       - ../data:/srv/data:ro
+      # Snapshots are read and recorded here: the repo's data/snapshots on a laptop, a
+      # directory outside the repo on the VM (deploy/vm.env), so recordings survive rebuilds
+      # and never collide with a git pull.
+      - ${VALIO_SNAPSHOT_HOST_DIR:-../data/snapshots}:/srv/snapshots
 
   web:
     build: ../web

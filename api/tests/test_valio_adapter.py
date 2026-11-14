@@ -287,3 +287,26 @@ async def test_the_recorded_milk_shortlist_works_in_snapshot_mode():
     assert is_unverified(offers["464073"].schedule[0].amount)  # unbounded stock
     assert offers["462775"].schedule[0].amount == 51  # partial stock
     assert offers["464440"].schedule == []  # empty schedule: not available
+
+
+def test_snapshots_use_the_configured_directory(tmp_path, monkeypatch):
+    from app.adapters.valio import SnapshotStore
+    from app.settings import get_settings
+
+    monkeypatch.setattr(get_settings(), "valio_snapshot_dir", tmp_path)
+    assert SnapshotStore().directory == tmp_path
+
+
+def test_a_failed_recording_is_logged_and_does_not_break_the_lookup(tmp_path, caplog):
+    # On the VM a missing or read-only snapshot directory must not fail the quote.
+    from datetime import UTC, date, datetime
+
+    from app.adapters.valio import SnapshotStore
+
+    blocker = tmp_path / "not-a-directory"
+    blocker.write_text("a file where the directory should be")
+    store = SnapshotStore(blocker / "snapshots")
+
+    store.put("price", {"464306": {"price": 1}}, date(2026, 11, 16), datetime.now(UTC))
+
+    assert "SNAPSHOT NOT RECORDED" in caplog.text

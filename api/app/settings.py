@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     # live: call the API (cached 300 s). record: call it and save every response under
     # data/snapshots/. snapshot: read only the saved responses, never the network.
     valio_source: Literal["snapshot", "record", "live"] = "snapshot"
+    # Where snapshots are read and recorded. On the VM a host directory outside the repo
+    # (deploy/vm.env), so recordings survive rebuilds and never collide with git pulls.
+    valio_snapshot_dir: Path = REPO_ROOT / "data" / "snapshots"
     valio_api_key: str = ""
     valio_base_url: str = "https://junction26.valioaimo.fi/api"
     gemini_api_key: str = ""
