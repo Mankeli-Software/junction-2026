@@ -13,6 +13,7 @@ from app.models.catalogue import (
     ProductUnit,
     ProductUnitConversion,
 )
+from app.models.confirmations import Confirmation, SmsMessage
 from app.models.customers import Company, KitchenProfile, User
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "Base",
     "Category",
     "Company",
+    "Confirmation",
     "KitchenProfile",
     "Product",
     "ProductAllergen",
@@ -29,6 +31,7 @@ __all__ = [
     "ProductSubstitution",
     "ProductUnit",
     "ProductUnitConversion",
+    "SmsMessage",
     "User",
     "WebSession",
 ]
