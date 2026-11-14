@@ -43,6 +43,6 @@ export default defineConfig({
 		demoSource === 'api' ? { proxy: { '/voice': { target: apiBaseUrl, ws: true, changeOrigin: true } } } : undefined,
 	test: {
 		// Unit tests only. The Playwright specs in tests/ run with `pnpm test:e2e`.
-		include: ['src/**/*.test.ts']
+		include: ['src/**/*.test.ts', 'scripts/**/*.test.ts']
 	}
 });
