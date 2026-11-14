@@ -234,6 +234,7 @@ class FakeService:
         self.started = 0
         self.said: list[tuple[str, str, dict[str, Any]]] = []
         self.local_tools: list[tuple[str, dict[str, Any]]] = []
+        self.log: list[str] = []  # said and local tool events, in writing order
         self.ended: list[dict[str, Any]] = []
         self.end_called = threading.Event()
 
@@ -259,9 +260,11 @@ class FakeService:
 
     async def record_said(self, db, session_id, who, text, **extra):
         self.said.append((who, text, extra))
+        self.log.append(f"{who}_said: {text}")
 
     async def record_local_tool(self, db, session_id, name, arguments, response):
         self.local_tools.append((name, response))
+        self.log.append(f"tool: {name}")
 
     async def end_call(self, db, user_id, session_id, *, ended_by, duration_s, now=None):
         self.ended.append({"ended_by": ended_by, "duration_s": duration_s})

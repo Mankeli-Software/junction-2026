@@ -24,7 +24,7 @@ import json
 import logging
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from typing import Any
@@ -60,6 +60,8 @@ PLAYBACK_MARGIN_S = 0.4
 FILLER_GAP_S = 4.0
 # How long the end of a call waits for a request_confirmation still running.
 PENDING_TOOLS_S = 2.0
+# How long a tool call waits for the transcript log to catch up.
+LOG_FLUSH_S = 2.0
 CHUNK_BYTES = live.OUT_RATE * 2 // 10  # 100 ms of 24 kHz audio
 
 REFUSED_CONFIRMATION = (
@@ -116,7 +118,8 @@ class Call:
         self.answered_at: float | None = None
         self.socket_gone = False
         self._send_lock = asyncio.Lock()
-        self._log_queue: asyncio.Queue[tuple[str, str, dict[str, Any]] | None] = asyncio.Queue()
+        # Audit writes in call order, off the audio path (transcripts, relay-answered tools).
+        self._log_queue: asyncio.Queue[Callable[[], Awaitable[None]]] = asyncio.Queue()
         self._tasks: set[asyncio.Task[Any]] = set()
 
         # What S.I.MO is doing (agent_state), sent only on change.
@@ -431,17 +434,23 @@ class Call:
             self._log("agent", text, {"lang": self.caller_lang or self.start.caller.lang})
 
     def _log(self, who: str, text: str, extra: dict[str, Any]) -> None:
-        self._log_queue.put_nowait((who, text, extra))
+        self._log_queue.put_nowait(lambda: self._write_said(who, text, extra))
 
     async def _log_writer(self) -> None:
         while True:
-            item = await self._log_queue.get()
+            write = await self._log_queue.get()
             try:
-                if item is None:
-                    return
-                await self._write_said(*item)
+                await write()
             finally:
                 self._log_queue.task_done()
+
+    async def _log_flushed(self) -> None:
+        """Waits until the log is written, so a tool's own events come after the caption
+        that led to it."""
+        try:
+            await asyncio.wait_for(self._log_queue.join(), LOG_FLUSH_S)
+        except TimeoutError:
+            log.warning("The transcript log is behind")
 
     async def _write_said(self, who: str, text: str, extra: dict[str, Any]) -> None:
         assert self.start is not None
@@ -455,9 +464,9 @@ class Call:
     async def _drain_log(self) -> None:
         """Writes what the log task had not written yet (it is cancelled by now)."""
         while not self._log_queue.empty():
-            item = self._log_queue.get_nowait()
-            if item is not None:
-                await self._write_said(*item)
+            write = self._log_queue.get_nowait()
+            await write()
+            self._log_queue.task_done()
 
     # --- Tools --------------------------------------------------------------------------
 
@@ -480,8 +489,9 @@ class Call:
         try:
             if name == REQUEST_CONFIRMATION and not await self._caller_answered():
                 response: dict[str, Any] = {"error": REFUSED_CONFIRMATION}
-                await self._record_local_tool(name, arguments, response)
+                self._record_local_tool(name, arguments, response)
             else:
+                await self._log_flushed()
                 response = await self.tools.call_tool(name, arguments)
             if name in QUOTE_TOOLS and "output" in response:
                 self.quote_mark = self.buyer_utterances
@@ -544,7 +554,7 @@ class Call:
         if self.ending:
             return
         self.ending = True
-        await self._record_local_tool(END_CALL, {}, {"ok": True})
+        self._record_local_tool(END_CALL, {}, {"ok": True})
         self._spawn(self._end_after_goodbye())
 
     async def _end_after_goodbye(self) -> None:
@@ -558,7 +568,12 @@ class Call:
             await asyncio.sleep(0.1)
         self._request_end("agent")
 
-    async def _record_local_tool(
+    def _record_local_tool(
+        self, name: str, arguments: dict[str, Any], response: dict[str, Any]
+    ) -> None:
+        self._log_queue.put_nowait(lambda: self._write_local_tool(name, arguments, response))
+
+    async def _write_local_tool(
         self, name: str, arguments: dict[str, Any], response: dict[str, Any]
     ) -> None:
         assert self.start is not None
