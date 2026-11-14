@@ -44,7 +44,7 @@ TOP = 20
 OTHER = "Muut tuotteet"
 SEPARATOR = " > "
 # A pack size in a Finnish product name: "1 l", "1,5 kg", "e5 kg" (each 5 kg).
-PACK_SIZE = re.compile(r"(?<![\w,])e?(\d+(?:,\d+)?)\s?(kg|g|dl|l)\b")
+PACK_SIZE = re.compile(r"(?<![\w,])e?(\d+(?:,\d+)?)\s?(kg|g|dl|l)\b", re.IGNORECASE)
 
 
 @cache
@@ -132,7 +132,7 @@ def _is_valio(brand: str | None, vendor: str) -> bool:
 
 def _pack_size(name_fi: str) -> str | None:
     size = PACK_SIZE.search(name_fi)
-    return f"{size.group(1)} {size.group(2)}" if size else None
+    return f"{size.group(1)} {size.group(2).lower()}" if size else None
 
 
 def _recipe_uses():

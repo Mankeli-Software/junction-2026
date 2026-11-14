@@ -40,6 +40,7 @@ def test_pack_size_comes_from_the_name():
     assert shop._pack_size("Valio rasvaton maito 1 l") == "1 l"
     assert shop._pack_size("Koskenlaskija 1,5 kg") == "1,5 kg"
     assert shop._pack_size("Peruna e10 kg") == "10 kg"
+    assert shop._pack_size("Arla Maitojuoma 1L laktoositon") == "1 l"
     assert shop._pack_size("Lautasliina valkoinen") is None
 
 
