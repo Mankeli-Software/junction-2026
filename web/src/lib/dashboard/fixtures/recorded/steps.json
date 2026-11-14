@@ -1,0 +1,274 @@
+[
+ {
+  "seq": 24,
+  "order_index": 1,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": null,
+  "at": "2026-11-14T15:48:24.261877Z",
+  "actor": "service",
+  "type": "session_started",
+  "text": {
+   "fi": "Keskustelu alkoi",
+   "en": "Conversation started"
+  },
+  "payload_hash": "1022408b6d7f342f4274502a9cbcd53abd4c8a48110472f46ea3cfbb230611c0",
+  "prev_hash": "b8c1852b06bea306afc6642188f68fb75ca3fea9e5ec119d3f8ebefc43065727",
+  "session_prev_hash": null,
+  "hash": "f27aa3a2e3830fdc6e978fa194a1b55cee208276951b6a2148dd5b9a7e918b92"
+ },
+ {
+  "seq": 25,
+  "order_index": 2,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": null,
+  "at": "2026-11-14T15:48:24.266521Z",
+  "actor": "agent",
+  "type": "tool_called",
+  "text": {
+   "fi": "Agentti kutsui: build_quote",
+   "en": "The agent called build_quote"
+  },
+  "payload_hash": "c5682599f30eb6492cb5b68609ef65e5128358962b8ef1d3e1c525da118b0e51",
+  "prev_hash": "f27aa3a2e3830fdc6e978fa194a1b55cee208276951b6a2148dd5b9a7e918b92",
+  "session_prev_hash": "f27aa3a2e3830fdc6e978fa194a1b55cee208276951b6a2148dd5b9a7e918b92",
+  "hash": "251bf95da0c27221861caf6bb86ec6bd341e90d0412e19e761e637899d1c2738"
+ },
+ {
+  "seq": 26,
+  "order_index": 3,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.272769Z",
+  "actor": "service",
+  "type": "request_received",
+  "text": {
+   "fi": "Tilauspyynt\u00f6, 2 rivi\u00e4",
+   "en": "Order request, 2 lines"
+  },
+  "payload_hash": "882accfa691670d790c6adf270d8126a39f3a860159c79ebec5aeb5567bb3f47",
+  "prev_hash": "251bf95da0c27221861caf6bb86ec6bd341e90d0412e19e761e637899d1c2738",
+  "session_prev_hash": "251bf95da0c27221861caf6bb86ec6bd341e90d0412e19e761e637899d1c2738",
+  "hash": "1c8ff313c13436f818df64ccb801f9e53366c607c5c990c4f65c6b4f9d774ac1"
+ },
+ {
+  "seq": 27,
+  "order_index": 4,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.308528Z",
+  "actor": "service",
+  "type": "products_searched",
+  "text": {
+   "fi": "Haettiin 12 tuotetta",
+   "en": "Searched 12 products"
+  },
+  "payload_hash": "8df705d0267829623d311d078819b33799530a70b878f6582c63f421cd6d67d7",
+  "prev_hash": "1c8ff313c13436f818df64ccb801f9e53366c607c5c990c4f65c6b4f9d774ac1",
+  "session_prev_hash": "1c8ff313c13436f818df64ccb801f9e53366c607c5c990c4f65c6b4f9d774ac1",
+  "hash": "5e401eee0607ed4f8b969204f6dd9f1565903374452e92ccfced173598dafc2a"
+ },
+ {
+  "seq": 28,
+  "order_index": 5,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.397911Z",
+  "actor": "service",
+  "type": "availability_checked",
+  "text": {
+   "fi": "Tarkistettiin hinta ja saatavuus, 12 tuotetta",
+   "en": "Checked price and availability of 12 products"
+  },
+  "payload_hash": "2441588286e96d4da2ba4e98c533c5f06cefec5bd09c6ba07c67d5471f5233c4",
+  "prev_hash": "5e401eee0607ed4f8b969204f6dd9f1565903374452e92ccfced173598dafc2a",
+  "session_prev_hash": "5e401eee0607ed4f8b969204f6dd9f1565903374452e92ccfced173598dafc2a",
+  "hash": "e90d85deb49910ce68197c98f859e9f23cda46fe232eacabf4bc966e1b78bef5"
+ },
+ {
+  "seq": 29,
+  "order_index": 6,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.414389Z",
+  "actor": "engine",
+  "type": "candidates_filtered",
+  "text": {
+   "fi": "Ehdokkaat suodatettiin",
+   "en": "Candidates filtered"
+  },
+  "payload_hash": "ca2ecb3ecfe6af171d85cb8b127f4488e5519a5a7faf98a4c88739adbd28d0e5",
+  "prev_hash": "e90d85deb49910ce68197c98f859e9f23cda46fe232eacabf4bc966e1b78bef5",
+  "session_prev_hash": "e90d85deb49910ce68197c98f859e9f23cda46fe232eacabf4bc966e1b78bef5",
+  "hash": "7aefa44b314e06f26a8ff6f7c57e07f7e24a67bf7d8ff69f7a5d8a4628f22eb1"
+ },
+ {
+  "seq": 30,
+  "order_index": 7,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.418305Z",
+  "actor": "engine",
+  "type": "line_resolved",
+  "text": {
+   "fi": "Edullisin vaihtoehto, joka ehtii perille maanantaina 16.11. menness\u00e4.",
+   "en": "The lowest-priced option that arrives by Monday 16 November."
+  },
+  "payload_hash": "77819ed28196c632030bdfe2cb6bd44cca33c0baf8c9bd0f16bdd24189a64278",
+  "prev_hash": "7aefa44b314e06f26a8ff6f7c57e07f7e24a67bf7d8ff69f7a5d8a4628f22eb1",
+  "session_prev_hash": "7aefa44b314e06f26a8ff6f7c57e07f7e24a67bf7d8ff69f7a5d8a4628f22eb1",
+  "hash": "0e55414284e9ea21d8e3b321654c88f2280a6fb67981385931f71d08658c9f86"
+ },
+ {
+  "seq": 31,
+  "order_index": 8,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.420698Z",
+  "actor": "engine",
+  "type": "line_resolved",
+  "text": {
+   "fi": "Edullisin vaihtoehto, joka ehtii perille maanantaina 16.11. menness\u00e4.",
+   "en": "The lowest-priced option that arrives by Monday 16 November."
+  },
+  "payload_hash": "0985d4b005130afef8cf42e279bf56ca629842fc1a7cbaf68b75666545001d51",
+  "prev_hash": "0e55414284e9ea21d8e3b321654c88f2280a6fb67981385931f71d08658c9f86",
+  "session_prev_hash": "0e55414284e9ea21d8e3b321654c88f2280a6fb67981385931f71d08658c9f86",
+  "hash": "06e7abc9eb713c6f57b6683b49dfdfa8945426ce527b9de7547ee1ada15de2b6"
+ },
+ {
+  "seq": 32,
+  "order_index": 9,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.423178Z",
+  "actor": "service",
+  "type": "quote_built",
+  "text": {
+   "fi": "Tarjous on valmis. Valio Hyv\u00e4 suomalainen Arki\u00ae Eila\u00ae kevytmaitojuoma 1 l laktoositon, 20 kappaletta, 23,00\u00a0\u20ac. Arla Maitojuoma 1L laktoositon rasvaton UHT Suomesta, 5 kappaletta, 14,60\u00a0\u20ac. Toimitus maanantaina 16.11., yhteens\u00e4 37,60\u00a0\u20ac. Tarkistettavia kohtia vahvistussivulla: 1.",
+   "en": "The quote is ready. Valio Hyv\u00e4 suomalainen Arki\u00ae Eila\u00ae semi skimmed milk drink 1 l lactose free, 20 pieces, \u20ac23.00. Arla Milkdrink 1L lactose free fat free UHT Suomesta, 5 pieces, \u20ac14.60. Delivery Monday 16 November, total \u20ac37.60. Notes to check on the confirmation page: 1."
+  },
+  "payload_hash": "a58b5452f170719d02c38193243f9f08961050664ac6aeb4a5a572d9a6998b59",
+  "prev_hash": "06e7abc9eb713c6f57b6683b49dfdfa8945426ce527b9de7547ee1ada15de2b6",
+  "session_prev_hash": "06e7abc9eb713c6f57b6683b49dfdfa8945426ce527b9de7547ee1ada15de2b6",
+  "hash": "623137723a2c416ea4c24104c85b37f2a3f576da0b320b45cfb3d12b78ac1dd5"
+ },
+ {
+  "seq": 33,
+  "order_index": 10,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.428057Z",
+  "actor": "service",
+  "type": "tool_returned",
+  "text": {
+   "fi": "build_quote vastasi",
+   "en": "build_quote returned"
+  },
+  "payload_hash": "122c1b73451ec152bb3fe9233cf7df8784046f9c30f7e540d176d0e58ca63809",
+  "prev_hash": "623137723a2c416ea4c24104c85b37f2a3f576da0b320b45cfb3d12b78ac1dd5",
+  "session_prev_hash": "623137723a2c416ea4c24104c85b37f2a3f576da0b320b45cfb3d12b78ac1dd5",
+  "hash": "f10bf7b2ce04a630054d6cf1d9ed06b001615b0260e7291a364dd760fd31dd02"
+ },
+ {
+  "seq": 34,
+  "order_index": 11,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.474266Z",
+  "actor": "agent",
+  "type": "tool_called",
+  "text": {
+   "fi": "Agentti kutsui: request_confirmation",
+   "en": "The agent called request_confirmation"
+  },
+  "payload_hash": "4d766e286309904546e0f6e8d8cddb860eb7a99a6e46ea1ba298ac5f40216173",
+  "prev_hash": "f10bf7b2ce04a630054d6cf1d9ed06b001615b0260e7291a364dd760fd31dd02",
+  "session_prev_hash": "f10bf7b2ce04a630054d6cf1d9ed06b001615b0260e7291a364dd760fd31dd02",
+  "hash": "9f6b10efb8ef37a20a1de5e4c634aa4a685f53844480a0c401e948d8b2d188aa"
+ },
+ {
+  "seq": 35,
+  "order_index": 12,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:48:24.486615Z",
+  "actor": "service",
+  "type": "tool_returned",
+  "text": {
+   "fi": "request_confirmation vastasi",
+   "en": "request_confirmation returned"
+  },
+  "payload_hash": "3c0fc12efb1b385058d5edd63077670a080407d596cbce88417e1ac2e8832a51",
+  "prev_hash": "9f6b10efb8ef37a20a1de5e4c634aa4a685f53844480a0c401e948d8b2d188aa",
+  "session_prev_hash": "9f6b10efb8ef37a20a1de5e4c634aa4a685f53844480a0c401e948d8b2d188aa",
+  "hash": "6f88a9bec92ca3dd2b1afc09a957ffab025d77e65c557d46d90404c135371704"
+ },
+ {
+  "seq": 36,
+  "order_index": 13,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:55:28.871425Z",
+  "actor": "buyer",
+  "type": "link_opened",
+  "text": {
+   "fi": "Vahvistuslinkki avattiin",
+   "en": "The confirmation link was opened"
+  },
+  "payload_hash": "fbe7041cc68edf5533946bcfe9cd2acf78bfec2de903b9565d86c0ca20e2a591",
+  "prev_hash": "6f88a9bec92ca3dd2b1afc09a957ffab025d77e65c557d46d90404c135371704",
+  "session_prev_hash": "6f88a9bec92ca3dd2b1afc09a957ffab025d77e65c557d46d90404c135371704",
+  "hash": "ac69acc545a42e9596f552aa0a5fd7a3a3389d75c88900c03aab06bcc6065d2d"
+ },
+ {
+  "seq": 37,
+  "order_index": 14,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:55:41.575407Z",
+  "actor": "buyer",
+  "type": "flags_acknowledged",
+  "text": {
+   "fi": "Ostaja kuittasi: Tuotteen Valio Hyv\u00e4 suomalainen Arki\u00ae Eila\u00ae kevytmaitojuoma 1 l laktoositon varastosaldoa ei voitu varmistaa. Tilaus on mahdollinen, mutta toimitusta ei ole vahvistettu.",
+   "en": "The buyer checked: Stock for Valio Hyv\u00e4 suomalainen Arki\u00ae Eila\u00ae semi skimmed milk drink 1 l lactose free could not be verified. It can be ordered, but delivery is not confirmed."
+  },
+  "payload_hash": "feeffb9d602f4d7a1d1b4038a2edc4532f9ee5607f38b018edf0522f3a8b6464",
+  "prev_hash": "ac69acc545a42e9596f552aa0a5fd7a3a3389d75c88900c03aab06bcc6065d2d",
+  "session_prev_hash": "ac69acc545a42e9596f552aa0a5fd7a3a3389d75c88900c03aab06bcc6065d2d",
+  "hash": "966331e5500361385a35c305a8cd33f7a59094f671d8b4e3839ef1613554c939"
+ },
+ {
+  "seq": 38,
+  "order_index": 15,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:55:41.591974Z",
+  "actor": "confirmation",
+  "type": "stock_rechecked",
+  "text": {
+   "fi": "Saatavuus tarkistettiin uudelleen",
+   "en": "Availability checked again"
+  },
+  "payload_hash": "eb596e0403a17437c31965891ae100fd0692131d1517b3ba4fa5d1a79c985dd0",
+  "prev_hash": "966331e5500361385a35c305a8cd33f7a59094f671d8b4e3839ef1613554c939",
+  "session_prev_hash": "966331e5500361385a35c305a8cd33f7a59094f671d8b4e3839ef1613554c939",
+  "hash": "d0025b4f141ca718e478774eb393360cea6a377953387bf995078f1be35f4264"
+ },
+ {
+  "seq": 39,
+  "order_index": 16,
+  "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+  "quote_id": "e874b41e-ed31-42e6-ad41-f095dd4b1049",
+  "at": "2026-11-14T15:55:41.601318Z",
+  "actor": "buyer",
+  "type": "order_confirmed",
+  "text": {
+   "fi": "Tilaus D-1042 vahvistettiin",
+   "en": "Order D-1042 was confirmed"
+  },
+  "payload_hash": "f873506395e5f39e966e060fa06fdb323c127f63d292991de436c1fe5f080c84",
+  "prev_hash": "d0025b4f141ca718e478774eb393360cea6a377953387bf995078f1be35f4264",
+  "session_prev_hash": "d0025b4f141ca718e478774eb393360cea6a377953387bf995078f1be35f4264",
+  "hash": "3a1a0b6fb49d477b2d9ce053bbcbbadc329b476b600d6cc3c52c225e6448d069"
+ }
+]

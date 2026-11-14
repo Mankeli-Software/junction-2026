@@ -30,7 +30,8 @@
 					"total_cents": null,
 					"flags": [],
 					"next_step": null,
-					"delivery_date": "2026-11-16"
+					"delivery_date": "2026-11-16",
+					"recipe_count": null
 				},
 				{
 					"session_id": "s_2611_0042",
@@ -53,7 +54,8 @@
 						{ "code": "no_allergen_info", "short": { "en": "no allergen info", "fi": "ei allergeenitietoa" } }
 					],
 					"next_step": null,
-					"delivery_date": "2026-11-16"
+					"delivery_date": "2026-11-16",
+					"recipe_count": null
 				},
 				{
 					"session_id": "s_2611_0039",
@@ -69,7 +71,8 @@
 					"total_cents": 2580,
 					"flags": [],
 					"next_step": null,
-					"delivery_date": "2026-11-16"
+					"delivery_date": "2026-11-16",
+					"recipe_count": null
 				}
 			]
 		},
@@ -97,7 +100,8 @@
 					"total_cents": null,
 					"flags": [],
 					"next_step": null,
-					"delivery_date": "2026-11-16"
+					"delivery_date": "2026-11-16",
+					"recipe_count": null
 				}
 			]
 		},
@@ -125,7 +129,8 @@
 						{ "code": "new_product", "short": { "en": "new product", "fi": "uusi tuote" } }
 					],
 					"next_step": null,
-					"delivery_date": "2026-11-16"
+					"delivery_date": "2026-11-16",
+					"recipe_count": null
 				}
 			]
 		},
@@ -167,7 +172,8 @@
 					"total_cents": 7470,
 					"flags": [],
 					"next_step": null,
-					"delivery_date": "2026-11-16"
+					"delivery_date": "2026-11-16",
+					"recipe_count": null
 				}
 			]
 		},
@@ -192,7 +198,8 @@
 						"en": "Next: the agent offers to resend the link",
 						"fi": "Seuraavaksi: agentti tarjoaa linkin uudelleen"
 					},
-					"delivery_date": "2026-11-16"
+					"delivery_date": "2026-11-16",
+					"recipe_count": null
 				}
 			]
 		}

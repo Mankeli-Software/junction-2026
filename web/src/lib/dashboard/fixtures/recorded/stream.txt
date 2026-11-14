@@ -1,0 +1,251 @@
+event: snapshot
+data: {"business_now":"2026-11-12T09:00:00+02:00","totals":{"active":0,"waiting":0,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":0,"mcp":0}},"companies":[]}
+
+id: 1
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":1,"order_index":1,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":null,"at":"2026-11-14T15:47:08.902486Z","actor":"service","type":"session_started","text":{"fi":"Keskustelu alkoi","en":"Conversation started"},"payload_hash":"1022408b6d7f342f4274502a9cbcd53abd4c8a48110472f46ea3cfbb230611c0","prev_hash":"0000000000000000000000000000000000000000000000000000000000000000","session_prev_hash":null,"hash":"192d726775d6686f1e385f58e5229c2d703345775231f2de5f026ae515723097"}}
+
+id: 2
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":2,"order_index":2,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":null,"at":"2026-11-14T15:47:08.911522Z","actor":"agent","type":"tool_called","text":{"fi":"Agentti kutsui: build_quote","en":"The agent called build_quote"},"payload_hash":"c5682599f30eb6492cb5b68609ef65e5128358962b8ef1d3e1c525da118b0e51","prev_hash":"192d726775d6686f1e385f58e5229c2d703345775231f2de5f026ae515723097","session_prev_hash":"192d726775d6686f1e385f58e5229c2d703345775231f2de5f026ae515723097","hash":"b2539a66cfbc4a80fd57edfa271da7e7ce292b93b455c9d59e97b518820e671a"}}
+
+id: 3
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":3,"order_index":3,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.916410Z","actor":"service","type":"request_received","text":{"fi":"Tilauspyyntö, 2 riviä","en":"Order request, 2 lines"},"payload_hash":"882accfa691670d790c6adf270d8126a39f3a860159c79ebec5aeb5567bb3f47","prev_hash":"b2539a66cfbc4a80fd57edfa271da7e7ce292b93b455c9d59e97b518820e671a","session_prev_hash":"b2539a66cfbc4a80fd57edfa271da7e7ce292b93b455c9d59e97b518820e671a","hash":"0d879b571877b27c22ca5efb3dea806d37f44225030764d4f248693a45332f5d"}}
+
+id: 4
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":4,"order_index":4,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.932588Z","actor":"service","type":"products_searched","text":{"fi":"Haettiin 0 tuotetta","en":"Searched 0 products"},"payload_hash":"aad3f1563a845bf648bb086a0909d110831bbeab6818af9d8735071682d3ebfb","prev_hash":"0d879b571877b27c22ca5efb3dea806d37f44225030764d4f248693a45332f5d","session_prev_hash":"0d879b571877b27c22ca5efb3dea806d37f44225030764d4f248693a45332f5d","hash":"bbdb0de9a9f685de7c78ae8411ed8331195a8fe095331ac3a8ca0f729f2062a6"}}
+
+id: 5
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":5,"order_index":5,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.934685Z","actor":"service","type":"availability_checked","text":{"fi":"Tarkistettiin hinta ja saatavuus, 0 tuotetta","en":"Checked price and availability of 0 products"},"payload_hash":"c96fa46d73dce926e17135fa8cf6e4b1858937a21ff15ea35d88b61379ac19a6","prev_hash":"bbdb0de9a9f685de7c78ae8411ed8331195a8fe095331ac3a8ca0f729f2062a6","session_prev_hash":"bbdb0de9a9f685de7c78ae8411ed8331195a8fe095331ac3a8ca0f729f2062a6","hash":"9b03bea6205e40dcce822dda963cdd849dbb8fdd51d52ae04b3d098af63292cb"}}
+
+id: 7
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":7,"order_index":6,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.943217Z","actor":"engine","type":"candidates_filtered","text":{"fi":"Ehdokkaat suodatettiin","en":"Candidates filtered"},"payload_hash":"4dd8938acf404f1b64ba8cd4acef986f6a1789bcd670cc002d7bc54cdd1005fb","prev_hash":"398b6dcb5ed789884daf734b9341288fd3c3125a2a2454a709ea419cef706a84","session_prev_hash":"9b03bea6205e40dcce822dda963cdd849dbb8fdd51d52ae04b3d098af63292cb","hash":"ea2951e1da709ee36948daadf45f88ad9d6ad27bc3f44c00da8e9b4455b864e3"}}
+
+id: 8
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":8,"order_index":7,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.945389Z","actor":"engine","type":"line_resolved","text":{"fi":"Rivi vaatii tarkennuksen","en":"The line needs an answer"},"payload_hash":"19c2c1b03d11e79b24d2be9bae8d3443992448d782cbd6f807531f4b33b80696","prev_hash":"ea2951e1da709ee36948daadf45f88ad9d6ad27bc3f44c00da8e9b4455b864e3","session_prev_hash":"ea2951e1da709ee36948daadf45f88ad9d6ad27bc3f44c00da8e9b4455b864e3","hash":"6f1189a6527873409b91d683b19a13bf92a61b1338530454f965fbd86bd78a6b"}}
+
+id: 9
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":9,"order_index":8,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.946971Z","actor":"engine","type":"line_resolved","text":{"fi":"Rivi vaatii tarkennuksen","en":"The line needs an answer"},"payload_hash":"237810ef113ca7585d250fd3d37efe3c8589ec1b88f345248b6d6e6c65474f03","prev_hash":"6f1189a6527873409b91d683b19a13bf92a61b1338530454f965fbd86bd78a6b","session_prev_hash":"6f1189a6527873409b91d683b19a13bf92a61b1338530454f965fbd86bd78a6b","hash":"79d641999d06fa727e1d127420f4b3278e03a95aded19259957628c4c14f1930"}}
+
+id: 10
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":10,"order_index":9,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.948703Z","actor":"service","type":"clarification_asked","text":{"fi":"En löytänyt tuotetta, joka vastaisi pyyntöä maito. Voitko kuvailla sen toisin?","en":"I couldn't find a product matching maito. Could you describe it another way?"},"payload_hash":"511d4a381e38d0bcb63c6328b403209f4935f460749890b90b699c9d457f53e5","prev_hash":"79d641999d06fa727e1d127420f4b3278e03a95aded19259957628c4c14f1930","session_prev_hash":"79d641999d06fa727e1d127420f4b3278e03a95aded19259957628c4c14f1930","hash":"d883cc545ca493cc57b35316fb6756df93a68ea7458c23ce11c3576402176da4"}}
+
+id: 11
+event: step
+data: {"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","step":{"seq":11,"order_index":10,"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","quote_id":"1bc6bde5-da33-4285-b514-c1e67fef4123","at":"2026-11-14T15:47:08.951343Z","actor":"service","type":"tool_returned","text":{"fi":"build_quote vastasi","en":"build_quote returned"},"payload_hash":"8eab51ece0eb3c1c02e8872673189242c960d37884472ce147d0da6ffcc5ea3e","prev_hash":"d883cc545ca493cc57b35316fb6756df93a68ea7458c23ce11c3576402176da4","session_prev_hash":"d883cc545ca493cc57b35316fb6756df93a68ea7458c23ce11c3576402176da4","hash":"018c19ae215564f69e2d80f5b2e29b9d567ff21c8cf41d37b0b3abbcf5dd72af"}}
+
+id: 11
+event: order_updated
+data: {"company":{"name":"Lystikäs Lammas Oy","exclusions":["lactose_free"]},"order":{"session_id":"bd65e1a8-9b44-456a-810b-3a1362434c17","order_number":null,"channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **12","state":"needs_clarification","state_since":"2026-11-14T15:47:08.914292Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":{"fi":"build_quote vastasi","en":"build_quote returned"},"line_count":0,"total_cents":0,"flags":[],"next_step":null,"delivery_date":null,"recipe_count":null},"totals":{"active":1,"waiting":0,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":1,"mcp":0}}}
+
+: ping
+
+id: 12
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":12,"order_index":1,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":null,"at":"2026-11-14T15:47:37.381321Z","actor":"service","type":"session_started","text":{"fi":"Keskustelu alkoi","en":"Conversation started"},"payload_hash":"1022408b6d7f342f4274502a9cbcd53abd4c8a48110472f46ea3cfbb230611c0","prev_hash":"018c19ae215564f69e2d80f5b2e29b9d567ff21c8cf41d37b0b3abbcf5dd72af","session_prev_hash":null,"hash":"20a07267cd4208863aeb33716a76f524c97ea11582751e7f739a92e2465198fc"}}
+
+id: 13
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":13,"order_index":2,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":null,"at":"2026-11-14T15:47:37.385711Z","actor":"agent","type":"tool_called","text":{"fi":"Agentti kutsui: build_quote","en":"The agent called build_quote"},"payload_hash":"c5682599f30eb6492cb5b68609ef65e5128358962b8ef1d3e1c525da118b0e51","prev_hash":"20a07267cd4208863aeb33716a76f524c97ea11582751e7f739a92e2465198fc","session_prev_hash":"20a07267cd4208863aeb33716a76f524c97ea11582751e7f739a92e2465198fc","hash":"edd37c90220c7835fa76699f5c7c6605f2d27bc0224a9025e87990fafafbc089"}}
+
+id: 14
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":14,"order_index":3,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.390221Z","actor":"service","type":"request_received","text":{"fi":"Tilauspyyntö, 2 riviä","en":"Order request, 2 lines"},"payload_hash":"882accfa691670d790c6adf270d8126a39f3a860159c79ebec5aeb5567bb3f47","prev_hash":"edd37c90220c7835fa76699f5c7c6605f2d27bc0224a9025e87990fafafbc089","session_prev_hash":"edd37c90220c7835fa76699f5c7c6605f2d27bc0224a9025e87990fafafbc089","hash":"fa6f1413e9ed32ac7c451ed59e07a77d7b3973745e40459077a5afb7077df56a"}}
+
+id: 15
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":15,"order_index":4,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.400920Z","actor":"service","type":"products_searched","text":{"fi":"Haettiin 0 tuotetta","en":"Searched 0 products"},"payload_hash":"aad3f1563a845bf648bb086a0909d110831bbeab6818af9d8735071682d3ebfb","prev_hash":"fa6f1413e9ed32ac7c451ed59e07a77d7b3973745e40459077a5afb7077df56a","session_prev_hash":"fa6f1413e9ed32ac7c451ed59e07a77d7b3973745e40459077a5afb7077df56a","hash":"a6d5784a3190909086df30d098a68e5df0c10f7f838e060bc36068e69ec8e2c2"}}
+
+id: 16
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":16,"order_index":5,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.403304Z","actor":"service","type":"availability_checked","text":{"fi":"Tarkistettiin hinta ja saatavuus, 0 tuotetta","en":"Checked price and availability of 0 products"},"payload_hash":"cf6b80263019d1edfb49d98f91aa3755b4e7c813e40cd84244f180076e5607f7","prev_hash":"a6d5784a3190909086df30d098a68e5df0c10f7f838e060bc36068e69ec8e2c2","session_prev_hash":"a6d5784a3190909086df30d098a68e5df0c10f7f838e060bc36068e69ec8e2c2","hash":"0a6e6e1fd66f9a9e85a0849e9cf1302e72796374deabe1c6bd174f655c9e92d2"}}
+
+id: 17
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":17,"order_index":6,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.407998Z","actor":"engine","type":"candidates_filtered","text":{"fi":"Ehdokkaat suodatettiin","en":"Candidates filtered"},"payload_hash":"4dd8938acf404f1b64ba8cd4acef986f6a1789bcd670cc002d7bc54cdd1005fb","prev_hash":"0a6e6e1fd66f9a9e85a0849e9cf1302e72796374deabe1c6bd174f655c9e92d2","session_prev_hash":"0a6e6e1fd66f9a9e85a0849e9cf1302e72796374deabe1c6bd174f655c9e92d2","hash":"692fbaeb057282a90550078a5a12bdf9c67e7727e4a0ad0c333018ff5b0c258d"}}
+
+id: 18
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":18,"order_index":7,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.410769Z","actor":"engine","type":"line_resolved","text":{"fi":"Rivi vaatii tarkennuksen","en":"The line needs an answer"},"payload_hash":"19c2c1b03d11e79b24d2be9bae8d3443992448d782cbd6f807531f4b33b80696","prev_hash":"692fbaeb057282a90550078a5a12bdf9c67e7727e4a0ad0c333018ff5b0c258d","session_prev_hash":"692fbaeb057282a90550078a5a12bdf9c67e7727e4a0ad0c333018ff5b0c258d","hash":"34ff6f4dc4667cf4176c79c3ad2a6f66268feb6eba174926dfafac5ec64140e1"}}
+
+id: 19
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":19,"order_index":8,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.412411Z","actor":"engine","type":"line_resolved","text":{"fi":"Rivi vaatii tarkennuksen","en":"The line needs an answer"},"payload_hash":"237810ef113ca7585d250fd3d37efe3c8589ec1b88f345248b6d6e6c65474f03","prev_hash":"34ff6f4dc4667cf4176c79c3ad2a6f66268feb6eba174926dfafac5ec64140e1","session_prev_hash":"34ff6f4dc4667cf4176c79c3ad2a6f66268feb6eba174926dfafac5ec64140e1","hash":"5e52e72e71c8ce3340b880b4e52cff8d9cc83f2ba22c895e783facfeec562560"}}
+
+id: 20
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":20,"order_index":9,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.414263Z","actor":"service","type":"clarification_asked","text":{"fi":"En löytänyt tuotetta, joka vastaisi pyyntöä maito. Voitko kuvailla sen toisin?","en":"I couldn't find a product matching maito. Could you describe it another way?"},"payload_hash":"88888dc464c0887571d366d5d4dc8b0520b28d0a6aa529c34feab82aa345f71a","prev_hash":"5e52e72e71c8ce3340b880b4e52cff8d9cc83f2ba22c895e783facfeec562560","session_prev_hash":"5e52e72e71c8ce3340b880b4e52cff8d9cc83f2ba22c895e783facfeec562560","hash":"43b8de09e63ee7474096a068ef6a81cfa2d032875368e55f5d552162381168b7"}}
+
+id: 21
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":21,"order_index":10,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.416885Z","actor":"service","type":"tool_returned","text":{"fi":"build_quote vastasi","en":"build_quote returned"},"payload_hash":"23ed224e68d838e334fed13b0cf43c249a595d22f18b9aa3f2233184734f7fdc","prev_hash":"43b8de09e63ee7474096a068ef6a81cfa2d032875368e55f5d552162381168b7","session_prev_hash":"43b8de09e63ee7474096a068ef6a81cfa2d032875368e55f5d552162381168b7","hash":"7ba8fc83ab48b0b592a1da4edfd42dd9fe1ad20e46f5eab688649357b5711bb7"}}
+
+id: 21
+event: order_updated
+data: {"company":{"name":"Pippurinen Peura Oy","exclusions":[]},"order":{"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","order_number":null,"channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **34","state":"needs_clarification","state_since":"2026-11-14T15:47:37.388383Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":{"fi":"build_quote vastasi","en":"build_quote returned"},"line_count":0,"total_cents":0,"flags":[],"next_step":null,"delivery_date":null,"recipe_count":null},"totals":{"active":2,"waiting":0,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":2,"mcp":0}}}
+
+id: 22
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":22,"order_index":11,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.466315Z","actor":"agent","type":"tool_called","text":{"fi":"Agentti kutsui: request_confirmation","en":"The agent called request_confirmation"},"payload_hash":"e0659ee137e5147eade90f13d2f4cb10c25b0ed86927f400d340b49a62c70c09","prev_hash":"7ba8fc83ab48b0b592a1da4edfd42dd9fe1ad20e46f5eab688649357b5711bb7","session_prev_hash":"7ba8fc83ab48b0b592a1da4edfd42dd9fe1ad20e46f5eab688649357b5711bb7","hash":"430cc177afccb2cc0ccb065d37d1a95200084f0883139e1b030ab465e484bf87"}}
+
+id: 23
+event: step
+data: {"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","step":{"seq":23,"order_index":12,"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","quote_id":"2ed7ac39-25bb-463e-9e30-333941ef590c","at":"2026-11-14T15:47:37.469241Z","actor":"service","type":"tool_returned","text":{"fi":"request_confirmation: virhe: the quote is needs_clarification; answer the question or change the lines with update_quote first","en":"request_confirmation failed: the quote is needs_clarification; answer the question or change the lines with update_quote first"},"payload_hash":"e48cbe690798970063835246c64cd3c9d6766b45dc7f0ad67dd22e25804b85de","prev_hash":"430cc177afccb2cc0ccb065d37d1a95200084f0883139e1b030ab465e484bf87","session_prev_hash":"430cc177afccb2cc0ccb065d37d1a95200084f0883139e1b030ab465e484bf87","hash":"b8c1852b06bea306afc6642188f68fb75ca3fea9e5ec119d3f8ebefc43065727"}}
+
+id: 23
+event: order_updated
+data: {"company":{"name":"Pippurinen Peura Oy","exclusions":[]},"order":{"session_id":"bb4a47ed-068f-4900-b00b-7ff2753129bd","order_number":null,"channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **34","state":"needs_clarification","state_since":"2026-11-14T15:47:37.388383Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":{"fi":"request_confirmation: virhe: the quote is needs_clarification; answer the question or change the lines with update_quote first","en":"request_confirmation failed: the quote is needs_clarification; answer the question or change the lines with update_quote first"},"line_count":0,"total_cents":0,"flags":[],"next_step":null,"delivery_date":null,"recipe_count":null},"totals":{"active":2,"waiting":0,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":2,"mcp":0}}}
+
+: ping
+
+: ping
+
+: ping
+
+id: 24
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":24,"order_index":1,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":null,"at":"2026-11-14T15:48:24.261877Z","actor":"service","type":"session_started","text":{"fi":"Keskustelu alkoi","en":"Conversation started"},"payload_hash":"1022408b6d7f342f4274502a9cbcd53abd4c8a48110472f46ea3cfbb230611c0","prev_hash":"b8c1852b06bea306afc6642188f68fb75ca3fea9e5ec119d3f8ebefc43065727","session_prev_hash":null,"hash":"f27aa3a2e3830fdc6e978fa194a1b55cee208276951b6a2148dd5b9a7e918b92"}}
+
+id: 25
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":25,"order_index":2,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":null,"at":"2026-11-14T15:48:24.266521Z","actor":"agent","type":"tool_called","text":{"fi":"Agentti kutsui: build_quote","en":"The agent called build_quote"},"payload_hash":"c5682599f30eb6492cb5b68609ef65e5128358962b8ef1d3e1c525da118b0e51","prev_hash":"f27aa3a2e3830fdc6e978fa194a1b55cee208276951b6a2148dd5b9a7e918b92","session_prev_hash":"f27aa3a2e3830fdc6e978fa194a1b55cee208276951b6a2148dd5b9a7e918b92","hash":"251bf95da0c27221861caf6bb86ec6bd341e90d0412e19e761e637899d1c2738"}}
+
+id: 26
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":26,"order_index":3,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.272769Z","actor":"service","type":"request_received","text":{"fi":"Tilauspyyntö, 2 riviä","en":"Order request, 2 lines"},"payload_hash":"882accfa691670d790c6adf270d8126a39f3a860159c79ebec5aeb5567bb3f47","prev_hash":"251bf95da0c27221861caf6bb86ec6bd341e90d0412e19e761e637899d1c2738","session_prev_hash":"251bf95da0c27221861caf6bb86ec6bd341e90d0412e19e761e637899d1c2738","hash":"1c8ff313c13436f818df64ccb801f9e53366c607c5c990c4f65c6b4f9d774ac1"}}
+
+id: 27
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":27,"order_index":4,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.308528Z","actor":"service","type":"products_searched","text":{"fi":"Haettiin 12 tuotetta","en":"Searched 12 products"},"payload_hash":"8df705d0267829623d311d078819b33799530a70b878f6582c63f421cd6d67d7","prev_hash":"1c8ff313c13436f818df64ccb801f9e53366c607c5c990c4f65c6b4f9d774ac1","session_prev_hash":"1c8ff313c13436f818df64ccb801f9e53366c607c5c990c4f65c6b4f9d774ac1","hash":"5e401eee0607ed4f8b969204f6dd9f1565903374452e92ccfced173598dafc2a"}}
+
+id: 28
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":28,"order_index":5,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.397911Z","actor":"service","type":"availability_checked","text":{"fi":"Tarkistettiin hinta ja saatavuus, 12 tuotetta","en":"Checked price and availability of 12 products"},"payload_hash":"2441588286e96d4da2ba4e98c533c5f06cefec5bd09c6ba07c67d5471f5233c4","prev_hash":"5e401eee0607ed4f8b969204f6dd9f1565903374452e92ccfced173598dafc2a","session_prev_hash":"5e401eee0607ed4f8b969204f6dd9f1565903374452e92ccfced173598dafc2a","hash":"e90d85deb49910ce68197c98f859e9f23cda46fe232eacabf4bc966e1b78bef5"}}
+
+id: 29
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":29,"order_index":6,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.414389Z","actor":"engine","type":"candidates_filtered","text":{"fi":"Ehdokkaat suodatettiin","en":"Candidates filtered"},"payload_hash":"ca2ecb3ecfe6af171d85cb8b127f4488e5519a5a7faf98a4c88739adbd28d0e5","prev_hash":"e90d85deb49910ce68197c98f859e9f23cda46fe232eacabf4bc966e1b78bef5","session_prev_hash":"e90d85deb49910ce68197c98f859e9f23cda46fe232eacabf4bc966e1b78bef5","hash":"7aefa44b314e06f26a8ff6f7c57e07f7e24a67bf7d8ff69f7a5d8a4628f22eb1"}}
+
+id: 30
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":30,"order_index":7,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.418305Z","actor":"engine","type":"line_resolved","text":{"fi":"Edullisin vaihtoehto, joka ehtii perille maanantaina 16.11. mennessä.","en":"The lowest-priced option that arrives by Monday 16 November."},"payload_hash":"77819ed28196c632030bdfe2cb6bd44cca33c0baf8c9bd0f16bdd24189a64278","prev_hash":"7aefa44b314e06f26a8ff6f7c57e07f7e24a67bf7d8ff69f7a5d8a4628f22eb1","session_prev_hash":"7aefa44b314e06f26a8ff6f7c57e07f7e24a67bf7d8ff69f7a5d8a4628f22eb1","hash":"0e55414284e9ea21d8e3b321654c88f2280a6fb67981385931f71d08658c9f86"}}
+
+id: 31
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":31,"order_index":8,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.420698Z","actor":"engine","type":"line_resolved","text":{"fi":"Edullisin vaihtoehto, joka ehtii perille maanantaina 16.11. mennessä.","en":"The lowest-priced option that arrives by Monday 16 November."},"payload_hash":"0985d4b005130afef8cf42e279bf56ca629842fc1a7cbaf68b75666545001d51","prev_hash":"0e55414284e9ea21d8e3b321654c88f2280a6fb67981385931f71d08658c9f86","session_prev_hash":"0e55414284e9ea21d8e3b321654c88f2280a6fb67981385931f71d08658c9f86","hash":"06e7abc9eb713c6f57b6683b49dfdfa8945426ce527b9de7547ee1ada15de2b6"}}
+
+id: 32
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":32,"order_index":9,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.423178Z","actor":"service","type":"quote_built","text":{"fi":"Tarjous on valmis. Valio Hyvä suomalainen Arki® Eila® kevytmaitojuoma 1 l laktoositon, 20 kappaletta, 23,00 €. Arla Maitojuoma 1L laktoositon rasvaton UHT Suomesta, 5 kappaletta, 14,60 €. Toimitus maanantaina 16.11., yhteensä 37,60 €. Tarkistettavia kohtia vahvistussivulla: 1.","en":"The quote is ready. Valio Hyvä suomalainen Arki® Eila® semi skimmed milk drink 1 l lactose free, 20 pieces, €23.00. Arla Milkdrink 1L lactose free fat free UHT Suomesta, 5 pieces, €14.60. Delivery Monday 16 November, total €37.60. Notes to check on the confirmation page: 1."},"payload_hash":"a58b5452f170719d02c38193243f9f08961050664ac6aeb4a5a572d9a6998b59","prev_hash":"06e7abc9eb713c6f57b6683b49dfdfa8945426ce527b9de7547ee1ada15de2b6","session_prev_hash":"06e7abc9eb713c6f57b6683b49dfdfa8945426ce527b9de7547ee1ada15de2b6","hash":"623137723a2c416ea4c24104c85b37f2a3f576da0b320b45cfb3d12b78ac1dd5"}}
+
+id: 33
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":33,"order_index":10,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.428057Z","actor":"service","type":"tool_returned","text":{"fi":"build_quote vastasi","en":"build_quote returned"},"payload_hash":"122c1b73451ec152bb3fe9233cf7df8784046f9c30f7e540d176d0e58ca63809","prev_hash":"623137723a2c416ea4c24104c85b37f2a3f576da0b320b45cfb3d12b78ac1dd5","session_prev_hash":"623137723a2c416ea4c24104c85b37f2a3f576da0b320b45cfb3d12b78ac1dd5","hash":"f10bf7b2ce04a630054d6cf1d9ed06b001615b0260e7291a364dd760fd31dd02"}}
+
+id: 33
+event: order_updated
+data: {"company":{"name":"Huoleton Hirvi Oy","exclusions":[]},"order":{"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","order_number":null,"channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **56","state":"quote_ready","state_since":"2026-11-14T15:48:24.270215Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":{"fi":"build_quote vastasi","en":"build_quote returned"},"line_count":2,"total_cents":3760,"flags":[{"code":"AVAILABILITY_UNVERIFIED","short":{"fi":"saldo vahvistamatta","en":"stock not confirmed"}}],"next_step":null,"delivery_date":"2026-11-16","recipe_count":null},"totals":{"active":3,"waiting":0,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":3,"mcp":0}}}
+
+id: 34
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":34,"order_index":11,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.474266Z","actor":"agent","type":"tool_called","text":{"fi":"Agentti kutsui: request_confirmation","en":"The agent called request_confirmation"},"payload_hash":"4d766e286309904546e0f6e8d8cddb860eb7a99a6e46ea1ba298ac5f40216173","prev_hash":"f10bf7b2ce04a630054d6cf1d9ed06b001615b0260e7291a364dd760fd31dd02","session_prev_hash":"f10bf7b2ce04a630054d6cf1d9ed06b001615b0260e7291a364dd760fd31dd02","hash":"9f6b10efb8ef37a20a1de5e4c634aa4a685f53844480a0c401e948d8b2d188aa"}}
+
+id: 35
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":35,"order_index":12,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:48:24.486615Z","actor":"service","type":"tool_returned","text":{"fi":"request_confirmation vastasi","en":"request_confirmation returned"},"payload_hash":"3c0fc12efb1b385058d5edd63077670a080407d596cbce88417e1ac2e8832a51","prev_hash":"9f6b10efb8ef37a20a1de5e4c634aa4a685f53844480a0c401e948d8b2d188aa","session_prev_hash":"9f6b10efb8ef37a20a1de5e4c634aa4a685f53844480a0c401e948d8b2d188aa","hash":"6f88a9bec92ca3dd2b1afc09a957ffab025d77e65c557d46d90404c135371704"}}
+
+id: 35
+event: order_updated
+data: {"company":{"name":"Huoleton Hirvi Oy","exclusions":[]},"order":{"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","order_number":null,"channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **56","state":"awaiting_confirmation","state_since":"2026-11-14T15:48:24.476975Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":null,"line_count":2,"total_cents":3760,"flags":[{"code":"AVAILABILITY_UNVERIFIED","short":{"fi":"saldo vahvistamatta","en":"stock not confirmed"}}],"next_step":null,"delivery_date":"2026-11-16","recipe_count":null},"totals":{"active":2,"waiting":1,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":3,"mcp":0}}}
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+: ping
+
+id: 36
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":36,"order_index":13,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:55:28.871425Z","actor":"buyer","type":"link_opened","text":{"fi":"Vahvistuslinkki avattiin","en":"The confirmation link was opened"},"payload_hash":"fbe7041cc68edf5533946bcfe9cd2acf78bfec2de903b9565d86c0ca20e2a591","prev_hash":"6f88a9bec92ca3dd2b1afc09a957ffab025d77e65c557d46d90404c135371704","session_prev_hash":"6f88a9bec92ca3dd2b1afc09a957ffab025d77e65c557d46d90404c135371704","hash":"ac69acc545a42e9596f552aa0a5fd7a3a3389d75c88900c03aab06bcc6065d2d"}}
+
+id: 36
+event: order_updated
+data: {"company":{"name":"Huoleton Hirvi Oy","exclusions":[]},"order":{"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","order_number":null,"channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **56","state":"link_opened","state_since":"2026-11-14T15:55:28.861150Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":null,"line_count":2,"total_cents":3760,"flags":[{"code":"AVAILABILITY_UNVERIFIED","short":{"fi":"saldo vahvistamatta","en":"stock not confirmed"}}],"next_step":null,"delivery_date":"2026-11-16","recipe_count":null},"totals":{"active":2,"waiting":1,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":3,"mcp":0}}}
+
+id: 37
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":37,"order_index":14,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:55:41.575407Z","actor":"buyer","type":"flags_acknowledged","text":{"fi":"Ostaja kuittasi: Tuotteen Valio Hyvä suomalainen Arki® Eila® kevytmaitojuoma 1 l laktoositon varastosaldoa ei voitu varmistaa. Tilaus on mahdollinen, mutta toimitusta ei ole vahvistettu.","en":"The buyer checked: Stock for Valio Hyvä suomalainen Arki® Eila® semi skimmed milk drink 1 l lactose free could not be verified. It can be ordered, but delivery is not confirmed."},"payload_hash":"feeffb9d602f4d7a1d1b4038a2edc4532f9ee5607f38b018edf0522f3a8b6464","prev_hash":"ac69acc545a42e9596f552aa0a5fd7a3a3389d75c88900c03aab06bcc6065d2d","session_prev_hash":"ac69acc545a42e9596f552aa0a5fd7a3a3389d75c88900c03aab06bcc6065d2d","hash":"966331e5500361385a35c305a8cd33f7a59094f671d8b4e3839ef1613554c939"}}
+
+id: 37
+event: order_updated
+data: {"company":{"name":"Huoleton Hirvi Oy","exclusions":[]},"order":{"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","order_number":null,"channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **56","state":"link_opened","state_since":"2026-11-14T15:55:28.861150Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":null,"line_count":2,"total_cents":3760,"flags":[{"code":"AVAILABILITY_UNVERIFIED","short":{"fi":"saldo vahvistamatta","en":"stock not confirmed"}}],"next_step":null,"delivery_date":"2026-11-16","recipe_count":null},"totals":{"active":2,"waiting":1,"confirmed":0,"attention":0,"confirmed_cents":0,"by_channel":{"phone":0,"web_chat":0,"webmcp":3,"mcp":0}}}
+
+id: 38
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":38,"order_index":15,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:55:41.591974Z","actor":"confirmation","type":"stock_rechecked","text":{"fi":"Saatavuus tarkistettiin uudelleen","en":"Availability checked again"},"payload_hash":"eb596e0403a17437c31965891ae100fd0692131d1517b3ba4fa5d1a79c985dd0","prev_hash":"966331e5500361385a35c305a8cd33f7a59094f671d8b4e3839ef1613554c939","session_prev_hash":"966331e5500361385a35c305a8cd33f7a59094f671d8b4e3839ef1613554c939","hash":"d0025b4f141ca718e478774eb393360cea6a377953387bf995078f1be35f4264"}}
+
+id: 39
+event: step
+data: {"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","step":{"seq":39,"order_index":16,"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","quote_id":"e874b41e-ed31-42e6-ad41-f095dd4b1049","at":"2026-11-14T15:55:41.601318Z","actor":"buyer","type":"order_confirmed","text":{"fi":"Tilaus D-1042 vahvistettiin","en":"Order D-1042 was confirmed"},"payload_hash":"f873506395e5f39e966e060fa06fdb323c127f63d292991de436c1fe5f080c84","prev_hash":"d0025b4f141ca718e478774eb393360cea6a377953387bf995078f1be35f4264","session_prev_hash":"d0025b4f141ca718e478774eb393360cea6a377953387bf995078f1be35f4264","hash":"3a1a0b6fb49d477b2d9ce053bbcbbadc329b476b600d6cc3c52c225e6448d069"}}
+
+id: 39
+event: order_updated
+data: {"company":{"name":"Huoleton Hirvi Oy","exclusions":[]},"order":{"session_id":"d8144d23-9adc-4a0a-a488-0c3a4554235c","order_number":"D-1042","channel":"webmcp","client":"browser agent","identity_masked":"+358 40 *** **56","state":"confirmed","state_since":"2026-11-14T15:55:41.586641Z","title":{"fi":"20 l maito + 1 muuta","en":"20 l maito + 1 more"},"step_text":null,"line_count":2,"total_cents":3760,"flags":[{"code":"AVAILABILITY_UNVERIFIED","short":{"fi":"saldo vahvistamatta","en":"stock not confirmed"}}],"next_step":null,"delivery_date":"2026-11-16","recipe_count":null},"totals":{"active":2,"waiting":0,"confirmed":1,"attention":0,"confirmed_cents":3760,"by_channel":{"phone":0,"web_chat":0,"webmcp":3,"mcp":0}}}
+

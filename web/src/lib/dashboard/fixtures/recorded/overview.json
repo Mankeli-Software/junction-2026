@@ -1,0 +1,112 @@
+{
+ "business_now": "2026-11-12T09:00:00+02:00",
+ "totals": {
+  "active": 2,
+  "waiting": 0,
+  "confirmed": 1,
+  "attention": 0,
+  "confirmed_cents": 3760,
+  "by_channel": {
+   "phone": 0,
+   "web_chat": 0,
+   "webmcp": 3,
+   "mcp": 0
+  }
+ },
+ "companies": [
+  {
+   "name": "Huoleton Hirvi Oy",
+   "exclusions": [],
+   "orders": [
+    {
+     "session_id": "d8144d23-9adc-4a0a-a488-0c3a4554235c",
+     "order_number": "D-1042",
+     "channel": "webmcp",
+     "client": "browser agent",
+     "identity_masked": "+358 40 *** **56",
+     "state": "confirmed",
+     "state_since": "2026-11-14T15:55:41.586641Z",
+     "title": {
+      "fi": "20 l maito + 1 muuta",
+      "en": "20 l maito + 1 more"
+     },
+     "step_text": null,
+     "line_count": 2,
+     "total_cents": 3760,
+     "flags": [
+      {
+       "code": "AVAILABILITY_UNVERIFIED",
+       "short": {
+        "fi": "saldo vahvistamatta",
+        "en": "stock not confirmed"
+       }
+      }
+     ],
+     "next_step": null,
+     "delivery_date": "2026-11-16",
+     "recipe_count": null
+    }
+   ]
+  },
+  {
+   "name": "Pippurinen Peura Oy",
+   "exclusions": [],
+   "orders": [
+    {
+     "session_id": "bb4a47ed-068f-4900-b00b-7ff2753129bd",
+     "order_number": null,
+     "channel": "webmcp",
+     "client": "browser agent",
+     "identity_masked": "+358 40 *** **34",
+     "state": "needs_clarification",
+     "state_since": "2026-11-14T15:47:37.388383Z",
+     "title": {
+      "fi": "20 l maito + 1 muuta",
+      "en": "20 l maito + 1 more"
+     },
+     "step_text": {
+      "fi": "request_confirmation: virhe: the quote is needs_clarification; answer the question or change the lines with update_quote first",
+      "en": "request_confirmation failed: the quote is needs_clarification; answer the question or change the lines with update_quote first"
+     },
+     "line_count": 0,
+     "total_cents": 0,
+     "flags": [],
+     "next_step": null,
+     "delivery_date": null,
+     "recipe_count": null
+    }
+   ]
+  },
+  {
+   "name": "Lystik\u00e4s Lammas Oy",
+   "exclusions": [
+    "lactose_free"
+   ],
+   "orders": [
+    {
+     "session_id": "bd65e1a8-9b44-456a-810b-3a1362434c17",
+     "order_number": null,
+     "channel": "webmcp",
+     "client": "browser agent",
+     "identity_masked": "+358 40 *** **12",
+     "state": "needs_clarification",
+     "state_since": "2026-11-14T15:47:08.914292Z",
+     "title": {
+      "fi": "20 l maito + 1 muuta",
+      "en": "20 l maito + 1 more"
+     },
+     "step_text": {
+      "fi": "build_quote vastasi",
+      "en": "build_quote returned"
+     },
+     "line_count": 0,
+     "total_cents": 0,
+     "flags": [],
+     "next_step": null,
+     "delivery_date": null,
+     "recipe_count": null
+    }
+   ]
+  }
+ ]
+}
