@@ -12,6 +12,7 @@ from app.db import get_engine
 from app.interfaces.auth.routes import auth_routes
 from app.interfaces.mcp.server import mcp, mcp_app
 from app.interfaces.rest import accounts as rest_accounts
+from app.interfaces.rest import confirmations as rest_confirmations
 from app.interfaces.rest import dashboard as rest_dashboard
 from app.interfaces.rest import inbox as rest_inbox
 from app.interfaces.rest import oauth as rest_oauth
@@ -48,7 +49,9 @@ app.include_router(rest_dashboard.router, prefix="/api/v1")
 app.include_router(rest_accounts.router, prefix="/api/v1")
 app.include_router(rest_inbox.router, prefix="/api/v1")
 app.include_router(rest_oauth.router, prefix="/api/v1")
+app.include_router(rest_confirmations.router, prefix="/api/v1")
 rest_tools.add_error_handlers(app)
+rest_confirmations.add_error_handlers(app)
 app.router.routes.extend(auth_routes())
 app.mount("/mcp", mcp_app())
 
