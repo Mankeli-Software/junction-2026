@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from sqlalchemy import bindparam, text
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession
 from sqlalchemy.types import Text
 
 from app.schemas.common import Claim
@@ -213,8 +213,14 @@ async def _query_vector(db: AsyncConnection | AsyncSession, q: str) -> str | Non
         return cached
     from app.search.embeddings import embed_query_live  # httpx and the client: only when live
 
-    engine = db.bind.engine if isinstance(db, AsyncSession) else db.engine
-    return await embed_query_live(engine, q)
+    return await embed_query_live(async_engine(db), q)
+
+
+def async_engine(db: AsyncConnection | AsyncSession) -> AsyncEngine:
+    """The async engine behind a connection or a session. A session's bind is an engine,
+    or a connection in tests; `AsyncEngine.engine` would be the sync engine."""
+    bind = db.bind if isinstance(db, AsyncSession) else db
+    return bind.engine if isinstance(bind, AsyncConnection) else bind
 
 
 @dataclass(frozen=True)

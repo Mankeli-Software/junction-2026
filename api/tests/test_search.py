@@ -10,11 +10,13 @@ import json
 from pathlib import Path
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.loaders.catalogue import ALLERGEN_CODE_FILE, CATEGORY_FILE, load
 from app.loaders.product_file import read_allergen_codes, read_categories
 from app.schemas.common import Claim
 from app.search import search_products
+from app.search.search import async_engine
 from app.search.spelling import Vocabulary
 from app.search.substitutes import category_substitutes
 from app.search.text import parse_query, unasked_modifiers
@@ -156,3 +158,12 @@ def test_every_category_in_the_substitute_map_exists():
     mapped = category_substitutes()
     assert mapped["10400"][0] == "10402"  # milk -> plant-based drinks
     assert {c for k, vs in mapped.items() for c in (k, *vs)} <= known
+
+
+async def test_the_live_embedding_finds_the_async_engine_behind_any_database_handle(db_engine):
+    # A session bound to an engine (the API) or to a connection (tests), and a connection
+    # (the harness): each must give the async engine, not `AsyncEngine.engine` (the sync one).
+    async with db_engine.connect() as conn:
+        assert async_engine(conn) is db_engine
+        assert async_engine(AsyncSession(bind=conn)) is db_engine
+    assert async_engine(AsyncSession(bind=db_engine)) is db_engine
