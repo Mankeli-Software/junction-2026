@@ -1,6 +1,6 @@
 # Technical implementation plan
 
-Status: draft v3, 2026-11-14, after two review rounds and a check against the UI design. Built on `vision.md` (source of truth), `valio-api-analysis.md`, the files in `data/` and the team answers recorded in section 1. **The existing GitHub issues (#1 to #21) are not a source for this plan.** New issues will be created from this spec and should reference it. Where the plan suggests something vision.md does not settle, it is marked *proposed*. Section 14 lists what moves to follow-up issues.
+Status: draft v4, 2026-11-14, after two review rounds, the UI design check and a check against `docs/specs/`. Built on `vision.md` (source of truth), `valio-api-analysis.md`, the files in `data/`, the UI specs in `docs/specs/` and the team answers recorded in section 1. Section 9.8 lists where later decisions differ from `docs/specs/`. **The existing GitHub issues (#1 to #21) are not a source for this plan.** New issues will be created from this spec and should reference it. Where the plan suggests something vision.md does not settle, it is marked *proposed*. Section 14 lists what moves to follow-up issues.
 
 ## 1. Decisions this plan builds on
 
@@ -17,9 +17,22 @@ Taken on 2026-11-14, in addition to vision.md:
 | Product images | The image file's `code` is the product file's `id`. Images are hotlinked from their `img` URL |
 | Connector login | Our own OAuth 2.1 authorization server, built on the MCP Python SDK's auth routes, with our own email and password page |
 | Recipe embeddings | Gemini embeddings, stored in pgvector |
-| Clock | A business clock frozen at Thu 2026-11-12 09:00 for cutoffs and delivery dates. The real clock for link and quote expiry, the duplicate check and audit timestamps |
+| Clock | A business clock frozen at Thu 2026-11-12 09:00 for cutoffs and delivery dates. The real clock for the duplicate check, audit timestamps and quote expiry when it is on |
 | SMS after a call | When the call ends, the voice relay calls `request_confirmation` for the call's latest ready quote |
 | Secrets | Azure Key Vault in production, with no `.env` on the VM. A local `.env` only on laptops for development (section 10.2) |
+
+Taken from the UI specs in `docs/specs/` (2026-11-14). The specs README says they win over vision.md until vision.md is updated:
+
+| Topic | Decision |
+|---|---|
+| Quote expiry | Off during the event (`quote_ttl` unset), for example 30 minutes in production. After confirming, the link stays readable as a receipt until the end of the event |
+| Demo companies | Each new number gets a generated company with a unique, funny-sounding Oy name. The same number gets the same company |
+| Kitchen profile | The visitor chooses the exclusions on the call page. The seeded order history is still open (section 14) |
+| Conversation in the audit log | Buyer and agent turns and every tool call with its response are audit events. Their content is private (section 9.5) |
+| Webshop | The current Aimo webshop scraped as a static page. It registers the WebMCP tools (P0) and gets the S.I.MO chat panel (stretch), which runs on Gemini like the phone |
+| Recipe orders | Only ingredients with a product link (`data/recipe-product-map.json`) are ordered. The rest are listed as "not ordered" |
+| Confirmation page | Follows the language of the call or chat. After an edit, only new or changed flags need a new acknowledgement |
+| Call screen | Phone on speaker with live captions for both sides, not held to the ear. The agent is called S.I.MO and greets the caller by company name |
 | Token after an edit | The token belongs to a confirmation that points to the current quote. Confirm must send the hash of the quote on screen |
 | Substitute price limit | An automatic swap may be at most 10% more expensive. The value is configurable in `policy.yaml` |
 | Rounding | Line total = quantity × gross unit price, rounded up to the next cent. Nothing is rounded before that |
@@ -115,7 +128,7 @@ REST and MCP share one set of Pydantic models and one service layer. FastAPI tur
 | SMS | Twilio Messages API, `twilio` SDK, delivery status callbacks | SMS service that delivers every message to the simulated phone inbox, and through Twilio to allowlisted numbers when the flag is on. Message text, status webhook | P0 |
 | Confirmation page | SvelteKit server rendering, Svelte's default escaping | Odd things first with acknowledgements, asked-and-added lines, edit and re-quote, confirm, cancel, "order received" | P0 |
 | Voice agent | Gemini Live API (`google-genai` SDK, function calling), browser `getUserMedia` and `AudioWorklet` | Audio relay, MCP-to-Gemini tool bridge, system prompt, call screen, demo account on number entry, SMS after hang-up | P0 |
-| Webshop with WebMCP | The `modelContext` API in the ChatGPT desktop app's browser. The MCP-B polyfill or Chrome's testing flag for ordinary Chrome | Mock Aimo shop (login, search, product cards, cart) and tool registration calling `/api/v1` | P0 |
+| Webshop with WebMCP | The `modelContext` API in the ChatGPT desktop app's browser. The MCP-B polyfill or Chrome's testing flag for ordinary Chrome | The scraped static webshop page, WebMCP tool registration calling `/api/v1`, and the S.I.MO chat panel (stretch) | P0 (chat panel stretch) |
 | Claude connector | Claude custom connectors (remote MCP URL plus OAuth). MCP Python SDK auth routes (metadata, client registration, authorize, token, PKCE). `argon2-cffi` for password hashes | Users table, the SDK's authorization-server provider backed by Postgres, login and sign-up pages | P1 |
 | OpenAI connector | ChatGPT custom MCP connectors | Testing only | P1 |
 | Live dashboard | Server-Sent Events (`sse-starlette`), Postgres `LISTEN/NOTIFY`. The listener needs a direct connection on port 5432, because PgBouncer in transaction mode drops notifications | Status events, plain-language step texts, operator and buyer views | P0 |
@@ -168,14 +181,14 @@ Then for the whole order: one notice that lists every product without allergen i
 
 ### 4.3 Rules as data (`policy/`)
 
-- `policy.yaml`: version, confirmation `always`, quote lifetime 30 minutes, cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (10% more expensive), call language (`auto`, `fi` or `en`, default `auto`).
-- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Whether pine nut, coconut and peanut belong to nut-free is decided in a follow-up issue (section 14). It is a one-line change in this file.
+- `policy.yaml`: version, confirmation `always`, quote lifetime (`quote_ttl`: off for the event, for example 30 minutes in production), maximum call length (*proposed* 10 minutes, the spec leaves it to the backend), cache lifetime 300 seconds, rounding limits (1 unit, 2%), duplicate window 2 hours, `enforce_closing_time: true`, demo business time, substitute price limit (10% more expensive), call language (`auto`, `fi` or `en`, default `auto`).
+- `allergen_rules.yaml`: each exclusion as a set of GS1 codes, built from `data/gs1_allergen_codes.csv`. Its keys are the kitchen choices on the call page: milk-free, lactose-free, gluten-free, nut-free, egg-free, fish-free and vegan (`docs/specs/call-screen.md` §2.2). Lactose-free and vegan also need claim rules (the `LACTOSE` free-from claim, the `VEGAN` claim), not only allergen codes. Whether pine nut, coconut and peanut belong to nut-free is decided in a follow-up issue (section 14). It is a one-line change in this file.
 - `messages.yaml`: one Finnish and one English template per reason code and flag. Uses `data/allergen_containment_levels.csv` and the partitive allergen names for Finnish sentences.
 - `unit_codes.csv`: display names for unit codes in Finnish and English.
 
 The rule-set version goes into every quote hash.
 
-Two clocks (decided 2026-11-14). A business clock, frozen at the demo time, gives the engine its business "now" for cutoffs and delivery dates. The real clock is used for link and quote expiry, the two-hour duplicate window and audit timestamps. Without this split, a frozen clock would stop links from ever expiring and break "same order 20 minutes ago".
+Two clocks (decided 2026-11-14). A business clock, frozen at the demo time, gives the engine its business "now" for cutoffs and delivery dates. The real clock is used for the two-hour duplicate window, audit timestamps and quote expiry when it is on. Without this split, a frozen clock would break "same order 20 minutes ago" and expiry in production.
 
 ## 5. Data and storage
 
@@ -184,7 +197,7 @@ Two clocks (decided 2026-11-14). A business clock, frozen at the demo time, give
 | Source | How we get it | Loaded into |
 |---|---|---|
 | Product file (87 MB JSON) | `curl -L` once from `/api/products/download` (CLAUDE.md). Not committed | `products` and child tables |
-| Category names | `data/valio_category_names.csv`, the 11-column version in the category brief. The file in the repo still has the older 6 columns | `categories` |
+| Category names | `data/valio_category_names.csv`: English and Finnish names for all 349 categories, with the Finnish name taken from the real webshop where it could be matched (`valio-api-analysis.md` §14) | `categories` |
 | Allergen codes and phrases | `data/gs1_allergen_codes.csv`, `data/allergen_containment_levels.csv` | `allergen_codes`, message templates |
 | Recipes | `data/valio-recipes.json` (2,091 recipes) | `recipes`, `recipe_ingredients`, `recipe_tags` |
 | Recipe-to-product links | `data/recipe-product-map.json` | `recipe_product_links` |
@@ -218,7 +231,7 @@ If tests show that this misses too often, a vector index on product names is the
 
 - Embed each recipe once (name, description, ingredient names, tags) with the Gemini embedding model at `output_dimensionality` 768. pgvector's HNSW index takes at most 2,000 dimensions for the `vector` type. The script saves the vectors to a file, so `junction_demo` and every laptop database load them without calling the API again (*proposed*).
 - Search: embed the query at request time, rank by vector and by full-text search, merge with reciprocal rank fusion, filter by taxonomy. Diet tags are only a search hint (vision §7).
-- `get_recipe` scales `singlePortionAmounts` to the portion count. In `build_quote`, ingredients with a product link go through `recipe-product-map.json`, the rest through normal resolution, and anything that cannot be resolved safely becomes a clarification.
+- `get_recipe` scales `singlePortionAmounts` to the portion count. In `build_quote`, only ingredients with a product link are ordered, through `recipe-product-map.json`. The rest go to `not_ordered[]`, so the buyer knows to get them elsewhere. This was decided in `docs/specs/webshop-chat.md` §4.3 and narrows vision §7, where generic ingredients go through normal resolution.
 
 ### 5.5 Images and category names
 
@@ -275,13 +288,16 @@ sequenceDiagram
 - **Tool bridge**: at call start the relay lists the MCP tools and turns their JSON Schemas into Gemini function declarations. It authenticates to MCP as the identified caller with a short-lived token from our own auth server, so MCP treats the phone like any other client (vision §2: no client is special).
 - **Model and platform**: a 3.x Live model through the Gemini API (AI Studio key), not Vertex AI. Finnish is listed only for the 3.x audio models, and the Vertex "Configure language and voice" page does not list it. `gemini-3.8-live` is the candidate. Google's docs list synchronous and asynchronous function calling for it, and asynchronous calls let the agent keep talking while `build_quote` runs. Pick after the spike in M0.
 - **Finnish** (researched 2026-11-14): Finnish (`fi`) is in Google's table of additional languages for 3.x audio models, not in the base 24 that every audio model supports. The native audio models detect the language themselves and take no `language_code`. By default the agent follows the caller. The `call_language` setting can force Finnish or English, which becomes one line in the system prompt ("Always respond in Finnish"). Any of the 30 HD voices should work. Quality is not tested: recognition of product names and Finnish compound words may be weaker than for the major languages. Two existing parts of the design soften this: search tolerates typos (trigram), and the confirmation page shows what we understood next to what we added, so a misheard word is easy to spot (vision §6).
-- **System prompt** (ours): collect all lines, then one `build_quote`. One clarification per turn. Speak the top pick and at most one alternative (vision §5). Give the no-allergen-listing notice once, at the end. Never say the order is placed. Say the link comes by SMS after hanging up. When a decision cannot be overridden, say so and move on.
-- **Call screen**: dial-pad look, timer, mute, hang-up. No proximity sensor (vision §9).
+- **System prompt** (ours, shared with the webshop chat): the agent is S.I.MO, greets the caller by company name and says it is an AI helper. Collect all lines, then one `build_quote`. One clarification per turn. Speak the top pick and at most one alternative (vision §5). Give the no-allergen-listing notice once, at the end. Never say the order is placed. Say the link comes to the phone after hanging up. When a decision cannot be overridden, say so and move on.
+- **Ending the call**: the visitor hangs up, or the agent ends the call once the order is ready (`docs/specs/call-screen.md` §2.3). For that, the relay gives Gemini one local function, `end_call`, next to the MCP tools. It is not an MCP tool. *Proposed*: a maximum call length of 10 minutes, with the agent warning a minute before.
+- **Call screen** (`docs/specs/call-screen.md`, `docs/design` screens 10 to 14): phone-app flow (set up, Contacts, call, ended), phone on speaker with live captions for both sides, timer, mute, speaker, hang-up. Screen Wake Lock keeps the call alive. No proximity sensor (vision §9).
 
-### 7.2 Webshop with WebMCP (P0)
+### 7.2 Webshop: WebMCP (P0) and chat panel (stretch)
 
-- SvelteKit route `/shop`: login (same users as the connector), search, product cards with images, cart.
-- After login the page registers the same operations as the MCP tools through `document.modelContext`, falling back to `navigator.modelContext` (the API moved between the two in 2026). Each tool calls `/api/v1` with the session cookie.
+- The page is the current Aimo webshop, scraped once and served as a static mock (`docs/specs/webshop-chat.md`). Its catalogue, search, cart and login don't work. We build no shop of our own.
+- Visitors identify with the same phone-number entry as the call (section 9.2), so they get the same demo company and kitchen profile.
+- **WebMCP (P0)**: the page registers the same operations as the MCP tools through `document.modelContext`, falling back to `navigator.modelContext` (the API moved between the two in 2026). Each tool calls `/api/v1` with the session cookie.
+- **S.I.MO chat panel (stretch)**: it runs on Gemini on our server, with the same agent prompt as the phone, as an MCP client like the voice relay (`POST /api/v1/chat`, section 9.6). Cards are rendered from tool results, never from model text.
 - OpenAI side: OpenAI announced WebMCP support in the ChatGPT desktop app's built-in browser in August 2026. Check this on day one with our own page. For ordinary Chrome, use the MCP-B polyfill or Chrome's testing flag.
 - TypeScript types are generated from the OpenAPI document (`openapi-typescript`), so the web tools follow the backend schemas.
 
@@ -313,8 +329,9 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
   - **Real SMS**: Twilio sends only when the feature flag `SMS_TWILIO_ENABLED` is on (default off) and the number is on the allowlist `SMS_ALLOWLIST`. Every other number gets the inbox message only, so a made-up number that belongs to a stranger never gets our SMS.
   - **Allowlist**: holds real phone numbers, so it lives in Azure Key Vault (comma-separated E.164 numbers), never in the repo (section 10.2).
   - **Vision**: this deviates from vision §6, where the SMS is the only path. The inbox is a demo setting (`demo_inbox`, on for the event). Production would use SMS only.
-- The token is 256 random bits, stored as SHA-256. It belongs to a confirmation that holds the recipient and points to the current quote (decided). It expires with the current quote.
-- Link `https://<host>/c/<token>`. *Proposed*: opening the link never uses it up, so SMS link previews and repeated opens do no harm. Confirm or Cancel uses it up.
+  - **Webshop visitors**: the inbox isn't shown in the shop. A webshop visitor reads the message in the simulated phone on the phone page, in the same browser (*proposed*).
+- The token is 256 random bits, stored as SHA-256. It belongs to a confirmation that holds the recipient and points to the current quote (decided). It expires with the current quote, which doesn't happen during the event.
+- Link `https://<host>/c/<token>`. *Proposed*: opening the link never uses it up, so SMS link previews and repeated opens do no harm. Confirm or Cancel uses it up for actions. After that the link stays readable as a receipt until the end of the event (`docs/specs/confirmation-page.md` §7).
 - Twilio sends with a status callback to `/api/v1/twilio/status` (Twilio signature checked). A failed delivery appears on the dashboard. The simulated inbox still has the message, so the buyer can confirm from there. With the inbox off, nothing is ordered and a resend can be offered (vision §6).
 - Twilio setup: a trial account only sends to verified numbers. With the allowlist that may be enough: verify each allowlisted number in Twilio, and upgrade only if the trial's limits get in the way. Check the sender-id rules for Finland at the same time.
 
@@ -323,7 +340,8 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 - Rendered on the server by SvelteKit from FastAPI data only (vision §6).
 - Odd things first, each with an acknowledge box. Confirm stays disabled until every box is ticked.
 - Asked and added side by side, grouped by request. Quantities in sales units and in the asked unit, delivery date, gross total, and a readable trace.
-- Edits (quantity, remove a line, pick an alternative) run the engine again and produce a new quote on the same page. The old quote becomes void and the confirmation points to the new one. Confirm must send the hash of the quote on screen, so a stale tab cannot confirm an old version.
+- Edits (quantity, remove a line, pick an alternative) run the engine again and produce a new quote on the same page. The old quote becomes void and the confirmation points to the new one. Confirm must send the hash of the quote on screen, so a stale tab cannot confirm an old version. Acknowledgements carry over to the new quote by `flag_key`. Only new flags, or flags whose text changed, need a new acknowledgement.
+- The page uses the language of the call or chat, with a toggle. The page states are listed in `docs/specs/confirmation-page.md` §3.
 - Confirm re-checks availability. If it got worse, the quote is void and a new one is shown. Otherwise the order is created and the page shows "order received".
 - Product text is escaped (Svelte's default, never `{@html}`). `Referrer-Policy: no-referrer` keeps the token out of Referer headers, including towards the hotlinked image host.
 
@@ -334,8 +352,11 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 ### 8.5 Audit
 
 - `audit_events(seq, at, type, actor, session_id, quote_id, payload, payload_hash, prev_hash, hash)`, with `payload_hash = SHA-256(canonical payload)` and `hash = SHA-256(prev_hash + payload_hash + seq, at, type)`. Chaining over `payload_hash` (*proposed*) lets the dashboard verify the chain without the payloads, so personal data in a payload can be hidden or redacted without breaking it.
+- Each event also carries `session_prev_hash`, the hash of the previous event in the same session. This lets one order's chain be verified on its own, which `docs/specs/dashboard.md` §3.4 needs, while the global chain still covers everything.
 - The writer takes a transaction-level advisory lock (`pg_advisory_xact_lock`) so the chain stays linear. It is released at commit, so it would also work through transaction pooling, but the app connects directly anyway (section 10.1). The application's database role has only `INSERT` and `SELECT` on the table.
 - Events: request, candidates considered, filters applied, choice and reason codes, quote, SMS sent or failed, confirmation (vision §11). The full engine input is stored so any decision can be replayed.
+- Conversation turns (`buyer_said`, `agent_said`) and tool calls with their full responses (`tool_called`, `tool_returned`) are audit events too (`docs/specs/README.md`). Their payloads are private (section 9.5). `docs/specs/dashboard.md` §5 lists the event types the dashboard needs.
+- Events store only masked phone numbers. The full number stays in `users` and is deleted after the event (`docs/specs/call-screen.md` §6).
 - `scripts/verify_audit_chain.py` checks the chain, for the pitch.
 
 ### 8.6 Dashboard
@@ -343,18 +364,19 @@ The same MCP URL as a custom connector in ChatGPT. Check its auth requirements w
 - A `status_events` row is written in the same transaction as each audit event. A trigger calls `pg_notify`. A FastAPI listener on its own direct connection (port 5432, not PgBouncer) pushes the events over two SSE streams: a public one with the public part of each event, and a private one filtered to the logged-in user's own orders (operators get all).
 - `/dashboard`: orders grouped by company. Open one to see the steps in plain words, rejected candidates, flags and confirmation state. Failures too: rejected, link expired, SMS failed, callback requested. Large type, readable from a distance.
 - The relay emits call events (started, tool called, ended), so a call shows up while it is still going on.
-- A periodic job marks expired quotes and emits the event, because expiry does not happen on its own.
+- A periodic job marks expired quotes and emits the event, because expiry does not happen on its own. It only runs when expiry is on, which it isn't during the event.
+- On connect, a stream sends a snapshot of the current sessions, then live events. Session states follow `docs/specs/dashboard.md` §4.
 - Public and private views (decided 2026-11-14): anyone can see general data without logging in, and only the owner sees chat logs and contact details (section 9.5). Each status event carries a public part (step, status, counts, totals, timestamps, generated company name, no phone numbers or personal names) next to the private detail.
 - Private endpoints accept web sessions only, never MCP tokens, so no agent can read the log (vision §8). Public endpoints carry no audit payloads, tool arguments or transcripts.
 - How operators log in is a follow-up issue (section 14).
 
 ## 9. Endpoints and messages
 
-Checked against the UI design (18 screens: landing, call, confirmation, dashboard, shop) on 2026-11-14. Everything under `/api/v1` is in the OpenAPI document. Paths and fields are *proposed* until the first implementation, but every screen in the design maps to a row here.
+Checked on 2026-11-14 against the UI design in `docs/design/` (18 screens: start, call, confirmation, dashboard, webshop) and the specs in `docs/specs/`. Screen names below are the exported ones in `docs/design/screens/`. Everything under `/api/v1` is in the OpenAPI document. Paths and fields are *proposed* until the first implementation, but every screen in the design maps to a row here.
 
 Two rules, from vision §6 and §8:
 
-- **The confirmation link goes only to the account that made the order**: to that account's simulated phone inbox, and by Twilio SMS to allowlisted numbers when the flag is on (section 8.2). No agent tool, voice message or public endpoint returns the token or the link. The design's "Tap to check it" on the call-end screen fits if it opens the message in the simulated phone. The shop's "Open confirmation page" doesn't: a browser agent works inside that page and could follow the link (vision §8). So the simulated inbox is shown on the phone page only, never in the shop (decided).
+- **The confirmation link goes only to the account that made the order**: to that account's simulated phone inbox, and by Twilio SMS to allowlisted numbers when the flag is on (section 8.2). No agent tool, voice message or public endpoint returns the token or the link. The notification "Tap to check it" on `13-call-ended` fits if it opens the message in the simulated phone. The webshop's "Open confirmation page" (`42-webshop-quote`) doesn't: a browser agent works inside that page and could follow the link (vision §8). So the simulated inbox is shown on the phone page only, never in the shop (decided).
 - **Agents get the seven tools and nothing else.** Confirm, cancel, acknowledgements, edits on the page, the inbox, the private dashboard and the audit log are web-session endpoints. They never accept MCP tokens and are never registered as WebMCP tools.
 
 ### 9.1 Agent tools and their REST twins
@@ -376,26 +398,26 @@ Fields the screens need that section 4.1 doesn't list yet:
 
 - **Customer context**: `company_name`, exclusions with Finnish and English labels, `phone_masked`, usual items with product id, quantity and unit ("my usual order" asks for all of them at once).
 - **Line**: name in Finnish and English, `image_url` (section 5.5), `reason_text` in Finnish and English, price per kg or litre, stock status (verified or unverified), origin, `alternatives[]` (id, label, quantity, line total).
-- **Request group**: `LineRequest` gets an optional `group` label that is echoed back, and the quote gives a subtotal per group (Shop-3: "Mon, chicken curry, 3 lines, 118,40 €").
+- **Request group**: `LineRequest` gets an optional `group` label that is echoed back, and the quote gives a subtotal per group (`42-webshop-quote`: "Mon, chicken curry, 3 lines, 118,40 €").
 - **Trace**: candidates found, removed per reason, left, and the ranking rule ("14 found, −4 arrive after Monday, −3 out of stock, −2 contain milk, 5 safe"). Each candidate is counted once, at the first step it fails, in the order of section 4.2.
-- **Flag**: stable `flag_key`, `line_ids`, `kind` (`acknowledge` or `choose`), `options[]` with line totals for `choose` (Confirm-1: "Keep 24 l / Exactly 20 l"), `acknowledged_at`.
-- **Quote**: `version`, `parent_quote_id`, `expires_at`, a delivery summary for the whole order, and `not_ordered[]` for recipe ingredients the buyer said they already have. Nothing is left out unless the buyer said so (vision §6).
+- **Flag**: stable `flag_key`, `line_ids`, `kind` (`acknowledge` or `choose`), `options[]` with line totals for `choose` (`20-confirm-check`: "Keep 24 l / Exactly 20 l"), `acknowledged_at`.
+- **Quote**: `version`, `parent_quote_id`, `expires_at`, a delivery summary for the whole order, and `not_ordered[]` for recipe ingredients without a product link, which are not ordered (section 5.4).
 - **Recipe**: `image_url` (in the data). The data has no English names, no English diet labels and no cooking time, so the design's "45 min" has no source.
 
 ### 9.2 Accounts and web sessions
 
 | Method and path | Request → response | Screens |
 |---|---|---|
-| `POST /api/v1/demo/accounts` | `{phone_e164, exclusions[], lang}` → creates the demo user and a generated company, sets the session cookie (this is the login), returns `{company_name, phone_masked, kitchen_profile, usual_items}`. Exclusions must be keys of `allergen_rules.yaml` | Main, Call-2 |
-| `GET /api/v1/private/inbox` | → `[{id, at, text, link}]` for the logged-in account. New messages also arrive on the private stream as `inbox_message` | Simulated phone (Call-4) |
-| `POST /api/v1/signup` | `{email, password, phone_e164}` → session cookie | Connector accounts, shop |
-| `POST /api/v1/session`, `DELETE /api/v1/session` | `{email, password}` → session cookie; log out | Shop, dashboard |
-| `GET /api/v1/me` | → `{company_name, exclusions, phone_masked}` | Shop header, call screen |
+| `POST /api/v1/demo/accounts` | `{phone_e164, exclusions[], lang}` → creates a demo user for this browser and sets the session cookie (this is the login). Returns `{company_name, phone_masked, kitchen_profile, usual_items}`. Exclusions must be keys of `allergen_rules.yaml` | `10-call-setup`, `11-call-contact`, webshop |
+| `GET /api/v1/private/inbox` | → `[{id, at, text, link}]` for the logged-in user. New messages also arrive on the private stream as `inbox_message` | Simulated phone (`13-call-ended`) |
+| `POST /api/v1/signup` | `{email, password, phone_e164}` → session cookie | Connector accounts |
+| `POST /api/v1/session`, `DELETE /api/v1/session` | `{email, password}` → session cookie; log out | Connector users on the dashboard |
+| `GET /api/v1/me` | → `{company_name, exclusions, phone_masked}` | Call screen, webshop chat header |
 
-- **Same browser, same account**: number entry again in the same browser updates the profile. A number that already has an account in another browser gets a new account and never logs into the old one, so nobody can read another visitor's chats by typing their number (*proposed*). Private data belongs to the account, not to the phone number.
-- **Generated company names**: we generate them when the account is created, and the visitor never types one, so they are safe to show publicly.
+- **Company per number, private data per user**: the same number gets the same generated company and kitchen profile (`docs/specs/call-screen.md` §2.2), so cards group by company on the dashboard. Each browser that types the number is its own user, and private data (transcripts, contact details) belongs to the user who made the session. Typing someone else's number therefore shows that company's public data, never their chats (*proposed*: this reconciles the spec with the private-data decision).
+- **Generated company names**: unique, funny-sounding Oy names, generated by us and never typed by the visitor, so they are safe to show publicly. A change to the kitchen profile applies from the next call.
 
-The connector's OAuth routes come from the MCP SDK (section 7.3). Every path into a call must go through the number entry, because that number is the SMS recipient and the session is the login. The design's desktop path (Landing → Call-0 → Call-3) skips it.
+The connector's OAuth routes come from the MCP SDK (section 7.3). Every path into a call goes through the number entry, because that number is the SMS recipient and the session is the login. On a computer the same phone flow runs inside a frame (`14-call-on-computer`), number entry included.
 
 ### 9.3 Voice WebSocket (`/voice/ws`)
 
@@ -407,9 +429,9 @@ Binary frames carry PCM audio (16 kHz up, 24 kHz down). Text frames carry JSON:
 | Server → browser | `ready` | none (Gemini session open) |
 | Server → browser | `interrupted` | none (flush playback, section 7.1) |
 | Server → browser | `transcript` | `who` (buyer or agent), `text`, `final` |
-| Server → browser | `ended` | `duration_s`, `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` without a quote), `inbox` (true when the message is in the simulated phone) |
+| Server → browser | `ended` | `duration_s`, `ended_by` (visitor, agent, time limit or dropped), `quote_id` or null, `total_cents`, `sms_status` (`sent`, `failed`, `off` when the flag is off or the number isn't allowlisted, or `none` without a quote), `inbox` (true when the message is in the simulated phone) |
 
-`ended` arrives before the socket closes and covers the no-quote and SMS-failed cases. The link itself never travels on this socket: the simulated phone reads it from the inbox endpoint (section 9.2). Live captions need Gemini Live's input and output transcription turned on. Transcripts go to the dashboard as status events and to a separate `call_transcripts` table. They stay out of the engine input (vision §5) and out of the audit chain, which can never be erased (*proposed*).
+`ended` arrives before the socket closes and covers the no-quote and SMS-failed cases. The link itself never travels on this socket: the simulated phone reads it from the inbox endpoint (section 9.2). Live captions need Gemini Live's input and output transcription turned on. Transcripts become `buyer_said` and `agent_said` audit events (`docs/specs/README.md`), with private payloads (section 9.5). They never enter the engine input (vision §5). Because the chain hashes over `payload_hash` (section 8.5), the text can be deleted after the event without breaking the chain.
 
 ### 9.4 Confirmation page (web only)
 
@@ -417,13 +439,13 @@ The token is in the path. `GET` never uses it up.
 
 | Method and path | Request → response | Screens |
 |---|---|---|
-| `GET /api/v1/confirmations/{token}` | → `{state, expires_at, company, exclusions, quote{id, version, hash, total_cents, delivery}, requests[{asked, group, lines[]}], flags[], order?}` | Confirm 1 to 3 |
+| `GET /api/v1/confirmations/{token}` | → `{state, lang, expires_at, company, exclusions, quote{id, version, hash, total_cents, delivery}, requests[{asked, group, lines[], not_ordered[]}], flags[], order?}` | `20-confirm-check` to `22-confirm-received` |
 | `POST …/{token}/acknowledgements` | `{quote_hash, flag_key}` → updated view | "Got it" |
 | `POST …/{token}/edits` | `{quote_hash, op: set_quantity \| remove \| choose_alternative, line_id, quantity?, alternative_id?}` → new view; 409 if the hash is stale | Stepper, remove, alternatives |
-| `POST …/{token}/confirm` | `{quote_hash}` → `{order_number, confirmed_at}`; 409 with a new view if availability got worse; 422 if a flag isn't acknowledged; 410 if expired | Confirm |
+| `POST …/{token}/confirm` | `{quote_hash}` → `{order_number, confirmed_at}`; 409 with a new view if availability got worse; 422 if a flag isn't acknowledged; 410 if expired (production only) | Confirm |
 | `POST …/{token}/cancel` | `{quote_hash}` → `{state: cancelled}` | Cancel |
 
-Edits use the same service as `update_quote`. The page also needs states the design doesn't show yet: expired, cancelled, void after the availability recheck, an edit that ends in a clarification or a rejection, and already confirmed. Confirm-3 says the receipt can be reopened "until the end of the event", but the token expires with the quote (section 8.2). This needs a decision: either a read-only receipt after confirming, or no reopening.
+Edits use the same service as `update_quote`, and acknowledgements carry over by `flag_key` (section 8.3). The `state` values follow the page states in `docs/specs/confirmation-page.md` §3. After confirming, the `GET` keeps working read-only as the receipt until the end of the event (§7 of that spec).
 
 ### 9.5 Dashboard: public and private
 
@@ -435,7 +457,7 @@ Decided 2026-11-14: general data is public with no login, and private data needs
 |---|---|---|
 | `GET /api/v1/public/orders?state=&channel=&since=` | `business_now`, `totals{active, waiting, confirmed, attention, confirmed_cents, by_channel}`, `companies[{name, exclusions, orders[{session_id, order_number, channel, client, state, state_since, title, step_text, line_count, total_cents, flags, next_step}]}]` | Overview |
 | `GET /api/v1/public/orders/{session_id}` | Header, lines with trace and ranked candidates, flags (text, acknowledged or not), `quote{id, version, hash}`, signature valid | Summary |
-| `GET /api/v1/public/orders/{session_id}/steps` | `[{seq, order_index, at, actor, type, text{fi, en}, payload_hash, prev_hash, hash}]` | Full flow (engine steps), Audit log (without JSON) |
+| `GET /api/v1/public/orders/{session_id}/steps` | `[{seq, order_index, at, actor, type, text{fi, en}, payload_hash, prev_hash, session_prev_hash, hash}]` | Full flow (engine steps), Audit log (without JSON) |
 | `GET /api/v1/public/audit/verify?session_id=` | `{ok, checked, first_bad_seq, signature_valid}` | "Audit chain intact", "Verify again" |
 | SSE `/api/v1/public/stream` | `order_updated` (public card), step events | Live updates |
 
@@ -452,20 +474,21 @@ Decided 2026-11-14: general data is public with no login, and private data needs
 - **Private**: transcripts, phone numbers, emails, tool arguments and results, raw payloads and the Identity row.
 - Another user's `session_id` in a private endpoint returns 404, so ids reveal nothing.
 - "Verify again" works without login because the chain hashes over `payload_hash` (section 8.5).
-- The chain is global (section 8.5). The design numbers events per order ("#1 to #31"), so the responses carry `order_index` for display next to the global `seq`.
+- Each event has a link within its session as well as its place in the global chain (section 8.5), so one order's chain can be verified on its own. `order_index` is the event's number within the order ("#1 to #31" in the design), shown next to the global `seq`.
+- Session states and event types follow `docs/specs/dashboard.md` §4 and §5.
 - The client name ("Claude", "ChatGPT") comes from the OAuth client registration. A WebMCP call can't tell which agent is calling, so it shows as "browser agent".
 - *Proposed*: an MCP or WebMCP session counts as active for 10 minutes after its last tool call, since it has no hang-up.
 - Operators are users with an operator role. How they log in is a follow-up issue (section 14).
 
-### 9.6 Shop
+### 9.6 Webshop chat (stretch)
 
 | Method and path | Purpose |
 |---|---|
-| `GET /api/v1/quotes/current` | The session's latest quote ("Current order") |
+| `GET /api/v1/quotes/current` | The session's latest quote ("Current order" in the chat panel) |
 | `GET /api/v1/quotes/{id}` | One quote |
-| `POST /api/v1/chat` | `{conversation_id, message}` → streamed text and cards (menu, recipe, quote). Only if the in-page agent is built: it is the stretch A2UI item (vision §13), and it would run a server-side model as an MCP client like the voice relay, with channel `web_chat` |
+| `POST /api/v1/chat` | `{conversation_id, message}` → streamed text and cards (menu, recipe, quote). Runs Gemini on our server with the shared agent prompt, as an MCP client like the voice relay, with channel `web_chat` (`docs/specs/webshop-chat.md`) |
 
-There is no cart endpoint. The page keeps the order list in the browser and sends it as one `build_quote` (*proposed*). The design shows a static copy of the webshop with a chat panel instead of the P0 shop in section 7.2 (search, product cards, WebMCP). Which one is P0 needs a decision.
+The webshop is the scraped static page (section 7.2), so there are no cart, product or search endpoints for it. The WebMCP tools use the REST twins in section 9.1. The confirmation page chat (stretch on top of stretch) reuses `POST /api/v1/chat` with the confirmation's quote, and it can only call `update_quote`.
 
 ### 9.7 Other
 
@@ -481,8 +504,19 @@ New columns and event types these endpoints need:
 - `users`: `role` (`buyer` or `operator`). `companies`: generated name.
 - `sms_messages`: one row per message and delivery path (`twilio` or `inbox`), each with its own status.
 - `quotes`: `version`, `parent_quote_id`.
-- `audit_events`: `actor`, `text_fi`, `text_en`, `payload_hash` (section 8.5).
-- Event types: `tool_returned` (with the response sent to the agent), `link_opened`, `flag_acknowledged`, `stock_rechecked`, `sms_delivered`, `sms_failed`.
+- `audit_events`: `actor`, `text_fi`, `text_en`, `payload_hash`, `session_prev_hash` (section 8.5).
+- Event types: the list in `docs/specs/dashboard.md` §5, plus `tool_returned` (with the response sent to the agent), `stock_rechecked`, `sms_delivered` and `inbox_delivered`.
+
+### 9.8 Where later decisions differ from `docs/specs/`
+
+These decisions were made after the specs were written, so the specs need an update. The plan follows the later decision.
+
+| Topic | `docs/specs/` says | Decided later (2026-11-14) |
+|---|---|---|
+| Dashboard access | No login, everything public, including the conversation (`dashboard.md` §2, §3.3, §8; `call-screen.md` §2.1 notice) | General data public, conversation and contact details private behind the number-entry login (section 9.5) |
+| SMS | Twilio always sends (`call-screen.md` §2.4, §3; `confirmation-page.md` §2) | Every message goes to the simulated phone inbox. Twilio sits behind a flag that is off by default, for allowlisted numbers only (section 8.2). The per-number SMS limit in `call-screen.md` §6 then only matters for allowlisted numbers |
+| Link in the webshop chat | "Open confirmation page" card in the chat (`webshop-chat.md` §2, §4.4) | The inbox shows on the phone page only, because a browser agent works inside the shop page (vision §8). Webshop visitors read the link on the phone page in the same browser (*proposed*) |
+| When the SMS goes after a call | The agent calls `request_confirmation` once the visitor agrees, and the message waits for the end of the call (`call-screen.md` §2.4, §3; the example in `dashboard.md` §3.3) | The relay calls `request_confirmation` at hang-up for the call's latest ready quote (section 7.1). **This one needs a single answer**: should a ready quote the visitor never agreed to still be sent at hang-up? |
 
 ## 10. Hosting on Azure
 
@@ -598,13 +632,12 @@ Tests:
 The first review settled every other open question (section 1). These three get their own issues, created from this spec:
 
 1. **Nut-free set.** Whether pine nut (`PN`), coconut (`SO`) and peanut (`AP`) count as nuts. Vision §10 left this to old issue #6, which is not a source.
-2. **Demo account content.** The kitchen profile and order history a new demo account gets (vision §13, still open).
+2. **Demo order history.** The seeded order history a new demo company gets, so "my usual" works (vision §13, still open). The kitchen profile is chosen by the visitor (`docs/specs/call-screen.md` §2.2).
 3. **Operator login.** How Aimo operators log in to see every company's private data (vision §11). The public and private split and the buyers' login are decided (sections 9.2 and 9.5).
 
-Inputs we are waiting for:
+Also open: the SMS timing question at the end of section 9.8.
 
-- The 11-column `data/valio_category_names.csv` from the category brief.
-- The product image file (`code`, `name`, `img`).
+Input we are waiting for: the product image file (`code`, `name`, `img`).
 
 ## 15. External references (checked 2026-11-14)
 
