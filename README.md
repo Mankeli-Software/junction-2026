@@ -22,9 +22,7 @@ The demo runs at **https://simo.mankeli.co**. The start page leads to the call, 
 
 No real order is ever placed.
 
-## Status
-
-Built on `main` so far:
+## What we have built:
 
 - The shared contract: Pydantic models for the ten agent tools and the engine (`api/app/schemas/`).
 - The engine pipeline: resolve, allergen and diet filter (with one-off exclusions for a single order), availability and dates, units and rounding, ranking, substitution, price, sanity checks and the decision (`api/app/engine/`).
@@ -92,35 +90,7 @@ flowchart LR
 - **Services**: gather the inputs, call the engine, store the quote, write the audit events and send the link.
 - **Interfaces**: MCP tools and their REST twins share one set of models, so the two cannot drift apart. The voice relay and the chat agent are MCP clients of our own server, like any outside agent.
 
-Hosting: one Azure VM runs Caddy, FastAPI and SvelteKit with Docker Compose, against Azure Database for PostgreSQL. Secrets come from Azure Key Vault. Laptops run Postgres in Docker instead. Details are in `technical-plan.md` §2 and §10.
-
-## Run it locally
-
-You need Docker. For work on one part, you also need Python 3.12 with `uv` (API) or Node 24 with `pnpm` (web).
-
-```sh
-cp .env.example .env
-docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml up --build
-```
-
-This starts Caddy, the API, the web app and a local Postgres on http://localhost. Try http://localhost/api/v1/health. Compose runs the confirmation page against the API; for its fixture at http://localhost/c/fx-ready-try, start with `CONFIRMATION_SOURCE=fixture`.
-
-Migrations run when the API container starts, but the database starts empty. To order anything, load the catalogue (needs `VALIO_API_KEY` in `.env`; it downloads the product file once) and the recipes (no API calls):
-
-```sh
-docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml exec api python -m app.loaders.catalogue --download
-docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.dev.yml exec api python -m app.loaders.recipes
-```
-
-The call needs `GEMINI_API_KEY`. The webshop chat also needs `CHAT_MODEL`, and reading a recipe photo needs `RECIPE_VISION_MODEL`; without them those endpoints answer 503. Prices and stock come from the recorded Valio snapshots (`VALIO_SOURCE=snapshot`), so local work never polls the live API. `.env.example` explains every setting.
-
-The dev servers, tests, linters and migrations are in [`CLAUDE.md`](CLAUDE.md), section "Commands". The web app also has its own [`web/README.md`](web/README.md), with its fixtures and the WebMCP setup.
-
-Never commit `.env`, any API key or a real phone number.
-
-## Deploy
-
-The `production` branch deploys, not `main`. The VM (`simo.mankeli.co`) runs whatever `production` points at, and a release fast-forwards `production` to a tested commit on `main`. CI runs on pushes to `production` only. The VM reads its secrets from Azure Key Vault and its other settings from `deploy/vm.env`. The steps are in [`CLAUDE.md`](CLAUDE.md).
+Hosting: one Azure VM runs Caddy, FastAPI and SvelteKit with Docker Compose, against Azure Database for PostgreSQL.
 
 ## Repository map
 
@@ -134,13 +104,3 @@ The `production` branch deploys, not `main`. The VM (`simo.mankeli.co`) runs wha
 | `docs/` | UI specs (`specs/`), the design export (`design/`), screenshots, issue plans (`plans/`) and the audit chain format |
 | `spikes/` | Throwaway experiments, for now the Gemini Live spike and its results |
 | `scripts/` | One-off tools: design export, recipe-to-product mapping, the product image crawl, an availability date check, the webshop's product pick, hand-out accounts, the audit chain check, and voice and chat smoke tests |
-
-## Read more
-
-- [`vision.md`](vision.md): what we build and why. The source of truth.
-- [`technical-plan.md`](technical-plan.md): how we build it: architecture, build-or-buy choices, endpoints, hosting and milestones.
-- [`docs/specs/`](docs/specs/README.md): what each demo screen does (call screen, confirmation page, dashboard, webshop chat and its A2UI cards).
-- [`docs/design/`](docs/design/README.md): how the screens look, with exported screens and the link to the design canvas.
-- [`valio-api-analysis.md`](valio-api-analysis.md): findings about the Valio mock API and its data.
-- [GitHub issues](https://github.com/Mankeli-Software/junction-2026/issues): the work, with the overview, owners and order of work in [#63](https://github.com/Mankeli-Software/junction-2026/issues/63). Issues #1 to #21 describe an earlier model and are superseded.
-- [`CLAUDE.md`](CLAUDE.md): how the team works: workflow, ownership, commands and the Valio API rules.
